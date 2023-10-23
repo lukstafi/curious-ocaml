@@ -1,0 +1,159 @@
+assoc-l: create    k= 1 n=       2 t=      0.25s
+assoc-l: use known k= 1 n=       2 t=      1.09s
+assoc-l: use fresh k= 1 n=       2 t=      1.75s
+assoc-l: create    k= 2 n=       4 t=      0.25s
+assoc-l: use known k= 2 n=       4 t=      1.52s
+assoc-l: use fresh k= 2 n=       4 t=      2.58s
+assoc-l: create    k= 3 n=       8 t=      0.18s
+assoc-l: use known k= 3 n=       8 t=      2.45s
+assoc-l: use fresh k= 3 n=       8 t=      4.59s
+assoc-l: create    k= 4 n=      16 t=      0.19s
+assoc-l: use known k= 4 n=      16 t=      4.22s
+assoc-l: use fresh k= 4 n=      16 t=      8.03s
+assoc-l: create    k= 5 n=      32 t=      0.17s
+assoc-l: use known k= 5 n=      32 t=      8.05s
+assoc-l: use fresh k= 5 n=      32 t=     16.40s
+assoc-l: create    k= 6 n=      64 t=      0.22s
+assoc-l: use known k= 6 n=      64 t=     17.05s
+assoc-l: use fresh k= 6 n=      64 t=     32.10s
+assoc-l: create    k= 7 n=     128 t=      0.19s
+assoc-l: use known k= 7 n=     128 t=     30.36s
+assoc-l: use fresh k= 7 n=     128 t=     60.12s
+assoc-l: create    k= 8 n=     256 t=      0.19s
+assoc-l: use known k= 8 n=     256 t=     59.66s
+assoc-l: use fresh k= 8 n=     256 t=    120.34s
+assoc-l: create    k= 9 n=     512 t=      0.19s
+assoc-l: use known k= 9 n=     512 t=    119.07s
+assoc-l: use fresh k= 9 n=     512 t=    236.58s
+treemap: create    k= 1 n=       2 t=      0.48s
+treemap: use known k= 1 n=       2 t=      1.04s
+treemap: use fresh k= 1 n=       2 t=      1.45s
+treemap: create    k= 2 n=       4 t=      0.81s
+treemap: use known k= 2 n=       4 t=      1.14s
+treemap: use fresh k= 2 n=       4 t=      1.54s
+treemap: create    k= 3 n=       8 t=      0.82s
+treemap: use known k= 3 n=       8 t=      1.32s
+treemap: use fresh k= 3 n=       8 t=      1.78s
+treemap: create    k= 4 n=      16 t=      1.23s
+treemap: use known k= 4 n=      16 t=      1.53s
+treemap: use fresh k= 4 n=      16 t=      2.05s
+treemap: create    k= 5 n=      32 t=      1.59s
+treemap: use known k= 5 n=      32 t=      1.92s
+treemap: use fresh k= 5 n=      32 t=      2.36s
+treemap: create    k= 6 n=      64 t=      2.32s
+treemap: use known k= 6 n=      64 t=      2.14s
+treemap: use fresh k= 6 n=      64 t=      2.65s
+treemap: create    k= 7 n=     128 t=      2.69s
+treemap: use known k= 7 n=     128 t=      2.53s
+treemap: use fresh k= 7 n=     128 t=      2.92s
+treemap: create    k= 8 n=     256 t=      3.58s
+treemap: use known k= 8 n=     256 t=      2.81s
+treemap: use fresh k= 8 n=     256 t=      3.21s
+treemap: create    k= 9 n=     512 t=      4.14s
+treemap: use known k= 9 n=     512 t=      3.14s
+treemap: use fresh k= 9 n=     512 t=      3.52s
+treemap: create    k=10 n=    1024 t=      5.12s
+treemap: use known k=10 n=    1024 t=      3.62s
+treemap: use fresh k=10 n=    1024 t=      3.80s
+treemap: create    k=11 n=    2048 t=      6.47s
+treemap: use known k=11 n=    2048 t=      4.28s
+treemap: use fresh k=11 n=    2048 t=      4.15s
+treemap: create    k=12 n=    4096 t=      7.92s
+treemap: use known k=12 n=    4096 t=      5.15s
+treemap: use fresh k=12 n=    4096 t=      4.32s
+treemap: create    k=13 n=    8192 t=      9.80s
+treemap: use known k=13 n=    8192 t=      6.03s
+treemap: use fresh k=13 n=    8192 t=      4.69s
+treemap: create    k=14 n=   16384 t=     14.78s
+treemap: use known k=14 n=   16384 t=      7.64s
+treemap: use fresh k=14 n=   16384 t=      4.86s
+treemap: create    k=15 n=   32768 t=     18.96s
+treemap: use known k=15 n=   32768 t=      9.42s
+treemap: use fresh k=15 n=   32768 t=      5.27s
+treemap: create    k=16 n=   65536 t=     26.11s
+treemap: use known k=16 n=   65536 t=     11.92s
+treemap: use fresh k=16 n=   65536 t=      5.45s
+treemap: create    k=17 n=  131072 t=     33.79s
+treemap: use known k=17 n=  131072 t=     14.81s
+treemap: use fresh k=17 n=  131072 t=      6.10s
+treemap: create    k=18 n=  262144 t=     41.43s
+treemap: use known k=18 n=  262144 t=     17.19s
+treemap: use fresh k=18 n=  262144 t=      6.31s
+treemap: create    k=19 n=  524288 t=     50.80s
+treemap: use known k=19 n=  524288 t=     19.54s
+treemap: use fresh k=19 n=  524288 t=      6.55s
+treemap: create    k=20 n= 1048576 t=     66.45s
+treemap: use known k=20 n= 1048576 t=     23.90s
+treemap: use fresh k=20 n= 1048576 t=      7.18s
+treemap: create    k=21 n= 2097152 t=     80.12s
+treemap: use known k=21 n= 2097152 t=     27.64s
+treemap: use fresh k=21 n= 2097152 t=      7.52s
+treemap: create    k=22 n= 4194304 t=    126.47s
+treemap: use known k=22 n= 4194304 t=     31.76s
+treemap: use fresh k=22 n= 4194304 t=      7.27s
+hashtbl: create    k= 1 n=       2 t=     27.00s
+hashtbl: use known k= 1 n=       2 t=      1.42s
+hashtbl: use fresh k= 1 n=       2 t=      1.38s
+hashtbl: create    k= 2 n=       4 t=      9.12s
+hashtbl: use known k= 2 n=       4 t=      1.49s
+hashtbl: use fresh k= 2 n=       4 t=      1.44s
+hashtbl: create    k= 3 n=       8 t=      5.47s
+hashtbl: use known k= 3 n=       8 t=      1.44s
+hashtbl: use fresh k= 3 n=       8 t=      1.48s
+hashtbl: create    k= 4 n=      16 t=      4.03s
+hashtbl: use known k= 4 n=      16 t=      1.40s
+hashtbl: use fresh k= 4 n=      16 t=      1.46s
+hashtbl: create    k= 5 n=      32 t=      2.91s
+hashtbl: use known k= 5 n=      32 t=      1.46s
+hashtbl: use fresh k= 5 n=      32 t=      1.55s
+hashtbl: create    k= 6 n=      64 t=      2.40s
+hashtbl: use known k= 6 n=      64 t=      1.54s
+hashtbl: use fresh k= 6 n=      64 t=      1.50s
+hashtbl: create    k= 7 n=     128 t=      2.09s
+hashtbl: use known k= 7 n=     128 t=      1.58s
+hashtbl: use fresh k= 7 n=     128 t=      1.68s
+hashtbl: create    k= 8 n=     256 t=      1.90s
+hashtbl: use known k= 8 n=     256 t=      1.58s
+hashtbl: use fresh k= 8 n=     256 t=      1.87s
+hashtbl: create    k= 9 n=     512 t=      1.79s
+hashtbl: use known k= 9 n=     512 t=      1.78s
+hashtbl: use fresh k= 9 n=     512 t=      1.99s
+hashtbl: create    k=10 n=    1024 t=      3.69s
+hashtbl: use known k=10 n=    1024 t=      1.80s
+hashtbl: use fresh k=10 n=    1024 t=      2.12s
+hashtbl: create    k=11 n=    2048 t=      4.75s
+hashtbl: use known k=11 n=    2048 t=      1.81s
+hashtbl: use fresh k=11 n=    2048 t=      1.84s
+hashtbl: create    k=12 n=    4096 t=      5.62s
+hashtbl: use known k=12 n=    4096 t=      1.96s
+hashtbl: use fresh k=12 n=    4096 t=      1.92s
+hashtbl: create    k=13 n=    8192 t=      6.41s
+hashtbl: use known k=13 n=    8192 t=      2.46s
+hashtbl: use fresh k=13 n=    8192 t=      2.04s
+hashtbl: create    k=14 n=   16384 t=      8.42s
+hashtbl: use known k=14 n=   16384 t=      3.09s
+hashtbl: use fresh k=14 n=   16384 t=      1.93s
+hashtbl: create    k=15 n=   32768 t=     11.68s
+hashtbl: use known k=15 n=   32768 t=      3.90s
+hashtbl: use fresh k=15 n=   32768 t=      1.88s
+hashtbl: create    k=16 n=   65536 t=     14.98s
+hashtbl: use known k=16 n=   65536 t=      5.05s
+hashtbl: use fresh k=16 n=   65536 t=      1.93s
+hashtbl: create    k=17 n=  131072 t=     19.19s
+hashtbl: use known k=17 n=  131072 t=      5.85s
+hashtbl: use fresh k=17 n=  131072 t=      1.96s
+hashtbl: create    k=18 n=  262144 t=     20.03s
+hashtbl: use known k=18 n=  262144 t=      6.35s
+hashtbl: use fresh k=18 n=  262144 t=      1.98s
+hashtbl: create    k=19 n=  524288 t=     21.53s
+hashtbl: use known k=19 n=  524288 t=      6.78s
+hashtbl: use fresh k=19 n=  524288 t=      2.21s
+hashtbl: create    k=20 n= 1048576 t=     23.95s
+hashtbl: use known k=20 n= 1048576 t=      7.58s
+hashtbl: use fresh k=20 n= 1048576 t=      1.96s
+hashtbl: create    k=21 n= 2097152 t=     23.31s
+hashtbl: use known k=21 n= 2097152 t=      6.64s
+hashtbl: use fresh k=21 n= 2097152 t=      1.95s
+hashtbl: create    k=22 n= 4194304 t=     33.13s
+hashtbl: use known k=22 n= 4194304 t=      7.54s
+hashtbl: use fresh k=22 n= 4194304 t=      1.90s
