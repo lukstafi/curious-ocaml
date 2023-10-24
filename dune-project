@@ -1,6 +1,6 @@
 (lang dune 3.10)
 
-(using mdx 2)
+(using mdx 0.4)
 
 (name curious)
 
@@ -24,6 +24,7 @@
  (synopsis
   "A curious book about OCaml")
  (description "A curious book about OCaml: logic (types), algebra (values), computation (rewrite semantics), functions (lambda calculus), constraints, monads, expression.")
+ (allow_empty)
  (depends
   ocaml
   dune

@@ -1,0 +1,116 @@
+(rule
+ (alias new_book)
+ (target README.md)
+ (mode promote)
+ (deps
+  chapter1/README.md
+  chapter2/README.md
+  chapter3/README.md
+  chapter4/README.md
+  chapter5/README.md
+  chapter6/README.md
+  chapter7/README.md
+  chapter8/README.md
+  chapter9/README.md
+  chapter10/README.md
+  chapter11/README.md)
+ (action
+  (with-stdout-to
+   README.md
+   (progn
+    (echo
+     "<!-- Do NOT modify this file, it is automatically generated -->\n")
+    (echo "# Curious OCaml\n")
+    (cat chapter1/README.md)
+    (cat chapter2/README.md)
+    (cat chapter3/README.md)
+    (cat chapter4/README.md)
+    (cat chapter5/README.md)
+    (cat chapter6/README.md)
+    (cat chapter7/README.md)
+    (cat chapter8/README.md)
+    (cat chapter9/README.md)
+    (cat chapter10/README.md)
+    (cat chapter11/README.md)))))
+
+(rule
+ (alias old_lectures_as_book)
+ (target old_lectures_as_book.md)
+ (mode promote)
+ (deps
+  chapter1/functional-lecture01.md
+  chapter2/functional-lecture02.md
+  chapter2/functional-lecture02-deriv1.md
+  ; chapter2/lecture02-exercises.md
+  chapter3/functional-lecture03.md
+  chapter3/lecture03-exercises.md
+  chapter4/functional-lecture04.md
+  chapter4/lecture04-exercises.md
+  ; chapter5/functional-lecture05.md
+  chapter5/lecture05-exercises.md
+  chapter6/functional-lecture06.md
+  ; chapter/lecture06-exercises.md
+  chapter7/functional-lecture07.md
+  chapter7/lecture07-exercises.md
+  chapter8/functional-lecture08.md
+  ; chapter8/lecture08-exercises.md
+  chapter9/functional-lecture09.md
+  ; chapter9/lecture09-exercises.md
+  chapter10/functional-lecture10.md
+  chapter10/lecture10-exercises.md
+  chapter11/functional-lecture11.md
+  chapter11/lecture11-exercises.md
+  ; exam/Exam1.md
+  exam/exam-Feb2013-set1.md
+  exam/exam-Feb2013-set2.md
+  exam/exam-Feb2013-set3.md)
+ (action
+  (with-stdout-to
+   old_lectures_as_book.md
+   (progn
+    (echo
+     "<!-- Do NOT modify this file, it is automatically generated -->\n")
+    (echo "# Curious OCaml\n")
+    (echo "# Chapter 1\n")
+    (cat chapter1/functional-lecture01.md)
+    (echo "# Chapter 2\n")
+    (cat chapter2/functional-lecture02.md)
+    (echo "## Chapter 2: Derivation example\n")
+    (cat chapter2/functional-lecture02-deriv1.md)
+    ; (cat chapter2/lecture02-exercises.md)
+    (echo "# Chapter 3\n")
+    (cat chapter3/functional-lecture03.md)
+    (cat chapter3/lecture03-exercises.md)
+    (echo "# Chapter 4\n")
+    (cat chapter4/functional-lecture04.md)
+    (cat chapter4/lecture04-exercises.md)
+    (echo "# Chapter 5\n")
+    ; (cat chapter5/functional-lecture05.md)
+    (cat chapter5/lecture05-exercises.md)
+    (echo "# Chapter 6\n")
+    (cat chapter6/functional-lecture06.md)
+    ; (cat chapter/lecture06-exercises.md)
+    (echo "# Chapter 7\n")
+    (cat chapter7/functional-lecture07.md)
+    (cat chapter7/lecture07-exercises.md)
+    (echo "# Chapter 8\n")
+    (cat chapter8/functional-lecture08.md)
+    ; (cat chapter8/lecture08-exercises.md)
+    (echo "# Chapter 9\n")
+    (cat chapter9/functional-lecture09.md)
+    ; (cat chapter9/lecture09-exercises.md)
+    (echo "# Chapter 10\n")
+    (cat chapter10/functional-lecture10.md)
+    (cat chapter10/lecture10-exercises.md)
+    (echo "# Chapter 11\n")
+    (cat chapter11/functional-lecture11.md)
+    (cat chapter11/lecture11-exercises.md)
+    (echo "# Exam: Exercises for review\n")
+    (echo "## Exam set 0\n")
+    ; (cat exam/Exam1.md)
+    (echo "## Exam set 1\n")
+    (cat exam/exam-Feb2013-set1.md)
+    (echo "## Exam set 2\n")
+    (cat exam/exam-Feb2013-set2.md)
+    (echo "## Exam set 3\n")
+    (cat exam/exam-Feb2013-set3.md)))))
