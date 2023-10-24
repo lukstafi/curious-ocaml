@@ -11,7 +11,7 @@ Algebraic Data Types and some curious analogies
 For a refresher, let's try to use the rules we introduced last time on some 
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   & \frac{[?]}{\text{\text{{\texttt{fun x -> x}}}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
   & \frac{\frac{}{\text{\text{{\texttt{x}}}} : a}
@@ -20,13 +20,13 @@ simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
   & \frac{}{\text{\text{{\texttt{x}}}} : a} \scriptsize{x} \text{ matches
   with }
   
-\hspace{-0.00839564475928112cm}\raisebox{-0.764310582139098\height}{\includegraphics[width=1.02997507542962cm,height=2.43034238488784cm]{image-1.pdf}}\hspace{-0.0236783418601602cm}
-  \scriptsize{x} \text{ since } e = \text{\text{{\texttt{x}}}}\\\\\\
+{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e : b}}
+ \text{ since } e = \text{\text{{\texttt{x}}}}\\\\\\
   & \frac{\frac{}{\text{\text{{\texttt{x}}}} : a}
   \scriptsize{x}}{\text{\text{{\texttt{fun x -> x}}}} : a \rightarrow a} 
 &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
-\end{eqnarray*}
+\end{matrix} $$
 
 Because $a$ is arbitrary, OCaml puts a *type variable* `'a` for it:
 
@@ -39,7 +39,7 @@ Let's try `fun x -> x+1`, which is the same as `fun x -> ((+) x)
 1`(try it with OCaml/F#!). $[? \alpha]$ will mean “dunno yet, but the same as 
 in other places with $[? \alpha]$”.
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   & \frac{[?]}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?]} &
   \text{use } \rightarrow \text{ introduction:}\\\\\\
   & \frac{\frac{[?]}{\text{\text{{\texttt{((+) x) 1}}}} : [?
@@ -106,7 +106,7 @@ in other places with $[? \alpha]$”.
   \text{\text{{\texttt{int}}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
   1}}}} : \text{\text{{\texttt{int}}}} \rightarrow
   \text{\text{{\texttt{int}}}}} &
-\end{eqnarray*}
+\end{matrix} $$
 
 ## 1.1 Curried form
 
@@ -328,10 +328,10 @@ from one type to the other.
 
 Let's play with the type of binary trees:
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   T & = & 1 + xT^2 = 1 + xT + x^2 T^3 = 1 + x + x^2 T^2 + x^2 T^3 =\\\\\\
   & = & 1 + x + x^2 T^2  (1 + T) = 1 + x (1 + xT^2  (1 + T))
-\end{eqnarray*}
+\end{matrix} $$
 
 Now let's translate the resulting type:
 
@@ -436,10 +436,10 @@ Take the “date” example:
 type date = {year: int; month: int; day: int}
 ```
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   D & = & xxx = x^3\\\\\\
   \frac{\partial D}{\partial x} & = & 3 x^2 = xx + xx + xx
-\end{eqnarray*}
+\end{matrix} $$
 
 (we could have left it at $3 xx$ as well). Now we construct the type:
 
@@ -469,11 +469,11 @@ Let's do now the more difficult case of binary trees:
 type btree = Tip | Node of int * btree * btree
 ```
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   T & = & 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} & = & 0 + T^2 + 2 xT \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
-\end{eqnarray*}
+\end{matrix} $$
 
 (again, we could expand further into $\frac{\partial T}{\partial x} = TT + xT 
 \frac{\partial T}{\partial x} + xT \frac{\partial T}{\partial x}$).

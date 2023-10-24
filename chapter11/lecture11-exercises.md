@@ -23,7 +23,7 @@ standard variants (file `FP_ADT.ml`).
 **Exercise 5:** Come up with a scenario where the extensible variant 
 types-based solution leads to a non-obvious or hard to locate bug.
 
-**Exercise 6:** \* Re-implement the direct object-based solution to the 
+**Exercise 6:** * Re-implement the direct object-based solution to the 
 expression problem (file `Objects.ml`) to make it more satisfying. For 
 example, eliminate the need for some of the `rename`, `apply`, `compute` 
 methods.
@@ -34,7 +34,7 @@ mutable fields `subst` and `beta_redex` in the `eval_lambda` class with a
 different solution to the problem of treating `abs` and non-`abs` expressions 
 differently.
 
-*\* See if you can replace the reference cells `result` in `evalN` and
+** See if you can replace the reference cells `result` in `evalN` and
 `freevarsN` functions (for `N=1,2,3`) with a different solution to the problem
 of polymorphism wrt. the type of the computed values.*
 
@@ -65,7 +65,7 @@ Expression Problem*.
 **Exercise 11:** Transform a parser monad, or rewrite the parser monad 
 transformer, by adding state for the line and column numbers.
 
-*\* How to implement a monad transformer transformer in OCaml?*
+** How to implement a monad transformer transformer in OCaml?*
 
 **Exercise 12:** Implement `_of_string` functions as parser combinators on top 
 of the example `PolyRecM.ml`. Sections 4.3 and 6.2 of *Monadic Parser 

@@ -71,14 +71,14 @@ one for efficient popping of old elements.
 using only functions (without data structures like lists or trees).
 
 **Exercise 11:** (Purple.) One way to express constraints on a polymorphic 
-function is to write its type in the form: $\forall \alpha \_{1} \ldots \alpha 
-\_{n} [C] . \tau$, where $\tau$ is the type of the function, $\alpha \_{1} 
-\ldots \alpha \_{n}$ are the polymorphic type variables, and $C$ are 
-additional constraints that the variables $\alpha \_{1} \ldots \alpha \_{n}$ 
+function is to write its type in the form: $\forall \alpha _{1} \ldots \alpha 
+_{n} [C] . \tau$, where $\tau$ is the type of the function, $\alpha _{1} 
+\ldots \alpha _{n}$ are the polymorphic type variables, and $C$ are 
+additional constraints that the variables $\alpha _{1} \ldots \alpha _{n}$ 
 have to meet. Let's say we allow “local variables” in $C$: for example $C = 
-\exists \beta . \alpha \_{1} \dot{=} \operatorname{list} (\beta)$. Why the 
+\exists \beta . \alpha _{1} \dot{=} \operatorname{list} (\beta)$. Why the 
 general form $\forall \beta [C] . \beta$ is enough to express all types of the 
-general form $\forall \alpha \_{1} \ldots \alpha \_{n} [C] . \tau$?
+general form $\forall \alpha _{1} \ldots \alpha _{n} [C] . \tau$?
 
 **Exercise 12:** (Purple.) Define a type that corresponds to a set with a 
 googleplex of elements (i.e. $10^{10^{100}}$ elements).

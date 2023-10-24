@@ -92,15 +92,15 @@ Text in parentheses is comments. Letters are variables: stand for anything.
     <td style="text-align: center"></td>
     <td style="text-align: center"></td>
   </tr></tbody>
-</table>Notations
+</table>
 
-\\[
+Notations
+
+$$
    
-\raisebox{-0.764310582139098\height}{\includegraphics[width=0.404515938606848cm,height=2.43034238488784cm]{image-1.pdf}}
-   \scriptsize{x} \text{, \ \ or \ \ }
+{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
    
-\raisebox{-0.763902781908135\height}{\includegraphics[width=0.404515938606848cm,height=2.4261445625082cm]{image-2.pdf}}
-   \scriptsize{x} $$
+{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {c}} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
 $\frac{}{a} \scriptsize{x}$) although otherwise $a$ might not be warranted. 
@@ -139,7 +139,7 @@ natural numbers:
 $$ \frac{\begin{array}{rr}
      p (0) &
      
-\raisebox{-0.788180506203233\height}{\includegraphics[width=2.3857733175915cm,height=2.70421749967205cm]{image-1.pdf}}
+{{{\frac{}{p(x)} \scriptsize{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
    \end{array}}{p (n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
@@ -196,18 +196,16 @@ we write “using $x$” on the side).# 3 Logos was Programmed in OCaml
 Writing out expressions and types repetitively is tedious: we need 
 definitions. **Definitions for types** are written: `type ty =` some type.
 
-* Writing $A (s) : A \text{ \text{{\texttt{of}}} } a 
-  \text{\text{{\texttt{\textbar$B \text{ \text{{\texttt{of}}} }$}}}} b$ in 
+* Writing `A (`$s$`) : A of `$a$`  | B of  `$b$` ` in 
   the table was cheating. Usually we have to define the type and then use it, 
-  e.g. using `int` for $a$ and `string` for $b$: `type int_string_choice = A 
-  of int | B of string`allows us to write $A (s) : 
-  \text{\text{{\texttt{int\_string\_choice}}}}$.
+  e.g. using `int` for $a$ and `string` for $b$:
+  ```ocaml
+  type int_string_choice = A of int | B of string
+  ```
+  allows us to write `A (`$s$`) : int_string_choice`.
 * Without the type definition, it is difficult to know what other variants 
   there are when one *infers* (i.e. “guesses”, computes) the type!
-* In OCaml we can write ${}^{\backprime} A (s) : \left[ {}^{\backprime} A 
-  \text{ \text{{\texttt{of}}} } a 
-  \text{\text{{\texttt{\textbar${}^{\backprime} B \text{ 
-  \text{{\texttt{of}}} }$}}}} b \right]$. With “${}^{\backprime}$” variants, 
+* In OCaml we can write `` `A(s) : [`A of a | `B of b] ``. With “`` ` ``” variants, 
   OCaml does guess what other variants are. These types are fun, but we will 
   not use them in future lectures.
 * Tuple elements don't need labels because we always know at which position a 
@@ -229,25 +227,22 @@ called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 than these:
 
 $$ \frac{\begin{array}{ll}
-     e\_{1} : a &
+     e_{1} : a &
      
-\hspace{-0.00839564475928112cm}\raisebox{-0.772523329187369\height}{\includegraphics[width=1.23599632690542cm,height=2.51808671126853cm]{image-1.pdf}}\hspace{-0.02367834186016cm}
-     \scriptsize{x}
+{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{\text{{\texttt{let}}} } x \text{\text{{\texttt{=}}}}
-   e\_{1} \text{ \text{{\texttt{in}}} } e\_{2} : b} $$
+   e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
 
 $$ \frac{\begin{array}{ll}
      
-\raisebox{-0.772143476814496\height}{\includegraphics[width=1.19626459399187cm,height=2.51388888888889cm]{image-1.pdf}}
-     \scriptsize{x} &
+{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
      
-\hspace{-0.00839564475928112cm}\raisebox{-0.772523329187369\height}{\includegraphics[width=1.23599632690542cm,height=2.51808671126853cm]{image-2.pdf}}\hspace{-0.02367834186016cm}
-     \scriptsize{x}
+{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{\text{{\texttt{let rec}}} } x
-   \text{\text{{\texttt{=}}}} e\_{1} \text{ \text{{\texttt{in}}} } e\_{2}
+   \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
    \: b} $$
 
 We will cover what is missing in above rules when we will talk 
@@ -255,11 +250,11 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
   top-level, not nested in expressions, and they extend from the point they 
   occur till the end of the source file or interactive session.
 * `let`-`in` definitions for expressions: $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e\_{1} \text{ \text{{\texttt{in}}} } e\_{2}$ 
-  are *local*, $x$ is only visible in $e\_{2}$. But `let` definitions are 
+  \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
+  are *local*, $x$ is only visible in $e_{2}$. But `let` definitions are 
   global: placing $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e\_{1}$ at the top-level makes $x$ visible from 
-  after $e\_{1}$ till the end of the source file or interactive session.
+  \text{\text{{\texttt{=}}}} e_{1}$ at the top-level makes $x$ visible from 
+  after $e_{1}$ till the end of the source file or interactive session.
 * In the interactive session, we mark an end of a top-level “sentence” by ;; – 
   it is unnecessary in source files.
 * Operators like +, *, <, =, are names of functions. Just like other 
@@ -268,8 +263,8 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
   let (+:) a b = String.concat "" [a; b];;Special way of defining"Alpha" +: 
   "Beta";;but normal way of using operators.
 * Operators in OCaml are **not overloaded**. It means, that every type needs 
-  its own set of operators. For example, +, \*, / work for intigers, while +., 
-  \*., /. work for floating point numbers. **Exception:** comparisons <, 
+  its own set of operators. For example, +, *, / work for intigers, while +., 
+  *., /. work for floating point numbers. **Exception:** comparisons <, 
   =, etc. work for all values other than functions.# 4 Exercises
 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
@@ -284,8 +279,8 @@ Nicholas Monje and Allen Downey.
    1. width/2
    1. width/.2.0
    1. height/3
-   1. 1 + 2 \* 5
-   1. delimiter \* 5
+   1. 1 + 2 * 5
+   1. delimiter * 5
 1. Practice using the OCaml interpreter as a calculator:
    1. The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$. What is 
       the volume of a sphere with radius 5?

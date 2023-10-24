@@ -36,7 +36,7 @@ If you see any error on the slides, let me know!
   #load "dynlink.cma";;#load "camlp4o.cma";;#load 
   "Camlp4Parsers/Camlp4ListComprehension.cmo";;
 
-  let test = [i \* 2 | i <- fromto 2 22; i mod 3 = 0]
+  let test = [i * 2 | i <- fromto 2 22; i mod 3 = 0]
 * What it means:
   * [expr | ] can be translated as [expr]
   * [expr | v <- generator; *more*] can be translated as
@@ -209,13 +209,12 @@ If you see any error on the slides, let me know!
 * A parametric data type is a monad only if its `bind` and `return` operations 
   meet axioms:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \operatorname{bind} (\operatorname{return}a) f & \approx & f a\\\\\\
   \operatorname{bind}a (\lambda x.\operatorname{return}x) & \approx & a \\\\\\
   \operatorname{bind} (\operatorname{bind}a (\lambda x.b))  (\lambda y.c) &
   \approx & \operatorname{bind}a (\lambda x.\operatorname{bind}b (\lambda
-  y.c))
-\end{eqnarray*}
+  y.c)) \end{matrix} $$
 
 
 * Check that the laws hold for our example monad
@@ -230,29 +229,27 @@ If you see any error on the slides, let me know!
 
   that meet the laws:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \operatorname{mplus}\operatorname{mzero}a & \approx & a \\\\\\
   \operatorname{mplus}a\operatorname{mzero} & \approx & a \\\\\\
   \operatorname{mplus}a (\operatorname{mplus}b c) & \approx &
-  \operatorname{mplus} (\operatorname{mplus}a b) c
-\end{eqnarray*}
+  \operatorname{mplus} (\operatorname{mplus}a b) c \end{matrix} $$
 * We will define `fail` as synonym for `mzero` and infix ++ for `mplus`.
 * Fusing monads and monoids gives the most popular general flavor of monads 
   which we call *monad-plus* after Haskell.
 * Monad-plus requires additional axioms that relate its “addition” and its 
   “multiplication”.
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \operatorname{bind}\operatorname{mzero}f & \approx &
   \operatorname{mzero}\\\\\\
   \operatorname{bind}m (\lambda x.\operatorname{mzero}) & \approx &
-  \operatorname{mzero}
-\end{eqnarray*}
+  \operatorname{mzero} \end{matrix} $$
 * Using infix notation with $\oplus$ as `mplus`, $\boldsymbol{0}$ as `mzero`, 
   $\vartriangleright$ as `bind` and  $\boldsymbol{1}$ as `return`, we get 
   monad-plus axioms
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \boldsymbol{0} \oplus a & \approx & a \\\\\\
   a \oplus \boldsymbol{0} & \approx & a \\\\\\
   a \oplus (b \oplus c) & \approx & (a \oplus b) \oplus c\\\\\\
@@ -261,8 +258,7 @@ If you see any error on the slides, let me know!
   (a \vartriangleright \lambda x.b) \vartriangleright \lambda y.c & \approx &
   a \vartriangleright (\lambda x.b \vartriangleright \lambda y.c)\\\\\\
   \boldsymbol{0} \vartriangleright f & \approx & \boldsymbol{0}\\\\\\
-  a \vartriangleright (\lambda x.\boldsymbol{0}) & \approx & \boldsymbol{0}
-\end{eqnarray*}
+  a \vartriangleright (\lambda x.\boldsymbol{0}) & \approx & \boldsymbol{0} \end{matrix} $$
 * The list type has a natural monad and monoid structure
 
     let mzero = []  let mplus = (@)  let bind a b = concatmap b a  let return 
@@ -278,8 +274,8 @@ We have seen `mzero`, i.e. `fail` in the countdown problem. What about
 `mplus`?
 
 let findtoeat n islandsize numislands emptycells =  let honey = honeycells n 
-emptycells in  let rec findboard s =    (\* Printf.printf "findboard: %sn" 
-(statestr s); \*)    match visitcell s with    | None ->      perform      
+emptycells in  let rec findboard s =    (* Printf.printf "findboard: %sn" 
+(statestr s); *)    match visitcell s with    | None ->      perform      
   guard (s.beenislands = numislands);        return s.eaten    | Some (cell, 
 s) ->      perform        s <-- findisland cell (freshisland s);      
   guard (s.beensize = islandsize);        findboard s  and findisland current 
@@ -290,7 +286,7 @@ if s.moretoeat <= 0 then fail              else return (eatcell neighbor
 s)            and choosekeep =              if s.beensize >= islandsize 
 then fail              else findisland neighbor s in            mplus 
 chooseeat choosekeep)        s in    let cellstoeat =    List.length honey - 
-islandsize \* numislands in  findboard (initstate honey cellstoeat)
+islandsize * numislands in  findboard (initstate honey cellstoeat)
 
 # 4 Monad “flavors”
 
@@ -331,17 +327,15 @@ islandsize \* numislands in  findboard (initstate honey cellstoeat)
 
     choose : float -> 'a monad -> 'a monad -> 'a monad
 
-    satisfying the laws with $a \oplus \_{p} b$ for `choose p a b` and $pq$ 
+    satisfying the laws with $a \oplus _{p} b$ for `choose p a b` and $pq$ 
     for `p*.q`, $0 \leqslant p, q \leqslant 1$:
 
-      \begin{eqnarray*}
-      a \oplus \_{0} b & \approx & b \\\\\\
-      a \oplus \_{p} b & \approx & b \oplus \_{1 - p} a\\\\\\
-      a \oplus \_{p} (b \oplus \_{q} c) & \approx & \left( a \oplus
-      \_{\frac{p}{p
-      \+ q - pq}} b \right) \oplus \_{p + q - pq} c\\\\\\
-      a \oplus \_{p} a & \approx & a
-    \end{eqnarray*}
+      $$ \begin{matrix}
+       a \oplus _{0} b & \approx & b \\\\\\
+       a \oplus _{p} b & \approx & b \oplus _{1 - p} a\\\\\\
+       a \oplus _{p} (b \oplus _{q} c) & \approx & \left( a \oplus
+       _{\frac{p}{p + q - pq}} b \right) \oplus _{p + q - pq} c\\\\\\
+       a \oplus _{p} a & \approx & a \end{matrix} $$
   * Parallel computation as monad with access and parallel bind:
 
     parallel :'a monad-> 'b monad-> ('a -> 'b -> 'c 
@@ -410,14 +404,17 @@ islandsize \* numislands in  findboard (initstate honey cellstoeat)
 * Finally, we can pass around modules in normal functions.
   * (module Module) is an expression
   * (val modulev) is a module
-  * # module type T = sig val g : int -> int endlet f modv x =  let module 
+  * 
+    ```ocaml
+    # module type T = sig val g : int -> int endlet f modv x =  let module 
     M = (val modv : T) in  M.g x;;
 
     val f : (module T) -> int -> int = <fun>
 
-    # let test = f (module struct let g i = i\*i end : T);;
+    # let test = f (module struct let g i = i*i end : T);;
 
     val test : int -> int = <fun>
+    ```
 
 # 6 The two metaphors
 
@@ -480,7 +477,7 @@ islandsize \* numislands in  findboard (initstate honey cellstoeat)
   c''
 * Any expression can be spread over a monad, e.g. for $\lambda$-terms:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \llbracket N \rrbracket = & \operatorname{return}N & \text{(constant)}\\\\\\
   \llbracket x \rrbracket = & \operatorname{return}x & \text{(variable)}\\\\\\
   \llbracket \lambda x.a \rrbracket = & \operatorname{return} (\lambda x.
@@ -489,9 +486,8 @@ islandsize \* numislands in  findboard (initstate honey cellstoeat)
   \operatorname{bind} \llbracket a \rrbracket  (\lambda x. \llbracket b
   \rrbracket) & \text{(local definition)}\\\\\\
   \llbracket a b \rrbracket = & \operatorname{bind} \llbracket a \rrbracket
-  (\lambda v\_{a} .\operatorname{bind} \llbracket b \rrbracket  (\lambda
-  v\_{b} .v\_{a} v\_{b})) & \text{(application)}
-\end{eqnarray*}
+  (\lambda v_{a} .\operatorname{bind} \llbracket b \rrbracket  (\lambda
+  v_{b} .v_{a} v_{b})) & \text{(application)} \end{matrix} $$
 * When an expression is spread over a monad, its computation can be monitored 
   or affected without modifying the expression.
 
@@ -603,15 +599,15 @@ perform        cxs <-- choices xs;Choosing which numbers in what order
 type op = Add | Sub | Mul | Div
 
   let apply op x y =    match op with    | Add -> x + y    | Sub -> 
-x - y    | Mul -> x \* y    | Div -> x / y
+x - y    | Mul -> x * y    | Div -> x / y
 
   let valid op x y =    match op with    | Add -> x <= y    | 
 Sub -> x > y    | Mul -> x <= y && x <> 1 && y 
 <> 1    | Div -> x mod y = 0 && y <> 1
 
-  type expr = Val of int | App of op \* expr \* expr
+  type expr = Val of int | App of op * expr * expr
 
-  let op2str = function    | Add -> "+" | Sub -> "-" | Mul -> "\*" 
+  let op2str = function    | Add -> "+" | Sub -> "-" | Mul -> "*" 
 | Div -> "/"  let rec expr2str = functionWe will provide solutions as 
 strings.    | Val n -> stringofint n    | App (op,l,r) ->"("expr2str 
 lop2str opexpr2str r")"
@@ -648,10 +644,10 @@ value,      return (expr2str e)‘‘print'' the solution.end
   module ListCountdown = Countdown (ListM)let test1 () = ListM.run 
   (ListCountdown.solutions [1;3;7;10;25;50] 765)let t1, sol1 = time test1
 * val t1 : float = 2.2856600284576416val sol1 : string list =  
-  ["((25-(3+7))\*(1+50))"; "(((25-3)-7)\*(1+50))"; …
+  ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; …
 * What if we want only one solution? Laziness to the rescue!
 
-  type 'a llist = LNil | LCons of 'a \* 'a llist Lazy.tlet rec ltake n = 
+  type 'a llist = LNil | LCons of 'a * 'a llist Lazy.tlet rec ltake n = 
   function | LCons (a, lazy l) when n > 0 -> a::(ltake (n-1) l) | 
    -> []let rec lappend l1 l2 =  match l1 with LNil -> l2  | LCons 
   (hd, tl) ->    LCons (hd, lazy (lappend (Lazy.force tl) l2))let rec 
@@ -664,18 +660,22 @@ value,      return (expr2str e)‘‘print'' the solution.end
   mplus = lappendend)
 * module LListCountdown = Countdown (LListM)let test2 () = LListM.run 
   (LListCountdown.solutions [1;3;7;10;25;50] 765)
-* # let t2a, sol2 = time test2;;val t2a : float = 2.51197600364685059val 
-  sol2 : string llist = LCons ("((25-(3+7))\*(1+50))", <lazy>)
-
+* 
+  ```ocaml
+  # let t2a, sol2 = time test2;;val t2a : float = 2.51197600364685059val 
+  sol2 : string llist = LCons ("((25-(3+7))*(1+50))", <lazy>)
+  ```
   Not good, almost the same time to even get the lazy list!
-* # let t2b, sol21 = time (fun () -> ltake 1 sol2);;val t2b : float 
-  = 2.86102294921875e-06val sol21 : string list = ["((25-(3+7))\*(1+50))"]# 
+* 
+  ```ocaml
+  # let t2b, sol21 = time (fun () -> ltake 1 sol2);;val t2b : float 
+  = 2.86102294921875e-06val sol21 : string list = ["((25-(3+7))*(1+50))"]# 
   let t2c, sol29 = time (fun () -> ltake 10 sol2);;val t2c : float 
-  = 9.059906005859375e-06val sol29 : string list =  ["((25-(3+7))\*(1+50))"; 
-  "(((25-3)-7)\*(1+50))"; …# let t2d, sol239 = time (fun () -> ltake 
+  = 9.059906005859375e-06val sol29 : string list =  ["((25-(3+7))*(1+50))"; 
+  "(((25-3)-7)*(1+50))"; …# let t2d, sol239 = time (fun () -> ltake 
   49 sol2);;val t2d : float = 4.00543212890625e-05val sol239 : string list =  
-  ["((25-(3+7))\*(1+50))"; "(((25-3)-7)\*(1+50))"; …
-
+  ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; …
+  ```
   Getting elements from the list shows they are almost already computed.
 * Wait! Perhaps we should not store all candidates when we are only interested 
   in one.
@@ -686,9 +686,10 @@ value,      return (expr2str e)‘‘print'' the solution.end
   aend)
 * module OptCountdown = Countdown (OptionM)let test3 () = OptionM.run 
   (OptCountdown.solutions [1;3;7;10;25;50] 765)
-* # let t3, sol3 = time test3;;val t3 : float = 5.0067901611328125e-06val 
+* ```ocaml
+  # let t3, sol3 = time test3;;val t3 : float = 5.0067901611328125e-06val 
   sol3 : string option = None
-
+  ```
   It very quickly computes… nothing. Why?
   * What is the OptionM monad (`Maybe` monad in Haskell) good for?
 * Our lazy list type is not lazy enough.
@@ -700,7 +701,7 @@ value,      return (expr2str e)‘‘print'' the solution.end
   * Our `llist` are called *odd lazy lists*.
 
   type 'a lazylist = 'a lazylist Lazy.tand 'a lazylist = LazNil | LazCons of 
-  'a \* 'a lazylistlet rec laztake n = function | lazy (LazCons (a, l)) when 
+  'a * 'a lazylistlet rec laztake n = function | lazy (LazCons (a, l)) when 
   n > 0 ->   a::(laztake (n-1) l) |  -> []let rec appendaux l1 l2 
   =  match l1 with lazy LazNil -> Lazy.force l2  | lazy (LazCons (hd, 
   tl)) ->    LazCons (hd, lazy (appendaux tl l2))let lazappend l1 l2 = 
@@ -712,15 +713,17 @@ value,      return (expr2str e)‘‘print'' the solution.end
   mzero = lazy LazNil  let mplus = lazappendend)
 * module LazyCountdown = Countdown (LazyListM)let test4 () = LazyListM.run 
   (LazyCountdown.solutions [1;3;7;10;25;50] 765)
-* # let t4a, sol4 = time test4;;val t4a : float = 2.86102294921875e-06val 
+* ```ocaml
+  # let t4a, sol4 = time test4;;val t4a : float = 2.86102294921875e-06val 
   sol4 : string lazylist = <lazy># let t4b, sol41 = time (fun 
   () -> laztake 1 sol4);;val t4b : float = 0.367874860763549805val sol41 : 
-  string list = ["((25-(3+7))\*(1+50))"]# let t4c, sol49 = time (fun () -> 
+  string list = ["((25-(3+7))*(1+50))"]# let t4c, sol49 = time (fun () -> 
   laztake 10 sol4);;val t4c : float = 0.234670877456665039val sol49 : string 
-  list =  ["((25-(3+7))\*(1+50))"; "(((25-3)-7)\*(1+50))"; …# let t4d, 
+  list =  ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; …# let t4d, 
   sol439 = time (fun () -> laztake 49 sol4);;val t4d : float 
-  = 4.0594940185546875val sol439 : string list =  ["((25-(3+7))\*(1+50))"; 
-  "(((25-3)-7)\*(1+50))"; …
+  = 4.0594940185546875val sol439 : string list =  ["((25-(3+7))*(1+50))"; 
+  "(((25-3)-7)*(1+50))"; …
+  ```
   * Finally, the first solution in considerably less time than all solutions.
   * The next 9 solutions are almost computed once the first one is.
   * But computing all solutions takes nearly twice as long as without the 
@@ -749,10 +752,10 @@ handler = match m with    | OK  -> m    | Bad e -> handler eend
 ## 8.4 The state monad
 
 module StateM(Store : sig type t end) : sig  type store = Store.`t`Pass the 
-current `store` value to get the next value.type 'a t = store -> 'a \* 
+current `store` value to get the next value.type 'a t = store -> 'a * 
 store  include MONADOPS  include STATE with type 'a t := 'a monad              
   and type store := store  val run : 'a monad -> 'a tend = struct  type 
-store = Store.t  module M = struct    type 'a t = store -> 'a \* store    
+store = Store.t  module M = struct    type 'a t = store -> 'a * store    
 let return a = fun s -> a, `s`Keep the current value unchanged.let bind m 
 b = fun s -> let a, s' = m s in b a s'  endTo bind two steps, pass the 
 value after first step to the second step.  include M include MonadOps(M)  let 
@@ -764,10 +767,10 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   clashes.
   * This does not make a $\lambda$-term safe for multiple steps of 
     $\beta$-reduction. Find a counter-example.
-* type term =| Var of string| Lam of string \* term| App of term \* term
+* type term =| Var of string| Lam of string * term| App of term * term
 * let (!) x = Var xlet (|->) x t = Lam (x, t)let (@) t1 t2 = App (t1, 
   t2)let test = "x" |-> ("x" |-> !"y" @ !"x") @ !"x"
-* module S =  StateM(struct type t = int \* (string \* string) list end)open S
+* module S =  StateM(struct type t = int * (string * string) list end)open S
 
   Without opening the module, we would write S`.get`, S`.put` and perform with 
   S in…
@@ -784,16 +787,16 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
     t2 <-- alphaconv t2;and the currently fresh number    return (App 
   (t1, t2))is done by the monad.
 * val test : term = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var 
-  "x"))# let  = StateM.run (alphaconv test) (5, []);;- : term \* (int \* 
-  (string \* string) list) =(Lam ("x5", App (Lam ("x6", App (Var "y", Var 
+  "x"))# let  = StateM.run (alphaconv test) (5, []);;- : term * (int * 
+  (string * string) list) =(Lam ("x5", App (Lam ("x6", App (Var "y", Var 
   "x6")), Var "x5")), (7, []))
 * If we separated the reader monad and the state monad, we would avoid the 
   lines:    (fresh', ) <-- get;Restoring the ‘‘reader'' part `env`    put 
   (fresh', env);but preserving the ‘‘state'' part `fresh`.
 * The elegant way is to define the monad locally:
 
-  let alphaconv t =  let module S = StateM    (struct type t = int \* (string 
-  \* string) list end) in  let open S in  let rec aux = function    | Var x as 
+  let alphaconv t =  let module S = StateM    (struct type t = int * (string 
+  * string) list end) in  let open S in  let rec aux = function    | Var x as 
   v -> perform      (fresh, env) <-- get;      let v = try Var 
   (List.assoc x env)        with Notfound -> v in      return v    | Lam 
   (x, t) -> perform      (fresh, env) <-- get;      let x' = x  
@@ -837,7 +840,7 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
 * The state monad, using (fun x -> …) a instead of let x = a in 
   …
 
-  type 'a state =    store -> ('a \* store)
+  type 'a state =    store -> ('a * store)
 
   let `return` (a : 'a) : 'a state =    fun s -> (a, s)
 
@@ -845,8 +848,8 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   s -> (fun (a, s') -> f a s') (u s)
 * Monad M transformed to add state, in pseudo-code:
 
-  type 'a stateT(M) =    store -> ('a \* store) M(\* notice this is not an 
-  ('a M) state \*)
+  type 'a stateT(M) =    store -> ('a * store) M(* notice this is not an 
+  ('a M) state *)
 
   let `return` (a : 'a) : 'a stateT(M) =    fun s -> M.`return` (a, 
   s)Rather than returning, M.return
@@ -859,14 +862,14 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
 
 module StateT (MP : MONADPLUSOPS) (Store : sig type t end) : sigFunctor takes 
 two modules -- the second one  type store = Store.`t`provides only the storage 
-type.type 'a t = store -> ('a \* store) MP.monad  include 
+type.type 'a t = store -> ('a * store) MP.monad  include 
 MONADPLUSOPSExporting all the monad-plus operations  include STATE with type 
 'a t := `'a monad`and state operations.and type store := store  val run : 'a 
 monad -> `'a t`Expose ‘‘what happened'' -- resulting states.val runT : 'a 
 monad -> store -> 'a MP.monadend = structRun the state transformer -- 
 get the resulting values.  type store = Store.`t`
 
-module M = struct    type 'a t = store -> ('a \* store) MP.monad    let 
+module M = struct    type 'a t = store -> ('a * store) MP.monad    let 
 return a = fun s -> MP.return (a, s)    let bind m b = fun s ->      
 MP.bind (m s) (fun (a, s') -> b a s')    let mzero = fun  -> 
 MP.`mzero`*Lift* the monad-plus operations.let mplus ma mb = fun s -> 
@@ -888,7 +891,7 @@ BacktrackingM  let rec visitcell () = performState update actions.      s
 <-- get;      match s.unvisited with      | [] -> return None      | 
 c::remaining when CellSet.mem c s.visited -> perform        put {s with 
 unvisited=remaining};        visitcell ()Throwaway argument because of 
-recursion. See (\*)    | c::remaining (\* when c not visited \*) -> 
+recursion. See (*)    | c::remaining (* when c not visited *) -> 
 perform        put {s with          unvisited=remaining;          visited = 
 CellSet.add c s.visited};        return (Some c)This action returns a value.
 
@@ -902,7 +905,7 @@ beensize = 0;        beenislands = s.beenislands + 1};      return ()
 
   let findtoeat n islandsize numislands emptycells =    let honey = honeycells 
 n emptycells inOCaml does not realize that `'a monad` with state is actually a 
-function --    let rec findboard () = performit's an abstract type.(\*)        
+function --    let rec findboard () = performit's an abstract type.(*)        
 cell <-- visitcell ();        match cell with        | None -> 
 perform            s <-- get;            guard (s.beenislands = 
 numislands);            return s.eaten        | Some cell -> perform       
@@ -919,7 +922,7 @@ and choosekeep = perform                      guard (s.beensize <
 islandsize);                      findisland neighbor in                  
 chooseeat ++ choosekeep)) () in
 
-    let cellstoeat =      List.length honey - islandsize \* numislands in    
+    let cellstoeat =      List.length honey - islandsize * numislands in    
 initstate honey cellstoeat    |> runT (findboard ())endmodule HoneyL = 
 HoneyIslands (ListM)let findtoeat a b c d =  ListM.run (HoneyL.findtoeat a b c 
 d)
@@ -952,7 +955,7 @@ d)
 
     `choose p a b` represents an event or distribution which is $a$ with 
     probability $p$ and is $b$ with probability $1 - p$.
-  * val pick : ('a \* float) list -> 'a t
+  * val pick : ('a * float) list -> 'a t
 
     A result from the provided distribution over values. The argument must be 
     a probability distribution: positive values summing to 1.
@@ -967,7 +970,7 @@ d)
   * val prob : ('a -> bool) -> 'a monad -> float
 
     Returns the probability that the predicate holds.
-  * val distrib : 'a monad -> ('a \* float) list
+  * val distrib : 'a monad -> ('a * float) list
 
     Returns the distribution of probabilities over the resulting values.
   * val access : 'a monad -> 'a
@@ -983,10 +986,10 @@ d)
   `normalize` is used. If `pick` and `choose` are used correctly.
 * module type PROBABILITY = sigProbability monad class.  include MONADOPS  val 
   choose : float -> 'a monad -> 'a monad -> 'a monad  val pick : 
-  ('a \* float) list -> `'a monad`  val uniform : 'a list -> 'a 
+  ('a * float) list -> `'a monad`  val uniform : 'a list -> 'a 
   monadval coin : bool monad  val flip : float -> bool monad  val prob : 
   ('a -> bool) -> 'a monad -> float  val distrib : 'a monad -> 
-  ('a \* float) list  val access : 'a monad -> 'aend
+  ('a * float) list  val access : 'a monad -> 'aend
 * let total dist =Helper functions.  List.foldleft (fun a (,b)->a+.b) 0. 
   distlet merge dist =Merge repeating elements.  mapreduce (fun x->x) 
   (+.) 0. distlet normalize dist = Normalize a measure into a distribution.  
@@ -996,12 +999,12 @@ d)
   [] -> assert false    | (e,w):: when w <= r -> e    | 
   (,w)::tl -> aux (r-.w) tl in  aux (Random.float tot) dist
 * module DistribM : PROBABILITY = struct  module M = structExact probability 
-  distribution -- naive implementation.    type 'a t = ('a \* float) list    
-  let bind a b = `merge``x` w.p. $p$ and then `y` w.p. $q$ happens =[y, q\*.p 
+  distribution -- naive implementation.    type 'a t = ('a * float) list    
+  let bind a b = `merge``x` w.p. $p$ and then `y` w.p. $q$ happens =[y, q*.p 
   | (x,p) <- a; (y,q) <- b x]`y` results w.p. $p q$.    let return a 
   = [a, 1.]Certainly `a`.  end  include M include MonadOps (M)  let choose p a 
-  b =    List.map (fun (e,w) -> e, p\*.w) a @      List.map (fun 
-  (e,w) -> e, (1. -.p)\*.w) b  let pick dist = `dist`  let uniform elems = 
+  b =    List.map (fun (e,w) -> e, p*.w) a @      List.map (fun 
+  (e,w) -> e, (1. -.p)*.w) b  let pick dist = `dist`  let uniform elems = 
   normalize    (List.map (fun e->e,1.) elems)let coin = [true, 0.5; 
   false, 0.5]  let flip p = [true, p; false, 1. -. p]
 
@@ -1043,15 +1046,16 @@ d)
   (final = prize)end
 * module MontyExact = MontyHall (DistribM)module Sampling1000 =  SamplingM 
   (struct let samples = 1000 end)module MontySimul = MontyHall (Sampling1000)
-* # let t1 = DistribM.distrib (MontyExact.montywin false);;val t1 : (bool \* 
+* ```ocaml
+  # let t1 = DistribM.distrib (MontyExact.montywin false);;val t1 : (bool * 
   float) list =  [(true, 0.333333333333333315); (false, 0.66666666666666663)]# 
-  let t2 = DistribM.distrib (MontyExact.montywin true);;val t2 : (bool \* 
+  let t2 = DistribM.distrib (MontyExact.montywin true);;val t2 : (bool * 
   float) list =  [(true, 0.66666666666666663); (false, 0.333333333333333315)]# 
-  let t3 = Sampling1000.distrib (MontySimul.montywin false);;val t3 : (bool \* 
+  let t3 = Sampling1000.distrib (MontySimul.montywin false);;val t3 : (bool * 
   float) list = [(true, 0.313); (false, 0.687)]# let t4 = Sampling1000.distrib 
-  (MontySimul.montywin true);;val t4 : (bool \* float) list = [(true, 0.655); 
+  (MontySimul.montywin true);;val t4 : (bool * float) list = [(true, 0.655); 
   (false, 0.345)]
-
+  ```
 ## 10.3 Conditional probabilities
 
 * Wouldn't it be nice to have a monad-plus rather than a monad?
@@ -1070,13 +1074,13 @@ d)
   include PROBABILITYwhere `guard cond` conditions on `cond`.  include 
   MONADPLUSOPS with type 'a monad := 'a monadend
 * module DistribMP : CONDPROBAB = struct  module MP = structThe measures no 
-  longer restricted to    type 'a t = ('a \* float) `list`probability 
-  distributions:    let bind a b = merge      [y, q\*.p | (x,p) <- a; 
+  longer restricted to    type 'a t = ('a * float) `list`probability 
+  distributions:    let bind a b = merge      [y, q*.p | (x,p) <- a; 
   (y,q) <- b x]    let return a = [a, 1.]    let mzero = []Measure equal 
   0 everywhere is OK.    let mplus = List.append  end  include MP include 
   MonadPlusOps (MP)  let choose p a b =It isn't `a` w.p. $p$ & `b` w.p. $(1 - 
-  p)$ since `a` and `b`    List.map (fun (e,w) -> e, p\*.w) a @are not 
-  normalized!List.map (fun (e,w) -> e, (1. -.p)\*.w) b  let pick dist = 
+  p)$ since `a` and `b`    List.map (fun (e,w) -> e, p*.w) a @are not 
+  normalized!List.map (fun (e,w) -> e, (1. -.p)*.w) b  let pick dist = 
   `dist`
 
   let uniform elems = normalize    (List.map (fun e->e,1.) elems)  let 
@@ -1204,38 +1208,39 @@ d)
 * module BurglaryExact = Burglary (DistribMP)module Sampling2000 =  SamplingMP 
   (struct let samples = 2000 end)module BurglarySimul = Burglary 
   (Sampling2000)
-
+```ocaml
 # let t1 = DistribMP.distrib  (BurglaryExact.check $\sim$johncalled:true 
 $\sim$marycalled:false     $\sim$radio:None);;    val t1 : 
-(BurglaryExact.whathappened \* float) list =  
+(BurglaryExact.whathappened * float) list =  
 [(BurglaryExact.Burglnearthq, 1.03476433660005444e-05);   
 (BurglaryExact.Earthq, 0.00452829235738691407);   
 (BurglaryExact.Burgl, 0.00511951049003530299);   
 (BurglaryExact.Safe, 0.99034184950921178)]# let t2 = DistribMP.distrib  
 (BurglaryExact.check $\sim$johncalled:true $\sim$marycalled:true     
-$\sim$radio:None);;    val t2 : (BurglaryExact.whathappened \* float) list =  
+$\sim$radio:None);;    val t2 : (BurglaryExact.whathappened * float) list =  
 [(BurglaryExact.Burglnearthq, 0.00057437256500405794);   
 (BurglaryExact.Earthq, 0.175492465840075218);   
 (BurglaryExact.Burgl, 0.283597462799388911);   
 (BurglaryExact.Safe, 0.540335698795532)]# let t3 = DistribMP.distrib  
 (BurglaryExact.check $\sim$johncalled:true $\sim$marycalled:true     
-$\sim$radio:(Some true));;    val t3 : (BurglaryExact.whathappened \* float) 
+$\sim$radio:(Some true));;    val t3 : (BurglaryExact.whathappened * float) 
 list =  [(BurglaryExact.Burglnearthq, 0.0032622416021499262);   
 (BurglaryExact.Earthq, 0.99673775839785006)]
 
 # let t4 = Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:true 
 $\sim$marycalled:false     $\sim$radio:None);;    val t4 : 
-(BurglarySimul.whathappened \* float) list =  [(BurglarySimul.Earthq, 0.0035); 
+(BurglarySimul.whathappened * float) list =  [(BurglarySimul.Earthq, 0.0035); 
 (BurglarySimul.Burgl, 0.0035);   (BurglarySimul.Safe, 0.993)]# let t5 = 
 Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:true 
 $\sim$marycalled:true     $\sim$radio:None);;    val t5 : 
-(BurglarySimul.whathappened \* float) list =  
+(BurglarySimul.whathappened * float) list =  
 [(BurglarySimul.Burglnearthq, 0.0005); (BurglarySimul.Earthq, 0.1715);   
 (BurglarySimul.Burgl, 0.2875); (BurglarySimul.Safe, 0.5405)]# let t6 = 
 Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:true 
 $\sim$marycalled:true     $\sim$radio:(Some true));;    val t6 : 
-(BurglarySimul.whathappened \* float) list =  
+(BurglarySimul.whathappened * float) list =  
 [(BurglarySimul.Burglnearthq, 0.0015); (BurglarySimul.Earthq, 0.9985)]
+```
 
 # 11 Lightweight cooperative threads
 
@@ -1259,7 +1264,7 @@ $\sim$marycalled:true     $\sim$radio:(Some true));;    val t6 :
 * If the monad starts computing right away, as in the *Lwt* library, `parallel 
   \concat{e}{\rsub{a}} \concat{e}{\rsub{b}} c` is equivalent to
 
-  perform  let a = $e\_{a}$ in  let b = $e\_{b}$ in  x <-- a;  y <-- 
+  perform  let a = $e_{a}$ in  let b = $e_{b}$ in  x <-- a;  y <-- 
   b;  c x y
   * We will follow this model, with an imperative implementation.
   * In any case, do not call `run` or `access` from within a monad.
@@ -1349,5 +1354,6 @@ assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
   thread1 = TT.loop "A" 5 in  let thread2 = TT.loop "B" 4 in  
   Cooperative.access thread1;We ensure threads finish computing  
   Cooperative.access thread2before we proceed.
-
+```ocaml
 # let test =    Cooperative.killthreads ();    let thread1 = TT.loop "A" 5 in    let thread2 = TT.loop "B" 4 in    Cooperative.access thread1;    Cooperative.access thread2;;-- A(5)-- B(4)-- A(4)-- B(3)-- A(3)-- B(2)-- A(2)-- B(1)-- A(1)-- B(0)-- A(0)val test : unit = ()
+```

@@ -1095,7 +1095,7 @@ index % time    self  children    called     name
   { header }let ident1 = regexp …rule `entrypoint1` [`arg1`… 
   `argN`] =  parse regexp { action1 }| …| regexp { actionN }and 
   entrypointN [arg1? argN] =  parse …and …{ trailer }
-  * Comments are delimited by (\* and \*), as in OCaml.
+  * Comments are delimited by (* and *), as in OCaml.
   * The parse keyword can be replaced by the shortest keyword.
   * ”Header”, “trailer”, “action1”, … “actionN” are arbitrary OCaml 
     code.
@@ -1127,7 +1127,7 @@ index % time    self  children    called     name
   * [^character set] – match characters outside the character set
   * [character set 1] # [character set 2] – match the difference, i.e. only 
     characters in set 1 that are not in set 2
-  * regexp\* – (repetition) match the concatenation of zero or more strings 
+  * regexp* – (repetition) match the concatenation of zero or more strings 
     that match regexp
   * regexp+ – (strict repetition) match the concatenation of one or more 
     strings that match regexp
@@ -1142,7 +1142,7 @@ index % time    self  children    called     name
   * regexp as `ident` – bind the substring matched by regexp to identifier 
     `ident`.
 
-  The precedences are: # highest, followed by \*, +, ?, concatenation, |, as.
+  The precedences are: # highest, followed by *, +, ?, concatenation, |, as.
 * The type of as `ident` variables can be string, char, string option or char 
   option
   * char means obviously a single character pattern
@@ -1169,7 +1169,7 @@ nextline lexbuf =Typical lexer function: move position to next line.    let
 pos = lexbuf.lexcurrp in    lexbuf.lexcurrp <- { pos with      poslnum = 
 pos.poslnum + 1;      posbol = pos.poscnum;    }  type state =Which step of 
 searching for address we're at:  | SeekSeek: still seeking, Addr 
-(true…): possibly finished,  | Addr of bool \* string \* string 
+(true…): possibly finished,  | Addr of bool * string * string 
 `list`Addr (false…): no domain.
 
 let report state lexbuf =Report the found address, if any.    match state with 
@@ -1178,8 +1178,8 @@ addr) ->With line at which it is found.      Printf.printf "%d: %s@%sn"
 lexbuf.lexcurrp.poslnum        name (String.concat "." (List.rev addr))}let 
 newline = ('\n' | "\r\n")Regexp for end of line.let addrchar = 
 ['a'-'z''A'-'Z''0'-'9''-''']let atwsymb = "where" | "WHERE" | "at" | "At" | 
-"AT"let atnwsymb = '@' | "&#x40;" | "&#64;"let opensymb = ' '\* '(' ' '\* | ' 
-'+Demarcate a possible @let closesymb = ' '\* ')'' '\* | ' '+or . symbol.let 
+"AT"let atnwsymb = '@' | "&#x40;" | "&#64;"let opensymb = ' '* '(' ' '* | ' 
+'+Demarcate a possible @let closesymb = ' '* ')'' '* | ' '+or . symbol.let 
 atsepsymb =  opensymb? atnwsymb closesymb? |  opensymb atwsymb closesymb
 
 let dotwsymb = "dot" | "DOT" | "dt" | "DT"let domwsymb = dotwsymb | "dom" | 
@@ -1228,7 +1228,7 @@ chClose the file at the end.}
   separations are needed even if the sections are empty.trailerOCaml code put 
   at the end of generated source.
 * Header, actions and trailer are OCaml code.
-* Comments are (\* … \*) in OCaml code, /\* … \*/ or // … 
+* Comments are (* … *) in OCaml code, /* … */ or // … 
   outisde
 * Rules can optionally be separated by ;
 * %parameter turns the **whole** resulting grammar into a functor, multiple 
@@ -1256,15 +1256,15 @@ chClose the file at the end.}
   Token3Parts of pattern can be separated by 
   semicolon.rule1(arg1,…,argN)Use a rule that takes 
   arguments.`rule2`?Shorthand for option(rule2)`rule2`+Shorthand for 
-  nonemptylist(rule2)rule2\*Shorthand for list(rule2)
+  nonemptylist(rule2)rule2*Shorthand for list(rule2)
 * Always-visible “standard library” – most of rules copied below:
 
-  %public option(X):  /\* nothing \*/    { None }| x = X    { Some x }%public 
+  %public option(X):  /* nothing */    { None }| x = X    { Some x }%public 
   %inline pair(X, Y):  x = X; y = Y    { (x, y) }
 
   %public %inline separatedpair(X, sep, Y):  x = X; sep; y = Y    { (x, y) 
   }%public %inline delimited(opening, X, closing):  opening; x = X; closing    
-  { x }%public list(X):  /\* nothing \*/    { [] }| x = X; xs = list(X)    { 
+  { x }%public list(X):  /* nothing */    { [] }| x = X; xs = list(X)    { 
   x :: xs }%public nonemptylist(X):  x = X    { [ x ] }| x = X; xs = 
   nonemptylist(X)    { x :: xs }%public %inline separatedlist(separator, X):  
   xs = loption(separatednonemptylist(separator, X))    { xs }
@@ -1292,7 +1292,7 @@ chClose the file at the end.}
   TIMESMultiplication has higher priority.%%expression:| i = INT { i 
   }$\swarrow$ Without inlining, would not distinguish priorities.| e = 
   expression; o = op; f = expression { o e f }%inline op:Inline operator -- 
-  generate corresponding rules.| PLUS { ( + ) }| TIMES { ( \* ) }
+  generate corresponding rules.| PLUS { ( + ) }| TIMES { ( * ) }
 * Menhir is an $\operatorname{LR} (1)$ parser generator, i.e. it fails for 
   grammars where looking one token ahead, together with precedences, is 
   insufficient to determine whether a rule applies.
@@ -1314,9 +1314,9 @@ chClose the file at the end.}
   {  type token =     | TIMES    | RPAREN    | PLUS    | MINUS    | LPAREN    
   | INT of (int)    | EOL    | DIV  exception Error of string}
 
-  rule line = parse| (['n']\* 'n') as line { line }| eof  { exit 0 }and token 
+  rule line = parse| (['n']* 'n') as line { line }| eof  { exit 0 }and token 
   = parse| [' ' 't']      { token lexbuf }| 'n' { EOL }| ['0'-'9']+ as i { INT 
-  (intofstring i) }| '+'  { PLUS }| '-'  { MINUS }| '\*'  { TIMES }| '/'  { 
+  (intofstring i) }| '+'  { PLUS }| '-'  { MINUS }| '*'  { TIMES }| '/'  { 
   DIV }| '('  { LPAREN }| ')'  { RPAREN }| eof  { exit 0 }|     { raise (Error 
   (Printf.sprintf "At offset %d: unexpected character.n" (Lexing.lexemestart 
   lexbuf))) }
@@ -1324,23 +1324,23 @@ chClose the file at the end.}
 
   %token <int> INTWe still need to define tokens,%token PLUS MINUS 
   TIMES DIVMenhir does its own checks.%token LPAREN RPAREN%token EOL%left PLUS 
-  MINUS        /\* lowest precedence \*/%left TIMES DIV         /\* medium 
-  precedence \*/%nonassoc UMINUS        /\* highest precedence 
-  \*/%parameter<Semantics : sig  type number  val inject: int -> 
+  MINUS        /* lowest precedence */%left TIMES DIV         /* medium 
+  precedence */%nonassoc UMINUS        /* highest precedence 
+  */%parameter<Semantics : sig  type number  val inject: int -> 
   number  val ( + ): number -> number -> number  val ( - ): 
-  number -> number -> number  val ( \* ): number -> number -> 
+  number -> number -> number  val ( * ): number -> number -> 
   number  val ( / ): number -> number -> number  val ( $\sim$-): 
   number -> numberend>%start <Semantics.number> main%{ open 
   Semantics %}
 
   %%main:| e = expr EOL   { e }expr:| i = INT     { inject i }| LPAREN e = 
   expr RPAREN    { e }| e1 = expr PLUS e2 = expr  { e1 + e2 }| e1 = expr MINUS 
-  e2 = expr { e1 - e2 }| e1 = expr TIMES e2 = expr { e1 \* e2 }| e1 = expr DIV 
+  e2 = expr { e1 - e2 }| e1 = expr TIMES e2 = expr { e1 * e2 }| e1 = expr DIV 
   e2 = expr   { e1 / e2 }| MINUS e = expr %prec UMINUS { - e }
 * File `calc.ml`:
 
   module FloatSemantics = struct  type number = float  let inject = floatofint 
-   let ( + ) = ( +. )  let ( - ) = ( -. )  let ( \* ) = ( \*. )  let ( / ) = ( 
+   let ( + ) = ( +. )  let ( - ) = ( -. )  let ( * ) = ( *. )  let ( / ) = ( 
   /. )  let ($\sim$- ) = ($\sim$-. )endmodule FloatParser = 
   Parser.Make(FloatSemantics)
 
@@ -1384,7 +1384,7 @@ DOTPUNCTState for better tagging.
  let tokbuf = Queue.create ()Token buffer, since single word let push w =is 
 sometimes two tokens.   log ("lex: "tokstr w);Log lexed token.   lasttok := w; 
 Queue.push w tokbuf exception LexError of string}let alphanum = ['0'-'9' 
-'a'-'z' 'A'-'Z' ''' '-']rule line = parseFor line-based interface.| (['\n']\* 
+'a'-'z' 'A'-'Z' ''' '-']rule line = parseFor line-based interface.| (['\n']* 
 '\n') as l { l }| eof { exit 0 }and lexword = parse| [' ' '\t']Skip 
 whitespace.    { lexword lexbuf }| '.' { push DOTPUNCT }End of sentence.| "a" 
 { push ADET } | "the" { push THEDET }‘‘Keywords''.| "some" { push SOMEDET }| 
@@ -1450,10 +1450,10 @@ adjsub; action=fst vbadv; plural=true;       adjs=fst adjsub; advs=snd vbadv}
 * File `Eng.ml` is the same as `calc.ml` from previous example:
 
 open EngLexerlet () =  let stdinbuf = Lexing.fromchannel stdin in  while true 
-do    (\* Read line by line. \*)    let linebuf = Lexing.fromstring (line 
+do    (* Read line by line. *)    let linebuf = Lexing.fromstring (line 
 stdinbuf) in
 
-    try      (\* Run the parser on a single line of input. \*)      let s = 
+    try      (* Run the parser on a single line of input. *)      let s = 
 EngParser.sentence lexeme linebuf in      Printf.printf    
 "subject=%s\nplural=%b\nadjs=%s\naction=%snadvs=%s\n\n%!"        s.subject 
 s.plural (String.concat ", " s.adjs)        s.action (String.concat ", " 
@@ -1533,7 +1533,7 @@ lexbuf }
 
 * Parsing: the inverted index and the query.
 
-type token =| WORDS of (string \* int) list| OPEN of string | CLOSE of string 
+type token =| WORDS of (string * int) list| OPEN of string | CLOSE of string 
 | COMMENT of string| SENTENCE of string | PUNCT of string| EOF
 
 let invindex update ii lexer lexbuf =  let rec aux ii =    match lexer lexbuf 
@@ -1679,7 +1679,7 @@ let prev ii w cp =  let cw,ps = find w ii inFor each word we add a cell with las
 
 ### 7.1.5 Imperative, galloping search
 
-let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound;  let rec jump (b,e as bounds) j =Locate the interval with `cp` inside.    if e < l-1 && ps.(e) <= cp then jump (e,e+j) (2\*j)    else bounds in  let rec binse b e =Binary search over that interval.    if e-b <= 1 then e    else let m = (b+e)/2 in         if ps.(m) <= cp then binse m e         else binse b m in  if ps.(0) > cp then cw := 0  else (    let b =The invariant is that ps.(b) <= `cp`.      if !cw > 0 && ps.(!cw-1) <= cp then !cw-1 else 0 in    let b,e = jump (b,b+1) 2 inLocate interval starting near !`cw`.    let e = if e > l-1 then l-1 else e in    cw := binse b e  );  ps.(!cw)
+let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound;  let rec jump (b,e as bounds) j =Locate the interval with `cp` inside.    if e < l-1 && ps.(e) <= cp then jump (e,e+j) (2*j)    else bounds in  let rec binse b e =Binary search over that interval.    if e-b <= 1 then e    else let m = (b+e)/2 in         if ps.(m) <= cp then binse m e         else binse b m in  if ps.(0) > cp then cw := 0  else (    let b =The invariant is that ps.(b) <= `cp`.      if !cw > 0 && ps.(!cw-1) <= cp then !cw-1 else 0 in    let b,e = jump (b,b+1) 2 inLocate interval starting near !`cw`.    let e = if e > l-1 then l-1 else e in    cw := binse b e  );  ps.(!cw)
 
 * `prev` is symmetric to `next`.
 * File: `InvIndex7.ml`

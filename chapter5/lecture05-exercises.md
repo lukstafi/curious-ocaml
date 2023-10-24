@@ -9,73 +9,73 @@ Abstract Data Types
 *let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])*
 
 *in environment $\Gamma = \left\lbrace
-\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha
+\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}} : \forall \alpha . \alpha
 \operatorname{list} \rightarrow \alpha ;
-\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl}}} : \forall \alpha . \alpha
+\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}} : \forall \alpha . \alpha
 \operatorname{list} \rightarrow \alpha \operatorname{list} \right\rbrace$. You
 can take “shortcuts” if it is too many equations to write down.*
 
-**Exercise 2:** *Terms* $t\_{1}, t\_{2}, \ldots \in T (\Sigma, X)$ are built 
+**Exercise 2:** *Terms* $t_{1}, t_{2}, \ldots \in T (\Sigma, X)$ are built 
 out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in 
 \Sigma$ the way you build values out of functions:
 
 * $X \subset T (\Sigma, X)$ *– variables are terms; usually an infinite set,*
-* *for terms* $t\_{1}, \ldots, t\_{n} \in T (\Sigma, X)$ *and a function
-  symbol* $f \in \Sigma \_{n}$ *of arity* $n$,$f (t\_{1}, \ldots, t\_{n}) \in
+* *for terms* $t_{1}, \ldots, t_{n} \in T (\Sigma, X)$ *and a function
+  symbol* $f \in \Sigma _{n}$ *of arity* $n$,$f (t_{1}, \ldots, t_{n}) \in
   T (\Sigma, X)$ *– bigger terms arise from applying function symbols to
-  smaller terms;* $\Sigma = \dot{\cup}\_{n} \Sigma \_{n}$ *is called a
+  smaller terms;* $\Sigma = \dot{\cup}_{n} \Sigma _{n}$ *is called a
   signature.*
 
-*In OCaml, we can define terms as: type term = V of string | T of string \*
+*In OCaml, we can define terms as: type term = V of string | T of string *
 term list5mm, where for example V("x") is a variable $x$ and T("f", [V("x");
 V("y")]) is the term $f (x, y)$.*
 
 *By *substitutions* $\sigma, \rho, \ldots$ we mean finite sets of variable,
-term pairs which we can write as $\lbrace x\_{1} \mapsto t\_{1}, \ldots,
-x\_{k} \mapsto t\_{k} \rbrace$ or $[x\_{1} := t\_{1} ; \ldots ; x\_{k} :=
-t\_{k}]$, but also functions from terms to terms $\sigma : T (\Sigma, X)
+term pairs which we can write as $\lbrace x_{1} \mapsto t_{1}, \ldots,
+x_{k} \mapsto t_{k} \rbrace$ or $[x_{1} := t_{1} ; \ldots ; x_{k} :=
+t_{k}]$, but also functions from terms to terms $\sigma : T (\Sigma, X)
 \rightarrow T (\Sigma, X)$ related to the pairs as follows: if $\sigma =
-\lbrace x\_{1} \mapsto t\_{1}, \ldots, x\_{k} \mapsto t\_{k} \rbrace$, then*
+\lbrace x_{1} \mapsto t_{1}, \ldots, x_{k} \mapsto t_{k} \rbrace$, then*
 
-* $\sigma (x\_{i}) = t\_{i}$ *for* $x\_{i} \in \lbrace x\_{1}, \ldots, x\_{k}
+* $\sigma (x_{i}) = t_{i}$ *for* $x_{i} \in \lbrace x_{1}, \ldots, x_{k}
   \rbrace$,
-* $\sigma (x) = x$ *for* $x \in X\backslash \lbrace x\_{1}, \ldots, x\_{k}
+* $\sigma (x) = x$ *for* $x \in X\backslash \lbrace x_{1}, \ldots, x_{k}
   \rbrace$,
-* $\sigma (f (t\_{1}, \ldots, t\_{n})) = f (\sigma (t\_{1}), \ldots, \sigma
-  (t\_{n}))$.
+* $\sigma (f (t_{1}, \ldots, t_{n})) = f (\sigma (t_{1}), \ldots, \sigma
+  (t_{n}))$.
 
-*In OCaml, we can define substitutions $\sigma$ as: type subst = (string \*
+*In OCaml, we can define substitutions $\sigma$ as: type subst = (string *
 term) list, together with a function apply : subst -> term -> term
 which computes $\sigma (\cdot)$.*
 
 *We say that a substitution $\sigma$ is *more general* than all substitutions
 $\rho \circ \sigma$, where $(\rho \circ \sigma) (x) = \rho (\sigma (x))$. In
 type inference, we are interested in most general solutions: the less general
-type judgement $\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} :
+type judgement $\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}} :
 \operatorname{int}\operatorname{list} \rightarrow \operatorname{int}$,
 although valid, is less useful than
-$\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha
+$\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}} : \forall \alpha . \alpha
 \operatorname{list} \rightarrow \alpha$ because it limits the usage of
 List.hd.*
 
-*A *unification problem* is a finite set of equations $S = \lbrace s\_{1} =^?
-t\_{1}, \ldots, s\_{n} =^? t\_{n} \rbrace$ which we can also write as $s\_{1}
-\dot{=} t\_{1} \wedge \ldots \wedge s\_{n} \dot{=} t\_{n}$. A solution,
-or *unifier* of $S$, is a substitution $\sigma$ such that $\sigma (s\_{i}) =
-\sigma (t\_{i})$ for $i = 1, \ldots, n$. A *most general unifier*, for
+*A *unification problem* is a finite set of equations $S = \lbrace s_{1} =^?
+t_{1}, \ldots, s_{n} =^? t_{n} \rbrace$ which we can also write as $s_{1}
+\dot{=} t_{1} \wedge \ldots \wedge s_{n} \dot{=} t_{n}$. A solution,
+or *unifier* of $S$, is a substitution $\sigma$ such that $\sigma (s_{i}) =
+\sigma (t_{i})$ for $i = 1, \ldots, n$. A *most general unifier*, for
 short *MGU*, is a most general such substitution.*
 
 *A substitution is *idempotent* when $\sigma = \sigma \circ \sigma$. If
-$\sigma = \lbrace x\_{1} \mapsto t\_{1}, \ldots, x\_{k} \mapsto t\_{k}
-\rbrace$, then $\sigma$ is idempotent exactly when no $t\_{i}$ contains any of
-the variables $\lbrace x\_{1}, \ldots, x\_{n} \rbrace$; i.e. $\lbrace x\_{1},
-\ldots, x\_{n} \rbrace \cap \operatorname{Vars} (t\_{1}, \ldots, t\_{n}) =
+$\sigma = \lbrace x_{1} \mapsto t_{1}, \ldots, x_{k} \mapsto t_{k}
+\rbrace$, then $\sigma$ is idempotent exactly when no $t_{i}$ contains any of
+the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
+\ldots, x_{n} \rbrace \cap \operatorname{Vars} (t_{1}, \ldots, t_{n}) =
 \varnothing$.*
 
 1. *Implement an algorithm that, given a set of equations represented as a
    list of pairs of terms, computes an idempotent most general unifier of the
    equations.*
-1. *\* (Ex. 4.22 in* *Franz Baader and Tobias Nipkov “Term Rewriting and All
+1. ** (Ex. 4.22 in* *Franz Baader and Tobias Nipkov “Term Rewriting and All
    That”**, p. 82.) Modify the implementation of unification to achieve linear
    space complexity by working with what could be called iterated
    substitutions. For example, the solution to* $\lbrace x =^? f (y), y =^? g
@@ -89,7 +89,7 @@ the variables $\lbrace x\_{1}, \ldots, x\_{n} \rbrace$; i.e. $\lbrace x\_{1},
 1. *What does it mean that an implementation has junk (as an algebraic
    structure for a given signature)? Is it bad?*
 1. *Define a monomorphic algebraic specification (other than, but similar to,*
-   $\operatorname{nat}\_{p}$ *or* $\operatorname{string}\_{p}$*, some useful
+   $\operatorname{nat}_{p}$ *or* $\operatorname{string}_{p}$*, some useful
    data type).*
 1. *Discuss an example of a (monomorphic) algebraic specification where it
    would be useful to drop some axioms (giving up monomorphicity) to allow
@@ -106,7 +106,7 @@ the variables $\lbrace x\_{1}, \ldots, x\_{n} \rbrace$; i.e. $\lbrace x\_{1},
    l ->      if compare a x = 0 then l else pair :: removeassoc x l*
 1. *Trick question: what is the computational complexity
    of* *ListMap* *or* *TrivialMap*?
-1. *\* The implementation* *MyListMap* *is inefficient: it performs a lot of
+1. ** The implementation* *MyListMap* *is inefficient: it performs a lot of
    copying and is not tail-recursive. Optimize it (without changing the type
    definition).*
 1. *Add (and specify)* $\operatorname{isEmpty}: (\alpha, \beta)

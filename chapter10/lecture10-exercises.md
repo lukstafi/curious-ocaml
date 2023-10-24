@@ -32,7 +32,7 @@ rule.* *[http://en.wikipedia.org/wiki/Simpson%27s\_rule](http://en.wikipedia.org
 **Exercise 5:** Reimplement the *Froc* based paddle ball example in a pure 
 style: rewrite the `pbal` function to not use `notify_e`.
 
-**Exercise 6:** \* Our implementation of flows is a bit heavy. One alternative 
+**Exercise 6:** * Our implementation of flows is a bit heavy. One alternative 
 approach is to use continuations, as in `Scala.React`. OCaml has a 
 continuations library *Delimcc*; for how it can cooperate with *Froc*, 
 see[http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html](http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html)

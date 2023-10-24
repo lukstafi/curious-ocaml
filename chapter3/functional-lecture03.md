@@ -64,13 +64,13 @@ sin''' pi;;
 
 * Programs consist of **expressions**:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   a := & x & \text{variables}\\\\\\
   | & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a &
   \text{(defined) functions}\\\\\\
   | & a a & \text{applications}\\\\\\
   | & C^0 & \text{value constructors of arity } 0\\\\\\
-  | & C^n (a, \ldots, a) & \text{value constructors of arity } n\\\\\\
+  | & C^n (a, \ldots, a) & \text{value constructors of arity } n \\\\\\
   | & f^n & \text{built-in values (primitives) of a. } n\\\\\\
   | & \text{\text{{\texttt{let }}}} x = a \text{\text{{\texttt{ in }}}} a
   & \text{name bindings (local definitions)}\\\\\\
@@ -84,93 +84,88 @@ sin''' pi;;
   p := & x & \text{pattern variables}\\\\\\
   | & (p, \ldots, p) & \text{tuple patterns}\\\\\\
   | & C^0 & \text{variant patterns of arity } 0\\\\\\
-  | & C^n (p, \ldots, p) & \text{variant patterns of arity } n
-\end{eqnarray*}
+  | & C^n (p, \ldots, p) & \text{variant patterns of arity } n \end{matrix} $$
 * *Arity* means how many arguments something requires; (and for tuples, the 
   length of a tuple).
 * To simplify presentation, we will use a primitive `fix` to define a limited 
   form of `let rec`:
 
   $$ \text{\text{{\texttt{let rec }}}} f \text{\text{{\texttt{ }}}} x =
-   e\_{1} \text{\text{{\texttt{ in }}}} e\_{2} \equiv
+   e_{1} \text{\text{{\texttt{ in }}}} e_{2} \equiv
    \text{\text{{\texttt{let }}}} f = \text{\text{{\texttt{fix (fun }}}} f
-   \text{\text{{\texttt{ }}}} x \text{\text{{\texttt{->}}}} e\_{1}
-   \text{\text{{\texttt{) in }}}} e\_{2} $$
+   \text{\text{{\texttt{ }}}} x \text{\text{{\texttt{->}}}} e_{1}
+   \text{\text{{\texttt{) in }}}} e_{2} $$
 * Expressions evaluate (i.e. compute) to **values**:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   v := & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
   &
   \text{(defined) functions}\\\\\\
-  | & C^n (v\_{1}, \ldots, v\_{n}) & \text{constructed values}\\\\\\
-  | & f^n v\_{1} \ldots v\_{k} & k < n \text{ partially applied
-  primitives}
-\end{eqnarray*}
+  | & C^n (v_{1}, \ldots, v_{n}) & \text{constructed values}\\\\\\
+  | & f^n v_{1} \ldots v_{k} & k < n \text{ partially applied
+  primitives} \end{matrix} $$
 * To *substitute* a value $v$ for a variable $x$ in expression $a$ we write $a 
   [x := v]$ – it behaves as if every occurrence of $x$ in $a$ was *rewritten* 
   by $v$.
   * (But actually the value $v$ is not duplicated.)
 * Reduction (i.e. computation) proceeds as follows: first we give *redexes*
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   \text{\text{{\texttt{let }}}} x = v \text{\text{{\texttt{ in }}}} a &
   \rightsquigarrow & a [x := v]\\\\\\
-  f^n v\_{1} \ldots v\_{n} & \rightsquigarrow & f (v\_{1}, \ldots,
-  v\_{n})\\\\\\
+  f^n v_{1} \ldots v_{n} & \rightsquigarrow & f (v_{1}, \ldots,
+  v_{n})\\\\\\
   \text{\text{{\texttt{match }}}} v \text{\text{{\texttt{ with}}} } x
   \text{\text{{\texttt{->}}}} a \text{\text{{\texttt{ \textbar }}}}
   \ldots
   & \rightsquigarrow & a [x := v]\\\\\\
-  \text{\text{{\texttt{match }}}} C\_{1}^n (v\_{1}, \ldots, v\_{n})
+  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C\_{2}^n (p\_{1}, \ldots, p\_{k}) \text{\text{{\texttt{->}}}} a
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
   \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C\_{1}^n (v\_{1}, \ldots, v\_{n})\\\\\\
+  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
   &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
-  \text{\text{{\texttt{match }}}} C\_{1}^n (v\_{1}, \ldots, v\_{n})
+  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C\_{1}^n (x\_{1}, \ldots, x\_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x\_{1}
-  \:= v\_{1} ; \ldots ; x\_{n} := v\_{n}]
-\end{eqnarray*}
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
+  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$
 
-  If $n = 0$, $C\_{1}^n (v\_{1}, \ldots, v\_{n})$ stands for $C^0\_{1}$, etc. 
-  By $f (v\_{1}, \ldots, v\_{n})$ we denote the actual value resulting from 
+  If $n = 0$, $C_{1}^n (v_{1}, \ldots, v_{n})$ stands for $C^0_{1}$, etc. 
+  By $f (v_{1}, \ldots, v_{n})$ we denote the actual value resulting from 
   computing the primitive. We omit the more complex cases of pattern matching.
-* Rule variables: $x$ matches any expression/pattern variable; $a, a\_{1}, 
-  \ldots, a\_{n}$ match any expression; $v, v\_{1}, \ldots, v\_{n}$ match any 
+* Rule variables: $x$ matches any expression/pattern variable; $a, a_{1}, 
+  \ldots, a_{n}$ match any expression; $v, v_{1}, \ldots, v_{n}$ match any 
   value. Substitute them so that the left-hand-side of a rule is your 
   expression, then the right-hand-side is the reduced expression.
 * The remaining rules evaluate the arguments in arbitrary order, but keep the 
   order in which `let`…`in` and `match`…`with` is evaluated.
 
-  If $a\_{i} \rightsquigarrow a\_{i}'$, then:
+  If $a_{i} \rightsquigarrow a_{i}'$, then:
 
-  \begin{eqnarray*}
-  a\_{1} a\_{2} & \rightsquigarrow & a\_{1}' a\_{2}\\\\\\
-  a\_{1} a\_{2} & \rightsquigarrow & a\_{1} a\_{2}'\\\\\\
-  C^n (a\_{1}, \ldots, a\_{i}, \ldots, a\_{n}) & \rightsquigarrow & C^n
-  (a\_{1}, \ldots, a\_{i}', \ldots, a\_{n})\\\\\\
-  \text{\text{{\texttt{let }}}} x = a\_{1} \text{\text{{\texttt{ in }}}}
-  a\_{2} & \rightsquigarrow & \text{\text{{\texttt{let }}}} x = a\_{1}'
-  \text{\text{{\texttt{ in }}}} a\_{2}\\\\\\
-  \text{\text{{\texttt{match }}}} a\_{1} \text{\text{{\texttt{ with}}} }
+  $$ \begin{matrix}
+  a_{1} a_{2} & \rightsquigarrow & a_{1}' a_{2}\\\\\\
+  a_{1} a_{2} & \rightsquigarrow & a_{1} a_{2}'\\\\\\
+  C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) & \rightsquigarrow & C^n
+  (a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
+  \text{\text{{\texttt{let }}}} x = a_{1} \text{\text{{\texttt{ in }}}}
+  a_{2} & \rightsquigarrow & \text{\text{{\texttt{let }}}} x = a_{1}'
+  \text{\text{{\texttt{ in }}}} a_{2}\\\\\\
+  \text{\text{{\texttt{match }}}} a_{1} \text{\text{{\texttt{ with}}} }
   \operatorname{pm} & \rightsquigarrow & \text{\text{{\texttt{match }}}}
-  a\_{1}' \text{\text{{\texttt{ with}}} } \operatorname{pm}
-\end{eqnarray*}
+  a_{1}' \text{\text{{\texttt{ with}}} } \operatorname{pm} \end{matrix} $$
 * Finally, we give the rule for the primitive `fix` – it is a binary 
   primitive:
 
-  \begin{eqnarray*}
-  \text{\text{{\texttt{fix}}}}^2 v\_{1} v\_{2} & \rightsquigarrow & v\_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v\_{1} \right) v\_{2}
-\end{eqnarray*}
+  $$ \begin{matrix}
+  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2} \end{matrix} $$
 
-  Because `fix` is binary, $\left( \text{\text{{\texttt{fix}}}}^2 v\_{1} 
+  Because `fix` is binary, $\left( \text{\text{{\texttt{fix}}}}^2 v_{1} 
   \right)$ is already a value so it will not be further computed until it is 
-  applied inside of $v\_{1}$.
+  applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.
 
 # 3 Symbolic Derivation Example

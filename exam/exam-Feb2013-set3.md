@@ -40,8 +40,8 @@ nodes!) come last.
 *We can assign an address number to each node in a complete binary tree by
 enumerating the nodes in levelorder, starting at the root with number 1. In
 doing so, we realize that for every node X with address A the following
-property holds: The address of X's left and right successors are 2\*A and
-2\*A+1, respectively, supposed the successors do exist. This fact can be used
+property holds: The address of X's left and right successors are 2*A and
+2*A+1, respectively, supposed the successors do exist. This fact can be used
 to elegantly construct a complete binary tree structure. Write a function
 `is_complete_binary_tree` with the following specification:
 `is_complete_binary_tree n t` returns true iff `t` is a complete binary tree
@@ -98,11 +98,11 @@ following two rules:*
 *In order to store the position of the nodes, we redefine the OCaml type
 representing a node (and its successors) as follows:*
 
-*```
+```
 type 'a pos_binary_tree =
     | E (* represents the empty tree *)
     | N of 'a * int * int * 'a pos_binary_tree * 'a pos_binary_tree
-```*
+```
 
 *`N(w,x,y,l,r)` represents a (non-empty) binary tree with root w "positioned"
 at `(x,y)`, and subtrees `l` and `r`. Write a function `layout_binary_tree`
@@ -123,7 +123,7 @@ bitmap is annotated with the respective lengths of its distinct strings of
 occupied cells. The person who solves the puzzle must complete the bitmap 
 given only these lengths.
 
-*```
+```
           Problem statement:          Solution:
 
           |_|_|_|_|_|_|_|_| 3         |_|X|X|X|_|_|_|_| 3
@@ -137,13 +137,13 @@ given only these lengths.
           |_|_|_|_|_|_|_|_| 2         |_|_|_|X|X|_|_|_| 2
            1 3 1 7 5 3 4 3             1 3 1 7 5 3 4 3
            2 1 5 1                     2 1 5 1
-```*
+```
 
 *For the example above, the problem can be stated as the two lists
 `[[3];[2;1];[3;2];[2;2];[6];[1;5];[6];[1];[2]]` and
 `[[1;2];[3;1];[1;5];[7;1];[5];[3];[4];[3]]` which give the "solid" lengths of
 the rows and columns, top-to-bottom and left-to-right, respectively. Published
-puzzles are larger than this example, e.g. 25\*20, and apparently always have
+puzzles are larger than this example, e.g. 25*20, and apparently always have
 unique solutions.*
 
 **Exercise 15:** (Black.) Leftist heaps are heap-ordered binary trees that 

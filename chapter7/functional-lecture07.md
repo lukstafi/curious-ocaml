@@ -74,7 +74,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   but also for arguments of value constructors, i.e. for data structures.
 * **Streams** are lists with call-by-name tails.
 
-  type 'a stream = SNil | SCons of 'a \* (unit -> 'a stream)
+  type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 * Reading from a stream into a list.
 
   let rec stake n = function | SCons (a, s) when n > 0 -> a::(stake 
@@ -134,7 +134,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
     * Syntactically lazy behaves like a data constructor.
 * Lazy lists:
 
-  type 'a llist = LNil | LCons of 'a \* 'a llist Lazy.t
+  type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 * Reading from a lazy list into a list:
 
   let rec ltake n = function | LCons (a, lazy l) when n > 0 -> 
@@ -155,7 +155,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let rec lmap f = function | LNil -> LNil | LCons (a, ll) ->   LCons 
   (f a, lazy (lmap f (Lazy.force ll)))
 * let posnums = lfrom 1let rec lfact =  LCons (1, lazy (lmap (fun (a,b)-> 
-  a\*b)                    (lzip (lfact, posnums))))
+  a*b)                    (lzip (lfact, posnums))))
 
   <table style="display: inline-table; vertical-align: middle">
   <tbody><tr>
@@ -171,7 +171,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 # 5 Power series and differential equations
 
 * Differential equations idea due to Henning Thielemann. **Just an example.**
-* Expression $P (x) = \sum\_{i = 0}^n a\_{i} x^i$ defines a polynomial for $n 
+* Expression $P (x) = \sum_{i = 0}^n a_{i} x^i$ defines a polynomial for $n 
   < \infty$ and a power series for $n = \infty$.
 * If we define
 
@@ -180,12 +180,12 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
   then we can compute polynomials
 
-  let horner x l =  lfoldright (fun c sum -> c +. x \*. sum) l 0.
+  let horner x l =  lfoldright (fun c sum -> c +. x *. sum) l 0.
 * But it will not work for infinite power series!
   * Does it make sense to compute the value at $x$ of a power series?
   * Does it make sense to fold an infinite list?
 * If the power series converges for $x > 1$, then when the elements 
-  $a\_{n}$ get small, the remaining sum $\sum\_{i = n}^{\infty} a\_{i} x^i$ is 
+  $a_{n}$ get small, the remaining sum $\sum_{i = n}^{\infty} a_{i} x^i$ is 
   also small.
 * `lfold_right` falls into an infinite loop on infinite lists. We need 
   call-by-name / call-by-need semantics for the argument function `f`.
@@ -196,7 +196,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
   let lhorner x l =This is a bit of a hack,  let upd c sum =we hope to ‘‘hit'' 
   the interval $(0, \varepsilon]$.    if c = 0. || absfloat c > 
-  epsilonfloat    then c +. x \*. Lazy.force sum    else 0. in  lazyfoldr upd 
+  epsilonfloat    then c +. x *. Lazy.force sum    else 0. in  lazyfoldr upd 
   l 0.
 
   let invfact = lmap (fun n -> 1. /. floatofint n) lfactlet e = lhorner 1. 
@@ -210,7 +210,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * let rec sub xs ys =  match xs, ys with    | LNil,  -> lmap (fun x-> 
   $\sim$-.x) ys    | , LNil -> xs    | LCons (x,xs), LCons (y,ys) ->   
      LCons (x-.y, lazy (add (Lazy.force xs) (Lazy.force ys)))
-* let scale s = lmap (fun x->s\*.x)
+* let scale s = lmap (fun x->s*.x)
 * let rec shift n xs =  if n = 0 then xs  else if n > 0 then LCons (0. , 
   lazy (shift (n-1) xs))  else match xs with    | LNil -> LNil    | LCons 
   (0., lazy xs) -> shift (n+1) xs    |  -> failwith "shift: fractional 
@@ -227,7 +227,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   posnums))))
 * let ltail = function  | LNil -> invalidarg "ltail"  | LCons (, lazy 
   tl) -> tl
-* let differentiate xs =  lmap (uncurry ( \*.)) (lzip (ltail xs, posnums))
+* let differentiate xs =  lmap (uncurry ( *.)) (lzip (ltail xs, posnums))
 
 ## 5.2 Differential equations
 
@@ -257,8 +257,8 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   grow instead of quickly falling…
 * Drawing functions are like in previous lecture, but with open curves.
 * let plot1D f $\sim$w $\sim$scale $\sim$tbeg $\sim$tend =  let dt = (tend -. 
-  tbeg) /. ofint w in  Array.init w (fun i ->    let y = lhorner (dt \*. 
-  ofint i) f in    i, to\_int (scale \*. y))
+  tbeg) /. ofint w in  Array.init w (fun i ->    let y = lhorner (dt *. 
+  ofint i) f in    i, to\_int (scale *. y))
 
 # 6 Arbitrary precision computation
 
@@ -278,7 +278,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * Generate a sequence of approximations to the power series limit at $x$.
 
   let infhorner x l =  let upd c sum =    LCons (c, lazy (lmap (fun apx -> 
-  c+.x\*.apx)                      (Lazy.force sum))) in  lazyfoldr upd l 
+  c+.x*.apx)                      (Lazy.force sum))) in  lazyfoldr upd l 
   (LCons (ofint 0, lazy LNil))
 * Find where the series converges – as far as a given test is concerned.
 
@@ -289,8 +289,8 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * Draw the pixels of the graph at exact coordinates.
 
   let plot1D f $\sim$w $\sim$h0 $\sim$scale $\sim$tbeg $\sim$tend =  let dt = 
-  (tend -. tbeg) /. ofint w in  let eval = exact (fun y-> toint (scale \*. 
-  y)) in  Array.init w (fun i ->    let y = infhorner (tbeg +. dt \*. 
+  (tend -. tbeg) /. ofint w in  let eval = exact (fun y-> toint (scale *. 
+  y)) in  Array.init w (fun i ->    let y = infhorner (tbeg +. dt *. 
   ofint i) f in    i, h0 + eval y)
 * Success! If a power series had every third term contributing we would have 
   to check three terms in the function `exact`…
@@ -300,8 +300,8 @@ Call-by-needIf the function argument is evaluated, that value is stored for
     [http://en.wikipedia.org/wiki/Radioactive\_decay#Chain-decay\_processes](http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes)
 
   let nchain $\sim$nA0 $\sim$nB0 $\sim$lA $\sim$lB =  let rec nA =    LCons 
-  (nA0, lazy (integ ($\sim$-.lA \*:. nA)))  and nB =    LCons (nB0, lazy 
-  (integ ($\sim$-.lB \*:. nB +: lA \*:. nA))) in  nA, nB
+  (nA0, lazy (integ ($\sim$-.lA *:. nA)))  and nB =    LCons (nB0, lazy 
+  (integ ($\sim$-.lB *:. nB +: lA *:. nA))) in  nA, nB
 
 ![](chain_reaction.eps)
 
@@ -323,7 +323,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
   </table>-5.517280.0390925-4.670607884640830.102592935573489-4.564773779600480.0602592935573488-4.1626-0.00324117-4.88227609472152-0.214909379547559-5.05161066278608-0.10907527450721-2.215260.0179257-1.516751554438420.229593861621908-1.410917449398070.123759756581558-0.987581-0.00324117-1.68608612250298-0.15140891652335-1.8130870485514-0.06674163249107020.9809330.01792571.615937954755920.1660933985976981.827606164836620.01792565154120922.20861-0.06674161.57360431273978-0.2784098425717691.40426974467522-0.151408916523354.198290.03909254.812127926974470.1872602196057684.981462495039030.1237597565815585.44713-0.0244084.74862746395026-0.172575737531424.5792928958857-0.151408916523350cm
 * We need to “break” the cycles by making some links lazy.
-* type 'a dllist =  DLNil | DLCons of 'a dllist Lazy.t \* 'a \* 'a dllist
+* type 'a dllist =  DLNil | DLCons of 'a dllist Lazy.t * 'a * 'a dllist
 * let rec dldrop n l =  match l with    | DLCons (, x, xs) when n>0 -> 
        dldrop (n-1) xs    |  -> l
 * let dllistoflist l =  let rec dllist prev l =    match l with      | 
@@ -339,11 +339,11 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
 * The stream type used a throwaway argument to make a suspension
 
-  type 'a stream = SNil | SCons of 'a \* (unit -> 'a stream)
+  type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 
   What if we take a real argument?
 
-  type ('a, 'b) iostream =  EOS | More of 'b \* ('a -> ('a, 'b) iostream)
+  type ('a, 'b) iostream =  EOS | More of 'b * ('a -> ('a, 'b) iostream)
 
   A stream that for a single input value produces an output value.
 * type 'a istream = (unit, 'a) iostreamInput stream produces output when 
@@ -383,7 +383,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   * No need for a dummy when producing output requires input.
 * After Haskell, we call the data structure `pipe`.
 
-  type ('a, 'b) pipe =  EOP| Yield of 'b \* ('a, 'b) `pipe`For incremental 
+  type ('a, 'b) pipe =  EOP| Yield of 'b * ('a, 'b) `pipe`For incremental 
   streams change to lazy.|Await of 'a -> ('a, 'b) pipe
 * Again, we can have producing output only *input pipes* and consuming input 
   only *output pipes*.
@@ -420,12 +420,17 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
 * Print hierarchically organized document with a limited line width.
 
-  type doc =  Text of string | Line | Cat of doc \* doc | Group of doc
+  type doc =  Text of string | Line | Cat of doc * doc | Group of doc
 * let (++) d1 d2 = Cat (d1, Cat (Line, d2))let (!) s = Text slet testdoc =  
   Group (!"Document" ++            Group (!"First part" ++ !"Second part"))
-
-# let () = printendline (pretty 30 testdoc);;DocumentFirst part Second part# let () = printendline (pretty 20 testdoc);;DocumentFirst partSecond part# let () = printendline (pretty 60 testdoc);;Document First part Second part
-
+  ```ocaml
+  # let () = printendline (pretty 30 testdoc);;
+  DocumentFirst part Second part
+  # let () = printendline (pretty 20 testdoc);;
+  DocumentFirst partSecond part
+  # let () = printendline (pretty 60 testdoc);;
+  Document First part Second part
+  ```
 * Straightforward solution:
 
   let pretty w d =Allowed width of line `w`.  let rec width = functionTotal 
@@ -440,7 +445,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * Working with a stream of nodes.
 
   type ('a, 'b) doce =Annotated nodes, special for group beginning.  TE of 'a 
-  \* string | LE of 'a | GBeg of 'b | GEnd of 'a
+  * string | LE of 'a | GBeg of 'b | GEnd of 'a
 * Normalize a subdocument – remove empty groups.
 
   let rec norm = function  | Group d -> norm d  | Text "" -> None  | 

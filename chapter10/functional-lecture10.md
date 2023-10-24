@@ -24,11 +24,11 @@ If you see any error on the slides, let me know!
 type btree = Tip | Node of int * btree * btree
 ```
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   T & = & 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} & = & 0 + T^2 + 2 xT \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
-\end{eqnarray*}
+\end{matrix} $$
 
 ```ocaml
 type btree_dir = LeftBranch | RightBranch
@@ -43,23 +43,22 @@ type btree_deriv =
   The part closest to the location should be on top.
 * Revisiting equations for trees and lists:
 
-  \begin{eqnarray*}
+  $$ \begin{matrix}
   T & = & 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} & = & 0 + T^2 + 2 xT \frac{\partial
   T}{\partial x}\\\\\\
   \frac{\partial T}{\partial x} & = & \frac{T^2}{1 - 2 xT}\\\\\\
   L (y) & = & 1 + yL (y)\\\\\\
   L (y) & = & \frac{1}{1 - y}\\\\\\
-  \frac{\partial T}{\partial x} & = & T^2 L (2 xT)
-\end{eqnarray*}
+  \frac{\partial T}{\partial x} & = & T^2 L (2 xT) \end{matrix} $$
 
   I.e. the context can be stored as a list with the root as the last node.
   * Of course it doesn't matter whether we use built-in lists, or a type with 
     Above and Root variants.
 * Contexts of subtrees are more useful than of single elements.
 
-  type 'a tree = Tip | Node of 'a tree \* 'a \* 'a treetype treedir = Leftbr | 
-  Rightbrtype 'a context = (treedir \* 'a \* 'a tree) listtype 'a location = 
+  type 'a tree = Tip | Node of 'a tree * 'a * 'a treetype treedir = Leftbr | 
+  Rightbrtype 'a context = (treedir * 'a * 'a tree) listtype 'a location = 
   {sub: 'a tree; ctx: 'a context}let access {sub} = sublet change {ctx} sub = 
   {sub; ctx}let modify f {sub; ctx} = {sub=f sub; ctx}
 * We can imagine a location as a rooted tree, which is hanging pinned at one 
@@ -78,7 +77,7 @@ type btree_deriv =
   branches.
 
 type doc = Text of string | Line | Group of doc listtype context = (doc list 
-\* doc list) listtype location = {sub: doc; ctx: context}
+* doc list) listtype location = {sub: doc; ctx: context}
 
 let goup loc =  match loc.ctx with  | [] -> invalidarg "goup: at top"  | 
 (left, right) :: upctx ->Previous subdocument and its siblings.    
@@ -106,22 +105,21 @@ line"  | Group [] -> invalidarg "godown: at empty"  | Group
   * $C [e]$ and $D [e]$ be big expressions with subexpression $e$
   * operator $\circ$ stand for one of: $\ast, +$
 
-  \begin{eqnarray*}
-  D [(C [x] \circ e\_{1}) \circ e\_{2}] & \Rightarrow & D [C [x] \circ (e\_{1}
-  \circ e\_{2})]\\\\\\
-  D [e\_{2} \circ (C [x] \circ e\_{1})] & \Rightarrow & D [C [x] \circ (e\_{1}
-  \circ e\_{2})]\\\\\\
-  D [(C [x] + e\_{1}) e\_{2}] & \Rightarrow & D [C [x] e\_{2} + e\_{1}
-  e\_{2}]\\\\\\
-  D [e\_{2}  (C [x] + e\_{1})] & \Rightarrow & D [C [x] e\_{2} + e\_{1}
-  e\_{2}]\\\\\\
-  D [e \circ C [x]] & \Rightarrow & D [C [x] \circ e]
-\end{eqnarray*}
+  $$ \begin{matrix}
+  D [(C [x] \circ e_{1}) \circ e_{2}] & \Rightarrow & D [C [x] \circ (e_{1}
+  \circ e_{2})]\\\\\\
+  D [e_{2} \circ (C [x] \circ e_{1})] & \Rightarrow & D [C [x] \circ (e_{1}
+  \circ e_{2})]\\\\\\
+  D [(C [x] + e_{1}) e_{2}] & \Rightarrow & D [C [x] e_{2} + e_{1}
+  e_{2}]\\\\\\
+  D [e_{2}  (C [x] + e_{1})] & \Rightarrow & D [C [x] e_{2} + e_{1}
+  e_{2}]\\\\\\
+  D [e \circ C [x]] & \Rightarrow & D [C [x] \circ e] \end{matrix} $$
 * First the groundwork:
 
 type op = Add | Multype expr = Val of int | Var of string | App of 
-expr\*op\*exprtype exprdir = Leftarg | Rightargtype context = (exprdir \* op 
-\* expr) listtype location = {sub: expr; ctx: context}
+expr*op*exprtype exprdir = Leftarg | Rightargtype context = (exprdir * op 
+* expr) listtype location = {sub: expr; ctx: context}
 
 * Locate the subexpression described by `p`.
 
@@ -136,17 +134,17 @@ ctx) -> Some {sub; ctx=List.rev ctx}
 
 * Pull-out the located subexpression.
 
-let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) :: upctx ->$D [e \circ C [x]] \Rightarrow D [C [x] \circ e]$    pullout {loc with ctx=(Rightarg, op, l) :: upctx}  | (Rightarg, op1, e1) :: (, op2, e2) :: upctx      when op1 = op2 ->$D [(C [x] \circ e\_{1}) \circ e\_{2}] / D [e\_{2} \circ (C [x] \circ e\_{1})] \Rightarrow D [C [x] \circ (e\_{1} \circ e\_{2})]$    pullout {loc with ctx=(Rightarg, op1, App(e1,op1,e2)) :: upctx}  | (Rightarg, Add, e1) :: (, Mul, e2) :: upctx ->    pullout {loc with ctx=$D [(C [x] + e\_{1}) e\_{2}] / D [e\_{2}  (C [x] + e\_{1})] \Rightarrow D [C [x] e\_{2} + e\_{1} e\_{2}]$        (Rightarg, Mul, e2) ::          (Rightarg, Add, App(e1,Mul,e2)) :: upctx}  | (Rightarg, op, r)::upctx ->Move up the context.    pullout {sub=App(loc.sub, op, r); ctx=upctx}
+let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) :: upctx ->$D [e \circ C [x]] \Rightarrow D [C [x] \circ e]$    pullout {loc with ctx=(Rightarg, op, l) :: upctx}  | (Rightarg, op1, e1) :: (, op2, e2) :: upctx      when op1 = op2 ->$D [(C [x] \circ e_{1}) \circ e_{2}] / D [e_{2} \circ (C [x] \circ e_{1})] \Rightarrow D [C [x] \circ (e_{1} \circ e_{2})]$    pullout {loc with ctx=(Rightarg, op1, App(e1,op1,e2)) :: upctx}  | (Rightarg, Add, e1) :: (, Mul, e2) :: upctx ->    pullout {loc with ctx=$D [(C [x] + e_{1}) e_{2}] / D [e_{2}  (C [x] + e_{1})] \Rightarrow D [C [x] e_{2} + e_{1} e_{2}]$        (Rightarg, Mul, e2) ::          (Rightarg, Add, App(e1,Mul,e2)) :: upctx}  | (Rightarg, op, r)::upctx ->Move up the context.    pullout {sub=App(loc.sub, op, r); ctx=upctx}
 
 * Since operators are commutative, we ignore the direction for the second 
   piece of context above.
 * Test:
 
-  let (+) a b = App (a, Add, b)let ( \* ) a b = App (a, Mul, b)let (!) a = Val 
-  alet x = Var "x"let y = Var "y"let ex = !5 + y \* (!7 + x) \* (!3 + y)let 
+  let (+) a b = App (a, Add, b)let ( * ) a b = App (a, Mul, b)let (!) a = Val 
+  alet x = Var "x"let y = Var "y"let ex = !5 + y * (!7 + x) * (!3 + y)let 
   loc = find (fun e->e=x) exlet sol =  match loc with  | None -> raise 
   Notfound  | Some loc -> pullout loc# let  = expr2str sol;;- : string = 
-  "(((x\*y)\*(3+y))+(((7\*y)\*(3+y))+5))"
+  "(((x*y)*(3+y))+(((7*y)*(3+y))+5))"
 * For best results we can iterate the `pull_out` function until fixpoint.
 
 # 2 Adaptive Programming aka.Incremental Computing
@@ -171,7 +169,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   computation of the represented value `'a`.
 * Let's look at the example in *“How froc works”*, representing computation
 
-  let u = v / w + x \* y + z ![](how-froc-works-a.png)
+  let u = v / w + x * y + z ![](how-froc-works-a.png)
 * and its state with partial results memoized
 
   ![](how-froc-works-b.png)
@@ -188,16 +186,16 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   introduce nodes with several children.
 
   let n0 = bind2 v w (fun v w -> return (v / w)) let n1 = bind2 x y (fun x 
-  y -> return (x \* y)) let n2 = bind2 n0 n1 (fun n0 n1 -> return 
+  y -> return (x * y)) let n2 = bind2 n0 n1 (fun n0 n1 -> return 
   (n0 + n1)) let u = bind2 n2 z (fun n2 z -> return (n2 + z))
 * Do-notation is not necessary to have readable expressions.
 
-  let (/) = lift2 (/) let ( \* ) = lift2 ( \* ) let (+) = lift2 (+) let u = v 
-  / w + x \* y + z
+  let (/) = lift2 (/) let ( * ) = lift2 ( * ) let (+) = lift2 (+) let u = v 
+  / w + x * y + z
 * As in other monads, we can decrease overhead by using bigger chunks.
 
   let n0 = blift2 v w (fun v w -> v / w) let n2 = blift3 n0 x y (fun n0 x 
-  y -> n0 + x \* y) let u = blift2 n2 z (fun n2 z -> n2 + z)
+  y -> n0 + x * y) let u = blift2 n2 z (fun n2 z -> n2 + z)
 * We have a problem if we recompute all nodes by order of computation.
 
   let b = x >>= fun x -> return (x = 0) let n0 = x >>= fun 
@@ -230,7 +228,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 * Frocsa (for *self-adjusting*) exports the monadic type `t` for changeable 
   computation, and a handle type `u` for updating the computation.
 * open Frocsatype tree =Binary tree with nodes storing their screen location.| 
-  Leaf of int \* intWe will grow the tree| Node of int \* int \* tree t \* 
+  Leaf of int * intWe will grow the tree| Node of int * int * tree t * 
   tree tby modifying subtrees.
 * let rec display px py t =Displaying the tree is changeable effect:  match t 
   withwhenever the tree changes, displaying will be updated.  | Leaf (x, 
@@ -240,10 +238,10 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   (Graphics.drawpolyline [|px,py;x,y|])    >>= fun  -> 
   l >>= display x y    >>= fun  -> r >>= display x 
   y
-* let growat (x, depth, upd) =  let xl = x-f2i (width\*.(2.0\*\*($\sim$-.(i2f 
-  (depth+1))))) in  let l, updl = changeable (Leaf (xl, (depth+1)\*20)) in  
-  let xr = x+f2i (width\*.(2.0\*\*($\sim$-.(i2f (depth+1))))) in  let r, updr 
-  = changeable (Leaf (xr, (depth+1)\*20)) in  write upd (Node (x, depth\*20, 
+* let growat (x, depth, upd) =  let xl = x-f2i (width*.(2.0**($\sim$-.(i2f 
+  (depth+1))))) in  let l, updl = changeable (Leaf (xl, (depth+1)*20)) in  
+  let xr = x+f2i (width*.(2.0**($\sim$-.(i2f (depth+1))))) in  let r, updr 
+  = changeable (Leaf (xr, (depth+1)*20)) in  write upd (Node (x, depth*20, 
   l, r));Update the old leaf  propagate ();and keep handles to make future 
   updates.  [xl, depth+1, updl; xr, depth+1, updr]
 * let rec loop t subts steps =  if steps <= 0 then ()  else loop t 
@@ -315,8 +313,8 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 * Forcing a lazy list (stream) of events would wait till an event arrives.
 * But behaviors need to react to external events:
 
-  type useraction =| Key of char \* bool| Button of int \* int \* bool \* 
-  bool| MouseMove of int \* int| Resize of int \* inttype 'a behavior = 
+  type useraction =| Key of char * bool| Button of int * int * bool * 
+  bool| MouseMove of int * int| Resize of int * inttype 'a behavior = 
   useraction event -> time -> 'a
 * Scanning through an event list since the beginnig of time till current time, 
   each time we evaluate a behavior – very wasteful wrt. time&space.
@@ -327,7 +325,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   type 'a behavior =  useraction event -> time stream -> 'a stream
 * Next optimization is to pair user actions with sampling times.
 
-  type 'a behavior =  (useraction option \* time) stream -> 'a stream
+  type 'a behavior =  (useraction option * time) stream -> 'a stream
 
   None action corresponds to sampling time when nothing happens.
 * Turning behaviors and events from functions of time into input-output 
@@ -381,7 +379,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 
 * The stream processing infrastructure should be familiar.
 
-  type 'a stream = 'a stream Lazy.tand 'a stream = Cons of 'a \* 'a streamlet 
+  type 'a stream = 'a stream Lazy.tand 'a stream = Cons of 'a * 'a streamlet 
   rec lmap f l = lazy (  let Cons (x, xs) = Lazy.force l in  Cons (f x, lmap f 
   xs))let rec liter (f : 'a -> unit) (l : 'a stream) : unit =  let Cons 
   (x, xs) = Lazy.force l in  f x; liter f xslet rec lmap2 f xs ys = lazy (  
@@ -395,20 +393,20 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 * Since a behavior is a function of user actions and sample times, we need to 
   ensure that only one stream is created for the actual input stream.
 
-  type ('a, 'b) memo1 =  {memof : 'a -> 'b; mutable memor : ('a \* 'b) 
+  type ('a, 'b) memo1 =  {memof : 'a -> 'b; mutable memor : ('a * 'b) 
   option}let memo1 f = {memof = f; memor = None}let memo1app f x =  match 
   f.memor with  | Some (y, res) when x == y -> `res`Physical equality is 
   OK --|  ->external input is ‘‘physically'' unique.    let res = f.memof 
   x inWhile debugging, we can monitor    f.memor <- Some (x, res);whether 
   f.memor = None before.    reslet ($) = memo1apptype 'a behavior =  
-  ((useraction option \* time) stream, 'a stream) memo1
+  ((useraction option * time) stream, 'a stream) memo1
 * The monadic/applicative functions to build complex behaviors.
   * If you do not provide type annotations in `.ml` files, work together with 
     an `.mli` file to catch problems early. You can later add more type 
     annotations as needed to find out what's wrong.
 
   let returnB x : 'a behavior =  let rec xs = lazy (Cons (x, xs)) in  memo1 
-  (fun  -> xs)let ( !\* ) = returnBlet liftB f fb = memo1 (fun uts -> 
+  (fun  -> xs)let ( !* ) = returnBlet liftB f fb = memo1 (fun uts -> 
   lmap f (fb $ uts))let liftB2 f fb1 fb2 = memo1  (fun uts -> lmap2 f (fb1 
   $ uts) (fb2 $ uts))let liftB3 f fb1 fb2 fb3 = memo1  (fun uts -> lmap3 f 
   (fb1 $ uts) (fb2 $ uts) (fb3 $ uts))let liftE f (fe : 'a event) : 'b event = 
@@ -422,7 +420,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   unique fe : 'a event =  memo1 (fun uts ->    let xs = fe $ uts in    
   lmap2 (fun x y -> if x = y then None else y)      (lazy (Cons (None, 
   xs))) xs)let whenB fb =  memo1 (fun uts -> unique (whileB fb) $ uts)let 
-  snapshot fe fb : ('a \* 'b) event =  memo1 (fun uts -> lmap2    (fun 
+  snapshot fe fb : ('a * 'b) event =  memo1 (fun uts -> lmap2    (fun 
   x->function Some y -> Some (y,x) | None -> None)      (fb $ uts) 
   (fe $ uts))
 * Creating behaviors out of events.
@@ -436,8 +434,8 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 
   let integral fb =  let rec loop t0 acc uts bs =    let Cons ((,t1), uts) = 
   Lazy.force uts in    let Cons (b, bs) = Lazy.force bs in    let acc = acc +. 
-  (t1 -. t0) \*. b in$b =\operatorname{fb} (t\_{1}), \operatorname{acc} 
-  \approx \int\_{t \leqslant t\_{0}} f$.    Cons (acc, lazy (loop t1 acc uts 
+  (t1 -. t0) *. b in$b =\operatorname{fb} (t_{1}), \operatorname{acc} 
+  \approx \int_{t \leqslant t_{0}} f$.    Cons (acc, lazy (loop t1 acc uts 
   bs)) in  memo1 (fun uts -> lazy (    let Cons ((,t), uts') = Lazy.force 
   uts in    Cons (0., lazy (loop t 0. uts' (fb $ uts)))))
   * In our *paddle game* example, we paradoxically express position and 
@@ -446,10 +444,10 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 * User actions:
 
   let lbp : unit event =  memo1 (fun uts -> lmap    (function 
-  Some(Button(,)),  -> Some() |  -> None)    uts)let mm : (int \* int) 
+  Some(Button(,)),  -> Some() |  -> None)    uts)let mm : (int * int) 
   event =  memo1 (fun uts -> lmap  (function 
   Some(MouseMove(x,y)), ->Some(x,y) |  ->None)    uts)let screen : 
-  (int \* int) event =  memo1 (fun uts -> lmap    (function 
+  (int * int) event =  memo1 (fun uts -> lmap    (function 
   Some(Resize(x,y)), ->Some(x,y) |  ->None)    uts)let mousex : int 
   behavior = step 0 (liftE fst mm)let mousey : int behavior = step 0 (liftE 
   snd mm)let width : int behavior = step 640 (liftE fst screen)let height : 
@@ -460,10 +458,10 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
 * A *scene graph* is a data structure that represents a “world” which can be 
   drawn on screen.
 
-  type scene =| Rect of int \* int \* int \* intposition, width, height| 
-  Circle of int \* int \* intposition, radius| Group of scene list| Color of 
-  Graphics.color \* `scene`color of subscene objects|Translate of float \* 
-  float \* sceneadditional offset of origin
+  type scene =| Rect of int * int * int * intposition, width, height| 
+  Circle of int * int * intposition, radius| Group of scene list| Color of 
+  Graphics.color * `scene`color of subscene objects|Translate of float * 
+  float * sceneadditional offset of origin
 * Drawing a scene explains what we mean above.
 
   let draw sc =  let f2i = intoffloat in  let open Graphics in  let rec aux tx 
@@ -484,8 +482,8 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   function Some (Button (,)) -> false |  -> true in  let current oldm
   oldscr (oldu, t0) =    let rec delay () =      let t1 = Unix.gettimeofday ()
   in      let d = 0.01 -. (t1 -. t0) in      try if d > 0. then
-  Thread.delay d;          Unix.gettimeofday ()      with Unix.Unixerror ((\*
-  Unix.EAGAIN \*), , ) -> delay () in    let t1 = delay () in    let s =
+  Thread.delay d;          Unix.gettimeofday ()      with Unix.Unixerror ((*
+  Unix.EAGAIN *), , ) -> delay () in    let t1 = delay () in    let s =
   Graphics.waitnextevent [Poll] in    let x = s.mousex and y = s.mousey    and
   scrx = Graphics.sizex () and scry = Graphics.sizey () in
     let ue =      if s.keypressed then Some (Key s.key)      else if (scrx,
@@ -501,9 +499,9 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   unfortunately never happens.
 * General-purpose behavior operators.
 
-  let (+\*) = liftB2 (+)let (-\*) = liftB2 (-)let ( \*\*\* ) = liftB2 ( \* 
-  )let (/\*) = liftB2 (/)let (&&\*) = liftB2 (&&)let (||\*) = liftB2 (||)let 
-  (<\*) = liftB2 (<)let (>\*) = liftB2 (>)
+  let (+*) = liftB2 (+)let (-*) = liftB2 (-)let ( *** ) = liftB2 ( * 
+  )let (/*) = liftB2 (/)let (&&*) = liftB2 (&&)let (||*) = liftB2 (||)let 
+  (<*) = liftB2 (<)let (>*) = liftB2 (>)
 * The walls are drawn on left, top and right borders of the window.
 
   let walls =  liftB2 (fun w h -> Color (Graphics.blue, Group    [Rect (0, 
@@ -522,14 +520,14 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
     happening at each horizontal bounce.
   * stepaccum vel (xbounce ->> ($\sim$-.)) behavior is `vel` value 
     changing sign at each horizontal bounce.
-  * liftB intoffloat (integral xvel) +\* width /\* !\*2 – first integrate 
+  * liftB intoffloat (integral xvel) +* width /* !*2 – first integrate 
     velocity, then truncate it to integers and offset to the middle of the 
     window.
-  * whenB ((xpos >\* width -\* !\*27) ||\* (xpos <\* !\*27)) – issue 
+  * whenB ((xpos >* width -* !*27) ||* (xpos <* !*27)) – issue 
     an event the first time the position exceeds the bounds. This ensures 
     there are no further bouncings until the ball moves out of the walls.
 
-let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ uts  and xvel = {memof = xvel; memor = None}  and xpos uts =    (liftB intoffloat (integral xvel) +\* width /\* !\*2) $ uts  and xpos = {memof = xpos; memor = None}  and xbounce uts = whenB    ((xpos >\* width -\* !\*27) ||\* (xpos <\* !\*27)) $ uts  and xbounce = {memof = xbounce; memor = None} in  let rec yvel uts =    (stepaccum vel (ybounce ->> ($\sim$-.))) $ uts  and yvel = {memof = yvel; memor = None}  and ypos uts =    (liftB intoffloat (integral yvel) +\* height /\* !\*2) $ uts  and ypos = {memof = ypos; memor = None}  and ybounce uts = whenB (    (ypos >\* height -\* !\*27) ||\*      ((ypos <\* !\*17) &&\* (ypos >\* !\*7) &&\*          (xpos >\* mousex) &&\* (xpos <\* mousex +\* !\*50))) $ uts  and ybounce = {memof = ybounce; memor = None} in  liftB2 (fun x y -> Color (Graphics.red, Circle (x, y, 6)))    xpos ypos
+let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ uts  and xvel = {memof = xvel; memor = None}  and xpos uts =    (liftB intoffloat (integral xvel) +* width /* !*2) $ uts  and xpos = {memof = xpos; memor = None}  and xbounce uts = whenB    ((xpos >* width -* !*27) ||* (xpos <* !*27)) $ uts  and xbounce = {memof = xbounce; memor = None} in  let rec yvel uts =    (stepaccum vel (ybounce ->> ($\sim$-.))) $ uts  and yvel = {memof = yvel; memor = None}  and ypos uts =    (liftB intoffloat (integral yvel) +* height /* !*2) $ uts  and ypos = {memof = ypos; memor = None}  and ybounce uts = whenB (    (ypos >* height -* !*27) ||*      ((ypos <* !*17) &&* (ypos >* !*7) &&*          (xpos >* mousex) &&* (xpos <* mousex +* !*50))) $ uts  and ybounce = {memof = ybounce; memor = None} in  liftB2 (fun x y -> Color (Graphics.red, Circle (x, y, 6)))    xpos ypos
 
 * Invocation:
 
@@ -598,7 +596,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   ()) clock
 * Next we define integration:
 
-  let integral fb =  let aux (sum, t0) t1 =    sum +. (t1 -. t0) \*. sample 
+  let integral fb =  let aux (sum, t0) t1 =    sum +. (t1 -. t0) *. sample 
   fb, t1 in  collectb aux (0., sample time) clock
 
   For convenience, the integral remembers the current upper limit of 
@@ -611,7 +609,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
 
   let pair fa fb = lift2 (fun x y -> x, y) fa fblet integralnice fb =  let 
   samples = changes (pair fb time) in  let aux (sum, t0) (fv, t1) =    sum +. 
-  (t1 -. t0) \*. fv, t1 in  collectb aux (0., sample time) samples
+  (t1 -. t0) *. fv, t1 in  collectb aux (0., sample time) samples
 
   The initial value (0., sample time) is not “inside” the behavior so `sample` 
   here does not spoil the pure style.
@@ -630,7 +628,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   omx omy osx osy omb t0 =    let rec delay () =      let t1 = 
   Unix.gettimeofday () in      let d = 0.01 -. (t1 -. t0) in      try if 
   d > 0. then Thread.delay d;          Unix.gettimeofday ()      with 
-  Unix.Unixerror ((\* Unix.EAGAIN \*), , ) -> delay () in    let t1 = 
+  Unix.Unixerror ((* Unix.EAGAIN *), , ) -> delay () in    let t1 = 
   delay () in    let s = Graphics.waitnextevent [Poll] in    let x = s.mousex 
   and y = s.mousey    and scrx = Graphics.sizex () and scry = Graphics.sizey 
   () in    if s.keypressed then send presskey s.key;We can send signals    if 
@@ -642,19 +640,20 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   s.button t1 in  opengraph "";  displaymode false;  loop 0 0 640 512 false 
   (Unix.gettimeofday ());  closegraph ()
 * The simple behaviors as in `Lec10b.ml`. Pragmatic (impure) bouncing:
-
+  ```ocaml
   let pbal vel =  let xbounce, bouncex = makeevent () in  let ybounce, bouncey 
   =
   makeevent () in  let xvel = collectb (fun v  -> $\sim$-.v) vel xbounce
   in  let yvel = collectb (fun v  -> $\sim$-.v) vel ybounce in  let xpos =
-  integres xvel +\* width /\* !\*2 in  let ypos = integres yvel +\* height /\*
-  !\*2 in  let xbounce = whentrue    ((xpos >\* width -\* !\*27) ||\*
-  (xpos <\* !\*27)) in  notifye xbounce (send bouncex);  let ybounce =
-  whentrue (    (ypos >\* height -\* !\*27) ||\*      ((ypos <\*
-  !\*17) &&\* (ypos >\* !\*7) &&\*          (xpos >\* mousex) &&\*
-  (xpos <\* mousex +\* !\*50))) in  notifye ybounce (send bouncey);
+  integres xvel +* width /* !*2 in  let ypos = integres yvel +* height /*
+  !*2 in  let xbounce = whentrue    ((xpos >* width -* !*27) ||*
+  (xpos <* !*27)) in  notifye xbounce (send bouncex);  let ybounce =
+  whentrue (    (ypos >* height -* !*27) ||*      ((ypos <*
+  !*17) &&* (ypos >* !*7) &&*          (xpos >* mousex) &&*
+  (xpos <* mousex +* !*50))) in  notifye ybounce (send bouncey);
   lift4 (fun x y   -> Color (Graphics.red, Circle (x, y, 6)))    xpos ypos
   (hold () xbounce) (hold () ybounce)
+  ```
 * We hold on to xbounce and ybounce above to prevent garbage collecting them. 
   We could instead remember them in the “toplevel”:
 
@@ -703,15 +702,15 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   'a -> ('a, unit) flowThe principled way to output.val cancel : 
   cancellable -> unitval repeat :Loop the given flow and store the stop 
   event.  ?until:'a Froc.event -> ('b, unit) flow -> ('b, 'a) flowval 
-  eventflow :  ('a, unit) flow -> 'a Froc.event \* cancellableval 
+  eventflow :  ('a, unit) flow -> 'a Froc.event * cancellableval 
   behaviorflow :The initial value of a behavior and a flow to update it.  
-  'a -> ('a, unit) flow -> 'a Froc.behavior \* cancellableval 
+  'a -> ('a, unit) flow -> 'a Froc.behavior * cancellableval 
   iscancelled : cancellable -> bool
 * We follow our (or *Lwt*) implementation of lightweight threads, adapting it 
   to the need of cancelling flows.
 
   module F = Froctype 'a result =| Return of `'a`$\downarrow$Notifications to 
-  cancel when cancelled.| Sleep of ('a -> unit) list \* F.cancel ref list| 
+  cancel when cancelled.| Sleep of ('a -> unit) list * F.cancel ref list| 
   Cancelled| Link of 'a stateand 'a state = {mutable state : 'a result}type 
   cancellable = unit state
 * Functions `find`, `wakeup`, `connect` are as in lecture 8 (but connecting to 
@@ -750,7 +749,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   to the paddle game example (we removed unnecessary events).
 * The scene is a list of shapes, the first shape is open.
 
-  type scene = (int \* int) list listlet draw sc =  let open Graphics in  
+  type scene = (int * int) list listlet draw sc =  let open Graphics in  
   cleargraph ();  (match sc with  | [] -> ()  | opn::cld ->    
   drawpolyline (Array.oflist opn);    List.iter (fillpoly -| Array.oflist) 
   cld);  synchronize ()
@@ -806,7 +805,7 @@ F.makeevent ()of the calculator directly as a flow.let dots, dot = F.makeevent
 f = ref (fun x -> x) and now = ref 0.0 inbut we  repeat (performremember 
 the older argument in partial application.      op <-- repeat        
 (performEnter the digits of a number (on later turns            d <-- 
-await digits;starting from the second digit)            emit (now := 10. \*. 
+await digits;starting from the second digit)            emit (now := 10. *. 
 !now +. d; !now))        $\sim$until:ops;until operator button is pressed.     
  emit (now := !f !now; f := op !now; !now);      d <-- 
 `repeat`$\nwarrow$Compute the result and ‘‘store away'' the operator.(perform 
@@ -824,7 +823,7 @@ to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
 
   let layout = [|[|"7",‘Di 7.; "8",‘Di 8.; "9",‘Di 9.; "+",‘O (+.)|];   
   [|"4",‘Di 4.; "5",‘Di 5.; "6",‘Di 6.; "-",‘O (-.)|];   [|"1",‘Di 1.; 
-  "2",‘Di 2.; "3",‘Di 3.; "\*",‘O ( \*.)|];   [|"0",‘Di 0.; ".",‘Dot;   "=", 
+  "2",‘Di 2.; "3",‘Di 3.; "*",‘O ( *.)|];   [|"0",‘Di 0.; ".",‘Dot;   "=", 
   ‘O sk; "/",‘O (/.)|]|]
 * Every *widget* (window gadget) has a parent in which it is located.
 * *Buttons* have action associated with pressing them, *labels* just provide 

@@ -47,8 +47,8 @@ informs (via exception or option type) that the graph has a cycle.
 continuation passing style.
 
 **Exercise 11:** (Purple.) Show why for a monomorphic specification, if 
-datastructures $d\_{1}$ and $d\_{2}$ have the same behavior under all 
-operations, then they have the same representation $d\_{1} = d\_{2}$ in all 
+datastructures $d_{1}$ and $d_{2}$ have the same behavior under all 
+operations, then they have the same representation $d_{1} = d_{2}$ in all 
 implementations.
 
 **Exercise 12:** (Purple.) `append` for lazy lists returns in constant time. 

@@ -25,7 +25,7 @@ If you see any error on the slides, let me know!
   * Another definition via `fold_right`.
 * `map` and `fold` for trees and other data structures.
 * The point-free programming style. A bit of history: the FP language.
-* Sum over an interval example: $\sum\_{n = a}^b f (n)$.
+* Sum over an interval example: $\sum_{n = a}^b f (n)$.
 * Combining multiple results: `concat_map`.
 * Interlude: generating all subsets of a set (as list), and as exercise: all 
   permutations of a list.
@@ -229,7 +229,7 @@ class="verbatim"> tl</tt></td>
 
 * Mapping binary trees is straightforward:
 
-  type 'a btree = Empty | Node of 'a \* 'a btree \* 'a btree    let rec btmap 
+  type 'a btree = Empty | Node of 'a * 'a btree * 'a btree    let rec btmap 
   f = function  | Empty -> Empty  | Node (e, l, r) -> Node (f e, btmap 
   f l, btmap f r)  let test = Node  (3, Node (5, Empty, Empty), Node (7, 
   Empty, Empty))let  = btmap ((+) 1) test
@@ -254,9 +254,9 @@ class="verbatim"> tl</tt></td>
 To have a data structure to work with, we recall expressions from lecture 3.
 
 type expression =     Const of float   | Var of string   | Sum of expression 
-\* expression    (\* e1 + e2 \*)   | Diff of expression \* expression   (\* 
-e1 - e2 \*)   | Prod of expression \* expression   (\* e1 \* e2 \*)   | Quot 
-of expression \* expression   (\* e1 / e2 \*)
+* expression    (* e1 + e2 *)   | Diff of expression * expression   (* 
+e1 - e2 *)   | Prod of expression * expression   (* e1 * e2 *)   | Quot 
+of expression * expression   (* e1 / e2 *)
 
 Multitude of cases make the datatype harder to work with. 
 Fortunately, *or-patterns* help a bit:
@@ -300,7 +300,7 @@ Var x in  exprmap {identitymap with mapvar = apply}let vars =  exprfold
 {(makefold (@) []) with foldvar = fun x-> [x]}let size = exprfold 
 (makefold (fun a b->1+a+b) 1)let eval env = exprfold {  foldconst = id;  
 foldvar = (fun x -> List.assoc x env);  foldsum = (+.); folddiff = (-.);  
-foldprod = ( \*.); foldquot = (/.);}
+foldprod = ( *.); foldquot = (/.);}
 
 # 4 Point-free Programming
 
@@ -313,7 +313,7 @@ foldprod = ( \*.); foldquot = (/.);}
     programs.” *The FL Project: The Design of a Functional Language*
 * For functionl-level programming style, we need functionals/combinators, like 
   these from *OCaml Batteries*:  let const x  = xlet ( |- ) f g x = g (f x)let 
-  ( -| ) f g x = f (g x)let flip f x y = f y xlet ( \*\*\* ) f g = fun 
+  ( -| ) f g x = f (g x)let flip f x y = f y xlet ( *** ) f g = fun 
   (x,y) -> (f x, g y)let ( &&& ) f g = fun x -> (f x, g x)let first f 
   x = fst (f x)let second f x = snd (f x)let curry f x y = f (x,y)let uncurry 
   f (x,y) = f x y
@@ -359,13 +359,13 @@ foldprod = ( \*.); foldquot = (/.);}
 
 # 5 Reductions. More higher-order/list functions
 
-Mathematics has notation for sum over an interval: $\sum\_{n = a}^b f (n)$.
+Mathematics has notation for sum over an interval: $\sum_{n = a}^b f (n)$.
 
 In OCaml, we do not have a universal addition operator:
 
 let rec isumfromto f a b =  if a > b then 0  else f a + isumfromto f (a+1) 
 blet rec fsumfromto f a b =  if a > b then 0.  else f a +. fsumfromto f 
-(a+1) blet pi2over6 =  fsumfromto (fun i->1. /. floatofint (i\*i)) 1 5000
+(a+1) blet pi2over6 =  fsumfromto (fun i->1. /. floatofint (i*i)) 1 5000
 
 It is natural to generalize:
 
@@ -375,7 +375,7 @@ let rec opfromto op base f a b =  if a > b then base  else op (f a)
 Let's collect the results of a multifunction (i.e. a set-valued function) for 
 a set of arguments, in math notation:
 
-$$ f (A) = \bigcup\_{p \in A} f (p) $$
+$$ f (A) = \bigcup_{p \in A} f (p) $$
 
 It is a useful operation over lists with `union` translated as `append`:
 
@@ -526,7 +526,7 @@ r::accu) l in  List.rev (mapsf [] l)
 
 # 6 The Countdown Problem Puzzle
 
-* Using a given set of numbers and arithmetic operators +, -, \*, /, construct 
+* Using a given set of numbers and arithmetic operators +, -, *, /, construct 
   an expression with a given value.
 * All numbers, including intermediate results, must be positive integers.
 * Each of the source numbers can be used at most once when constructing the 
@@ -534,7 +534,7 @@ r::accu) l in  List.rev (mapsf [] l)
 * Example:
   * numbers 1, 3, 7, 10, 25, 50
   * target 765
-  * possible solution (25-10) \* (50+1)
+  * possible solution (25-10) * (50+1)
 * There are 780 solutions for this example.
 * Changing the target to 831 gives an example that has no solutions.
 * Operators:
@@ -543,7 +543,7 @@ r::accu) l in  List.rev (mapsf [] l)
 * Apply an operator:
 
   let apply op x y =  match op with  | Add -> x + y  | Sub -> x - y  | 
-  Mul -> x \* y  | Div -> x / y
+  Mul -> x * y  | Div -> x / y
 * Decide if the result of applying an operator to two positive integers is 
   another positive integer:
 
@@ -551,7 +551,7 @@ r::accu) l in  List.rev (mapsf [] l)
    | Mul -> true  | Div -> x mod y = 0
 * Expressions:
 
-  type expr = Val of int | App of op \* expr \* expr
+  type expr = Val of int | App of op * expr * expr
 * Return the overall value of an expression, provided that it is a positive 
   integer:
 
@@ -656,7 +656,7 @@ Task: 3 islands x 3![](honey0.eps)Solution:![](honey1.eps)
 
 ## 7.1 Representing the honeycomb
 
-type cell = int \* intWe address cells using ‘‘cartesian'' coordinatesmodule 
+type cell = int * intWe address cells using ‘‘cartesian'' coordinatesmodule 
 CellSet =and store them in either lists or sets.  Set.Make (struct type t = 
 cell let compare = compare end)type task = {For board ‘‘size'' $N$, the 
 honeycomb coordinates  boardsize : int;range from $(- 2 N, - N)$ to $2 N, N$.  
@@ -680,16 +680,16 @@ let neighbors n eaten (x,y) =  List.filter    (insideboard n eaten)    [x-1,y-1;
 let even x = x mod 2 = 0
 
 let insideboard n eaten (x, y) =  even x = even y && abs y <= n &&  abs 
-x + abs y <= 2\*n &&  not (CellSet.mem (x,y) eaten)
+x + abs y <= 2*n &&  not (CellSet.mem (x,y) eaten)
 
-let honeycells n eaten =  fromto (-2\*n) (2\*n)|->(fun x ->    fromto 
+let honeycells n eaten =  fromto (-2*n) (2*n)|->(fun x ->    fromto 
 (-n) n |-> (fun y ->     guard (insideboard n eaten)        (x, y)))
 
 ### 7.1.3 Drawing honeycombs
 
 We separately generate colored polygons:
 
-let drawhoneycomb $\sim$w $\sim$h task eaten =  let i2f = floatofint in  let nx = i2f (4 \* task.boardsize + 2) in  let ny = i2f (2 \* task.boardsize + 2) in  let radius = min (i2f w /. nx) (i2f h /. ny) in  let x0 = w / 2 in  let y0 = h / 2 in  let dx = (sqrt 3. /. 2.) \*. radius +. 1. inThe distance between  let dy = (3. /. 2.) \*. radius +. 2. in$(x, y)$ and $(x + 1, y + 1)$.  let drawcell (x,y) =    Array.init 7We draw a closed polygon by placing 6 points      (fun i ->evenly spaced on a circumcircle.        let phi = floatofint i \*. pi /. 3. in        x0 + intoffloat (radius \*. sin phi +. floatofint x \*. dx),        y0 + intoffloat (radius \*. cos phi +. floatofint y \*. dy)) in  let honey =    honeycells task.boardsize (CellSet.union task.emptycells                     (cellsetoflist eaten))    |> List.map (fun p->drawcell p, (255, 255, 0)) in  let eaten = List.map     (fun p->drawcell p, (50, 0, 50)) eaten in  let oldempty = List.map     (fun p->drawcell p, (0, 0, 0))     (CellSet.elements task.emptycells) in  honey @ eaten @ oldempty
+let drawhoneycomb $\sim$w $\sim$h task eaten =  let i2f = floatofint in  let nx = i2f (4 * task.boardsize + 2) in  let ny = i2f (2 * task.boardsize + 2) in  let radius = min (i2f w /. nx) (i2f h /. ny) in  let x0 = w / 2 in  let y0 = h / 2 in  let dx = (sqrt 3. /. 2.) *. radius +. 1. inThe distance between  let dy = (3. /. 2.) *. radius +. 2. in$(x, y)$ and $(x + 1, y + 1)$.  let drawcell (x,y) =    Array.init 7We draw a closed polygon by placing 6 points      (fun i ->evenly spaced on a circumcircle.        let phi = floatofint i *. pi /. 3. in        x0 + intoffloat (radius *. sin phi +. floatofint x *. dx),        y0 + intoffloat (radius *. cos phi +. floatofint y *. dy)) in  let honey =    honeycells task.boardsize (CellSet.union task.emptycells                     (cellsetoflist eaten))    |> List.map (fun p->drawcell p, (255, 255, 0)) in  let eaten = List.map     (fun p->drawcell p, (50, 0, 50)) eaten in  let oldempty = List.map     (fun p->drawcell p, (0, 0, 0))     (CellSet.elements task.emptycells) in  honey @ eaten @ oldempty
 
 We can draw the polygons to an *SVG* image:
 
@@ -722,7 +722,7 @@ there after walking around an island, it must belong to a different island.
   let rec checkboard beenislands unvisited visited =    match unvisited with   
  | [] -> beenislands = numislands    | cell::remaining when CellSet.mem 
 cell visited -> `checkboard been_islands remaining visited`Keep looking.   
-   | cell::remaining (\* when not visited \*) ->        let (beensize, 
+   | cell::remaining (* when not visited *) ->        let (beensize, 
 unvisited, visited) = `checkisland cell`Visit another island.(1, remaining, 
 CellSet.add cell visited) in        beensize = islandsize        && checkboard 
 (beenislands+1) unvisited visited
@@ -783,8 +783,8 @@ Since we return lists of solutions, if we are done with current solution
   let rec findboard beenislands unvisited visited eaten =    match unvisited 
 with    | [] ->      if beenislands = numislands then [eaten] else []    | 
 cell::remaining when CellSet.mem cell visited ->      findboard 
-beenislands        remaining visited eaten    | cell::remaining (\* when not 
-visited \*) ->      findisland cell        (1, remaining, CellSet.add cell 
+beenislands        remaining visited eaten    | cell::remaining (* when not 
+visited *) ->      findisland cell        (1, remaining, CellSet.add cell 
 visited, eaten)      |->Concatenate solutions for each way of eating cells 
 around and island.      (fun (beensize, unvisited, visited, eaten) ->      
   if beensize = islandsize        then findboard (beenislands+1)               
@@ -799,7 +799,7 @@ or walk further.
 CellSet.mem neighbor visited then [state]          else            let 
 unvisited = remove neighbor unvisited in            let visited = CellSet.add 
 neighbor visited in            (beensize, unvisited, visited,             
-neighbor::eaten)::              (\* solutions where neighbor is honey \*)      
+neighbor::eaten)::              (* solutions where neighbor is honey *)      
       findisland neighbor              (beensize+1, unvisited, visited, 
 eaten))        state in
 
@@ -837,7 +837,7 @@ inlined, the code would remain more similar to the previous version.
 
 let rec visitcell s =  match s.unvisited with  | [] -> None  | 
 c::remaining when CellSet.mem c s.visited ->    visitcell {s with 
-unvisited=remaining}  | c::remaining (\* when c not visited \*) ->    Some 
+unvisited=remaining}  | c::remaining (* when c not visited *) ->    Some 
 (c, {s with      unvisited=remaining;      visited = CellSet.add c s.visited})
 
 let eatcell c s =  {s with eaten = c::s.eaten;    visited = CellSet.add c 
@@ -877,7 +877,7 @@ findisland neighbor s in            chooseeat @ choosekeep)        s in
 
 Finally, we compute the required length of `eaten` and start searching.
 
-  let cellstoeat =    List.length honey - islandsize \* numislands in  
+  let cellstoeat =    List.length honey - islandsize * numislands in  
 findboard (initstate honey cellstoeat)
 
 # 8 Constraint-based puzzles
