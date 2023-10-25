@@ -17,19 +17,21 @@
 
 (license LICENSE)
 
-(documentation https://github.com/lukstafi/curious-ocaml/blob/master/README.md)
+(documentation
+ https://github.com/lukstafi/curious-ocaml/blob/master/README.md)
 
 (package
  (name curious)
- (synopsis
-  "A curious book about OCaml")
- (description "A curious book about OCaml: logic (types), algebra (values), computation (rewrite semantics), functions (lambda calculus), constraints, monads, expression.")
+ (synopsis "A curious book about OCaml")
+ (description
+  "A curious book about OCaml: logic (types), algebra (values), computation (rewrite semantics), functions (lambda calculus), constraints, monads, expression.")
  (allow_empty)
  (depends
   ocaml
   dune
   base
   core
+  mdx
   printbox
   printbox-text
   printbox-html
@@ -37,7 +39,9 @@
   ppxlib
   ppx_jane
   ppx_expect
-  ppx_minidebug)
+  ppx_minidebug
+  conf-texlive
+  conf-pandoc)
  (tags
   (ocaml textbook)))
 
