@@ -51,8 +51,8 @@ How can we define them?Think in terms of *derivation trees*:
 
 $$ \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{}{\text{a premise}} & \frac{}{\text{another premise}}
-     \end{array}}{\text{some fact}} & \frac{\frac{}{\text{this we have by
+       \frac{\,}{\text{a premise}} & \frac{\,}{\text{another premise}}
+     \end{array}}{\text{some fact}} & \frac{\frac{\,}{\text{this we have by
      default}}}{\text{another fact}}
    \end{array}}{\text{final conclusion}} $$
 
@@ -99,17 +99,14 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 
 Notations
 
-$$
-   
-{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
-   
-{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {c}} $$
+$$ {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
+   {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
-$\frac{}{a} \scriptsize{x}$) although otherwise $a$ might not be warranted. 
+$\frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
 For example:
 
-$$ \frac{\frac{\frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+$$ \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
    outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow
    \text{happy}} \small{\text{ using } x} $$
 
@@ -117,9 +114,9 @@ Such assumption can only be used in the matched subtree! But it can be used
 several times, e.g. if someone's mood is more difficult to influence:
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+     \frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
      outdoor}}}{\text{playing}} & \frac{\begin{array}{ll}
-       \frac{}{\text{sunny}} \small{x} & \frac{\frac{}{\text{sunny}}
+       \frac{\,}{\text{sunny}} \small{x} & \frac{\frac{\,}{\text{sunny}}
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
@@ -128,9 +125,9 @@ $$ \frac{\frac{\begin{array}{ll}
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
 
 $$ \frac{\begin{array}{rrl}
-     \frac{}{\text{sunny} \vee \text{cloudy}} \scriptsize{\text{ forecast}} &
-     \frac{\frac{}{\text{sunny}} \scriptsize{x}}{\text{no-umbrella}} &
-     \frac{\frac{}{\text{cloudy}} \scriptsize{y}}{\text{no-umbrella}}
+     \frac{\,}{\text{sunny} \vee \text{cloudy}} \tiny{\text{ forecast}} &
+     \frac{\frac{\,}{\text{sunny}} \tiny{x}}{\text{no-umbrella}} &
+     \frac{\frac{\,}{\text{cloudy}} \tiny{y}}{\text{no-umbrella}}
    \end{array}}{\text{no-umbrella}} \small{\text{ using } x, y} $$
 
 We know that it will be sunny or cloudy, by watching weather forecast. If it 
@@ -142,7 +139,7 @@ natural numbers:
 $$ \frac{\begin{array}{rr}
      p (0) &
      
-{{{\frac{}{p(x)} \scriptsize{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
+{{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
    \end{array}}{p (n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
@@ -222,8 +219,8 @@ type int_string_record = {a: int; b: string}
   and create its values: `{a = 7; b = "Mary"}`.
 * We access the *fields* of records using the dot notation:
 
-  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{\text{{\texttt{rec}}} } x 
-\text{\text{{\texttt{=}}}} e$ in the table was cheating: `rec` (usually 
+  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{{\texttt{rec}} } x 
+\text{{\texttt{=}}} e$ in the table was cheating: `rec` (usually 
 called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 
 **Definitions for expressions** are introduced by rules a bit more complex 
@@ -232,8 +229,8 @@ than these:
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{\text{{\texttt{let}}} } x \text{\text{{\texttt{=}}}}
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
    e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
@@ -241,22 +238,22 @@ $\rightarrow$), and:
 
 $$ \frac{\begin{array}{ll}
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{\text{{\texttt{let rec}}} } x
-   \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let rec}} } x
+   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
    \: b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 
   top-level, not nested in expressions, and they extend from the point they 
   occur till the end of the source file or interactive session.
-* `let`-`in` definitions for expressions: $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
+* `let`-`in` definitions for expressions: $\text{{\texttt{let}} } x 
+  \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
   are *local*, $x$ is only visible in $e_{2}$. But `let` definitions are 
-  global: placing $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e_{1}$ at the top-level makes $x$ visible from 
+  global: placing $\text{{\texttt{let}} } x 
+  \text{{\texttt{=}}} e_{1}$ at the top-level makes $x$ visible from 
   after $e_{1}$ till the end of the source file or interactive session.
 * In the interactive session, we mark an end of a top-level “sentence” by ;; – 
   it is unnecessary in source files.
@@ -348,18 +345,18 @@ For a refresher, let's try to use the rules we introduced last time on some
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{\text{{\texttt{fun x -> x}}}} : [?]} & \text{use }
+  & \frac{[?]}{\text{{\texttt{fun x -> x}}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{}{\text{\text{{\texttt{x}}}} : a}
-  \scriptsize{x}}{\text{\text{{\texttt{fun x -> x}}}} : [?] \rightarrow 
+  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow 
 [?]}
-  & \frac{}{\text{\text{{\texttt{x}}}} : a} \scriptsize{x} \text{ matches
+  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches
   with }
   
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e : b}}
- \text{ since } e = \text{\text{{\texttt{x}}}}\\\\\\
-  & \frac{\frac{}{\text{\text{{\texttt{x}}}} : a}
-  \scriptsize{x}}{\text{\text{{\texttt{fun x -> x}}}} : a \rightarrow a} 
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
+ \text{ since } e = \text{{\texttt{x}}}\\\\\\
+  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} 
 &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} $$
@@ -376,87 +373,87 @@ Let's try `fun x -> x+1`, which is the same as `fun x -> ((+) x)
 in other places with $[? \alpha]$”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?]} &
+  & \frac{[?]}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?]} &
   \text{use } \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{[?]}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-  \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+  & \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
+  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow [?
   \alpha]} & \text{use } \rightarrow \text{ elimination:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{\text{{\texttt{(+) x}}}} : [? \beta] \rightarrow [?
-    \alpha]} & \frac{[?]}{\text{\text{{\texttt{1}}}} : [? \beta]}
-  \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-  \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+    \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
+    \alpha]} & \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
+  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow [?
   \alpha]} & \text{we know that \text{{\texttt{1}}}} :
-  \text{\text{{\texttt{int}}}}\\\\\\
+  \text{{\texttt{int}}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{\text{{\texttt{(+) x}}}} :
-    \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-    \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-    \scriptsize{\text{(constant)}}
-  \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-  \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+    \frac{[?]}{\text{{\texttt{(+) x}}} :
+    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \tiny{\text{(constant)}}
+  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow [?
   \alpha]} & \text{application again:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{\text{{\texttt{(+)}}}} : [? \gamma] \rightarrow
-      \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-      \frac{[?]}{\text{\text{{\texttt{x}}}} : [? \gamma]}
-    \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-    \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-    \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-    \scriptsize{\text{(constant)}}
-  \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-  \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
+      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+      \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
+    \end{array}}{\text{{\texttt{(+) x}}} :
+    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \tiny{\text{(constant)}}
+  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow [?
   \alpha]} & \text{it's our \text{{\texttt{x}}}!}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{\text{{\texttt{(+)}}}} : [? \gamma] \rightarrow
-      \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-      \frac{}{\text{\text{{\texttt{x}}}} : [? \gamma]}
-      \scriptsize{\text{\text{{\texttt{x}}}}}
-    \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-    \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-    \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-    \scriptsize{\text{(constant)}}
-  \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-  \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [? \gamma]
+      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
+      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+      \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
+      \tiny{\text{{\texttt{x}}}}
+    \end{array}}{\text{{\texttt{(+) x}}} :
+    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \tiny{\text{(constant)}}
+  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [? \gamma]
   \rightarrow [? \alpha]} & \text{but \text{{\texttt{(+)}}}} :
-  \text{\text{{\texttt{int}}}} \rightarrow \text{\text{{\texttt{int}}}}
-  \rightarrow \text{\text{{\texttt{int}}}}\\\\\\
+  \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
+  \rightarrow \text{{\texttt{int}}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{}{\text{\text{{\texttt{(+)}}}} : \text{\text{{\texttt{int}}}}
-      \rightarrow \text{\text{{\texttt{int}}}} \rightarrow
-      \text{\text{{\texttt{int}}}}} \scriptsize{\text{(constant)}} &
-      \frac{}{\text{\text{{\texttt{x}}}} : \text{\text{{\texttt{int}}}}}
-      \scriptsize{\text{\text{{\texttt{x}}}}}
-    \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-    \text{\text{{\texttt{int}}}} \rightarrow \text{\text{{\texttt{int}}}}}
-    & \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-    \scriptsize{\text{(constant)}}
-  \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} :
-  \text{\text{{\texttt{int}}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
-  1}}}} : \text{\text{{\texttt{int}}}} \rightarrow
-  \text{\text{{\texttt{int}}}}} &
+      \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
+      \rightarrow \text{{\texttt{int}}} \rightarrow
+      \text{{\texttt{int}}}} \tiny{\text{(constant)}} &
+      \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
+      \tiny{\text{{\texttt{x}}}}
+    \end{array}}{\text{{\texttt{(+) x}}} :
+    \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}}
+    & \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \tiny{\text{(constant)}}
+  \end{array}}{\text{{\texttt{((+) x) 1}}} :
+  \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
+  1}}}} : \text{{\texttt{int}}} \rightarrow
+  \text{{\texttt{int}}}} &
 \end{matrix} $$
 
 ## 1.1 Curried form
 
 When there are several arrows “on the same depth” in a function type, it means 
-that the function returns a function: e.g. $\text{\text{{\texttt{(+)}}}} : 
-\text{\text{{\texttt{int}}}} \rightarrow \text{\text{{\texttt{int}}}} 
-\rightarrow \text{\text{{\texttt{int}}}}$ is just a shorthand for 
-$\text{\text{{\texttt{(+)}}}} : \text{\text{{\texttt{int}}}} \rightarrow 
-\left( \text{\text{{\texttt{int}}}} \rightarrow 
-\text{\text{{\texttt{int}}}} \right)$. It is very different from
+that the function returns a function: e.g. $\text{{\texttt{(+)}}} : 
+\text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}} 
+\rightarrow \text{{\texttt{int}}}$ is just a shorthand for 
+$\text{{\texttt{(+)}}} : \text{{\texttt{int}}} \rightarrow 
+\left( \text{{\texttt{int}}} \rightarrow 
+\text{{\texttt{int}}} \right)$. It is very different from
 
-$$ \text{\text{{\texttt{fun f -> (f 1) + 1}}}} : \left(
-   \text{\text{{\texttt{int}}}} \rightarrow \text{\text{{\texttt{int}}}}
-   \right) \rightarrow \text{\text{{\texttt{int}}}} $$
+$$ \text{{\texttt{fun f -> (f 1) + 1}}} : \left(
+   \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
+   \right) \rightarrow \text{{\texttt{int}}} $$
 
 For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What 
 expanded form does `((+) 1)` correspond to exactly (computationally)?
@@ -859,35 +856,35 @@ Lecture 2: Algebra, Fig. 1
 
 Type inference example derivation
 
-$$ \frac{[?]}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?]} $$
+$$ \frac{[?]}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?]} $$
 
 $$ \text{use } \rightarrow \text{ introduction:} $$
 
-$$ \frac{\frac{[?]}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-   \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+$$ \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
+   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
 $$ \text{use } \rightarrow \text{ elimination:} $$
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{\text{{\texttt{(+) x}}}} : [? \beta] \rightarrow [?
-     \alpha]} & \frac{[?]}{\text{\text{{\texttt{1}}}} : [? \beta]}
-   \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-   \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+     \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
+     \alpha]} & \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
+   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
-$$ \text{we know that \text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}
+$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}}
 $$
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{\text{{\texttt{(+) x}}}} :
-     \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-     \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-     \scriptsize{\text{(constant)}}
-   \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-   \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+     \frac{[?]}{\text{{\texttt{(+) x}}} :
+     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+     \tiny{\text{(constant)}}
+   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
@@ -895,15 +892,15 @@ $$ \text{application again:} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{\text{{\texttt{(+)}}}} : [? \gamma] \rightarrow
-       \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-       \frac{[?]}{\text{\text{{\texttt{x}}}} : [? \gamma]}
-     \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-     \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-     \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-     \scriptsize{\text{(constant)}}
-   \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-   \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [?] 
+       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
+       \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+       \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
+     \end{array}}{\text{{\texttt{(+) x}}} :
+     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+     \tiny{\text{(constant)}}
+   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
@@ -911,38 +908,38 @@ $$ \text{it's our \text{{\texttt{x}}}!} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{\text{{\texttt{(+)}}}} : [? \gamma] \rightarrow
-       \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-       \frac{}{\text{\text{{\texttt{x}}}} : [? \gamma]}
-       \text{\text{{\texttt{x}}}}
-     \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-     \text{\text{{\texttt{int}}}} \rightarrow [? \alpha]} &
-     \frac{}{\text{\text{{\texttt{1}}}} : \text{\text{{\texttt{int}}}}}
-     \scriptsize{\text{(constant)}}
-   \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} : [?
-   \alpha]}}{\text{\text{{\texttt{fun x -> ((+) x) 1}}}} : [? \gamma]
+       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
+       \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+       \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
+       \text{{\texttt{x}}}
+     \end{array}}{\text{{\texttt{(+) x}}} :
+     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
+     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+     \tiny{\text{(constant)}}
+   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
+   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [? \gamma]
    \rightarrow [? \alpha]} $$
 
-$$ \text{but \text{{\texttt{(+)}}}} : \text{\text{{\texttt{int}}}}
-   \rightarrow \text{\text{{\texttt{int}}}} \rightarrow
-   \text{\text{{\texttt{int}}}} $$
+$$ \text{but \text{{\texttt{(+)}}}} : \text{{\texttt{int}}}
+   \rightarrow \text{{\texttt{int}}} \rightarrow
+   \text{{\texttt{int}}} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{}{\text{\text{{\texttt{(+)}}}} : \text{\text{{\texttt{int}}}}
-       \rightarrow \text{\text{{\texttt{int}}}} \rightarrow
-       \text{\text{{\texttt{int}}}}} \scriptsize{\text{(constant)}} &
-       \frac{}{\text{\text{{\texttt{x}}}} : \text{\text{{\texttt{int}}}}}
-       \text{\text{{\texttt{x}}}}
-     \end{array}}{\text{\text{{\texttt{(+) x}}}} :
-     \text{\text{{\texttt{int}}}} \rightarrow
-     \text{\text{{\texttt{int}}}}} & \frac{}{\text{\text{{\texttt{1}}}} :
-     \text{\text{{\texttt{int}}}}} \scriptsize{\text{(constant)}}
-   \end{array}}{\text{\text{{\texttt{((+) x) 1}}}} :
-   \text{\text{{\texttt{int}}}}}}{\text{\text{{\texttt{fun x -> ((+) 
+       \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
+       \rightarrow \text{{\texttt{int}}} \rightarrow
+       \text{{\texttt{int}}}} \tiny{\text{(constant)}} &
+       \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
+       \text{{\texttt{x}}}
+     \end{array}}{\text{{\texttt{(+) x}}} :
+     \text{{\texttt{int}}} \rightarrow
+     \text{{\texttt{int}}}} & \frac{\,}{\text{{\texttt{1}}} :
+     \text{{\texttt{int}}}} \tiny{\text{(constant)}}
+   \end{array}}{\text{{\texttt{((+) x) 1}}} :
+   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) 
 x)
-   1}}}} : \text{\text{{\texttt{int}}}} \rightarrow
-   \text{\text{{\texttt{int}}}}} $$
+   1}}}} : \text{{\texttt{int}}} \rightarrow
+   \text{{\texttt{int}}}} $$
 
 
 # Chapter 3
@@ -1014,20 +1011,20 @@ sin''' pi;;
 
   $$ \begin{matrix}
   a := & x & \text{variables}\\\\\\
-  | & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a &
+  | & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a &
   \text{(defined) functions}\\\\\\
   | & a a & \text{applications}\\\\\\
   | & C^0 & \text{value constructors of arity } 0\\\\\\
   | & C^n (a, \ldots, a) & \text{value constructors of arity } n \\\\\\
   | & f^n & \text{built-in values (primitives) of a. } n\\\\\\
-  | & \text{\text{{\texttt{let }}}} x = a \text{\text{{\texttt{ in }}}} a
+  | & \text{{\texttt{let }}} x = a \text{{\texttt{ in }}} a
   & \text{name bindings (local definitions)}\\\\\\
-  | & \text{\text{{\texttt{match }}}} a \text{\text{{\texttt{ with}}} \ \
+  | & \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
   \ \ \ \ \ } &  \\\\\\
-  & p \text{\text{{\texttt{->}}}} a \text{\text{{\texttt{ \textbar
+  & p \text{{\texttt{->}}} a \text{\text{{\texttt{ \textbar
   }}}}
-  \ldots \text{\text{{\texttt{ \textbar }}}} p
-  \text{\text{{\texttt{->}}}}
+  \ldots \text{{\texttt{ \textbar }}} p
+  \text{{\texttt{->}}}
   a & \text{pattern matching}\\\\\\
   p := & x & \text{pattern variables}\\\\\\
   | & (p, \ldots, p) & \text{tuple patterns}\\\\\\
@@ -1038,15 +1035,15 @@ sin''' pi;;
 * To simplify presentation, we will use a primitive `fix` to define a limited 
   form of `let rec`:
 
-  $$ \text{\text{{\texttt{let rec }}}} f \text{\text{{\texttt{ }}}} x =
-   e_{1} \text{\text{{\texttt{ in }}}} e_{2} \equiv
-   \text{\text{{\texttt{let }}}} f = \text{\text{{\texttt{fix (fun }}}} f
-   \text{\text{{\texttt{ }}}} x \text{\text{{\texttt{->}}}} e_{1}
-   \text{\text{{\texttt{) in }}}} e_{2} $$
+  $$ \text{{\texttt{let rec }}} f \text{{\texttt{ }}} x =
+   e_{1} \text{{\texttt{ in }}} e_{2} \equiv
+   \text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
+   \text{{\texttt{ }}} x \text{{\texttt{->}}} e_{1}
+   \text{{\texttt{) in }}} e_{2} $$
 * Expressions evaluate (i.e. compute) to **values**:
 
   $$ \begin{matrix}
-  v := & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  v := & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   &
   \text{(defined) functions}\\\\\\
   | & C^n (v_{1}, \ldots, v_{n}) & \text{constructed values}\\\\\\
@@ -1059,26 +1056,26 @@ sin''' pi;;
 * Reduction (i.e. computation) proceeds as follows: first we give *redexes*
 
   $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
-  \text{\text{{\texttt{let }}}} x = v \text{\text{{\texttt{ in }}}} a &
+  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
   \rightsquigarrow & a [x := v]\\\\\\
   f^n v_{1} \ldots v_{n} & \rightsquigarrow & f (v_{1}, \ldots,
   v_{n})\\\\\\
-  \text{\text{{\texttt{match }}}} v \text{\text{{\texttt{ with}}} } x
-  \text{\text{{\texttt{->}}}} a \text{\text{{\texttt{ \textbar }}}}
+  \text{{\texttt{match }}} v \text{{\texttt{ with}} } x
+  \text{{\texttt{->}}} a \text{{\texttt{ \textbar }}}
   \ldots
   & \rightsquigarrow & a [x := v]\\\\\\
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$
 
   If $n = 0$, $C_{1}^n (v_{1}, \ldots, v_{n})$ stands for $C^0_{1}$, etc. 
@@ -1098,20 +1095,20 @@ sin''' pi;;
   a_{1} a_{2} & \rightsquigarrow & a_{1} a_{2}'\\\\\\
   C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) & \rightsquigarrow & C^n
   (a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
-  \text{\text{{\texttt{let }}}} x = a_{1} \text{\text{{\texttt{ in }}}}
-  a_{2} & \rightsquigarrow & \text{\text{{\texttt{let }}}} x = a_{1}'
-  \text{\text{{\texttt{ in }}}} a_{2}\\\\\\
-  \text{\text{{\texttt{match }}}} a_{1} \text{\text{{\texttt{ with}}} }
-  \operatorname{pm} & \rightsquigarrow & \text{\text{{\texttt{match }}}}
-  a_{1}' \text{\text{{\texttt{ with}}} } \operatorname{pm} \end{matrix} $$
+  \text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
+  a_{2} & \rightsquigarrow & \text{{\texttt{let }}} x = a_{1}'
+  \text{{\texttt{ in }}} a_{2}\\\\\\
+  \text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
+  \operatorname{pm} & \rightsquigarrow & \text{{\texttt{match }}}
+  a_{1}' \text{{\texttt{ with}} } \operatorname{pm} \end{matrix} $$
 * Finally, we give the rule for the primitive `fix` – it is a binary 
   primitive:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2} \end{matrix} $$
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix} $$
 
-  Because `fix` is binary, $\left( \text{\text{{\texttt{fix}}}}^2 v_{1} 
+  Because `fix` is binary, $\left( \text{{\texttt{fix}}}^2 v_{1} 
   \right)$ is already a value so it will not be further computed until it is 
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.
@@ -1296,7 +1293,7 @@ let length =  fix (fun f l ->    match l with      | Nil -> 0      |
 Cons (x, xs) -> 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{let }}}} x = v \text{\text{{\texttt{ in }}}} a &
+  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
   \Downarrow & a [x := v]
 \end{matrix} $$
 
@@ -1304,15 +1301,15 @@ $$ \begin{matrix}
 xs) -> 1 + f xs) (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} &
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}
+  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} &
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}
+  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
   (fun f l ->    match l with      | Nil -> 0      | Cons (x, 
@@ -1321,14 +1318,14 @@ Nil -> 0        | Cons (x, xs) -> 1 + f xs))    (Cons (1, (Cons (2,
 Nil))))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
@@ -1339,13 +1336,13 @@ $$ \begin{matrix}
 | Cons (x, xs) -> 1 + f xs)) xs)     (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
@@ -1355,23 +1352,23 @@ xs) -> 1 + (fix (fun f l ->      match l with        | Nil -> 0
     | Cons (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} &
   \Downarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} &
   \Downarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}
 \end{matrix} $$
 
   (match Cons (1, (Cons (2, Nil))) with    | Cons (x, xs) -> 1 + (fix (fun 
@@ -1379,19 +1376,19 @@ f l ->      match l with        | Nil -> 0        | Cons (x,
 xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
@@ -1400,15 +1397,15 @@ $$ \begin{matrix}
 Cons (x, xs) -> 1 + f xs)) (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -1419,14 +1416,14 @@ with             | Nil -> 0             | Cons (x, xs) -> 1 + f xs))
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1438,14 +1435,14 @@ Cons (x, xs) -> 1 + (fix (fun f l ->            match l with
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1456,23 +1453,23 @@ xs) -> 1 + (fix (fun f l ->           match l with             |
 Nil -> 0             | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -1482,20 +1479,20 @@ l ->           match l with             | Nil -> 0             | Cons
 (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]\\\\\\
   &  &
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1505,8 +1502,8 @@ $$ \begin{matrix}
 Nil -> 0               | Cons (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -1514,8 +1511,8 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -1528,7 +1525,7 @@ $$ \begin{matrix}
 (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1537,7 +1534,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1551,7 +1548,7 @@ match l with                   | Nil -> 0                   | Cons (x,
 xs) -> 1 + f xs)) xs) Nil)
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1560,7 +1557,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1573,10 +1570,10 @@ $$ \begin{matrix}
         | Nil -> 0                   | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1585,10 +1582,10 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1625,7 +1622,7 @@ $$ \begin{matrix}
 * The real $\lambda$-calculus has a more general reduction:
 
   $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}}
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}}
   a_{1} \right) a_{2} & \rightsquigarrow & a_{1} [x := a_{2}] \end{matrix} $$
 
   (called *$\beta$-reduction*) and uses *bound variable renaming* 
@@ -1643,7 +1640,7 @@ $$ \begin{matrix}
   $\lambda$-calculus. Not all of them make sense in a typed setting, i.e. the 
   straightforward encode/decode functions do not type-check for them.
 * Define `c_true`=$\lambda x y.x$ and `c_false`=$\lambda x y.y$.
-* Define `c_and`=$\lambda x y.x y \text{\text{{\texttt{c\_false}}}}$. Check 
+* Define `c_and`=$\lambda x y.x y \text{{\texttt{c\_false}}}$. Check 
   that it works!
   * I.e. that `c_and c_true c_true` = `c_true`,otherwise `c_and a b` = 
     `c_false`.
@@ -1836,7 +1833,7 @@ $$ \Downarrow $$
   compiler generates infinite loops for all recursive definitions).
   * Why?
 * Therefore, we need more specific rules. For example, most languages use 
-  $\left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} 
+  $\left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} 
   a \right) v \rightsquigarrow a [x := v]$, which is called *call-by-value*, 
   or **eager** computation (because the program *eagerly* computes the 
   arguments before starting to compute the function). (It's exactly the rule 
@@ -1849,10 +1846,10 @@ $$ \Downarrow $$
   & \rightsquigarrow & \lambda x.F ((\lambda f x.F (f f) x)  (\lambda f x.F
   (f f) x)) x \end{matrix} $$
 
-  Voila – if we use $\left( \text{\text{{\texttt{fun }}}} x 
-  \text{\text{{\texttt{->}}}} a \right) v \rightsquigarrow a [x := v]$ 
-  as the rulerather than $\left( \text{\text{{\texttt{fun }}}} x 
-  \text{\text{{\texttt{->}}}} a_{1} \right) a_{2} \rightsquigarrow 
+  Voila – if we use $\left( \text{{\texttt{fun }}} x 
+  \text{{\texttt{->}}} a \right) v \rightsquigarrow a [x := v]$ 
+  as the rulerather than $\left( \text{{\texttt{fun }}} x 
+  \text{{\texttt{->}}} a_{1} \right) a_{2} \rightsquigarrow 
   a_{1} [x := a_{2}]$, the computation stops. Let's compute the function on 
   some input:
 
@@ -1884,28 +1881,28 @@ $$ \Downarrow $$
   and we shorten `if_then_else` into `if_t_e`):
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{fact}}}} n & = & \text{\text{{\texttt{if\_t\_e}}}}
-  \left( \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( \text{\text{{\texttt{fact}}}}  \left(
-  \text{\text{{\texttt{pred}}}} n \right) \right) \right)\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \lambda n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( \text{\text{{\texttt{fact}}}}  \left(
-  \text{\text{{\texttt{pred}}}} n \right) \right) \right)\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \left( \lambda f n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( f \left( \text{\text{{\texttt{pred}}}} n \right) \right) \right)
-  \right)  \text{\text{{\texttt{fact}}}}\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \operatorname{fix} \left( \lambda f n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( f \left( \text{\text{{\texttt{pred}}}} n \right) \right) \right)
+  \text{{\texttt{fact}}} n & = & \text{{\texttt{if\_t\_e}}}
+  \left( \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( \text{{\texttt{fact}}}  \left(
+  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
+  \text{{\texttt{fact}}} & = & \lambda n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( \text{{\texttt{fact}}}  \left(
+  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
+  \text{{\texttt{fact}}} & = & \left( \lambda f n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
+  \right)  \text{{\texttt{fact}}}\\\\\\
+  \text{{\texttt{fact}}} & = & \operatorname{fix} \left( \lambda f n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
   \right) \end{matrix} $$
 
   The last specification is a valid definition: we just give a name to a 
@@ -1923,34 +1920,34 @@ $$ \Downarrow $$
 * Add numbers stored inside a list:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addlist}}}} l & = & l \left( \lambda h t.
-  \text{\text{{\texttt{cn\_add}}}} h \left(
-  \text{\text{{\texttt{addlist}}}} t \right) \right)
-  \text{\text{{\texttt{cn0}}}} \end{matrix} $$
+  \text{{\texttt{addlist}}} l & = & l \left( \lambda h t.
+  \text{{\texttt{cn\_add}}} h \left(
+  \text{{\texttt{addlist}}} t \right) \right)
+  \text{{\texttt{cn0}}} \end{matrix} $$
 
   To make a proper definition, we need to apply $\operatorname{fix}$ to the 
   solution of above equation.
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addlist}}}} & = & \operatorname{fix} \left( \lambda f
-  l.l \left( \lambda h t. \text{\text{{\texttt{cn\_add}}}} h (f t) \right)
-  \text{\text{{\texttt{cn0}}}} \right) \end{matrix} $$
+  \text{{\texttt{addlist}}} & = & \operatorname{fix} \left( \lambda f
+  l.l \left( \lambda h t. \text{{\texttt{cn\_add}}} h (f t) \right)
+  \text{{\texttt{cn0}}} \right) \end{matrix} $$
 * For trees, let's use a different form of binary trees than so far: instead 
   of keeping elements in inner nodes, we will keep elements in leaves.
 * Define `leaf`$n = \lambda x y.x n$ and `node`$L R = \lambda x y.y L R$.
 * Add numbers stored inside a tree:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addtree}}}} t & = & t (\lambda n.n)  \left( \lambda l
-  r. \text{\text{{\texttt{cn\_add}}}}  \left(
-  \text{\text{{\texttt{addtree}}}} l \right)  \left(
-  \text{\text{{\texttt{addtree}}}} r \right) \right) \end{matrix} $$
+  \text{{\texttt{addtree}}} t & = & t (\lambda n.n)  \left( \lambda l
+  r. \text{{\texttt{cn\_add}}}  \left(
+  \text{{\texttt{addtree}}} l \right)  \left(
+  \text{{\texttt{addtree}}} r \right) \right) \end{matrix} $$
 
   and, in solved form:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addtree}}}} & = & \operatorname{fix} \left( \lambda f
-  t.t (\lambda n.n)  \left( \lambda l r. \text{\text{{\texttt{cn\_add}}}}
+  \text{{\texttt{addtree}}} & = & \operatorname{fix} \left( \lambda f
+  t.t (\lambda n.n)  \left( \lambda l r. \text{{\texttt{cn\_add}}}
   (f l)  (f r) \right) \right) \end{matrix} $$
 
 let nil = fun x y -> ylet cons h t = fun x y -> x h tlet addlist l =  

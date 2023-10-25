@@ -15,12 +15,12 @@ How can we define them? Think in terms of _derivation trees_:
 
 $$
 \frac{
-\frac{\frac{}{\text{a premise}} \space \frac{}{\text{another premise}}}{\frac{}{\text{some fact}}} \space
-\frac{\frac{}{\text{a premise}} \space \frac{}{\text{another premise}}}{\frac{}{\text{another fact}}}}
+\frac{\frac{\,}{\text{a premise}} \; \frac{\,}{\text{another premise}}}{\frac{\,}{\text{some fact}}} \;
+\frac{\frac{\,}{\text{a premise}} \; \frac{\,}{\text{another premise}}}{\frac{\,}{\text{another fact}}}}
 {\text{final conclusion}}
 $$
 
-To define the connectives, we provide rules for using them: for example, a rule $\frac{a \space b}{c}$
+To define the connectives, we provide rules for using them: for example, a rule $\frac{a \; b}{c}$
 matches parts of the tree that have two premises, represented by variables $a$
 and $b$, and have any conclusion, represented by variable $c$.
 

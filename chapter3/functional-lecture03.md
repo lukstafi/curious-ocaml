@@ -66,20 +66,20 @@ sin''' pi;;
 
   $$ \begin{matrix}
   a := & x & \text{variables}\\\\\\
-  | & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a &
+  | & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a &
   \text{(defined) functions}\\\\\\
   | & a a & \text{applications}\\\\\\
   | & C^0 & \text{value constructors of arity } 0\\\\\\
   | & C^n (a, \ldots, a) & \text{value constructors of arity } n \\\\\\
   | & f^n & \text{built-in values (primitives) of a. } n\\\\\\
-  | & \text{\text{{\texttt{let }}}} x = a \text{\text{{\texttt{ in }}}} a
+  | & \text{{\texttt{let }}} x = a \text{{\texttt{ in }}} a
   & \text{name bindings (local definitions)}\\\\\\
-  | & \text{\text{{\texttt{match }}}} a \text{\text{{\texttt{ with}}} \ \
+  | & \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
   \ \ \ \ \ } &  \\\\\\
-  & p \text{\text{{\texttt{->}}}} a \text{\text{{\texttt{ \textbar
+  & p \text{{\texttt{->}}} a \text{\text{{\texttt{ \textbar
   }}}}
-  \ldots \text{\text{{\texttt{ \textbar }}}} p
-  \text{\text{{\texttt{->}}}}
+  \ldots \text{{\texttt{ \textbar }}} p
+  \text{{\texttt{->}}}
   a & \text{pattern matching}\\\\\\
   p := & x & \text{pattern variables}\\\\\\
   | & (p, \ldots, p) & \text{tuple patterns}\\\\\\
@@ -90,15 +90,15 @@ sin''' pi;;
 * To simplify presentation, we will use a primitive `fix` to define a limited 
   form of `let rec`:
 
-  $$ \text{\text{{\texttt{let rec }}}} f \text{\text{{\texttt{ }}}} x =
-   e_{1} \text{\text{{\texttt{ in }}}} e_{2} \equiv
-   \text{\text{{\texttt{let }}}} f = \text{\text{{\texttt{fix (fun }}}} f
-   \text{\text{{\texttt{ }}}} x \text{\text{{\texttt{->}}}} e_{1}
-   \text{\text{{\texttt{) in }}}} e_{2} $$
+  $$ \text{{\texttt{let rec }}} f \text{{\texttt{ }}} x =
+   e_{1} \text{{\texttt{ in }}} e_{2} \equiv
+   \text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
+   \text{{\texttt{ }}} x \text{{\texttt{->}}} e_{1}
+   \text{{\texttt{) in }}} e_{2} $$
 * Expressions evaluate (i.e. compute) to **values**:
 
   $$ \begin{matrix}
-  v := & \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  v := & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   &
   \text{(defined) functions}\\\\\\
   | & C^n (v_{1}, \ldots, v_{n}) & \text{constructed values}\\\\\\
@@ -111,26 +111,26 @@ sin''' pi;;
 * Reduction (i.e. computation) proceeds as follows: first we give *redexes*
 
   $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
-  \text{\text{{\texttt{let }}}} x = v \text{\text{{\texttt{ in }}}} a &
+  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
   \rightsquigarrow & a [x := v]\\\\\\
   f^n v_{1} \ldots v_{n} & \rightsquigarrow & f (v_{1}, \ldots,
   v_{n})\\\\\\
-  \text{\text{{\texttt{match }}}} v \text{\text{{\texttt{ with}}} } x
-  \text{\text{{\texttt{->}}}} a \text{\text{{\texttt{ \textbar }}}}
+  \text{{\texttt{match }}} v \text{{\texttt{ with}} } x
+  \text{{\texttt{->}}} a \text{{\texttt{ \textbar }}}
   \ldots
   & \rightsquigarrow & a [x := v]\\\\\\
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$
 
   If $n = 0$, $C_{1}^n (v_{1}, \ldots, v_{n})$ stands for $C^0_{1}$, etc. 
@@ -150,20 +150,20 @@ sin''' pi;;
   a_{1} a_{2} & \rightsquigarrow & a_{1} a_{2}'\\\\\\
   C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) & \rightsquigarrow & C^n
   (a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
-  \text{\text{{\texttt{let }}}} x = a_{1} \text{\text{{\texttt{ in }}}}
-  a_{2} & \rightsquigarrow & \text{\text{{\texttt{let }}}} x = a_{1}'
-  \text{\text{{\texttt{ in }}}} a_{2}\\\\\\
-  \text{\text{{\texttt{match }}}} a_{1} \text{\text{{\texttt{ with}}} }
-  \operatorname{pm} & \rightsquigarrow & \text{\text{{\texttt{match }}}}
-  a_{1}' \text{\text{{\texttt{ with}}} } \operatorname{pm} \end{matrix} $$
+  \text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
+  a_{2} & \rightsquigarrow & \text{{\texttt{let }}} x = a_{1}'
+  \text{{\texttt{ in }}} a_{2}\\\\\\
+  \text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
+  \operatorname{pm} & \rightsquigarrow & \text{{\texttt{match }}}
+  a_{1}' \text{{\texttt{ with}} } \operatorname{pm} \end{matrix} $$
 * Finally, we give the rule for the primitive `fix` – it is a binary 
   primitive:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2} \end{matrix} $$
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix} $$
 
-  Because `fix` is binary, $\left( \text{\text{{\texttt{fix}}}}^2 v_{1} 
+  Because `fix` is binary, $\left( \text{{\texttt{fix}}}^2 v_{1} 
   \right)$ is already a value so it will not be further computed until it is 
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.

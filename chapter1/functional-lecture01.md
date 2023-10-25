@@ -48,8 +48,8 @@ How can we define them?Think in terms of *derivation trees*:
 
 $$ \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{}{\text{a premise}} & \frac{}{\text{another premise}}
-     \end{array}}{\text{some fact}} & \frac{\frac{}{\text{this we have by
+       \frac{\,}{\text{a premise}} & \frac{\,}{\text{another premise}}
+     \end{array}}{\text{some fact}} & \frac{\frac{\,}{\text{this we have by
      default}}}{\text{another fact}}
    \end{array}}{\text{final conclusion}} $$
 
@@ -96,17 +96,14 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 
 Notations
 
-$$
-   
-{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
-   
-{{{\frac{}{a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {c}} $$
+$$ {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
+   {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
-$\frac{}{a} \scriptsize{x}$) although otherwise $a$ might not be warranted. 
+$\frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
 For example:
 
-$$ \frac{\frac{\frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+$$ \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
    outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow
    \text{happy}} \small{\text{ using } x} $$
 
@@ -114,9 +111,9 @@ Such assumption can only be used in the matched subtree! But it can be used
 several times, e.g. if someone's mood is more difficult to influence:
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+     \frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
      outdoor}}}{\text{playing}} & \frac{\begin{array}{ll}
-       \frac{}{\text{sunny}} \small{x} & \frac{\frac{}{\text{sunny}}
+       \frac{\,}{\text{sunny}} \small{x} & \frac{\frac{\,}{\text{sunny}}
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
@@ -125,9 +122,9 @@ $$ \frac{\frac{\begin{array}{ll}
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
 
 $$ \frac{\begin{array}{rrl}
-     \frac{}{\text{sunny} \vee \text{cloudy}} \scriptsize{\text{ forecast}} &
-     \frac{\frac{}{\text{sunny}} \scriptsize{x}}{\text{no-umbrella}} &
-     \frac{\frac{}{\text{cloudy}} \scriptsize{y}}{\text{no-umbrella}}
+     \frac{\,}{\text{sunny} \vee \text{cloudy}} \tiny{\text{ forecast}} &
+     \frac{\frac{\,}{\text{sunny}} \tiny{x}}{\text{no-umbrella}} &
+     \frac{\frac{\,}{\text{cloudy}} \tiny{y}}{\text{no-umbrella}}
    \end{array}}{\text{no-umbrella}} \small{\text{ using } x, y} $$
 
 We know that it will be sunny or cloudy, by watching weather forecast. If it 
@@ -139,7 +136,7 @@ natural numbers:
 $$ \frac{\begin{array}{rr}
      p (0) &
      
-{{{\frac{}{p(x)} \scriptsize{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
+{{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
    \end{array}}{p (n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
@@ -219,8 +216,8 @@ type int_string_record = {a: int; b: string}
   and create its values: `{a = 7; b = "Mary"}`.
 * We access the *fields* of records using the dot notation:
 
-  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{\text{{\texttt{rec}}} } x 
-\text{\text{{\texttt{=}}}} e$ in the table was cheating: `rec` (usually 
+  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{{\texttt{rec}} } x 
+\text{{\texttt{=}}} e$ in the table was cheating: `rec` (usually 
 called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 
 **Definitions for expressions** are introduced by rules a bit more complex 
@@ -229,8 +226,8 @@ than these:
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{\text{{\texttt{let}}} } x \text{\text{{\texttt{=}}}}
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
    e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
@@ -238,22 +235,22 @@ $\rightarrow$), and:
 
 $$ \frac{\begin{array}{ll}
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
      
-{{{\frac{}{x : a} \scriptsize{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{\text{{\texttt{let rec}}} } x
-   \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let rec}} } x
+   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
    \: b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 
   top-level, not nested in expressions, and they extend from the point they 
   occur till the end of the source file or interactive session.
-* `let`-`in` definitions for expressions: $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
+* `let`-`in` definitions for expressions: $\text{{\texttt{let}} } x 
+  \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
   are *local*, $x$ is only visible in $e_{2}$. But `let` definitions are 
-  global: placing $\text{\text{{\texttt{let}}} } x 
-  \text{\text{{\texttt{=}}}} e_{1}$ at the top-level makes $x$ visible from 
+  global: placing $\text{{\texttt{let}} } x 
+  \text{{\texttt{=}}} e_{1}$ at the top-level makes $x$ visible from 
   after $e_{1}$ till the end of the source file or interactive session.
 * In the interactive session, we mark an end of a top-level “sentence” by ;; – 
   it is unnecessary in source files.

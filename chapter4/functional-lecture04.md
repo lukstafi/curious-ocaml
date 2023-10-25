@@ -26,7 +26,7 @@ let length =  fix (fun f l ->    match l with      | Nil -> 0      |
 Cons (x, xs) -> 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{let }}}} x = v \text{\text{{\texttt{ in }}}} a &
+  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
   \Downarrow & a [x := v]
 \end{matrix} $$
 
@@ -34,15 +34,15 @@ $$ \begin{matrix}
 xs) -> 1 + f xs) (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} &
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}
+  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} &
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}
+  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
   (fun f l ->    match l with      | Nil -> 0      | Cons (x, 
@@ -51,14 +51,14 @@ Nil -> 0        | Cons (x, xs) -> 1 + f xs))    (Cons (1, (Cons (2,
 Nil))))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
@@ -69,13 +69,13 @@ $$ \begin{matrix}
 | Cons (x, xs) -> 1 + f xs)) xs)     (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
@@ -85,23 +85,23 @@ xs) -> 1 + (fix (fun f l ->      match l with        | Nil -> 0
     | Cons (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} &
   \Downarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} &
   \Downarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}
 \end{matrix} $$
 
   (match Cons (1, (Cons (2, Nil))) with    | Cons (x, xs) -> 1 + (fix (fun 
@@ -109,19 +109,19 @@ f l ->      match l with        | Nil -> 0        | Cons (x,
 xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
@@ -130,15 +130,15 @@ $$ \begin{matrix}
 Cons (x, xs) -> 1 + f xs)) (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -149,14 +149,14 @@ with             | Nil -> 0             | Cons (x, xs) -> 1 + f xs))
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -168,14 +168,14 @@ Cons (x, xs) -> 1 + (fix (fun f l ->            match l with
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -186,23 +186,23 @@ xs) -> 1 + (fix (fun f l ->           match l with             |
 Nil -> 0             | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \operatorname{pm} & \rightsquigarrow &
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{\text{{\texttt{with}}} } \operatorname{pm}\\\\\\
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -212,20 +212,20 @@ l ->           match l with             | Nil -> 0             | Cons
 (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots &
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]\\\\\\
   &  &
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -235,8 +235,8 @@ $$ \begin{matrix}
 Nil -> 0               | Cons (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -244,8 +244,8 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{fix}}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{\text{{\texttt{fix}}}}^2 v_{1} \right) v_{2}\\\\\\
+  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -258,7 +258,7 @@ $$ \begin{matrix}
 (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -267,7 +267,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -281,7 +281,7 @@ match l with                   | Nil -> 0                   | Cons (x,
 xs) -> 1 + f xs)) xs) Nil)
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -290,7 +290,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} a
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -303,10 +303,10 @@ $$ \begin{matrix}
         | Nil -> 0                   | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -315,10 +315,10 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{\text{{\texttt{match }}}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{\text{{\texttt{ with}}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{\text{{\texttt{->}}}} a
-  \text{\text{{\texttt{ \textbar }}}} \ldots & \rightsquigarrow & a [x_{1}
+  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
+  \text{{\texttt{ with}}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
+  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -355,7 +355,7 @@ $$ \begin{matrix}
 * The real $\lambda$-calculus has a more general reduction:
 
   $$ \begin{matrix}
-  \left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}}
+  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}}
   a_{1} \right) a_{2} & \rightsquigarrow & a_{1} [x := a_{2}] \end{matrix} $$
 
   (called *$\beta$-reduction*) and uses *bound variable renaming* 
@@ -373,7 +373,7 @@ $$ \begin{matrix}
   $\lambda$-calculus. Not all of them make sense in a typed setting, i.e. the 
   straightforward encode/decode functions do not type-check for them.
 * Define `c_true`=$\lambda x y.x$ and `c_false`=$\lambda x y.y$.
-* Define `c_and`=$\lambda x y.x y \text{\text{{\texttt{c\_false}}}}$. Check 
+* Define `c_and`=$\lambda x y.x y \text{{\texttt{c\_false}}}$. Check 
   that it works!
   * I.e. that `c_and c_true c_true` = `c_true`,otherwise `c_and a b` = 
     `c_false`.
@@ -566,7 +566,7 @@ $$ \Downarrow $$
   compiler generates infinite loops for all recursive definitions).
   * Why?
 * Therefore, we need more specific rules. For example, most languages use 
-  $\left( \text{\text{{\texttt{fun }}}} x \text{\text{{\texttt{->}}}} 
+  $\left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} 
   a \right) v \rightsquigarrow a [x := v]$, which is called *call-by-value*, 
   or **eager** computation (because the program *eagerly* computes the 
   arguments before starting to compute the function). (It's exactly the rule 
@@ -579,10 +579,10 @@ $$ \Downarrow $$
   & \rightsquigarrow & \lambda x.F ((\lambda f x.F (f f) x)  (\lambda f x.F
   (f f) x)) x \end{matrix} $$
 
-  Voila – if we use $\left( \text{\text{{\texttt{fun }}}} x 
-  \text{\text{{\texttt{->}}}} a \right) v \rightsquigarrow a [x := v]$ 
-  as the rulerather than $\left( \text{\text{{\texttt{fun }}}} x 
-  \text{\text{{\texttt{->}}}} a_{1} \right) a_{2} \rightsquigarrow 
+  Voila – if we use $\left( \text{{\texttt{fun }}} x 
+  \text{{\texttt{->}}} a \right) v \rightsquigarrow a [x := v]$ 
+  as the rulerather than $\left( \text{{\texttt{fun }}} x 
+  \text{{\texttt{->}}} a_{1} \right) a_{2} \rightsquigarrow 
   a_{1} [x := a_{2}]$, the computation stops. Let's compute the function on 
   some input:
 
@@ -614,28 +614,28 @@ $$ \Downarrow $$
   and we shorten `if_then_else` into `if_t_e`):
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{fact}}}} n & = & \text{\text{{\texttt{if\_t\_e}}}}
-  \left( \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( \text{\text{{\texttt{fact}}}}  \left(
-  \text{\text{{\texttt{pred}}}} n \right) \right) \right)\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \lambda n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( \text{\text{{\texttt{fact}}}}  \left(
-  \text{\text{{\texttt{pred}}}} n \right) \right) \right)\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \left( \lambda f n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( f \left( \text{\text{{\texttt{pred}}}} n \right) \right) \right)
-  \right)  \text{\text{{\texttt{fact}}}}\\\\\\
-  \text{\text{{\texttt{fact}}}} & = & \operatorname{fix} \left( \lambda f n.
-  \text{\text{{\texttt{if\_t\_e}}}}  \left(
-  \text{\text{{\texttt{is\_zero}}}} n \right)
-  \text{\text{{\texttt{cn1}}}}  \left( \text{\text{{\texttt{mult}}}} n
-  \left( f \left( \text{\text{{\texttt{pred}}}} n \right) \right) \right)
+  \text{{\texttt{fact}}} n & = & \text{{\texttt{if\_t\_e}}}
+  \left( \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( \text{{\texttt{fact}}}  \left(
+  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
+  \text{{\texttt{fact}}} & = & \lambda n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( \text{{\texttt{fact}}}  \left(
+  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
+  \text{{\texttt{fact}}} & = & \left( \lambda f n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
+  \right)  \text{{\texttt{fact}}}\\\\\\
+  \text{{\texttt{fact}}} & = & \operatorname{fix} \left( \lambda f n.
+  \text{{\texttt{if\_t\_e}}}  \left(
+  \text{{\texttt{is\_zero}}} n \right)
+  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
+  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
   \right) \end{matrix} $$
 
   The last specification is a valid definition: we just give a name to a 
@@ -653,34 +653,34 @@ $$ \Downarrow $$
 * Add numbers stored inside a list:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addlist}}}} l & = & l \left( \lambda h t.
-  \text{\text{{\texttt{cn\_add}}}} h \left(
-  \text{\text{{\texttt{addlist}}}} t \right) \right)
-  \text{\text{{\texttt{cn0}}}} \end{matrix} $$
+  \text{{\texttt{addlist}}} l & = & l \left( \lambda h t.
+  \text{{\texttt{cn\_add}}} h \left(
+  \text{{\texttt{addlist}}} t \right) \right)
+  \text{{\texttt{cn0}}} \end{matrix} $$
 
   To make a proper definition, we need to apply $\operatorname{fix}$ to the 
   solution of above equation.
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addlist}}}} & = & \operatorname{fix} \left( \lambda f
-  l.l \left( \lambda h t. \text{\text{{\texttt{cn\_add}}}} h (f t) \right)
-  \text{\text{{\texttt{cn0}}}} \right) \end{matrix} $$
+  \text{{\texttt{addlist}}} & = & \operatorname{fix} \left( \lambda f
+  l.l \left( \lambda h t. \text{{\texttt{cn\_add}}} h (f t) \right)
+  \text{{\texttt{cn0}}} \right) \end{matrix} $$
 * For trees, let's use a different form of binary trees than so far: instead 
   of keeping elements in inner nodes, we will keep elements in leaves.
 * Define `leaf`$n = \lambda x y.x n$ and `node`$L R = \lambda x y.y L R$.
 * Add numbers stored inside a tree:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addtree}}}} t & = & t (\lambda n.n)  \left( \lambda l
-  r. \text{\text{{\texttt{cn\_add}}}}  \left(
-  \text{\text{{\texttt{addtree}}}} l \right)  \left(
-  \text{\text{{\texttt{addtree}}}} r \right) \right) \end{matrix} $$
+  \text{{\texttt{addtree}}} t & = & t (\lambda n.n)  \left( \lambda l
+  r. \text{{\texttt{cn\_add}}}  \left(
+  \text{{\texttt{addtree}}} l \right)  \left(
+  \text{{\texttt{addtree}}} r \right) \right) \end{matrix} $$
 
   and, in solved form:
 
   $$ \begin{matrix}
-  \text{\text{{\texttt{addtree}}}} & = & \operatorname{fix} \left( \lambda f
-  t.t (\lambda n.n)  \left( \lambda l r. \text{\text{{\texttt{cn\_add}}}}
+  \text{{\texttt{addtree}}} & = & \operatorname{fix} \left( \lambda f
+  t.t (\lambda n.n)  \left( \lambda l r. \text{{\texttt{cn\_add}}}
   (f l)  (f r) \right) \right) \end{matrix} $$
 
 let nil = fun x y -> ylet cons h t = fun x y -> x h tlet addlist l =  
