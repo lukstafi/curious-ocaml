@@ -7,13 +7,7 @@ header-includes:
   - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
        crossorigin="anonymous"></script>
-  - <script>document.addEventListener("DOMContentLoaded", function () {
-        var mathElements = document.getElementsByClassName("math");
-        var macros = [];
-        for (var i = 0; i < mathElements.length; i++) {
-          var texText = mathElements[i].firstChild;
-          if (mathElements[i].tagName == "SPAN") {
-          katex.render(texText.data, mathElements[i], {
-            displayMode:mathElements[i].classList.contains('display'), throwOnError:false, macros:macros, fleqn:false}); }}});
-    </script>
+  - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+       integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
+       onload="renderMathInElement(document.body);"></script>
 ---
