@@ -15,14 +15,20 @@ solves equations.
 * Variables play two roles: of *unknowns* and of *parameters*.
   * Inside:
 
-    # let f = List.hd;;val f : 'a list -> 'a
+    ```ocaml
+    # let f = List.hd;;
+    val f : 'a list -> 'a
+    ```
 
     `'a` is a parameter: it can become any type. Mathematically we write: $f : 
     \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha$ – the 
     quantified type is called a *type scheme*.
   * Inside:
 
-    # let x = ref [];;val x : 'a list ref
+    ```ocaml
+    # let x = ref [];;
+    val x : 'a list ref
+    ```
 
     `'_a` is an unknown. It stands for a particular type like float  or 
     (int -> int), OCaml just doesn't yet know the type.
@@ -31,9 +37,13 @@ solves equations.
     against our expectations, *$\eta$-expansion* may help: writing let f x = 
     expr x instead of let f = expr – for example:
 
-    # let f = List.append [];;val f : 'a list -> 'a list = <fun># 
-    let f l = List.append [] l;;val f : 'a list -> 'a list = 
-    <fun>
+    ```ocaml
+    # let f = List.append [];;
+    val f : 'a list -> 'a list = <fun>
+    # let f l = List.append [] l;;
+    val f : 'a list -> 'a list = <fun>
+    ```
+
 * A *type environment* specifies what names (corresponding to parameters and 
   definitions) are available for an expression, because they were introduced 
   above it, and it specifies their types.
@@ -43,23 +53,23 @@ solves equations.
     \rightarrow \alpha \in \Gamma$, then for $f : \tau$ we introduce $\gamma 
     \operatorname{list} \rightarrow \gamma = \tau$ for some fresh unknown 
     $\gamma$.
-  * For $e\_{1} e\_{2} : \tau$ we introduce $\beta = \tau$ and ask for 
-    $e\_{1} : \gamma \rightarrow \beta$ and $e\_{2} : \gamma$, for some fresh 
+  * For $e_{1} e_{2} : \tau$ we introduce $\beta = \tau$ and ask for 
+    $e_{1} : \gamma \rightarrow \beta$ and $e_{2} : \gamma$, for some fresh 
     unknowns $\beta, \gamma$.
   * For $\operatorname{fun}x \rightarrow e : \tau$ we introduce $\beta 
     \rightarrow \gamma = \tau$ and ask for $e : \gamma$ in environment 
     $\lbrace x : \beta \rbrace \cup \Gamma$, for some fresh unknowns $\beta, 
     \gamma$.
-  * Case $\operatorname{let}x = e\_{1} \operatorname{in}e\_{2} : \tau$ is 
+  * Case $\operatorname{let}x = e_{1} \operatorname{in}e_{2} : \tau$ is 
     different. One approach is to *first* solve the equations that we get by 
-    asking for $e\_{1} : \beta$, for some fresh unknown $\beta$. Let's say a 
-    solution $\beta = \tau \_{\beta}$ has been found, $\alpha \_{1} \ldots 
-    \alpha \_{n} \beta \_{1} \ldots \beta \_{m}$ are the remaining unknowns in 
-    $\tau \_{\beta}$,  and $\alpha \_{1} \ldots \alpha \_{n}$ are all that do 
-    not appear in $\Gamma$. Then we ask for $e\_{2} : \tau$ in environment 
-    $\lbrace x : \forall \alpha \_{1} \ldots \alpha \_{n} . \tau \_{\beta} 
+    asking for $e_{1} : \beta$, for some fresh unknown $\beta$. Let's say a 
+    solution $\beta = \tau_{\beta}$ has been found, $\alpha_{1} \ldots 
+    \alpha_{n} \beta_{1} \ldots \beta_{m}$ are the remaining unknowns in 
+    $\tau_{\beta}$,  and $\alpha_{1} \ldots \alpha_{n}$ are all that do 
+    not appear in $\Gamma$. Then we ask for $e_{2} : \tau$ in environment 
+    $\lbrace x : \forall \alpha_{1} \ldots \alpha_{n} . \tau_{\beta} 
     \rbrace \cup \Gamma$.
-  * Remember that whenever we establish a solution $\beta = \tau \_{\beta}$ to 
+  * Remember that whenever we establish a solution $\beta = \tau_{\beta}$ to 
     an unknown $\beta$, it takes effect everywhere!
   * To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown 
     $\beta$ and ask for $e : \beta$ (in $\Gamma$).
@@ -78,8 +88,10 @@ solves equations.
 
   we define lists that can store elements of any type `'a`. Now:
 
+  ```ocaml
   # let tail l =  match l with    | Empty -> invalidarg "tail"    | Cons 
   (, tl) -> tl;;      val tail : 'a mylist -> 'a mylist
+  ```
 
   is a polymorphic function: works for lists with elements of any type.
 * A *parametric type* like 'a mylist *is not* itself a data type but a family 
@@ -95,8 +107,13 @@ solves equations.
   (\alpha, \beta)$.
   * Functions do not have to be polymorphic:
 
-    # let getint c =  match c with    | Left i -> i    | Right b -> if 
-    b then 1 else 0;;      val getint : (int, bool) choice -> int
+    ```ocaml
+    # let getint c =  match c with
+        | Left i -> i
+        | Right b -> if b then 1 else 0;;
+    val getint : (int, bool) choice -> int
+    ```
+
 * In F#, we provide parameters (when more than one) after type name:
 
   type choice<`'a,'`b> = Left of `'a` | `Right of` 'b
@@ -108,7 +125,7 @@ solves equations.
 
 * A statement that an expression has a type in an environment is called 
   a *type judgement*. For environment $\Gamma = \lbrace x : \forall \alpha 
-  \_{1} \ldots \alpha \_{n} . \tau \_{x} ; \ldots \rbrace$, expression $e$ and 
+ _{1} \ldots \alpha_{n} . \tau_{x} ; \ldots \rbrace$, expression $e$ and 
   type $\tau$ we write
 
   \\[ \Gamma \vdash e : \tau \\]
@@ -117,89 +134,89 @@ solves equations.
   variables, using existential quantification.
 * For local definitions we require to remember what constraints should hold 
   when the definition is used. Therefore we extend *type schemes* in the 
-  environment to: $\Gamma = \lbrace x : \forall \beta \_{1} \ldots \beta \_{m} 
-  [\exists \alpha \_{1} \ldots \alpha \_{n} .D] . \tau \_{x} ; \ldots \rbrace$ 
-  where $D$ are equations – keeping the variables $\alpha \_{1} \ldots \alpha 
-  \_{n}$ introduced while deriving $D$ in front.
+  environment to: $\Gamma = \lbrace x : \forall \beta_{1} \ldots \beta_{m} 
+  [\exists \alpha_{1} \ldots \alpha_{n} .D] . \tau_{x} ; \ldots \rbrace$ 
+  where $D$ are equations – keeping the variables $\alpha_{1} \ldots \alpha 
+ _{n}$ introduced while deriving $D$ in front.
   * A simpler form would be enough: $\Gamma = \lbrace x : \forall \beta 
-    [\exists \alpha \_{1} \ldots \alpha \_{n} .D] . \beta ; \ldots \rbrace$
+    [\exists \alpha_{1} \ldots \alpha_{n} .D] . \beta ; \ldots \rbrace$
 
 
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   \llbracket \Gamma \vdash x : \tau \rrbracket & = & \exists \overline{\beta'}
   \bar{\alpha}' . (D [\bar{\beta} \bar{\alpha} := \overline{\beta'}
-  \bar{\alpha}'] \wedge \tau \_{x} [\bar{\beta} \bar{\alpha} :=
+  \bar{\alpha}'] \wedge \tau_{x} [\bar{\beta} \bar{\alpha} :=
   \overline{\beta'} \bar{\alpha}'] \dot{=} \tau)\\\\\\
   &  & \text{where } \Gamma (x) = \forall \bar{\beta} [\exists \bar{\alpha}
-  .D] . \tau \_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
+  .D] . \tau_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
   (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \left\llbracket \Gamma \vdash \boldsymbol{\ensuremath{\operatorname{fun}}} x
-  \text{\text{{\ttfamily{->}}}} e : \tau \right\rrbracket & = & \exists 
+  \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
+  \text{{\texttt{->}}} e : \tau \rrbracket & = & \exists 
 \alpha
-  \_{1} \alpha \_{2} . (\llbracket \Gamma \lbrace x : \alpha \_{1} \rbrace
-  \vdash e : \alpha \_{2} \rrbracket \wedge \alpha \_{1} \rightarrow \alpha
-  \_{2} \dot{=} \tau),\\\\\\
-  &  & \text{where } \alpha \_{1} \alpha \_{2} \#\operatorname{FV} (\Gamma,
+ _{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
+  \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha
+ _{2} \dot{=} \tau),\\\\\\
+  &  & \text{where } \alpha_{1} \alpha_{2} \#\operatorname{FV} (\Gamma,
   \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e\_{1} e\_{2} : \tau \rrbracket & = & \exists
-  \alpha . (\llbracket \Gamma \vdash e\_{1} : \alpha \rightarrow \tau
-  \rrbracket \wedge \llbracket \Gamma \vdash e\_{2} : \alpha \rrbracket),
+  \llbracket \Gamma \vdash e_{1} e_{2} : \tau \rrbracket & = & \exists
+  \alpha . (\llbracket \Gamma \vdash e_{1} : \alpha \rightarrow \tau
+  \rrbracket \wedge \llbracket \Gamma \vdash e_{2} : \alpha \rrbracket),
   \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash K e\_{1} \ldots e\_{n} : \tau \rrbracket & = &
-  \exists \bar{\alpha}' . (\wedge \_{i} \llbracket \Gamma \vdash e\_{i} : \tau
-  \_{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
+  \llbracket \Gamma \vdash K e_{1} \ldots e_{n} : \tau \rrbracket & = &
+  \exists \bar{\alpha}' . (\wedge_{i} \llbracket \Gamma \vdash e_{i} : \tau
+ _{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
   (\bar{\alpha}') \dot{=} \tau),\\\\\\
-  &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau \_{1} \times \ldots
-  \times \tau \_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
+  &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau_{1} \times \ldots
+  \times \tau_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{let}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &  & \text{where } C =
-  \llbracket \Gamma \vdash e\_{1} : \beta \rrbracket\\\\\\
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{let}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
+  \llbracket \Gamma \vdash e_{1} : \beta \rrbracket\\\\\\
   &  &  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{letrec}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &  & \text{where } C =
-  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e\_{1} : \beta
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{letrec}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
+  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
   \rrbracket\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha \_{v} .
-  \llbracket \Gamma \vdash e\_{v} : \alpha \_{v} \rrbracket \wedge \_{i}
-  \llbracket \Gamma \vdash p\_{i} .e\_{i} : \alpha \_{v} \rightarrow \tau
+  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha_{v} .
+  \llbracket \Gamma \vdash e_{v} : \alpha_{v} \rrbracket \wedge_{i}
+  \llbracket \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
   \rrbracket,\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{match}}} e\_{v}
-  \boldsymbol{\ensuremath{\operatorname{with}}} \bar{c} &  & \alpha \_{v}
+  e = \boldsymbol{\operatorname{match}} e_{v}
+  \boldsymbol{\operatorname{with}} \bar{c} &  & \alpha_{v}
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
-  \bar{c} = p\_{1} .e\_{1} | \ldots |p\_{n} .e\_{n} &  &  \\\\\\
+  \bar{c} = p_{1} .e_{1} | \ldots |p_{n} .e_{n} &  &  \\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma, \Sigma \vdash p.e : \tau \_{1} \rightarrow \tau \_{2}
-  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket
-  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau \_{2}
+  \llbracket \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
+  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket
+  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_{2}
   \rrbracket\\\\\\
   &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } \llbracket
-  \Sigma \vdash p \uparrow \tau \_{1} \rrbracket, \bar{\beta}
-  \#\operatorname{FV} (\Gamma, \tau \_{2})\\\\\\
+  \Sigma \vdash p \uparrow \tau_{1} \rrbracket, \bar{\beta}
+  \#\operatorname{FV} (\Gamma, \tau_{2})\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket &  &
+  \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket &  &
   \text{derives constraints on type of matched value}\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \uparrow \tau \_{1} \rrbracket &  & \text{derives
+  \llbracket \Sigma \vdash p \uparrow \tau_{1} \rrbracket &  & \text{derives
   environment for pattern variables}
-\end{eqnarray*}
+\end{matrix} $$
 
-* By $\bar{\alpha}$ or $\overline{\alpha \_{i}}$ we denote a sequence of some 
-  length: $\alpha \_{1} \ldots \alpha \_{n}$
-* By $\wedge \_{i} \varphi \_{i}$ we denote a conjunction of 
-  $\overline{\varphi \_{i}}$: $\varphi \_{1} \ldots \varphi \_{n}$.
+* By $\bar{\alpha}$ or $\overline{\alpha_{i}}$ we denote a sequence of some 
+  length: $\alpha_{1} \ldots \alpha_{n}$
+* By $\wedge_{i} \varphi_{i}$ we denote a conjunction of 
+  $\overline{\varphi_{i}}$: $\varphi_{1} \ldots \varphi_{n}$.
 
 ### 3.1 Polymorphic Recursion
 
@@ -291,14 +308,14 @@ middle">
   operations.
 * A *homomorphism* from algebraic structure $(A, \lbrace f^A, g^A, \ldots 
   \rbrace)$ to $(B, \lbrace f^B, g^B, \ldots \rbrace)$ is a function $h : A 
-  \rightarrow B$ such that $h (f^A (a\_{1}, \ldots, a\_{n\_{f}})) = f^B (h 
-  (a\_{1}), \ldots, h (a\_{n\_{f}}))$ for all $(a\_{1}, \ldots, a\_{n\_{f}})$, 
-  $h (g^A (a\_{1}, \ldots, a\_{n\_{g}})) = g^B (h (a\_{1}), \ldots, h 
-  (a\_{n\_{g}}))$ for all $(a\_{1}, \ldots, a\_{n\_{g}})$, …
+  \rightarrow B$ such that $h (f^A (a_{1}, \ldots, a_{n_{f}})) = f^B (h 
+  (a_{1}), \ldots, h (a_{n_{f}}))$ for all $(a_{1}, \ldots, a_{n_{f}})$, 
+  $h (g^A (a_{1}, \ldots, a_{n_{g}})) = g^B (h (a_{1}), \ldots, h 
+  (a_{n_{g}}))$ for all $(a_{1}, \ldots, a_{n_{g}})$, …
 * Two algebraic structures are *isomorphic* if there are homomorphisms 
-  $h\_{1} : A \rightarrow B, h\_{2} : B \rightarrow A$ from one to the other 
+  $h_{1} : A \rightarrow B, h_{2} : B \rightarrow A$ from one to the other 
   and back, that when composed in any order form identity: $\forall (b \in B) 
-  h\_{1} (h\_{2} (b)) = b$, $\forall (a \in A) h\_{2} (h\_{1} (a)) = a$.
+  h_{1} (h_{2} (b)) = b$, $\forall (a \in A) h_{2} (h_{1} (a)) = a$.
 * An algebraic specification whose all implementations without junk are 
   isomorphic is called “*monomorphic*”.
   * We usually only add axioms that really matter to us to the specification, 
@@ -349,19 +366,22 @@ add k v m = (k, v)::m  let remove = List.removeassoc  let find = List.assocend
 Let's now build an implementation of maps from the ground up. The most 
 straightforward implementation… might not be what you expected:
 
+```ocaml
 module TrivialMap : MAP = struct  type ('a, 'b) t =    | Empty    | Add of 'a 
 \* 'b \* ('a, 'b) t    | Remove of 'a \* ('a, 'b) t          let empty = Empty 
  let rec member k m =    match m with      | Empty -> false      | Add 
 (k2, , ) when k = k2 -> true      | Remove (k2, ) when k = k2 -> false 
      | Add (, , m2) -> member k m2      | Remove (, m2) -> member k m2 
  let add k v m = Add (k, v, m)  let remove k m = Remove (k, m)  let rec find k 
-m =    match m with      | Empty -> raise Notfound      | Add (k2, v, ) 
+m =    match m with      | Empty -> raise Not_found      | Add (k2, v, ) 
 when k = k2 -> v      | Remove (k2, ) when k = k2 -> raise Notfound    
-  | Add (, , m2) -> find k m2      | Remove (, m2) -> find k m2end
+  | Add (, , m2) -> find k m2      | Remove (, m2) -> find k m2 end
+```
 
 Here is an implementation based on association lists, i.e. on lists of 
 key-value pairs.
 
+```ocaml
 module MyListMap : MAP = struct  type ('a, 'b) t = Empty | Add of 'a \* 'b \* 
 ('a, 'b) t  let empty = Empty  let rec member k m =    match m with      | 
 Empty -> false      | Add (k2, , ) when k = k2 -> true      | Add (, , 
@@ -372,7 +392,8 @@ v, m)      | Add (k2, v2, m) -> Add (k2, v2, add k v m)
   let rec remove k m =    match m with      | Empty -> Empty      | Add 
 (k2, , m) when k = k2 -> m      | Add (k2, v, m) -> Add (k2, v, remove 
 k m)  let rec find k m =    match m with      | Empty -> raise Error      
-| Add (k2, v, ) when k = k2 -> v      | Add (, , m2) -> find k m2end
+| Add (k2, v, ) when k = k2 -> v      | Add (, , m2) -> find k m2 end
+```
 
 ## 9 Implementing maps: Binary search trees
 
@@ -394,6 +415,7 @@ k m)  let rec find k m =    match m with      | Empty -> raise Error
     the problem of needing the order of keys; it is just to keep things 
     simple.
 
+```ocaml
 module BTreeMap : MAP = struct  type ('a, 'b) t = Empty | T of ('a, 'b) t \* 
 'a \* 'b \* ('a, 'b) t  let empty = Empty  let rec member k m =‘‘Divide and 
 conquer'' search through the tree.    match m with      | Empty -> false   
@@ -403,8 +425,11 @@ m =Searches the tree in the same way as `member`    match m withbut copies
 every node along the way.      | Empty -> T (Empty, k, v, Empty)      | T 
 (m1, k2, , m2) when k = k2 -> T (m1, k, v, m2)      | T (m1, k2, v2, m2) 
 when k < k2 -> T (add k v m1, k2, v2, m2)      | T (m1, k2, v2, 
-m2) -> T (m1, k2, v2, add k v m2)  let rec splitrightmost m =A helper 
-function, it does not belong    match m withto the ‘‘exported'' signature.     
+m2) -> T (m1, k2, v2, add k v m2)
+
+let rec splitrightmost m = (* A helper 
+function, it does not belong *)
+   match m with (* to the ‘‘exported'' signature.     *)
  | Empty -> raise Notfound      | T (Empty, k, v, Empty) -> k, v, 
 EmptyWe remove one element,      | T (m1, k, v, m2) ->the one that is on 
 the bottom right.        let rk, rv, rm = splitrightmost m2 in        rk, rv, 
@@ -418,7 +443,8 @@ k < k2 -> T (remove k m1, k2, v, m2)      | T (m1, k2, v, m2) ->
 T (m1, k2, v, remove k m2)  let rec find k m =    match m with      | 
 Empty -> raise Notfound      | T (, k2, v, ) when k = k2 -> v      | T 
 (m1, k2, , ) when k < k2 -> find k m1      | T (, , , m2) -> find 
-k m2end
+k m2 end
+```
 
 ## 10 Implementing maps: red-black trees
 
@@ -488,8 +514,7 @@ Red-black\_tree\_example.png
 * For understandable implementation of deletion, we need to introduce more 
   colors. See Matt Might's post edited in a separate file.
 
-
-
+```ocaml
 type color = R | Btype 'a t = E | T of color \* 'a t \* 'a \* 'a tlet empty = 
 Elet rec member x m =  match m withLike in unbalanced binary search tree.  | 
 Empty -> false  | T (, , y, ) when x = y -> true  | T (, a, y, ) when 
@@ -503,10 +528,11 @@ allow red-red violation for now.
 let insert x s =  let rec ins = functionLike in unbalanced binary search tree, 
    | E -> T (R,E,x,E)but fix violation above created node.    | T 
 (color,a,y,b) as s ->      if x<y then balance (color,ins a,y,b)      
-else if x>y then balance (color,a,y,ins b)      else s in  match ins s 
-withWe could still have red-red violation at root,  | T (,a,y,b) -> T 
-(B,a,y,b)fixed by coloring it black.  | E -> failwith "insert: impossible"
-
+else if x>y then balance (color,a,y,ins b)      else s in
+  match ins s with (* We could still have red-red violation at root, *)
+  | T (,a,y,b) -> T (B,a,y,b) (* fixed by coloring it black. *)
+  | E -> failwith "insert: impossible"
+```
 
 
 
@@ -518,15 +544,15 @@ withWe could still have red-red violation at root,  | T (,a,y,b) -> T
    let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
 
    in environ. $\Gamma = \left\lbrace 
-   \text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha 
+   \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}} : \forall \alpha . \alpha 
    \operatorname{list} \rightarrow \alpha ; 
-   \text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl}}} : \forall \alpha . \alpha 
+   \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}} : \forall \alpha . \alpha 
    \operatorname{list} \rightarrow \alpha \operatorname{list} \right\rbrace$. 
    You can take “shortcuts” if it is too many equations to write down.
 1. What does it mean that an implementation has junk (as an algebraic 
    structure for a given signature)? Is it bad?
 1. Define a monomorphic algebraic specification (other than, but similar to, 
-   $\operatorname{nat}\_{p}$ or $\operatorname{string}\_{p}$, some useful data 
+   $\operatorname{nat}_{p}$ or $\operatorname{string}_{p}$, some useful data 
    type).
 1. Discuss an example of a (monomorphic) algebraic specification where it 
    would be useful to drop some axioms (giving up monomorphicity) to allow 
@@ -535,8 +561,11 @@ withWe could still have red-red violation at root,  | T (,a,y,b) -> T
    specification for maps? Hint: here is the definition of List.removeassoc; 
    `compare a x` equals 0 if and only if `a` = `x`.
 
-   let rec removeassoc x = function  | [] -> []  | (a, b as pair) :: 
-   l ->      if compare a x = 0 then l else pair :: removeassoc x l
+   ```ocaml
+   let rec removeassoc x = function  | [] -> []  | (a, b as pair) :: l ->
+         if compare a x = 0 then l else pair :: removeassoc x l
+   ```
+
 1. Trick question: what is the computational complexity of ListMap or 
    TrivialMap?
 1. \* The implementation MyListMap is inefficient: it performs a lot of 

@@ -72,8 +72,8 @@ sin''' pi;;
   & \text{name bindings (local definitions)}\\\\\\
   | & \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
   \ \ \ \ \ } &  \\\\\\
-  & p \text{{\texttt{->}}} a \text{\text{{\texttt{ \textbar
-  }}}}
+  & p \text{{\texttt{->}}} a \text{{\texttt{ \textbar
+  }}}
   \ldots \text{{\texttt{ \textbar }}} p
   \text{{\texttt{->}}}
   a & \text{pattern matching}\\\\\\

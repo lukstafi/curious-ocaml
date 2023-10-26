@@ -95,8 +95,8 @@ $$ \begin{matrix}
     & \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
     \tiny{\text{(constant)}}
   \end{array}}{\text{{\texttt{((+) x) 1}}} :
-  \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
-  1}}}} : \text{{\texttt{int}}} \rightarrow
+  \text{{\texttt{int}}}}}{\text{{\texttt{fun x -> ((+) x)
+  1}}} : \text{{\texttt{int}}} \rightarrow
   \text{{\texttt{int}}}} &
 \end{matrix} $$
 
