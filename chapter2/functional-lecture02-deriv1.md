@@ -25,8 +25,7 @@ $$ \frac{\frac{\begin{array}{ll}
 \rightarrow
    [? \alpha]} $$
 
-$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}}
-$$
+$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{[?]}{\text{{\texttt{(+) x}}} :
@@ -86,8 +85,7 @@ $$ \frac{\frac{\begin{array}{ll}
      \text{{\texttt{int}}}} & \frac{\,}{\text{{\texttt{1}}} :
      \text{{\texttt{int}}}} \tiny{\text{(constant)}}
    \end{array}}{\text{{\texttt{((+) x) 1}}} :
-   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) 
-x)
+   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
    \text{{\texttt{int}}}} $$
 

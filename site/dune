@@ -41,3 +41,12 @@
  (action
   (system
    "pandoc -s --katex %{deps} -o %{target}")))
+
+; (rule
+;  (alias old_lectures_as_book)
+;  (mode promote)
+;  (target old_lectures_as_book.hs)
+;  (deps old_lectures_as_book.md)
+;  (action
+;   (system
+;    "pandoc -s --katex --to native %{deps} -o %{target}")))

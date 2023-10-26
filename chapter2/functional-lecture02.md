@@ -15,16 +15,12 @@ $$ \begin{matrix}
   & \frac{[?]}{\text{{\texttt{fun x -> x}}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
   & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow 
-[?]}
-  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches
-  with }
-  
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow [?]}
+  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with }
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
  \text{ since } e = \text{{\texttt{x}}}\\\\\\
   & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} 
-&
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} $$
 

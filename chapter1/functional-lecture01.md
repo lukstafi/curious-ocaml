@@ -117,7 +117,9 @@ $$ \frac{\frac{\begin{array}{ll}
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
-   \small{\text{ using } x} $$Elimination rule for disjunction represents **reasoning by cases**.
+   \small{\text{ using } x} $$
+   
+Elimination rule for disjunction represents **reasoning by cases**.
 
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
 
@@ -135,7 +137,6 @@ natural numbers:
 
 $$ \frac{\begin{array}{rr}
      p (0) &
-     
 {{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
    \end{array}}{p (n)} \text{ by induction, using } x $$
 
@@ -225,7 +226,6 @@ than these:
 
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
    e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
@@ -234,9 +234,7 @@ $$ \frac{\begin{array}{ll}
 $\rightarrow$), and:
 
 $$ \frac{\begin{array}{ll}
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{{\texttt{let rec}} } x
    \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}

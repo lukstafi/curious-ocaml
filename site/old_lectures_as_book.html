@@ -435,8 +435,9 @@ influence:</p>
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
-   \small{\text{ using } x} </span>Elimination rule for disjunction
-represents <strong>reasoning by cases</strong>.</p>
+   \small{\text{ using } x} </span></p>
+<p>Elimination rule for disjunction represents <strong>reasoning by
+cases</strong>.</p>
 <p>How can we use the fact that it is sunny<span
 class="math inline">\vee</span>cloudy (but not rainy)?</p>
 <p><span class="math display"> \frac{\begin{array}{rrl}
@@ -452,7 +453,10 @@ cloudy, we won’t need an umbrella. Therefore, won’t need an umbrella.We
 need one more kind of rules to do serious math: <strong>reasoning by
 induction</strong> (it is somewhat similar to reasoning by cases).
 Example rule for induction on natural numbers:</p>
-<p>$$ x $$</p>
+<p><span class="math display"> \frac{\begin{array}{rr}
+     p (0) &amp;
+{{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
+   \end{array}}{p (n)} \text{ by induction, using } x </span></p>
 <p>So we get any <span class="math inline">p</span> for any natural
 number <span class="math inline">n</span>, provided we can get it for
 <span class="math inline">0</span>, and using it for <span
@@ -605,10 +609,20 @@ e</span> in the table was cheating: <code>rec</code> (usually called
 definition.</p>
 <p><strong>Definitions for expressions</strong> are introduced by rules
 a bit more complex than these:</p>
-<p>$$ $$</p>
+<p><span class="math display"> \frac{\begin{array}{ll}
+     e_{1} : a &amp;
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
+   e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} </span></p>
 <p>(note that this rule is the same as introducing and eliminating <span
 class="math inline">\rightarrow</span>), and:</p>
-<p>$$ $$</p>
+<p><span class="math display"> \frac{\begin{array}{ll}
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}}
+&amp;
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
+   \end{array}}{\text{{\texttt{let rec}} } x
+   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
+   \: b} </span></p>
 <p>We will cover what is missing in above rules when we will talk about
 <strong>polymorphism.</strong>* Type definitions we have seen above are
 <em>global</em>: they need to be at the top-level, not nested in
@@ -710,25 +724,20 @@ href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/
 <p>For a refresher, let’s try to use the rules we introduced last time
 on some simple examples. Starting with <code>fun x -&gt; x</code>. <span
 class="math inline">[?]</span> will mean “dunno yet”.</p>
-$$
-<span class="math display">\begin{matrix}
+<p><span class="math display"> \begin{matrix}
   &amp; \frac{[?]}{\text{{\texttt{fun x -&gt; x}}} : [?]} &amp;
 \text{use }
   \rightarrow \text{ introduction:}\\\\\\
   &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : [?] \rightarrow
-[?]}
-  &amp; \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches
-  with }
-  
+  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : [?] \rightarrow [?]}
+  &amp; \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with
+}
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
 \text{ since } e = \text{{\texttt{x}}}\\\\\\
   &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : a \rightarrow a}
-&amp;
+  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : a \rightarrow a} &amp;
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
-\end{matrix}</span>
-<p>$$</p>
+\end{matrix} </span></p>
 <p>Because <span class="math inline">a</span> is arbitrary, OCaml puts a
 <em>type variable</em> <code>'a</code> for it:</p>
 <div class="sourceCode" id="cb3"><pre
@@ -1186,8 +1195,7 @@ elimination:} </span></p>
 \rightarrow
    [? \alpha]} </span></p>
 <p><span class="math display"> \text{we know that \text{{\texttt{1}}}} :
-\text{{\texttt{int}}}
-</span></p>
+\text{{\texttt{int}}} </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{[?]}{\text{{\texttt{(+) x}}} :
      \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
@@ -1242,8 +1250,7 @@ elimination:} </span></p>
      \text{{\texttt{int}}}} &amp; \frac{\,}{\text{{\texttt{1}}} :
      \text{{\texttt{int}}}} \tiny{\text{(constant)}}
    \end{array}}{\text{{\texttt{((+) x) 1}}} :
-   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+)
-x)
+   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
    \text{{\texttt{int}}}} </span></p>
 <h1 id="chapter-3">Chapter 3</h1>

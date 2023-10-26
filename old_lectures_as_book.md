@@ -133,7 +133,9 @@ $$ \frac{\frac{\begin{array}{ll}
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
-   \small{\text{ using } x} $$Elimination rule for disjunction represents **reasoning by cases**.
+   \small{\text{ using } x} $$
+   
+Elimination rule for disjunction represents **reasoning by cases**.
 
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
 
@@ -151,7 +153,6 @@ natural numbers:
 
 $$ \frac{\begin{array}{rr}
      p (0) &
-     
 {{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
    \end{array}}{p (n)} \text{ by induction, using } x $$
 
@@ -241,7 +242,6 @@ than these:
 
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
    e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
@@ -250,9 +250,7 @@ $$ \frac{\begin{array}{ll}
 $\rightarrow$), and:
 
 $$ \frac{\begin{array}{ll}
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
-     
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
    \end{array}}{\text{{\texttt{let rec}} } x
    \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
@@ -361,16 +359,12 @@ $$ \begin{matrix}
   & \frac{[?]}{\text{{\texttt{fun x -> x}}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
   & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow 
-[?]}
-  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches
-  with }
-  
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow [?]}
+  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with }
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
  \text{ since } e = \text{{\texttt{x}}}\\\\\\
   & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} 
-&
+  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} $$
 
@@ -888,8 +882,7 @@ $$ \frac{\frac{\begin{array}{ll}
 \rightarrow
    [? \alpha]} $$
 
-$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}}
-$$
+$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{[?]}{\text{{\texttt{(+) x}}} :
@@ -949,8 +942,7 @@ $$ \frac{\frac{\begin{array}{ll}
      \text{{\texttt{int}}}} & \frac{\,}{\text{{\texttt{1}}} :
      \text{{\texttt{int}}}} \tiny{\text{(constant)}}
    \end{array}}{\text{{\texttt{((+) x) 1}}} :
-   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) 
-x)
+   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
    \text{{\texttt{int}}}} $$
 
