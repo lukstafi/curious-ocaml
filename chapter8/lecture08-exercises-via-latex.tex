@@ -1,0 +1,337 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,theorem}
+\geometry{letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\<=\active \def<{
+\fontencoding{T1}\selectfont\symbol{60}\fontencoding{\encodingdefault}}
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+\newenvironment{quoteenv}{\begin{quote} }{\end{quote}}
+{\theorembodyfont{\rmfamily\small}\newtheorem{exercise}{Exercise}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\class{Functional Programming}}
+
+{\title{Monads}}
+
+\begin{exercise}
+  Puzzle via Oleg Kiselyov.
+  
+  \begin{quoteenv}
+    "U2" has a concert that starts in 17 minutes and they must all cross a
+    bridge to get there. All four men begin on the same side of the bridge. It
+    is night. There is one flashlight. A maximum of two people can cross at
+    one time. Any party who crosses, either 1 or 2 people, must have the
+    flashlight with them. The flashlight must be walked back and forth, it
+    cannot be thrown, etc.. Each band member walks at a different speed. A
+    pair must walk together at the rate of the slower man's pace:
+    \begin{itemize}
+      \item Bono: 1 minute to cross
+      
+      \item Edge: 2 minutes to cross
+      
+      \item Adam: 5 minutes to cross
+      
+      \item Larry: 10 minutes to cross
+    \end{itemize}
+    For example: if Bono and Larry walk across first, 10 minutes have elapsed
+    when they get to the other side of the bridge. If Larry then returns with
+    the flashlight, a total of 20 minutes have passed and you have failed the
+    mission.
+  \end{quoteenv}
+  
+  Find all answers to the puzzle using a list comprehension. The comprehension
+  will be a bit long but recursion is not needed.
+\end{exercise}
+
+\begin{exercise}
+  Assume \tmverbatim{concat\_map} as defined in lecture 6. What will the
+  following expresions return? Why?
+  \begin{enumerate}
+    \item {\hlkwa{perform with
+    }}{\hlopt{(}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{->)
+    }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlstd{ \ return }}{\hlnum{5}}{\hlopt{;}}{\hlendline{}}\\
+    {\hlstd{ \ return }}{\hlnum{7}}{\hlendline{}}
+    
+    \item {\hlkwa{let }}{\hlstd{guard p }}{\hlopt{= }}{\hlkwa{if }}{\hlstd{p
+    }}{\hlkwa{then }}{\hlopt{[()] }}{\hlkwa{else
+    }}{\hlopt{[];;}}{\hlendline{}}\\
+    {\hlkwa{perform with }}{\hlopt{(}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{->)
+    }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlstd{ \ guard }}{\hlkwa{false}}{\hlopt{;}}{\hlendline{}}\\
+    {\hlstd{ \ return }}{\hlnum{7}}{\hlopt{;;}}{\hlendline{}}
+    
+    \item {\hlkwa{perform with
+    }}{\hlopt{(}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{->)
+    }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlstd{ \ return }}{\hlnum{5}}{\hlopt{;}}{\hlendline{}}\\
+    {\hlstd{ \ guard }}{\hlkwa{false}}{\hlopt{;}}{\hlendline{}}\\
+    {\hlstd{ \ return }}{\hlnum{7}}{\hlopt{;;}}{\hlendline{}}
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Define \tmverbatim{bind} in terms of \tmverbatim{lift} and
+  \tmverbatim{join}.
+\end{exercise}
+
+\begin{exercise}
+  \label{TreeM}Define a monad-plus implementation based on binary trees, with
+  constant-time \tmverbatim{mzero} and \tmverbatim{mplus}. Starter code:\\
+  {\hlkwa{type }}{\hlstd{'a tree }}{\hlopt{= }}{\hlkwd{Empty
+  }}{\hlopt{\textbar }}{\hlkwd{Leaf }}{\hlkwa{of }}{\hlstd{'a
+  {\hlopt{\textbar}} }}{\hlkwd{T }}{\hlkwa{of }}{\hlstd{'a t }}{\hlopt{*
+  }}{\hlstd{'a t}}{\hlendline{}}\\
+  {\hlkwa{module }}{\hlkwd{TreeM }}{\hlopt{= }}{\hlkwd{MonadPlus
+  }}{\hlopt{(}}{\hlkwa{struct}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{type }}{\hlstd{'a}}{\hlstd{ t }}{\hlopt{= }}{\hlstd{'a
+  tree{\hlendline{}}\\
+  \ }}{\hlkwa{let }}{\hlstd{bind a b }}{\hlopt{= }}TODO{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{return a }}{\hlopt{=
+  }}TODO{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{mzero }}{\hlopt{= }}TODO{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{mplus a b }}{\hlopt{=
+  }}TODO{\hlendline{}}\\
+  {\hlkwa{end}}{\hlopt{)}}{\hlendline{}}
+\end{exercise}
+
+\begin{exercise}
+  Show the monad-plus laws for one of:
+  \begin{enumerate}
+    \item \tmverbatim{TreeM} from your solution of exercise \ref{TreeM};
+    
+    \item \tmverbatim{ListM} from lecture.
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Why the following monad-plus is not lazy enough?
+  \begin{itemize}
+    \item {\hlkwa{let rec }}{\hlstd{badappend l1 l2
+    }}{\hlopt{=}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{l1 }}{\hlkwa{with lazy
+    }}{\hlkwd{LazNil }}{\hlopt{-> }}{\hlstd{l2{\hlendline{}}\\
+    \ }}{\hlopt{\textbar }}{\hlkwa{lazy }}{\hlopt{(}}{\hlkwd{LazCons
+    }}{\hlopt{(}}{\hlstd{hd}}{\hlopt{, }}{\hlstd{tl}}{\hlopt{))
+    ->}}{\hlendline{}}\\
+    {\hlstd{ \ \ \ }}{\hlkwa{lazy }}{\hlopt{(}}{\hlkwd{LazCons
+    }}{\hlopt{(}}{\hlstd{hd}}{\hlopt{, }}{\hlstd{badappend tl
+    l2}}{\hlopt{))}}{\hlendline{}}\\
+    {\hlkwa{let rec }}{\hlstd{badconcat{\textunderscore}map f }}{\hlopt{=
+    }}{\hlkwa{function}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwa{lazy }}{\hlkwd{LazNil }}{\hlopt{->
+    }}{\hlkwa{lazy }}{\hlkwd{LazNil}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwa{lazy }}{\hlopt{(}}{\hlkwd{LazCons
+    }}{\hlopt{(}}{\hlstd{a}}{\hlopt{, }}{\hlstd{l}}{\hlopt{))
+    ->}}{\hlendline{}}\\
+    {\hlstd{ \ \ \ badappend }}{\hlopt{(}}{\hlstd{f a}}{\hlopt{)
+    (}}{\hlstd{badconcat{\textunderscore}map f l}}{\hlopt{)}}{\hlendline{}}
+    
+    \item {\hlkwa{module }}{\hlkwd{BadyListM }}{\hlopt{= }}{\hlkwd{MonadPlus
+    }}{\hlopt{(}}{\hlkwa{struct}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{type }}{\hlstd{'a}}{\hlstd{ t }}{\hlopt{=
+    }}{\hlstd{'a lazy{\textunderscore}list{\hlendline{}}\\
+    \ }}{\hlkwa{let }}{\hlstd{bind a b }}{\hlopt{=
+    }}{\hlstd{badconcat{\textunderscore}map b a{\hlendline{}}\\
+    \ }}{\hlkwa{let }}{\hlstd{return a }}{\hlopt{= }}{\hlkwa{lazy
+    }}{\hlopt{(}}{\hlkwd{LazCons }}{\hlopt{(}}{\hlstd{a}}{\hlopt{,
+    }}{\hlkwa{lazy }}{\hlkwd{LazNil}}{\hlopt{))}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{mzero }}{\hlopt{= }}{\hlkwa{lazy
+    }}{\hlkwd{LazNil}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{mplus }}{\hlopt{=
+    }}{\hlstd{badappend}}{\hlendline{}}\\
+    {\hlkwa{end}}{\hlopt{)}}{\hlendline{}}
+    
+    \item {\hlkwa{module }}{\hlkwd{BadyCountdown }}{\hlopt{=
+    }}{\hlkwd{Countdown
+    }}{\hlopt{(}}{\hlkwd{BadyListM}}{\hlopt{)}}{\hlendline{}}\\
+    {\hlkwa{let }}{\hlstd{test5 }}{\hlopt{() =
+    }}{\hlkwc{BadyListM}}{\hlopt{.}}{\hlstd{run
+    }}{\hlopt{(}}{\hlkwc{BadyCountdown}}{\hlopt{.}}{\hlstd{solutions
+    }}{\hlopt{[}}{\hlnum{1}}{\hlopt{;}}{\hlnum{3}}{\hlopt{;}}{\hlnum{7}}{\hlopt{;}}{\hlnum{10}}{\hlopt{;}}{\hlnum{25}}{\hlopt{;}}{\hlnum{50}}{\hlopt{]
+    }}{\hlnum{765}}{\hlopt{)}}{\hlendline{}}
+    
+    \item {\hlstd{\# }}{\hlkwa{let }}{\hlstd{t5a}}{\hlopt{, }}{\hlstd{sol5
+    }}{\hlopt{= }}{\hlstd{time test5}}{\hlopt{;;}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{t5a }}{\hlopt{: }}{\hlkwb{float }}{\hlopt{=
+    }}{\hlnum{3.3954310417175293}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{sol5 }}{\hlopt{: }}{\hlkwb{string
+    }}{\hlstd{lazy{\textunderscore}list }}{\hlopt{=
+    <}}{\hlkwa{lazy}}{\hlopt{>}}{\hlendline{}}\\
+    {\hlstd{\# }}{\hlkwa{let }}{\hlstd{t5b}}{\hlopt{,
+    }}{\hlstd{sol5{\textunderscore}1 }}{\hlopt{= }}{\hlstd{time
+    }}{\hlopt{(}}{\hlkwa{fun }}{\hlopt{() -> }}{\hlstd{laztake }}{\hlnum{1
+    }}{\hlstd{sol5}}{\hlopt{);;}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{t5b }}{\hlopt{: }}{\hlkwb{float }}{\hlopt{=
+    }}{\hlnum{3.0994415283203125e-06}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{sol5{\textunderscore}1 }}{\hlopt{: }}{\hlkwb{string
+    }}{\hlstd{list }}{\hlopt{=
+    [}}{\hlstr{"((25-(3+7))*(1+50))"}}{\hlopt{]}}{\hlendline{}}\\
+    {\hlstd{\# }}{\hlkwa{let }}{\hlstd{t5c}}{\hlopt{,
+    }}{\hlstd{sol5{\textunderscore}9 }}{\hlopt{= }}{\hlstd{time
+    }}{\hlopt{(}}{\hlkwa{fun }}{\hlopt{() -> }}{\hlstd{laztake }}{\hlnum{10
+    }}{\hlstd{sol5}}{\hlopt{);;}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{t5c }}{\hlopt{: }}{\hlkwb{float }}{\hlopt{=
+    }}{\hlnum{7.8678131103515625e-06}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{sol5{\textunderscore}9 }}{\hlopt{: }}{\hlkwb{string
+    }}{\hlstd{list }}{\hlopt{=}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlopt{[}}{\hlstr{"((25-(3+7))*(1+50))"}}{\hlopt{;
+    }}{\hlstr{"(((25-3)-7)*(1+50))"}}{\hlopt{; ...}}{\hlendline{}}\\
+    {\hlstd{\# }}{\hlkwa{let }}{\hlstd{t5d}}{\hlopt{,
+    }}{\hlstd{sol5{\textunderscore}39 }}{\hlopt{= }}{\hlstd{time
+    }}{\hlopt{(}}{\hlkwa{fun }}{\hlopt{() -> }}{\hlstd{laztake }}{\hlnum{49
+    }}{\hlstd{sol5}}{\hlopt{);;}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{t5d }}{\hlopt{: }}{\hlkwb{float }}{\hlopt{=
+    }}{\hlnum{2.59876251220703125e-05}}{\hlendline{}}\\
+    {\hlkwa{val }}{\hlstd{sol5{\textunderscore}39 }}{\hlopt{: }}{\hlkwb{string
+    }}{\hlstd{list }}{\hlopt{=}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlopt{[}}{\hlstr{"((25-(3+7))*(1+50))"}}{\hlopt{;
+    }}{\hlstr{"(((25-3)-7)*(1+50))"}}{\hlopt{; ...}}{\hlendline{}}
+  \end{itemize}
+\end{exercise}
+
+\begin{exercise}
+  Convert a ``rectangular'' list of lists of strings, representing a matrix
+  with inner lists being rows, into a string, where elements are
+  column-aligned. (Exercise not related to recent material.)
+\end{exercise}
+
+\begin{exercise}
+  Recall the overly rich way to introduce monads -- providing the freedom of
+  additional parameter\\
+  {\hlkwa{module type }}{\hlkwd{MONAD }}{\hlopt{=
+  }}{\hlkwa{sig}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{type }}{\hlopt{(}}{\hlstd{'s}}{\hlopt{,
+  }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{t{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlstd{return }}{\hlopt{: }}{\hlstd{'a }}{\hlopt{->
+  (}}{\hlstd{'s}}{\hlopt{, }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{t{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlstd{bind }}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{'s}}{\hlopt{, }}{\hlstd{'a}}{\hlopt{)
+  }}{\hlstd{t }}{\hlopt{-> (}}{\hlstd{'a }}{\hlopt{-> (}}{\hlstd{'s}}{\hlopt{,
+  }}{\hlstd{'b}}{\hlopt{) }}{\hlstd{t}}{\hlopt{) -> (}}{\hlstd{'s}}{\hlopt{,
+  }}{\hlstd{'b}}{\hlopt{) }}{\hlstd{t}}{\hlendline{}}\\
+  {\hlkwa{end}}
+  
+  Recall the operations for the exception monad:\\
+  {\hlkwa{val }}{\hlstd{throw }}{\hlopt{: }}{\hlstd{excn }}{\hlopt{->
+  }}{\hlstd{'a monad{\hlendline{}}\\
+  }}{\hlkwa{val }}{\hlstd{catch }}{\hlopt{: }}{\hlstd{'a monad }}{\hlopt{->
+  (}}{\hlstd{excn }}{\hlopt{-> }}{\hlstd{'a monad}}{\hlopt{) -> }}{\hlstd{'a
+  monad}}{\hlendline{}}
+  \begin{enumerate}
+    \item Design the signatures for the exception monad operations to use the
+    enriched monads with {\hlopt{(}}{\hlstd{'s}}{\hlopt{,
+    }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{monad}} type, so that they provide more
+    flexibility than our exception monad.
+    
+    \item Does the implementation of the exception monad need to change? The
+    same implementation can work with both sets of signatures, but the
+    implementation given in lecture needs a very slight change. Can you find
+    it without implementing? If not, the lecture script provides
+    {\hlkwd{RMONAD}}, {\hlkwd{RMONAD\_OPS}}, {\hlkwd{RMonadOps}} and
+    {\hlkwd{RMonad}}, so you can implement and see for yourself -- copy
+    {\hlkwd{ExceptionM}} and modify:\\
+    {\hlkwa{module }}{\hlkwd{ExceptionRM }}{\hlopt{:
+    }}{\hlkwa{sig}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{type }}{\hlopt{(}}{\hlstd{'e}}{\hlopt{,
+    }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{t }}{\hlopt{=
+    }}KEEP/TODO{\hlstd{{\hlendline{}}\\
+    \ }}{\hlkwa{include
+    }}{\hlkwd{RMONAD{\textunderscore}OPS}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{val }}{\hlstd{run }}{\hlopt{:
+    (}}{\hlstd{'e}}{\hlopt{, }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{monad
+    }}{\hlopt{-> (}}{\hlstd{'e}}{\hlopt{, }}{\hlstd{'a}}{\hlopt{)
+    }}{\hlstd{t{\hlendline{}}\\
+    \ }}{\hlkwa{val }}{\hlstd{throw }}{\hlopt{:
+    }}TODO{\hlstd{{\hlendline{}}\\
+    \ }}{\hlkwa{val }}{\hlstd{catch }}{\hlopt{: }}TODO{\hlendline{}}\\
+    {\hlkwa{end }}{\hlopt{= }}{\hlkwa{struct}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{module }}{\hlkwd{M }}{\hlopt{=
+    }}{\hlkwa{struct}}{\hlendline{}}\\
+    {\hlstd{ \ \ \ }}{\hlkwa{type }}{\hlopt{(}}{\hlstd{'e}}{\hlopt{,
+    }}{\hlstd{'a}}{\hlopt{) }}{\hlstd{t }}{\hlopt{=
+    }}KEEP/TODO{\hlstd{{\hlendline{}}\\
+    \ \ \ }}{\hlkwa{let }}{\hlstd{return a }}{\hlopt{= }}{\hlkwd{OK
+    }}{\hlstd{a{\hlendline{}}\\
+    \ \ \ }}{\hlkwa{let }}{\hlstd{bind m b }}{\hlopt{=
+    }}KEEP/TODO{\hlstd{{\hlendline{}}\\
+    \ }}{\hlkwa{end}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{include }}{\hlkwd{M}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{include
+    }}{\hlkwd{RMonadOps}}{\hlopt{(}}{\hlkwd{M}}{\hlopt{)}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{throw e }}{\hlopt{=
+    }}KEEP/TODO{\hlstd{{\hlendline{}}\\
+    \ }}{\hlkwa{let }}{\hlstd{catch m handler }}{\hlopt{=
+    }}KEEP/TODO{\hlendline{}}\\
+    {\hlkwa{end}}{\hlstd{ \ \ \ }}{\hlendline{}}
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Implement the following constructs for {\tmem{all}} monads:
+  \begin{enumerate}
+    \item {\hlkwa{for}}...{\hlkwa{to}}...
+    
+    \item {\hlkwa{for}}...{\hlkwa{downto}}...
+    
+    \item {\hlkwa{while}}...{\hlkwa{do}}...
+    
+    \item {\hlkwa{do}}...{\hlkwa{while}}...
+    
+    \item {\hlkwa{repeat}}...{\hlkwa{until}}...
+  \end{enumerate}
+  Explain how, when your implementation is instantiated with the
+  {\hlkwd{StateM}} monad, we get the solution to exercise 2 from lecture 4.
+\end{exercise}
+
+\begin{exercise}
+  A canonical example of a probabilistic model is that of a lawn whose grass
+  may be wet because it rained, because the sprinkler was on, or for some
+  other reason. Oleg Kiselyov builds on this example with variables
+  \tmverbatim{rain}, \tmverbatim{sprinkler}, and \tmverbatim{wet\_grass}, by
+  adding variables \tmverbatim{cloudy} and \tmverbatim{wet\_roof}. The
+  probability tables are:
+  \begin{eqnarray*}
+    P (\tmop{cloudy}) & = & 0.5\\
+    P (\tmop{rain} | \tmop{cloudy}) & = & 0.8\\
+    P (\tmop{rain} | \tmop{not} \tmop{cloudy}) & = & 0.2\\
+    P (\tmop{sprinkler} | \tmop{cloudy}) & = & 0.1\\
+    P (\tmop{sprinkler} | \tmop{not} \tmop{cloudy}) & = & 0.5\\
+    P (\tmop{wet} \tmop{roof} | \tmop{not} \tmop{rain}) & = & 0\\
+    P (\tmop{wet} \tmop{roof} | \tmop{rain}) & = & 0.7\\
+    P (\tmop{wet} \tmop{grass} | \tmop{rain} \wedge \tmop{not}
+    \tmop{sprinkler}) & = & 0.9\\
+    P (\tmop{wet} \tmop{grass} | \tmop{sprinkler} \wedge \tmop{not}
+    \tmop{rain}) & = & 0.9
+  \end{eqnarray*}
+  We observe whether the grass is wet and whether the roof is wet. What is the
+  probability that it rained?
+\end{exercise}
+
+\begin{exercise}
+  Implement the coarse-grained concurrency model.
+  \begin{itemize}
+    \item Modify \tmverbatim{bind} to compute the resulting monad straight
+    away if the input monad has returned.
+    
+    \item Introduce \tmverbatim{suspend} to do what in the fine-grained model
+    was the effect of \tmverbatim{bind (return a) b}, i.e. suspend the work
+    although it could already be started.
+    
+    \item One possibility is to introduce \tmverbatim{suspend} of type
+    {\hlkwb{unit }}{\hlstd{monad}}, introduce a ``dummy'' monadic value
+    \tmverbatim{Suspend} (besides \tmverbatim{Return} and \tmverbatim{Sleep}),
+    and define \tmverbatim{bind suspend b} to do what \tmverbatim{bind (return
+    ()) b} would formerly do.
+  \end{itemize}
+\end{exercise}
+
+\end{document}

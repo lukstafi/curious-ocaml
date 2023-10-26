@@ -1,0 +1,131 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath}
+\geometry{landscape, letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\newcommand{\tmemail}[1]{\\ \textit{Email:} \texttt{#1}}
+\newcommand{\tmhomepage}[1]{\\ \textit{Web:} \texttt{#1}}
+\newcommand{\tmsubtitle}[1]{\thanks{\textit{Subtitle:} #1}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+\title{Functional Programming}
+
+\author{
+  {\L}ukasz Stafiniak
+  \tmemail{lukstafi@gmail.com, lukstafi@ii.uni.wroc.pl}
+  \tmhomepage{www.ii.uni.wroc.pl/\~{}lukstafi}
+}
+
+\maketitle
+
+\title{
+  Lecture 2: Algebra, Fig. 1
+  \tmsubtitle{Type inference example derivation}
+}
+
+\maketitle
+
+{\newpage}
+
+{\LARGE{\[ \frac{[?]}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [?]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{use } \rightarrow \text{ introduction:} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{[?]}{\text{\tmverbatim{((+) x) 1}} : [?
+   \alpha]}}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [?] \rightarrow [?
+   \alpha]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{use } \rightarrow \text{ elimination:} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{\begin{array}{ll}
+     \frac{[?]}{\text{\tmverbatim{(+) x}} : [? \beta] \rightarrow [? \alpha]}
+     & \frac{[?]}{\text{\tmverbatim{1}} : [? \beta]}
+   \end{array}}{\text{\tmverbatim{((+) x) 1}} : [?
+   \alpha]}}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [?] \rightarrow [?
+   \alpha]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{we know that \tmverbatim{1}} : \text{\tmverbatim{int}} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{\begin{array}{ll}
+     \frac{[?]}{\text{\tmverbatim{(+) x}} : \text{\tmverbatim{int}}
+     \rightarrow [? \alpha]} & \frac{}{\text{\tmverbatim{1}} :
+     \text{\tmverbatim{int}}} \scriptsize{\text{(constant)}}
+   \end{array}}{\text{\tmverbatim{((+) x) 1}} : [?
+   \alpha]}}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [?] \rightarrow [?
+   \alpha]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{application again:} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{\begin{array}{ll}
+     \frac{\begin{array}{ll}
+       \frac{[?]}{\text{\tmverbatim{(+)}} : [? \gamma] \rightarrow
+       \text{\tmverbatim{int}} \rightarrow [? \alpha]} &
+       \frac{[?]}{\text{\tmverbatim{x}} : [? \gamma]}
+     \end{array}}{\text{\tmverbatim{(+) x}} : \text{\tmverbatim{int}}
+     \rightarrow [? \alpha]} & \frac{}{\text{\tmverbatim{1}} :
+     \text{\tmverbatim{int}}} \scriptsize{\text{(constant)}}
+   \end{array}}{\text{\tmverbatim{((+) x) 1}} : [?
+   \alpha]}}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [?] \rightarrow [?
+   \alpha]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{it's our \tmverbatim{x}!} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{\begin{array}{ll}
+     \frac{\begin{array}{ll}
+       \frac{[?]}{\text{\tmverbatim{(+)}} : [? \gamma] \rightarrow
+       \text{\tmverbatim{int}} \rightarrow [? \alpha]} &
+       \frac{}{\text{\tmverbatim{x}} : [? \gamma]} \text{\tmverbatim{x}}
+     \end{array}}{\text{\tmverbatim{(+) x}} : \text{\tmverbatim{int}}
+     \rightarrow [? \alpha]} & \frac{}{\text{\tmverbatim{1}} :
+     \text{\tmverbatim{int}}} \scriptsize{\text{(constant)}}
+   \end{array}}{\text{\tmverbatim{((+) x) 1}} : [?
+   \alpha]}}{\text{\tmverbatim{fun x -> ((+) x) 1}} : [? \gamma] \rightarrow
+   [? \alpha]} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \text{but \tmverbatim{(+)}} : \text{\tmverbatim{int}} \rightarrow
+   \text{\tmverbatim{int}} \rightarrow \text{\tmverbatim{int}} \]}}
+
+{\newpage}
+
+{\LARGE{\[ \frac{\frac{\begin{array}{ll}
+     \frac{\begin{array}{ll}
+       \frac{}{\text{\tmverbatim{(+)}} : \text{\tmverbatim{int}} \rightarrow
+       \text{\tmverbatim{int}} \rightarrow \text{\tmverbatim{int}}}
+       \scriptsize{\text{(constant)}} & \frac{}{\text{\tmverbatim{x}} :
+       \text{\tmverbatim{int}}} \text{\tmverbatim{x}}
+     \end{array}}{\text{\tmverbatim{(+) x}} : \text{\tmverbatim{int}}
+     \rightarrow \text{\tmverbatim{int}}} & \frac{}{\text{\tmverbatim{1}} :
+     \text{\tmverbatim{int}}} \scriptsize{\text{(constant)}}
+   \end{array}}{\text{\tmverbatim{((+) x) 1}} :
+   \text{\tmverbatim{int}}}}{\text{\tmverbatim{fun x -> ((+) x) 1}} :
+   \text{\tmverbatim{int}} \rightarrow \text{\tmverbatim{int}}} \]}}
+
+\
+
+\end{document}

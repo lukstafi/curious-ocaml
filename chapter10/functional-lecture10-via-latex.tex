@@ -1,0 +1,2571 @@
+\documentclass{beamer}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,amssymb,graphicx,hyperref,alltt}
+\geometry{landscape, letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\<=\active \def<{
+\fontencoding{T1}\selectfont\symbol{60}\fontencoding{\encodingdefault}}
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmfnhomepage}[1]{\thanks{\textit{Web:} \texttt{#1}}}
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\tmstrong}[1]{\textbf{#1}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+\newenvironment{tmcode}[1][]{\begin{alltt} }{\end{alltt}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+\title{Functional Programming}
+
+\author{
+  {\L}ukasz Stafiniak
+  \tmfnhomepage{www.ii.uni.wroc.pl/\~{}lukstafi}
+}
+
+\institute{{\L}ukasz Stafiniak}
+
+\maketitle
+
+\title{Lecture 10: FRP}
+
+\subtitle{Zippers. Functional Reactive Programming. GUIs.\\
+{\small{ {\tmem{``Zipper''}} in {\tmem{Haskell Wikibook}} and {\tmem{``The
+Zipper''}} by Gerard Huet\\
+{\tmem{``How \tmverbatim{froc} works''}} by Jacob Donham\\
+{\tmem{``The Haskell School of Expression''}} by Paul Hudak\\
+``{\tmem{Deprecating the Observer Pattern with \tmverbatim{Scala.React}}}''
+by Ingo Maier, Martin Odersky}}}
+
+\maketitle
+
+{\center{If you see any error on the slides, let me know!}}
+
+\section{Zippers}
+
+\begin{itemize}
+  \item We would like to keep track of a position in a data structure: easily
+  access and modify it at that location, easily move the location around.
+  
+  \item Recall how we have defined {\tmem{context types}} for datatypes: types
+  that represent a data structure with one of elements stored in it missing.
+\end{itemize}
+\begin{tmcode}
+type btree = Tip | Node of int * btree * btree
+\end{tmcode}
+\begin{eqnarray*}
+  T & = & 1 + xT^2\\
+  \frac{\partial T}{\partial x} & = & 0 + T^2 + 2 xT \frac{\partial
+  T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
+\end{eqnarray*}
+\begin{tmcode}
+type btree_dir = LeftBranch | RightBranch
+type btree_deriv =
+  | Here of btree * btree
+  | Below of btree_dir * int * btree * btree_deriv
+\end{tmcode}
+\begin{itemize}
+  \item {\tmstrong{Location = context + subtree}}! But there's a problem
+  above.
+  
+  \item But we cannot easily move the location if {\hlkwd{Here}} is at the
+  bottom.
+  
+  The part closest to the location should be on top.
+  
+  \item Revisiting equations for trees and lists:
+  \begin{eqnarray*}
+    T & = & 1 + xT^2\\
+    \frac{\partial T}{\partial x} & = & 0 + T^2 + 2 xT \frac{\partial
+    T}{\partial x}\\
+    \frac{\partial T}{\partial x} & = & \frac{T^2}{1 - 2 xT}\\
+    L (y) & = & 1 + yL (y)\\
+    L (y) & = & \frac{1}{1 - y}\\
+    \frac{\partial T}{\partial x} & = & T^2 L (2 xT)
+  \end{eqnarray*}
+  I.e. the context can be stored as a list with the root as the last node.
+  \begin{itemize}
+    \item Of course it doesn't matter whether we use built-in lists, or a type
+    with {\hlkwd{Above}} and {\hlkwd{Root}} variants.
+  \end{itemize}
+  \item Contexts of subtrees are more useful than of single elements.
+  
+  {\hlkwa{type }}{\hlstd{'a tree }}{\hlopt{= }}{\hlkwd{Tip }}{\hlopt{\textbar
+  }}{\hlkwd{Node }}{\hlkwa{of }}{\hlstd{'a tree }}{\hlopt{* }}{\hlstd{'a
+  }}{\hlopt{* }}{\hlstd{'a tree}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{tree{\textunderscore}dir }}{\hlopt{=
+  }}{\hlkwd{Left{\textunderscore}br }}{\hlopt{\textbar
+  }}{\hlkwd{Right{\textunderscore}br}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a context }}{\hlopt{=
+  (}}{\hlstd{tree{\textunderscore}dir }}{\hlopt{* }}{\hlstd{'a }}{\hlopt{*
+  }}{\hlstd{'a tree}}{\hlopt{) }}{\hlstd{list}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a location }}{\hlopt{= \{}}{\hlstd{sub}}{\hlopt{:
+  }}{\hlstd{'a tree}}{\hlopt{; }}{\hlstd{ctx}}{\hlopt{: }}{\hlstd{'a
+  context}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{access }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{\} =
+  }}{\hlstd{sub}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{change }}{\hlopt{\{}}{\hlstd{ctx}}{\hlopt{\}
+  }}{\hlstd{sub }}{\hlopt{= \{}}{\hlstd{sub}}{\hlopt{;
+  }}{\hlstd{ctx}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{modify f }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{;
+  }}{\hlstd{ctx}}{\hlopt{\} = \{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{f
+  sub}}{\hlopt{; }}{\hlstd{ctx}}{\hlopt{\}}}{\hlendline{}}
+  
+  \item We can imagine a location as a rooted tree, which is hanging pinned at
+  one of its nodes. Let's look at pictures in\\
+  \href{http://en.wikibooks.org/wiki/Haskell/Zippers}{http://en.wikibooks.org/wiki/Haskell/Zippers}
+  
+  \item Moving around:
+  
+  {\hlkwa{let }}{\hlstd{ascend loc }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx
+  }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar  [] -> }}\tmverbatim{loc}{\hlendline{Or raise
+  exception.}}\tmverbatim{\\
+  \ }{\hlopt{\textbar  (}}{\hlkwd{Left{\textunderscore}br}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{, }}{\hlstd{l}}{\hlopt{) ::
+  }}{\hlstd{up{\textunderscore}ctx }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlkwd{Node
+  }}{\hlopt{(}}{\hlstd{l}}{\hlopt{, }}{\hlstd{n}}{\hlopt{,
+  }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{);
+  }}{\hlstd{ctx}}{\hlopt{=}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar 
+  (}}{\hlkwd{Right{\textunderscore}br}}{\hlopt{, }}{\hlstd{n}}{\hlopt{,
+  }}{\hlstd{r}}{\hlopt{) :: }}{\hlstd{up{\textunderscore}ctx
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlkwd{Node
+  }}{\hlopt{(}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{, }}{\hlstd{r}}{\hlopt{);
+  }}{\hlstd{ctx}}{\hlopt{=}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{desc{\textunderscore}left loc
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub
+  }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Tip }}{\hlopt{->
+  }}\tmverbatim{loc}{\hlendline{Or raise exception.}}\tmverbatim{\\
+  \ }{\hlopt{\textbar }}{\hlkwd{Node }}{\hlopt{(}}{\hlstd{l}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{, }}{\hlstd{r}}{\hlopt{) ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{l}}{\hlopt{;
+  }}{\hlstd{ctx}}{\hlopt{=(}}{\hlkwd{Right{\textunderscore}br}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{,
+  }}{\hlstd{r}}{\hlopt{)::}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{desc{\textunderscore}right loc
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub
+  }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Tip }}{\hlopt{->
+  }}\tmverbatim{loc}{\hlendline{Or raise exception.}}\tmverbatim{\\
+  \ }{\hlopt{\textbar }}{\hlkwd{Node }}{\hlopt{(}}{\hlstd{l}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{, }}{\hlstd{r}}{\hlopt{) ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{r}}{\hlopt{;
+  }}{\hlstd{ctx}}{\hlopt{=(}}{\hlkwd{Left{\textunderscore}br}}{\hlopt{,
+  }}{\hlstd{n}}{\hlopt{,
+  }}{\hlstd{l}}{\hlopt{)::}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx}}{\hlopt{\}}}{\hlendline{}}
+  
+  \item Following {\tmem{The Zipper}}, let's look at a tree with arbitrary
+  number of branches.
+\end{itemize}
+{\hlkwa{type }}{\hlstd{doc }}{\hlopt{= }}{\hlkwd{Text }}{\hlkwa{of
+}}{\hlkwb{string }}{\hlopt{\textbar }}{\hlkwd{Line }}{\hlopt{\textbar
+}}{\hlkwd{Group }}{\hlkwa{of }}{\hlstd{doc list}}{\hlendline{}}\\
+{\hlkwa{type }}{\hlstd{context }}{\hlopt{= (}}{\hlstd{doc list }}{\hlopt{*
+}}{\hlstd{doc list}}{\hlopt{) }}{\hlstd{list}}{\hlendline{}}\\
+{\hlkwa{type }}{\hlstd{location }}{\hlopt{= \{}}{\hlstd{sub}}{\hlopt{:
+}}{\hlstd{doc}}{\hlopt{; }}{\hlstd{ctx}}{\hlopt{:
+}}{\hlstd{context}}{\hlopt{\}}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{go{\textunderscore}up loc }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  [] -> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}up: at top"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar  (}}{\hlstd{left}}{\hlopt{, }}{\hlstd{right}}{\hlopt{)
+:: }}{\hlstd{up{\textunderscore}ctx }}{\hlopt{->}}{\hlendline{Previous
+subdocument and its siblings.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlkwd{Group
+}}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev left @
+loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{::}}{\hlstd{right}}{\hlopt{);
+}}{\hlstd{ctx}}{\hlopt{=}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}\\
+{\hlkwa{let }}{\hlstd{go{\textunderscore}left loc
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  [] -> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}left: at top"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar  (}}{\hlstd{l}}{\hlopt{::}}{\hlstd{left}}{\hlopt{,
+}}{\hlstd{right}}{\hlopt{) :: }}{\hlstd{up{\textunderscore}ctx
+}}{\hlopt{->}}{\hlendline{Left sibling of previous subdocument.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{l}}{\hlopt{;
+}}{\hlstd{ctx}}{\hlopt{=(}}{\hlstd{left}}{\hlopt{,
+}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{::}}{\hlstd{right}}{\hlopt{) ::
+}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  ([], }}{\hlstd{{\textunderscore}}}{\hlopt{) ::
+}}{\hlstd{{\textunderscore} }}{\hlopt{-> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}left: at first"}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{go{\textunderscore}right loc
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  [] -> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}right: at top"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar  (}}{\hlstd{left}}{\hlopt{,
+}}{\hlstd{r}}{\hlopt{::}}{\hlstd{right}}{\hlopt{) ::
+}}{\hlstd{up{\textunderscore}ctx }}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{r}}{\hlopt{;
+}}{\hlstd{ctx}}{\hlopt{=(}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{::}}{\hlstd{left}}{\hlopt{,
+}}{\hlstd{right}}{\hlopt{) ::
+}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlstd{{\textunderscore}}}{\hlopt{, []) ::
+}}{\hlstd{{\textunderscore} }}{\hlopt{-> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}right: at last"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{go{\textunderscore}down loc }}{\hlopt{=}}{\hlendline{Go
+to the first (i.e. leftmost) subdocument.}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Text }}{\hlstd{{\textunderscore}
+}}{\hlopt{-> }}{\hlstd{invalid{\textunderscore}arg
+}}{\hlstr{"go{\textunderscore}down: at text"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar }}{\hlkwd{Line }}{\hlopt{->
+}}{\hlstd{invalid{\textunderscore}arg }}{\hlstr{"go{\textunderscore}down: at
+line"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar }}{\hlkwd{Group }}{\hlopt{[] ->
+}}{\hlstd{invalid{\textunderscore}arg }}{\hlstr{"go{\textunderscore}down: at
+empty"}}{\hlstd{{\hlendline{}}\\
+\ }}{\hlopt{\textbar }}{\hlkwd{Group
+}}{\hlopt{(}}{\hlstd{doc}}{\hlopt{::}}{\hlstd{docs}}{\hlopt{) ->
+\{}}{\hlstd{sub}}{\hlopt{=}}{\hlstd{doc}}{\hlopt{;
+}}{\hlstd{ctx}}{\hlopt{=([],
+}}{\hlstd{docs}}{\hlopt{)::}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx}}{\hlopt{\}}}{\hlendline{}}
+
+\subsection{Example: Context rewriting}
+
+\begin{itemize}
+  \item Our friend working on the string theory asked us for help with
+  simplifying his equations.
+  
+  \item The task is to pull out particular subexpressions as far to the left
+  as we can, but changing the whole expression as little as possible.
+  
+  \item We can illustrate our algorithm using mathematical notation. Let:
+  \begin{itemize}
+    \item  $x$ be the thing we pull out
+    
+    \item $C [e]$ and $D [e]$ be big expressions with subexpression $e$
+    
+    \item operator $\circ$ stand for one of: $\ast, +$
+  \end{itemize}
+  \begin{eqnarray*}
+    D [(C [x] \circ e_1) \circ e_2] & \Rightarrow & D [C [x] \circ (e_1 \circ
+    e_2)]\\
+    D [e_2 \circ (C [x] \circ e_1)] & \Rightarrow & D [C [x] \circ (e_1 \circ
+    e_2)]\\
+    D [(C [x] + e_1) e_2] & \Rightarrow & D [C [x] e_2 + e_1 e_2]\\
+    D [e_2  (C [x] + e_1)] & \Rightarrow & D [C [x] e_2 + e_1 e_2]\\
+    D [e \circ C [x]] & \Rightarrow & D [C [x] \circ e]
+  \end{eqnarray*}
+  \item First the groundwork:
+\end{itemize}
+{\hlkwa{type }}{\hlstd{op }}{\hlopt{= }}{\hlkwd{Add }}{\hlopt{\textbar
+}}{\hlkwd{Mul}}{\hlendline{}}\\
+{\hlkwa{type }}{\hlstd{expr }}{\hlopt{= }}{\hlkwd{Val }}{\hlkwa{of
+}}{\hlkwb{int }}{\hlopt{\textbar }}{\hlkwd{Var }}{\hlkwa{of }}{\hlkwb{string
+}}{\hlopt{\textbar }}{\hlkwd{App }}{\hlkwa{of
+}}{\hlstd{expr}}{\hlopt{*}}{\hlstd{op}}{\hlopt{*}}{\hlstd{expr}}\\
+{\hlkwa{type }}{\hlstd{expr{\textunderscore}dir }}{\hlopt{=
+}}{\hlkwd{Left{\textunderscore}arg }}{\hlopt{\textbar
+}}{\hlkwd{Right{\textunderscore}arg}}{\hlendline{}}\\
+{\hlkwa{type }}{\hlstd{context }}{\hlopt{= (}}{\hlstd{expr{\textunderscore}dir
+}}{\hlopt{* }}{\hlstd{op }}{\hlopt{* }}{\hlstd{expr}}{\hlopt{)
+}}{\hlstd{list}}{\hlendline{}}\\
+{\hlkwa{type }}{\hlstd{location }}{\hlopt{= \{}}{\hlstd{sub}}{\hlopt{:
+}}{\hlstd{expr}}{\hlopt{; }}{\hlstd{ctx}}{\hlopt{:
+}}{\hlstd{context}}{\hlopt{\}}}{\hlendline{}}
+\begin{itemize}
+  \item Locate the subexpression described by \tmverbatim{p}.
+\end{itemize}
+{\hlkwa{let rec }}{\hlstd{find{\textunderscore}aux p e
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{p e }}{\hlkwa{then }}{\hlkwd{Some
+}}{\hlopt{(}}{\hlstd{e}}{\hlopt{, [])}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else match }}{\hlstd{e }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Val }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{Var }}{\hlstd{{\textunderscore} }}{\hlopt{->
+}}{\hlkwd{None}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{App }}{\hlopt{(}}{\hlstd{l}}{\hlopt{,
+}}{\hlstd{op}}{\hlopt{, }}{\hlstd{r}}{\hlopt{) ->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{match }}{\hlstd{find{\textunderscore}aux p l
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Some
+}}{\hlopt{(}}{\hlstd{sub}}{\hlopt{,
+}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{) ->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwd{Some }}{\hlopt{(}}{\hlstd{sub}}{\hlopt{,
+(}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{, }}{\hlstd{op}}{\hlopt{,
+}}{\hlstd{r}}{\hlopt{)::}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{None
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{match }}{\hlstd{find{\textunderscore}aux p r
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Some
+}}{\hlopt{(}}{\hlstd{sub}}{\hlopt{,
+}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{) ->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwd{Some }}{\hlopt{(}}{\hlstd{sub}}{\hlopt{,
+(}}{\hlkwd{Left{\textunderscore}arg}}{\hlopt{, }}{\hlstd{op}}{\hlopt{,
+}}{\hlstd{l}}{\hlopt{)::}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{None }}{\hlopt{->
+}}{\hlkwd{None}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{find p e }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{find{\textunderscore}aux p e
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{None }}{\hlopt{->
+}}{\hlkwd{None}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Some
+}}{\hlopt{(}}{\hlstd{sub}}{\hlopt{, }}{\hlstd{ctx}}{\hlopt{) -> }}{\hlkwd{Some
+}}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{;
+}}{\hlstd{ctx}}{\hlopt{=}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+ctx}}{\hlopt{\}}}{\hlendline{}}
+\begin{itemize}
+  \item Pull-out the located subexpression.
+\end{itemize}
+{\small{{\hlkwa{let rec }}{\hlstd{pull{\textunderscore}out loc
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc}}{\hlopt{.}}{\hlstd{ctx
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  [] ->
+}}\tmverbatim{loc}{\hlendline{Done.}}\tmverbatim{\\
+\ }{\hlopt{\textbar  (}}{\hlkwd{Left{\textunderscore}arg}}{\hlopt{,
+}}{\hlstd{op}}{\hlopt{, }}{\hlstd{l}}{\hlopt{) ::
+}}{\hlstd{up{\textunderscore}ctx }}{\hlopt{->}}{\hlendline{$D [e \circ C [x]]
+\Rightarrow D [C [x] \circ e]$}}\\
+{\hlstd{ \ \ \ pull{\textunderscore}out }}{\hlopt{\{}}{\hlstd{loc
+}}{\hlkwa{with
+}}{\hlstd{ctx}}{\hlopt{=(}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlstd{op}}{\hlopt{, }}{\hlstd{l}}{\hlopt{) ::
+}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlstd{op1}}{\hlopt{, }}{\hlstd{e1}}{\hlopt{) ::
+(}}{\hlkwd{{\textunderscore}}}{\hlopt{, }}{\hlstd{op2}}{\hlopt{,
+}}{\hlstd{e2}}{\hlopt{) :: }}{\hlstd{up{\textunderscore}ctx{\hlendline{}}\\
+\ \ \ \ \ }}{\hlkwa{when }}{\hlstd{op1 }}{\hlopt{= }}{\hlstd{op2
+}}{\hlopt{->}}{\hlendline{$D [(C [x] \circ e_1) \circ e_2] / D [e_2 \circ (C
+[x] \circ e_1)] \Rightarrow D [C [x] \circ (e_1 \circ e_2)]$}}\\
+{\hlstd{ \ \ \ pull{\textunderscore}out }}{\hlopt{\{}}{\hlstd{loc
+}}{\hlkwa{with
+}}{\hlstd{ctx}}{\hlopt{=(}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlstd{op1}}{\hlopt{,
+}}{\hlkwd{App}}{\hlopt{(}}{\hlstd{e1}}{\hlopt{,}}{\hlstd{op1}}{\hlopt{,}}{\hlstd{e2}}{\hlopt{))
+:: }}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlkwd{Add}}{\hlopt{, }}{\hlstd{e1}}{\hlopt{) ::
+(}}{\hlkwd{{\textunderscore}}}{\hlopt{, }}{\hlkwd{Mul}}{\hlopt{,
+}}{\hlstd{e2}}{\hlopt{) :: }}{\hlstd{up{\textunderscore}ctx
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ pull{\textunderscore}out }}{\hlopt{\{}}{\hlstd{loc
+}}{\hlkwa{with }}{\hlstd{ctx}}{\hlopt{=}}{\hlendline{$D [(C [x] + e_1) e_2] /
+D [e_2  (C [x] + e_1)] \Rightarrow D [C [x] e_2 + e_1 e_2]$}}\\
+{\hlstd{ \ \ \ \ \ \ \
+}}{\hlopt{(}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlkwd{Mul}}{\hlopt{, }}{\hlstd{e2}}{\hlopt{) ::}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \
+}}{\hlopt{(}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlkwd{Add}}{\hlopt{,
+}}{\hlkwd{App}}{\hlopt{(}}{\hlstd{e1}}{\hlopt{,}}{\hlkwd{Mul}}{\hlopt{,}}{\hlstd{e2}}{\hlopt{))
+:: }}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlkwd{Right{\textunderscore}arg}}{\hlopt{,
+}}{\hlstd{op}}{\hlopt{,
+}}{\hlstd{r}}{\hlopt{)::}}{\hlstd{up{\textunderscore}ctx
+}}{\hlopt{->}}{\hlendline{Move up the context.}}\\
+{\hlstd{ \ \ \ pull{\textunderscore}out
+}}{\hlopt{\{}}{\hlstd{sub}}{\hlopt{=}}{\hlkwd{App}}{\hlopt{(}}{\hlstd{loc}}{\hlopt{.}}{\hlstd{sub}}{\hlopt{,
+}}{\hlstd{op}}{\hlopt{, }}{\hlstd{r}}{\hlopt{);
+}}{\hlstd{ctx}}{\hlopt{=}}{\hlstd{up{\textunderscore}ctx}}{\hlopt{\}}}{\hlendline{}}}}
+\begin{itemize}
+  \item Since operators are commutative, we ignore the direction for the
+  second piece of context above.
+  
+  \item Test:
+  
+  {\hlkwa{let }}{\hlopt{(+) }}{\hlstd{a b }}{\hlopt{= }}{\hlkwd{App
+  }}{\hlopt{(}}{\hlstd{a}}{\hlopt{, }}{\hlkwd{Add}}{\hlopt{,
+  }}{\hlstd{b}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{( * ) }}{\hlstd{a b }}{\hlopt{= }}{\hlkwd{App
+  }}{\hlopt{(}}{\hlstd{a}}{\hlopt{, }}{\hlkwd{Mul}}{\hlopt{,
+  }}{\hlstd{b}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(!) }}{\hlstd{a }}{\hlopt{= }}{\hlkwd{Val
+  }}{\hlstd{a}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{x }}{\hlopt{= }}{\hlkwd{Var
+  }}{\hlstr{"x"}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{y }}{\hlopt{= }}{\hlkwd{Var
+  }}{\hlstr{"y"}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{ex }}{\hlopt{= !}}{\hlnum{5 }}{\hlopt{+ }}{\hlstd{y
+  }}{\hlopt{* (!}}{\hlnum{7 }}{\hlopt{+ }}{\hlstd{x}}{\hlopt{) * (!}}{\hlnum{3
+  }}{\hlopt{+ }}{\hlstd{y}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{loc }}{\hlopt{= }}{\hlstd{find
+  }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlstd{e}}{\hlopt{->}}{\hlstd{e}}{\hlopt{=}}{\hlstd{x}}{\hlopt{)
+  }}{\hlstd{ex}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{sol }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{loc }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{None }}{\hlopt{-> }}{\hlstd{raise
+  }}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Some }}{\hlstd{loc }}{\hlopt{->
+  }}{\hlstd{pull{\textunderscore}out loc}}{\hlendline{}}\\
+  {\hlstd{\# }}{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{expr2str sol}}{\hlopt{;;}}{\hlendline{}}\\
+  {\hlopt{- : }}{\hlkwb{string }}{\hlopt{=
+  }}{\hlstr{"(((x*y)*(3+y))+(((7*y)*(3+y))+5))"}}{\hlendline{}}
+  
+  \item For best results we can iterate the \tmverbatim{pull\_out} function
+  until fixpoint.
+\end{itemize}
+
+\section{Adaptive Programming{\large{ aka.Incremental Computing}}}
+
+\begin{itemize}
+  \item Zippers are somewhat unnatural.
+  
+  \item Once we change the data-structure, it is difficult to propagate the
+  changes -- need to rewrite all algorithms to work on context changes.
+  
+  \item In {\tmem{Adaptive Programming}}, aka. {\tmem{incremental
+  computation}}, aka. {\tmem{self-adjusting computation}}, we write programs
+  in straightforward functional manner, but can later modify any data causing
+  only minimal amount of work required to update results.
+  
+  \item The functional description of computation is within a monad.
+  
+  \item We can change monadic values -- e.g. parts of input -- from outside
+  and propagate the changes.
+  \begin{itemize}
+    \item In the {\tmem{Froc}} library, the monadic {\tmem{changeables}} are
+    \tmverbatim{'a Froc\_sa.t}, and the ability to modify them is exposed by
+    type \tmverbatim{'a Froc\_sa.u} -- the {\tmem{writeables}}.
+  \end{itemize}
+\end{itemize}
+\subsubsection{Dependency Graphs (explained by Jake Dunham)}
+\begin{itemize}
+  \item The monadic value \tmverbatim{'a changeable} will be the
+  {\tmem{dependency graph}} of the computation of the represented value
+  \tmverbatim{'a}.
+  
+  \item Let's look at the example in {\tmem{``How froc works''}}, representing
+  computation
+  
+  {\hlkwa{let }}{\hlstd{u }}{\hlopt{= }}{\hlstd{v }}{\hlopt{/ }}{\hlstd{w
+  }}{\hlopt{+ }}{\hlstd{x }}{\hlopt{* }}{\hlstd{y }}{\hlopt{+ }}{\hlstd{z
+  }}\resizebox{338px}{184px}{\includegraphics{functional-lecture10-via-latex-1.pdf}}
+  
+  \item and its state with partial results memoized
+  
+  \resizebox{450px}{185px}{\includegraphics{functional-lecture10-via-latex-2.pdf}}
+  
+  where \tmverbatim{n0, n1, n2} are interior nodes of computation.
+  
+  \item Modify inputs \tmverbatim{v} and \tmverbatim{z} simultaneously
+  
+  \resizebox{450px}{185px}{\includegraphics{functional-lecture10-via-latex-3.pdf}}
+  
+  \item We need to update \tmverbatim{n2} before \tmverbatim{u}.
+  
+  \item We use the gray numbers -- the order of computation -- for the order
+  of update of \tmverbatim{n0}, \tmverbatim{n2} and \tmverbatim{u}.
+  
+  \item Similarly to \tmverbatim{parallel} in the concurrency monad, we
+  provide \tmverbatim{bind2}, \tmverbatim{bind3}, ... -- and corresponding
+  \tmverbatim{lift2}, \tmverbatim{lift3}, ... -- to introduce nodes with
+  several children.
+  
+  {\hlkwa{let }}{\hlstd{n0 }}{\hlopt{= }}{\hlstd{bind2 v w
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{v w }}{\hlopt{-> }}{\hlstd{return
+  }}{\hlopt{(}}{\hlstd{v }}{\hlopt{/ }}{\hlstd{w}}{\hlopt{))
+  }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{n1 }}{\hlopt{= }}{\hlstd{bind2 x y
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y }}{\hlopt{-> }}{\hlstd{return
+  }}{\hlopt{(}}{\hlstd{x }}{\hlopt{* }}{\hlstd{y}}{\hlopt{))
+  }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{n2 }}{\hlopt{= }}{\hlstd{bind2 n0 n1
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{n0 n1 }}{\hlopt{-> }}{\hlstd{return
+  }}{\hlopt{(}}{\hlstd{n0 }}{\hlopt{+ }}{\hlstd{n1}}{\hlopt{))
+  }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{u }}{\hlopt{= }}{\hlstd{bind2 n2 z
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{n2 z }}{\hlopt{-> }}{\hlstd{return
+  }}{\hlopt{(}}{\hlstd{n2 }}{\hlopt{+ }}{\hlstd{z}}{\hlopt{))}}{\hlendline{}}
+  
+  \item Do-notation is not necessary to have readable expressions.
+  
+  {\hlkwa{let }}{\hlopt{(/) = }}{\hlstd{lift2 }}{\hlopt{(/) }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{( * ) = }}{\hlstd{lift2 }}{\hlopt{( * )
+  }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(+) = }}{\hlstd{lift2 }}{\hlopt{(+) }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{u }}{\hlopt{= }}{\hlstd{v }}{\hlopt{/ }}{\hlstd{w
+  }}{\hlopt{+ }}{\hlstd{x }}{\hlopt{* }}{\hlstd{y }}{\hlopt{+
+  }}{\hlstd{z}}{\hlendline{}}
+  
+  \item As in other monads, we can decrease overhead by using bigger chunks.
+  
+  {\hlkwa{let }}{\hlstd{n0 }}{\hlopt{= }}{\hlstd{blift2 v w
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{v w }}{\hlopt{-> }}{\hlstd{v }}{\hlopt{/
+  }}{\hlstd{w}}{\hlopt{) }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{n2 }}{\hlopt{= }}{\hlstd{blift3 n0 x y
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{n0 x y }}{\hlopt{-> }}{\hlstd{n0
+  }}{\hlopt{+ }}{\hlstd{x }}{\hlopt{* }}{\hlstd{y}}{\hlopt{)
+  }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{u }}{\hlopt{= }}{\hlstd{blift2 n2 z
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{n2 z }}{\hlopt{-> }}{\hlstd{n2
+  }}{\hlopt{+ }}{\hlstd{z}}{\hlopt{)}}{\hlendline{}}
+  
+  \item We have a problem if we recompute all nodes by order of computation.
+  
+  {\hlkwa{let }}{\hlstd{b }}{\hlopt{= }}{\hlstd{x }}{\hlopt{>>= }}{\hlkwa{fun
+  }}{\hlstd{x }}{\hlopt{-> }}{\hlstd{return }}{\hlopt{(}}{\hlstd{x }}{\hlopt{=
+  }}{\hlnum{0}}{\hlopt{) }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{n0 }}{\hlopt{= }}{\hlstd{x }}{\hlopt{>>= }}{\hlkwa{fun
+  }}{\hlstd{x }}{\hlopt{-> }}{\hlstd{return }}{\hlopt{(}}{\hlnum{100
+  }}{\hlopt{/ }}{\hlstd{x}}{\hlopt{) }}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{y }}{\hlopt{= }}{\hlstd{bind2 b n0
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{b n0}}{\hlopt{->}}{\hlkwa{if }}{\hlstd{b
+  }}{\hlkwa{then }}{\hlstd{return }}{\hlnum{0 }}{\hlkwa{else
+  }}{\hlstd{n0}}{\hlopt{)}}
+  
+  \resizebox{337px}{133px}{\includegraphics{functional-lecture10-via-latex-4.pdf}}
+  
+  \item Rather than a signle ``time'' stamp, we store intervals: begin and end
+  of computation
+  
+  \resizebox{465px}{201px}{\includegraphics{functional-lecture10-via-latex-5.pdf}}
+  
+  \item When updating the \tmverbatim{y} node, we first detach nodes in range
+  4-9 from the graph.
+  \begin{itemize}
+    \item Computing the expression will re-attach the nodes as needed.
+  \end{itemize}
+  \item When value of \tmverbatim{b} does not change, then we skip updating
+  \tmverbatim{y} and proceed with updating \tmverbatim{n0}.
+  \begin{itemize}
+    \item I.e. no children of \tmverbatim{y} with time stamp smaller than
+    \tmverbatim{y} change.
+    
+    \item The value of \tmverbatim{y} is a link to the value of
+    \tmverbatim{n0} so it will change anyway.
+  \end{itemize}
+  \item We need memoization to re-attach the same nodes in case they don't
+  need updating.
+  \begin{itemize}
+    \item Are they up-to-date? Run updating past the node's timestamp range.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Example using {\tmem{Froc}}}
+
+\begin{itemize}
+  \item Download {\tmem{Froc}} from
+  \href{https://github.com/jaked/froc/downloads}{https://github.com/jaked/froc/downloads}
+  
+  \item Install for example with
+  
+  \tmverbatim{cd froc-0.2a; ./configure; make all; sudo make install}
+  
+  \item {\hlkwd{Froc{\textunderscore}sa}} (for {\tmem{self-adjusting}})
+  exports the monadic type \tmverbatim{t} for changeable computation, and a
+  handle type \tmverbatim{u} for updating the computation.
+  
+  \item {\hlkwa{open }}{\hlkwd{Froc{\textunderscore}sa}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{tree }}{\hlopt{=}}{\hlendline{Binary tree with nodes
+  storing their screen location.}}\\
+  {\hlopt{\textbar }}{\hlkwd{Leaf }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlendline{We will grow the tree}}\\
+  {\hlopt{\textbar }}{\hlkwd{Node }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int }}{\hlopt{* }}{\hlstd{tree t }}{\hlopt{* }}{\hlstd{tree
+  t}}{\hlendline{by modifying subtrees.}}
+  
+  \item {\hlkwa{let rec }}{\hlstd{display px py t
+  }}{\hlopt{=}}{\hlendline{Displaying the tree is changeable effect:}}\\
+  {\hlstd{ \ }}{\hlkwa{match }}{\hlstd{t }}{\hlkwa{with}}{\hlendline{whenever
+  the tree changes, displaying will be updated.}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Leaf
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{)
+  ->}}{\hlendline{Only new nodes will be drawn after update.}}\\
+  {\hlstd{ \ \ \ return{\hlendline{}}\\
+  \ \ \ \ \
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{draw{\textunderscore}poly{\textunderscore}line
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}px}}{\hlopt{,}}{\hlstd{py}}{\hlopt{;}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y{\hlopt{\textbar}}}}{\hlopt{];}}{\hlendline{We
+  return}}\\
+  {\hlstd{ \ \ \ \ \ \
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{draw{\textunderscore}circle x y
+  }}{\hlnum{3}}{\hlopt{)}}{\hlendline{a throwaway value.}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Node
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{,
+  }}{\hlstd{l}}{\hlopt{, }}{\hlstd{r}}{\hlopt{) ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ return
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{draw{\textunderscore}poly{\textunderscore}line
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}px}}{\hlopt{,}}{\hlstd{py}}{\hlopt{;}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y{\hlopt{\textbar}}}}{\hlopt{])}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{>>= }}{\hlkwa{fun }}{\hlstd{{\textunderscore}
+  }}{\hlopt{-> }}{\hlstd{l }}{\hlopt{>>= }}{\hlstd{display x y{\hlendline{}}\\
+  \ \ \ }}{\hlopt{>>= }}{\hlkwa{fun }}{\hlstd{{\textunderscore} }}{\hlopt{->
+  }}{\hlstd{r }}{\hlopt{>>= }}{\hlstd{display x y}}{\hlendline{}}
+  
+  \item {\hlkwa{let }}{\hlstd{grow{\textunderscore}at
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{depth}}{\hlopt{,
+  }}{\hlstd{upd}}{\hlopt{) =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{x{\textunderscore}l }}{\hlopt{=
+  }}{\hlstd{x}}{\hlopt{-}}{\hlstd{f2i
+  }}{\hlopt{(}}{\hlstd{width}}{\hlopt{*.(}}{\hlnum{2.0}}{\hlopt{**(}}{\hlstd{$\sim$}}{\hlopt{-.(}}{\hlstd{i2f
+  }}{\hlopt{(}}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{)))))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l}}{\hlopt{,
+  }}{\hlstd{upd{\textunderscore}l }}{\hlopt{= }}{\hlstd{changeable
+  }}{\hlopt{(}}{\hlkwd{Leaf
+  }}{\hlopt{(}}{\hlstd{x{\textunderscore}l}}{\hlopt{,
+  (}}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{)*}}{\hlnum{20}}{\hlopt{))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{x{\textunderscore}r }}{\hlopt{=
+  }}{\hlstd{x}}{\hlopt{+}}{\hlstd{f2i
+  }}{\hlopt{(}}{\hlstd{width}}{\hlopt{*.(}}{\hlnum{2.0}}{\hlopt{**(}}{\hlstd{$\sim$}}{\hlopt{-.(}}{\hlstd{i2f
+  }}{\hlopt{(}}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{)))))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{r}}{\hlopt{,
+  }}{\hlstd{upd{\textunderscore}r }}{\hlopt{= }}{\hlstd{changeable
+  }}{\hlopt{(}}{\hlkwd{Leaf
+  }}{\hlopt{(}}{\hlstd{x{\textunderscore}r}}{\hlopt{,
+  (}}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{)*}}{\hlnum{20}}{\hlopt{))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ write upd }}{\hlopt{(}}{\hlkwd{Node
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{depth}}{\hlopt{*}}{\hlnum{20}}{\hlopt{, }}{\hlstd{l}}{\hlopt{,
+  }}{\hlstd{r}}{\hlopt{));}}{\hlendline{Update the old leaf}}\\
+  {\hlstd{ \ propagate }}{\hlopt{();}}{\hlendline{and keep handles to make
+  future updates.}}\\
+  {\hlstd{ \ }}{\hlopt{[}}{\hlstd{x{\textunderscore}l}}{\hlopt{,
+  }}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{,
+  }}{\hlstd{upd{\textunderscore}l}}{\hlopt{;
+  }}{\hlstd{x{\textunderscore}r}}{\hlopt{,
+  }}{\hlstd{depth}}{\hlopt{+}}{\hlnum{1}}{\hlopt{,
+  }}{\hlstd{upd{\textunderscore}r}}{\hlopt{]}}{\hlendline{}}
+  
+  \item {\hlkwa{let rec }}{\hlstd{loop t subts steps
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{if }}{\hlstd{steps }}{\hlopt{<= }}{\hlnum{0
+  }}{\hlkwa{then }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else }}{\hlstd{loop t
+  }}{\hlopt{(}}{\hlstd{concat{\textunderscore}map grow{\textunderscore}at
+  subts}}{\hlopt{)
+  (}}{\hlstd{steps}}{\hlopt{-}}{\hlnum{1}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{incremental steps }}{\hlopt{() =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{open{\textunderscore}graph
+  }}{\hlstr{" 1024x600"}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{t}}{\hlopt{, }}{\hlstd{u }}{\hlopt{=
+  }}{\hlstd{changeable }}{\hlopt{(}}{\hlkwd{Leaf
+  }}{\hlopt{(}}{\hlnum{512}}{\hlopt{, }}{\hlnum{20}}{\hlopt{))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{d }}{\hlopt{= }}{\hlstd{t }}{\hlopt{>>=
+  }}{\hlstd{display }}{\hlopt{(}}{\hlstd{f2i }}{\hlopt{(}}{\hlstd{width
+  }}{\hlopt{/. }}{\hlnum{2}}{\hlopt{.)) }}{\hlnum{0
+  }}{\hlkwa{in}}{\hlendline{Display once}}\\
+  {\hlstd{ \ loop t }}{\hlopt{[}}{\hlnum{512}}{\hlopt{, }}{\hlnum{1}}{\hlopt{,
+  }}{\hlstd{u}}{\hlopt{] }}{\hlstd{steps}}{\hlopt{;}}{\hlendline{-- new nodes
+  will be drawn automatically.}}\\
+  {\hlstd{ \
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{close{\textunderscore}graph
+  }}{\hlopt{();;}}{\hlendline{}}
+  
+  \item Compare with rebuilding and redrawing the whole tree. Unfortunately
+  the overhead of incremental computation is quite large. Byte code run:
+  
+  \begin{tabular}{|l|l|l|l|l|l|l|l|l|l|}
+    \hline
+    depth & 12 & 13 & 14 & 15 & 16 & 17 & 18 & 19 & 20\\
+    \hline
+    incremental & 0.66s & 1s & 2.2s & 4.4s & 9.3s & 21s & 50s & 140s & 255s\\
+    \hline
+    rebuilding & 0.5s & 0.63s & 1.3s & 3s & 5.3s & 13s & 39s & 190s &
+    $\infty$\\
+    \hline
+  \end{tabular}
+\end{itemize}
+
+\section{Functional Reactive Programming}
+
+\begin{itemize}
+  \item FRP is an attempt to declaratively deal with time.
+  
+  \item {\tmem{Behaviors}} are functions of time.
+  \begin{itemize}
+    \item A behavior has a specific value in each instant.
+  \end{itemize}
+  \item {\tmem{Events}} are sets of (time, value) pairs.
+  \begin{itemize}
+    \item I.e. they are organised into streams of actions.
+  \end{itemize}
+  \item Two problems
+  \begin{itemize}
+    \item Behaviors / events are well defined when they don't depend on future
+    
+    \item Efficiency: minimize overhead
+  \end{itemize}
+  \item FRP is {\tmem{synchronous}}: it is possible to set up for events to
+  happen at the same time, and it is {\tmem{continuous}}: behaviors can have
+  details at arbitrary time resolution.
+  \begin{itemize}
+    \item Although the results are {\tmem{sampled}}, there's no fixed
+    (minimal) time step for specifying behavior.
+    
+    \item {\small{Asynchrony refers to various ideas so ask what people
+    mean.}}
+  \end{itemize}
+  \item Ideally we would define:
+  
+  {\hlkwa{type }}{\hlstd{time }}{\hlopt{= }}{\hlkwb{float}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{= }}{\hlstd{time }}{\hlopt{->
+  }}{\hlstd{'a}}{\hlendline{Arbitrary function.}}\\
+  {\hlkwa{type }}{\hlstd{'a event }}{\hlopt{= (}}{\hlstd{'a}}{\hlopt{,
+  }}{\hlstd{time}}{\hlopt{) }}{\hlstd{stream}}{\hlendline{Increasing time
+  instants.}}
+  
+  \item Forcing a lazy list (stream) of events would wait till an event
+  arrives.
+  
+  \item But behaviors need to react to external events:
+  
+  {\small{{\hlkwa{type }}{\hlstd{user{\textunderscore}action
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Key }}{\hlkwa{of }}{\hlstd{char }}{\hlopt{*
+  }}{\hlkwb{bool}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Button }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int }}{\hlopt{* }}{\hlkwb{bool }}{\hlopt{*
+  }}{\hlkwb{bool}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{MouseMove }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Resize }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{=
+  }}{\hlstd{user{\textunderscore}action event }}{\hlopt{-> }}{\hlstd{time
+  }}{\hlopt{-> }}{\hlstd{'a}}{\hlendline{}}}}
+  
+  \item Scanning through an event list since the beginnig of time till current
+  time, each time we evaluate a behavior -- very wasteful wrt. time\&space.
+  
+  Producing a stream of behaviors for the stream of time allows to forget
+  about events already in the past.
+  
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ user{\textunderscore}action event }}{\hlopt{-> }}{\hlstd{time
+  stream }}{\hlopt{-> }}{\hlstd{'a stream}}{\hlendline{}}
+  
+  \item Next optimization is to pair user actions with sampling times.
+  
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ {\hlopt{(}}user{\textunderscore}action }}{\hlkwb{option
+  }}{\hlopt{* }}{\hlstd{time{\hlopt{)}} stream }}{\hlopt{-> }}{\hlstd{'a
+  stream}}{\hlendline{}}
+  
+  {\hlkwd{None}} action corresponds to sampling time when nothing happens.
+  
+  \item Turning behaviors and events from functions of time into input-output
+  streams is similar to optimizing interesction of ordered lists from $O (mn)$
+  to $O (m + n)$ time.
+  
+  \item Now we can in turn define events in terms of behaviors:
+  
+  {\hlkwa{type }}{\hlstd{'a event }}{\hlopt{= }}{\hlstd{'a }}{\hlkwb{option
+  }}{\hlstd{behavior}}{\hlendline{}}
+  
+  although it betrays the discrete character of events (happening at points in
+  time rather than varying over intervals of time).
+  
+  \item We've gotten very close to {\tmem{stream processing}} as discussed in
+  lecture 7.
+  \begin{itemize}
+    \item Recall the incremental pretty-printing example that can ``react'' to
+    more input.
+    
+    \item Stream combinators, {\tmem{fork}} from exercise 9 for lecture 7, and
+    a corresponding {\tmem{merge}}, turn stream processing into
+    {\tmem{synchronous discrete reactive programming}}.
+  \end{itemize}
+  \item Behaviors are monadic (but see next point) -- in original
+  specification:
+  
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{= }}{\hlstd{time }}{\hlopt{->
+  }}{\hlstd{'a}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{return }}{\hlopt{: }}{\hlstd{'a }}{\hlopt{->
+  }}{\hlstd{'a behavior}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{return a }}{\hlopt{= }}{\hlkwa{fun
+  }}{\hlstd{{\textunderscore} }}{\hlopt{-> }}{\hlstd{a}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{bind }}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{ \ 'a behavior }}{\hlopt{-> (}}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b
+  behavior}}{\hlopt{) -> }}{\hlstd{'b behavior}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{bind a f }}{\hlopt{= }}{\hlkwa{fun }}{\hlstd{t
+  }}{\hlopt{-> }}{\hlstd{f }}{\hlopt{(}}{\hlstd{a t}}{\hlopt{)
+  }}{\hlstd{t}}{\hlendline{}}
+  
+  \item As we've seen with changeables, we mostly use lifting. In Haskell
+  world we'd call behaviors {\tmem{applicative}}. To build our own lifters in
+  any monad:
+  
+  {\hlkwa{val }}{\hlstd{ap }}{\hlopt{: (}}{\hlstd{'a }}{\hlopt{->
+  }}{\hlstd{'b}}{\hlopt{) }}{\hlstd{monad }}{\hlopt{-> }}{\hlstd{'a monad
+  }}{\hlopt{-> }}{\hlstd{'b monad}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{ap fm am }}{\hlopt{=
+  }}{\hlkwa{perform}}{\hlendline{}}\\
+  {\hlstd{ \ f }}{\hlopt{<-- }}{\hlstd{fm}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ a }}{\hlopt{<-- }}{\hlstd{am}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ return }}{\hlopt{(}}{\hlstd{f a}}{\hlopt{)}}{\hlendline{}}
+  \begin{itemize}
+    \item Note that for changeables, the naive implementation above will
+    introduce unnecessary dependencies. Monadic libraries for
+    {\tmem{incremental computing}} or FRP should provide optimized variants if
+    needed.
+    \begin{itemize}
+      \item Compare with \tmverbatim{parallel} for concurrent computing.
+    \end{itemize}
+  \end{itemize}
+  \item Going from events to behaviors. \tmverbatim{until} and
+  \tmverbatim{switch} have type
+  
+  {\hlstd{'a behavior }}{\hlopt{-> }}{\hlstd{'a behavior event }}{\hlopt{->
+  }}{\hlstd{'a behavior}}{\hlendline{}}
+  
+  \tmverbatim{step} has type
+  
+  {\hlstd{'a }}{\hlopt{-> }}{\hlstd{'a event }}{\hlopt{-> }}{\hlstd{'a
+  behavior}}{\hlendline{}}
+  \begin{itemize}
+    \item \tmverbatim{until b es} behaves as \tmverbatim{b} until the first
+    event in \tmverbatim{es}, then behaves as the behavior in that event
+    
+    \item \tmverbatim{switch b es} behaves as the behavior from the last event
+    in \tmverbatim{es} prior to current time, if any, otherwise as
+    \tmverbatim{b}
+    
+    \item \tmverbatim{step a b} starts with behavior returning \tmverbatim{a}
+    and then switches to returning the value of the last event in
+    \tmverbatim{b} (prior to current time) -- a {\tmem{step function}}.
+  \end{itemize}
+  \item We will use ``{\tmem{signal}}'' to refer to a behavior or an event.
+  But often ``signal'' is used as our behavior (check terminology when looking
+  at a new FRP library).
+\end{itemize}
+
+\section{Reactivity by Stream Processing}
+
+\begin{itemize}
+  \item The stream processing infrastructure should be familiar.
+  
+  {\hlkwa{type }}{\hlstd{'a stream }}{\hlopt{= }}{\hlstd{'a
+  stream{\textunderscore}
+  }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{t}}{\hlendline{}}\\
+  {\hlkwa{and }}{\hlstd{'a stream{\textunderscore} }}{\hlopt{= }}{\hlkwd{Cons
+  }}{\hlkwa{of }}{\hlstd{'a }}{\hlopt{* }}{\hlstd{'a stream}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{lmap f l }}{\hlopt{= }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force l
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{f x}}{\hlopt{, }}{\hlstd{lmap
+  f xs}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{liter }}{\hlopt{(}}{\hlstd{f }}{\hlopt{:
+  }}{\hlstd{'a }}{\hlopt{-> }}{\hlkwb{unit}}{\hlopt{) (}}{\hlstd{l }}{\hlopt{:
+  }}{\hlstd{'a stream}}{\hlopt{) : }}{\hlkwb{unit
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force l
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ f x}}{\hlopt{; }}{\hlstd{liter f xs}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{lmap2 f xs ys }}{\hlopt{= }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force xs
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{y}}{\hlopt{,
+  }}{\hlstd{ys}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force ys
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{f x y}}{\hlopt{,
+  }}{\hlstd{lmap2 f xs ys}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{lmap3 f xs ys zs }}{\hlopt{= }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force xs
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{y}}{\hlopt{,
+  }}{\hlstd{ys}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force ys
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{z}}{\hlopt{,
+  }}{\hlstd{zs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force zs
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{f x y z}}{\hlopt{,
+  }}{\hlstd{lmap3 f xs ys zs}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{lfold acc f }}{\hlopt{(}}{\hlstd{l }}{\hlopt{:
+  }}{\hlstd{'a stream}}{\hlopt{) = }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force l
+  }}{\hlkwa{in}}{\hlendline{Fold a function over the stream}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{acc }}{\hlopt{= }}{\hlstd{f acc x
+  }}{\hlkwa{in}}{\hlendline{producing a stream of partial results.}}\\
+  {\hlstd{ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{acc}}{\hlopt{,
+  }}{\hlstd{lfold acc f xs}}{\hlopt{))}}{\hlendline{}}
+  
+  \item Since a behavior is a function of user actions and sample times, we
+  need to ensure that only one stream is created for the actual input stream.
+  
+  {\hlkwa{type }}{\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{memo1 }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\{}}{\hlstd{memo{\textunderscore}f }}{\hlopt{:
+  }}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b}}{\hlopt{; }}{\hlkwa{mutable
+  }}{\hlstd{memo{\textunderscore}r }}{\hlopt{: (}}{\hlstd{'a }}{\hlopt{*
+  }}{\hlstd{'b}}{\hlopt{) }}{\hlkwb{option}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{memo1 f }}{\hlopt{= \{}}{\hlstd{memo{\textunderscore}f
+  }}{\hlopt{= }}{\hlstd{f}}{\hlopt{; }}{\hlstd{memo{\textunderscore}r
+  }}{\hlopt{= }}{\hlkwd{None}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{memo1{\textunderscore}app f x
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{match
+  }}{\hlstd{f}}{\hlopt{.}}{\hlstd{memo{\textunderscore}r
+  }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Some
+  }}{\hlopt{(}}{\hlstd{y}}{\hlopt{, }}{\hlstd{res}}{\hlopt{) }}{\hlkwa{when
+  }}{\hlstd{x }}{\hlopt{== }}{\hlstd{y }}{\hlopt{->
+  }}\tmverbatim{res}{\hlendline{Physical equality is OK --}}\\
+  \tmverbatim{ \ }{\hlopt{\textbar}} {\textunderscore}
+  {\hlopt{->}}{\hlendline{external input is ``physically'' unique.}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{res }}{\hlopt{=
+  }}{\hlstd{f}}{\hlopt{.}}{\hlstd{memo{\textunderscore}f x
+  }}{\hlkwa{in}}{\hlendline{While debugging, we can monitor}}\\
+  {\hlstd{ \ \ \ f}}{\hlopt{.}}{\hlstd{memo{\textunderscore}r }}{\hlopt{<-
+  }}{\hlkwd{Some }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{res}}{\hlopt{);}}{\hlendline{whether
+  {\hlstd{f}}{\hlopt{.}}{\hlstd{memo{\textunderscore}r }}{\hlopt{=
+  }}{\hlkwd{None}} before.}}\\
+  {\hlstd{ \ \ \ res}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(}}{\hlstd{\$}}{\hlopt{) =
+  }}{\hlstd{memo1{\textunderscore}app}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a behavior }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{((}}{\hlstd{user{\textunderscore}action
+  }}{\hlkwb{option }}{\hlopt{* }}{\hlstd{time}}{\hlopt{)
+  }}{\hlstd{stream}}{\hlopt{, }}{\hlstd{'a stream}}{\hlopt{)
+  }}{\hlstd{memo1}}{\hlendline{}}
+  
+  \item The monadic/applicative functions to build complex behaviors.
+  \begin{itemize}
+    \item If you do not provide type annotations in \tmverbatim{.ml} files,
+    work together with an \tmverbatim{.mli} file to catch problems early. You
+    can later add more type annotations as needed to find out what's wrong.
+  \end{itemize}
+  {\hlkwa{let }}{\hlstd{returnB x }}{\hlopt{: }}{\hlstd{'a behavior
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{xs }}{\hlopt{= }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{xs}}{\hlopt{)) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{{\textunderscore}
+  }}{\hlopt{-> }}{\hlstd{xs}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{( !* ) = }}{\hlstd{returnB}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{liftB f fb }}{\hlopt{= }}{\hlstd{memo1
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{-> }}{\hlstd{lmap f
+  }}{\hlopt{(}}{\hlstd{fb \$ uts}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{liftB2 f fb1 fb2 }}{\hlopt{=
+  }}{\hlstd{memo1{\hlendline{}}\\
+  \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{-> }}{\hlstd{lmap2 f
+  }}{\hlopt{(}}{\hlstd{fb1 \$ uts}}{\hlopt{) (}}{\hlstd{fb2 \$
+  uts}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{liftB3 f fb1 fb2 fb3 }}{\hlopt{=
+  }}{\hlstd{memo1{\hlendline{}}\\
+  \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{-> }}{\hlstd{lmap3 f
+  }}{\hlopt{(}}{\hlstd{fb1 \$ uts}}{\hlopt{) (}}{\hlstd{fb2 \$ uts}}{\hlopt{)
+  (}}{\hlstd{fb3 \$ uts}}{\hlopt{))}}\\
+  {\hlkwa{let }}{\hlstd{liftE f }}{\hlopt{(}}{\hlstd{fe }}{\hlopt{:
+  }}{\hlstd{'a event}}{\hlopt{) : }}{\hlstd{'b event }}{\hlopt{=
+  }}{\hlstd{memo1{\hlendline{}}\\
+  \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lmap{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{function }}{\hlkwd{Some }}{\hlstd{e }}{\hlopt{->
+  }}{\hlkwd{Some }}{\hlopt{(}}{\hlstd{f e}}{\hlopt{) \textbar }}{\hlkwd{None
+  }}{\hlopt{-> }}{\hlkwd{None}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{fe \$ uts}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(=>>) }}{\hlstd{fe f }}{\hlopt{= }}{\hlstd{liftE f
+  fe}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(->>) }}{\hlstd{e v }}{\hlopt{= }}{\hlstd{e
+  }}{\hlopt{=>> }}{\hlkwa{fun }}{\hlstd{{\textunderscore} }}{\hlopt{->
+  }}{\hlstd{v}}{\hlendline{}}
+  
+  \item Creating events out of behaviors.
+  
+  {\hlkwa{let }}{\hlstd{whileB }}{\hlopt{(}}{\hlstd{fb }}{\hlopt{:
+  }}{\hlkwb{bool }}{\hlstd{behavior}}{\hlopt{) : }}{\hlkwb{unit
+  }}{\hlstd{event }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ lmap }}{\hlopt{(}}{\hlkwa{function true }}{\hlopt{->
+  }}{\hlkwd{Some }}{\hlopt{() \textbar }}{\hlkwa{false }}{\hlopt{->
+  }}{\hlkwd{None}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{(}}{\hlstd{fb \$
+  uts}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{unique fe }}{\hlopt{: }}{\hlstd{'a event
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{xs }}{\hlopt{= }}{\hlstd{fe \$ uts
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ lmap2 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y }}{\hlopt{->
+  }}{\hlkwa{if }}{\hlstd{x }}{\hlopt{= }}{\hlstd{y }}{\hlkwa{then
+  }}{\hlkwd{None }}{\hlkwa{else }}{\hlstd{y}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{lazy }}{\hlopt{(}}{\hlkwd{Cons
+  }}{\hlopt{(}}{\hlkwd{None}}{\hlopt{, }}{\hlstd{xs}}{\hlopt{)))
+  }}{\hlstd{xs}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{whenB fb }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{unique }}{\hlopt{(}}{\hlstd{whileB fb}}{\hlopt{) }}{\hlstd{\$
+  uts}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{snapshot fe fb }}{\hlopt{: (}}{\hlstd{'a }}{\hlopt{*
+  }}{\hlstd{'b}}{\hlopt{) }}{\hlstd{event }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lmap2{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x}}{\hlopt{->}}{\hlkwa{function
+  }}{\hlkwd{Some }}{\hlstd{y }}{\hlopt{-> }}{\hlkwd{Some
+  }}{\hlopt{(}}{\hlstd{y}}{\hlopt{,}}{\hlstd{x}}{\hlopt{) \textbar
+  }}{\hlkwd{None }}{\hlopt{-> }}{\hlkwd{None}}{\hlopt{)}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{(}}{\hlstd{fb \$ uts}}{\hlopt{) (}}{\hlstd{fe
+  \$ uts}}{\hlopt{))}}{\hlendline{}}
+  
+  \item Creating behaviors out of events.
+  
+  {\hlkwa{let }}{\hlstd{step acc fe }}{\hlopt{=}}{\hlendline{The step
+  function: value of last event.}}\\
+  {\hlstd{ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lfold acc{\hlendline{}}\\
+  \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{acc }}{\hlopt{-> }}{\hlkwa{function
+  }}{\hlkwd{None }}{\hlopt{-> }}{\hlstd{acc {\hlopt{\textbar}} }}{\hlkwd{Some
+  }}{\hlstd{v }}{\hlopt{-> }}{\hlstd{v}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ }}{\hlopt{(}}{\hlstd{fe \$ uts}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{step{\textunderscore}accum acc ff
+  }}{\hlopt{=}}{\hlendline{Transform a value by a series of functions.}}\\
+  {\hlstd{ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ lfold acc }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{acc }}{\hlopt{->
+  }}{\hlkwa{function}}{\hlendline{}}\\
+  {\hlstd{ \ \ }}{\hlopt{\textbar }}{\hlkwd{None }}{\hlopt{-> }}{\hlstd{acc
+  {\hlopt{\textbar}} }}{\hlkwd{Some }}{\hlstd{f }}{\hlopt{-> }}{\hlstd{f
+  acc}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ }}{\hlopt{(}}{\hlstd{ff \$ uts}}{\hlopt{))}}{\hlendline{}}
+  
+  \item To numerically integrate a behavior, we need to access the sampling
+  times.
+  
+  {\hlkwa{let }}{\hlstd{integral fb }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{loop t0 acc uts bs
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlkwd{Cons
+  }}{\hlopt{((}}{\hlstd{{\textunderscore}}}{\hlopt{,}}{\hlstd{t1}}{\hlopt{),
+  }}{\hlstd{uts}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force uts
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlkwd{Cons
+  }}{\hlopt{(}}{\hlstd{b}}{\hlopt{, }}{\hlstd{bs}}{\hlopt{) =
+  }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force bs }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{acc }}{\hlopt{= }}{\hlstd{acc
+  }}{\hlopt{+. (}}{\hlstd{t1 }}{\hlopt{-. }}{\hlstd{t0}}{\hlopt{) *.
+  }}{\hlstd{b }}{\hlkwa{in}}{\hlendline{$b = \tmop{fb} (t_1), \tmop{acc}
+  \approx \int_{t \leqslant t_0} f$.}}\\
+  {\hlstd{ \ \ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{acc}}{\hlopt{,
+  }}{\hlkwa{lazy }}{\hlopt{(}}{\hlstd{loop t1 acc uts bs}}{\hlopt{))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlkwa{lazy }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlkwd{Cons
+  }}{\hlopt{((}}{\hlstd{{\textunderscore}}}{\hlopt{,}}{\hlstd{t}}{\hlopt{),
+  }}{\hlstd{uts'}}{\hlopt{) = }}{\hlkwc{Lazy}}{\hlopt{.}}{\hlstd{force uts
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlnum{0}}{\hlopt{.,
+  }}{\hlkwa{lazy }}{\hlopt{(}}{\hlstd{loop t }}{\hlnum{0}}{\hlopt{.
+  }}{\hlstd{uts' }}{\hlopt{(}}{\hlstd{fb \$ uts}}{\hlopt{)))))}}{\hlendline{}}
+  \begin{itemize}
+    \item In our {\tmem{paddle game}} example, we paradoxically express
+    position and velocity in mutually recursive manner. The trick is the same
+    as in chapter 7 -- integration introduces one step of delay.
+  \end{itemize}
+  \item User actions:
+  
+  {\hlkwa{let }}{\hlstd{lbp }}{\hlopt{: }}{\hlkwb{unit }}{\hlstd{event
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lmap{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{function
+  }}{\hlkwd{Some}}{\hlopt{(}}{\hlkwd{Button}}{\hlopt{(}}{\hlstd{{\textunderscore}}}{\hlopt{,}}{\hlstd{{\textunderscore}}}{\hlopt{)),
+  }}{\hlstd{{\textunderscore} }}{\hlopt{-> }}{\hlkwd{Some}}{\hlopt{()
+  }}{\hlstd{{\hlopt{\textbar}} {\textunderscore} }}{\hlopt{->}}{\hlkwd{
+  None}}{\hlopt{)}}\\
+  {\hlstd{ \ \ \ uts}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mm }}{\hlopt{: (}}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlopt{) }}{\hlstd{event }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lmap{\hlendline{}}\\
+  \ }}{\hlopt{(}}{\hlkwa{function
+  }}{\hlkwd{Some}}{\hlopt{(}}{\hlkwd{MouseMove}}{\hlopt{(}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y}}{\hlopt{)),}}{\hlstd{{\textunderscore}
+  }}{\hlopt{->}}{\hlkwd{Some}}{\hlopt{(}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y}}{\hlopt{)
+  }}{\hlstd{{\hlopt{\textbar}} {\textunderscore}
+  }}{\hlopt{->}}{\hlkwd{None}}{\hlopt{)}}\\
+  {\hlstd{ \ \ \ uts}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{screen }}{\hlopt{: (}}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlopt{) }}{\hlstd{event }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ memo1 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{uts }}{\hlopt{->
+  }}{\hlstd{lmap{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{function
+  }}{\hlkwd{Some}}{\hlopt{(}}{\hlkwd{Resize}}{\hlopt{(}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y}}{\hlopt{)),}}{\hlstd{{\textunderscore}
+  }}{\hlopt{->}}{\hlkwd{Some}}{\hlopt{(}}{\hlstd{x}}{\hlopt{,}}{\hlstd{y}}{\hlopt{)
+  }}{\hlstd{{\hlopt{\textbar}} {\textunderscore}
+  }}{\hlopt{->}}{\hlkwd{None}}{\hlopt{)}}\\
+  {\hlstd{ \ \ \ uts}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mouse{\textunderscore}x }}{\hlopt{: }}{\hlkwb{int
+  }}{\hlstd{behavior }}{\hlopt{= }}{\hlstd{step }}{\hlnum{0
+  }}{\hlopt{(}}{\hlstd{liftE fst mm}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mouse{\textunderscore}y }}{\hlopt{: }}{\hlkwb{int
+  }}{\hlstd{behavior }}{\hlopt{= }}{\hlstd{step }}{\hlnum{0
+  }}{\hlopt{(}}{\hlstd{liftE snd mm}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{width }}{\hlopt{: }}{\hlkwb{int }}{\hlstd{behavior
+  }}{\hlopt{= }}{\hlstd{step }}{\hlnum{640 }}{\hlopt{(}}{\hlstd{liftE fst
+  screen}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{height }}{\hlopt{: }}{\hlkwb{int }}{\hlstd{behavior
+  }}{\hlopt{= }}{\hlstd{step }}{\hlnum{512 }}{\hlopt{(}}{\hlstd{liftE snd
+  screen}}{\hlopt{)}}{\hlendline{}}
+\end{itemize}
+
+\subsubsection{The Paddle Game example}
+
+\begin{itemize}
+  \item A {\tmem{scene graph}} is a data structure that represents a ``world''
+  which can be drawn on screen.
+  
+  {\hlkwa{type }}{\hlstd{scene }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Rect }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int }}{\hlopt{* }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlendline{position, width, height}}\\
+  {\hlopt{\textbar }}{\hlkwd{Circle }}{\hlkwa{of }}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int }}{\hlopt{* }}{\hlkwb{int}}{\hlendline{position, radius}}\\
+  {\hlopt{\textbar }}{\hlkwd{Group }}{\hlkwa{of }}{\hlstd{scene
+  list{\hlendline{}}\\
+  {\hlopt{\textbar}} }}{\hlkwd{Color }}{\hlkwa{of
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{color }}{\hlopt{*
+  }}\tmverbatim{scene}{\hlendline{color of subscene objects}}\\
+  {\hlopt{\textbar}}\tmverbatim{ }{\hlkwd{Translate }}{\hlkwa{of
+  }}{\hlkwb{float }}{\hlopt{* }}{\hlkwb{float }}{\hlopt{*
+  }}{\hlstd{scene}}{\hlendline{additional offset of origin}}
+  
+  \item Drawing a scene explains what we mean above.
+  
+  {\hlkwa{let }}{\hlstd{draw sc }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{f2i }}{\hlopt{=
+  }}{\hlstd{int{\textunderscore}of{\textunderscore}float
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let open }}{\hlkwd{Graphics
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux t{\textunderscore}x
+  t{\textunderscore}y }}{\hlopt{= }}{\hlkwa{function}}{\hlendline{Accumulate
+  translations.}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Rect
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{,
+  }}{\hlstd{w}}{\hlopt{, }}{\hlstd{h}}{\hlopt{) ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ fill{\textunderscore}rect }}{\hlopt{(}}{\hlstd{f2i
+  t{\textunderscore}x}}{\hlopt{+}}{\hlstd{x}}{\hlopt{) (}}{\hlstd{f2i
+  t{\textunderscore}y}}{\hlopt{+}}{\hlstd{y}}{\hlopt{) }}{\hlstd{w
+  h{\hlendline{}}\\
+  \ }}{\hlopt{\textbar }}{\hlkwd{Circle }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{y}}{\hlopt{, }}{\hlstd{r}}{\hlopt{) ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ fill{\textunderscore}circle }}{\hlopt{(}}{\hlstd{f2i
+  t{\textunderscore}x}}{\hlopt{+}}{\hlstd{x}}{\hlopt{) (}}{\hlstd{f2i
+  t{\textunderscore}y}}{\hlopt{+}}{\hlstd{y}}{\hlopt{)
+  }}{\hlstd{r{\hlendline{}}\\
+  \ }}{\hlopt{\textbar }}{\hlkwd{Group }}{\hlstd{scs
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{iter
+  }}{\hlopt{(}}{\hlstd{aux t{\textunderscore}x t{\textunderscore}y}}{\hlopt{)
+  }}\tmverbatim{scs}{\hlendline{$\swarrow$ \ Set color for \tmverbatim{sc}
+  objects.}}\\
+  \tmverbatim{ \ }{\hlopt{\textbar }}{\hlkwd{Color
+  }}{\hlopt{(}}{\hlstd{c}}{\hlopt{, }}{\hlstd{sc}}{\hlopt{) ->
+  }}{\hlstd{set{\textunderscore}color c}}{\hlopt{; }}{\hlstd{aux
+  t{\textunderscore}x t{\textunderscore}y sc{\hlendline{}}\\
+  \ }}{\hlopt{\textbar }}{\hlkwd{Translate }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{y}}{\hlopt{, }}{\hlstd{sc}}{\hlopt{) -> }}{\hlstd{aux
+  }}{\hlopt{(}}{\hlstd{t{\textunderscore}x}}{\hlopt{+.}}{\hlstd{x}}{\hlopt{)
+  (}}{\hlstd{t{\textunderscore}y}}{\hlopt{+.}}{\hlstd{y}}{\hlopt{)
+  }}{\hlstd{sc }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ clear{\textunderscore}graph }}{\hlopt{();}}{\hlendline{``Fast and
+  clean'' removing of previous picture.}}\\
+  {\hlstd{ \ aux }}{\hlnum{0}}{\hlopt{. }}{\hlnum{0}}{\hlopt{.
+  }}{\hlstd{sc}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ synchronize }}{\hlopt{()}}{\hlendline{Synchronize the
+  {\tmem{double buffer}} -- avoiding flickering.}}
+  
+  \tmverbatim{}\item An animation is a scene behavior. To animate it we need
+  to create the input stream: the user actions and sampling times stream.
+  \begin{itemize}
+    \item We could abstract away drawing from time sampling in
+    \tmverbatim{reactimate}, asking for (i.e. passing as argument) a producer
+    of user actions and a consumer of scene graphs (like \tmverbatim{draw}).
+  \end{itemize}
+  {\small{{\hlkwa{let }}{\hlstd{reactimate }}{\hlopt{(}}{\hlstd{anim
+  }}{\hlopt{: }}{\hlstd{scene behavior}}{\hlopt{) =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let open }}{\hlkwd{Graphics
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{not{\textunderscore}b }}{\hlopt{=
+  }}{\hlkwa{function }}{\hlkwd{Some }}{\hlopt{(}}{\hlkwd{Button
+  }}{\hlopt{(}}{\hlstd{{\textunderscore}}}{\hlopt{,}}{\hlstd{{\textunderscore}}}{\hlopt{))
+  -> }}{\hlkwa{false }}{\hlstd{{\hlopt{\textbar}} {\textunderscore}
+  }}{\hlopt{-> }}{\hlkwa{true in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{current old{\textunderscore}m
+  old{\textunderscore}scr
+  }}{\hlopt{(}}{\hlstd{old{\textunderscore}u}}{\hlopt{,
+  }}{\hlstd{t0}}{\hlopt{) =}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let rec }}{\hlstd{delay }}{\hlopt{()
+  =}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{t1 }}{\hlopt{=
+  }}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{d }}{\hlopt{= }}{\hlnum{0.01
+  }}{\hlopt{-. (}}{\hlstd{t1 }}{\hlopt{-. }}{\hlstd{t0}}{\hlopt{)
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{try if }}{\hlstd{d }}{\hlopt{>
+  }}{\hlnum{0}}{\hlopt{. }}{\hlkwa{then
+  }}{\hlkwc{Thread}}{\hlopt{.}}{\hlstd{delay d}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday
+  }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{with
+  }}{\hlkwc{Unix}}{\hlopt{.}}{\hlkwd{Unix{\textunderscore}error
+  }}{\hlopt{(}}{\hlcom{(* Unix.EAGAIN *)}}{\hlstd{{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{{\textunderscore}}}{\hlopt{) -> }}{\hlstd{delay }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{t1 }}{\hlopt{= }}{\hlstd{delay
+  }}{\hlopt{() }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{s }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{wait{\textunderscore}next{\textunderscore}event
+  }}{\hlopt{[}}{\hlkwd{Poll}}{\hlopt{] }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{x }}{\hlopt{=
+  }}{\hlstd{s}}{\hlopt{.}}{\hlstd{mouse{\textunderscore}x }}{\hlkwa{and
+  }}{\hlstd{y }}{\hlopt{=
+  }}{\hlstd{s}}{\hlopt{.}}{\hlstd{mouse{\textunderscore}y{\hlendline{}}\\
+  \ \ \ }}{\hlkwa{and }}{\hlstd{scr{\textunderscore}x }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}x }}{\hlopt{()
+  }}{\hlkwa{and }}{\hlstd{scr{\textunderscore}y }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}y }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}
+  
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{ue }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlstd{s}}{\hlopt{.}}{\hlstd{keypressed
+  }}{\hlkwa{then }}{\hlkwd{Some }}{\hlopt{(}}{\hlkwd{Key
+  }}{\hlstd{s}}{\hlopt{.}}{\hlstd{key}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{else if
+  }}{\hlopt{(}}{\hlstd{scr{\textunderscore}x}}{\hlopt{,
+  }}{\hlstd{scr{\textunderscore}y}}{\hlopt{) <>
+  }}{\hlstd{old{\textunderscore}scr }}{\hlkwa{then }}{\hlkwd{Some
+  }}{\hlopt{(}}{\hlkwd{Resize}}{\hlopt{
+  (}}{\hlstd{scr{\textunderscore}x}}{\hlopt{,}}{\hlstd{scr{\textunderscore}y}}{\hlopt{))}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{else if }}{\hlstd{s}}{\hlopt{.}}{\hlstd{button
+  }}{\hlopt{\&\& }}{\hlstd{not{\textunderscore}b old{\textunderscore}u
+  }}{\hlkwa{then }}{\hlkwd{Some }}{\hlopt{(}}{\hlkwd{Button
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{else if }}{\hlopt{(}}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{y}}{\hlopt{) <> }}{\hlstd{old{\textunderscore}m }}{\hlkwa{then
+  }}{\hlkwd{Some }}{\hlopt{(}}{\hlkwd{MouseMove
+  }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{else }}{\hlkwd{None
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{),
+  (}}{\hlstd{scr{\textunderscore}x}}{\hlopt{,
+  }}{\hlstd{scr{\textunderscore}y}}{\hlopt{), (}}{\hlstd{ue}}{\hlopt{,
+  }}{\hlstd{t1}}{\hlopt{) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ open{\textunderscore}graph
+  }}{\hlstr{""}}{\hlopt{;}}{\hlendline{Open window.}}\\
+  {\hlstd{ \ display{\textunderscore}mode
+  }}{\hlkwa{false}}{\hlopt{;}}{\hlendline{Draw using {\tmem{double
+  buffering}}.}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{t0 }}{\hlopt{=
+  }}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{utstep mpos scr ut }}{\hlopt{=
+  }}{\hlkwa{lazy }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{mpos}}{\hlopt{,
+  }}{\hlstd{scr}}{\hlopt{, }}{\hlstd{ut }}{\hlopt{= }}{\hlstd{current mpos scr
+  ut }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{ut}}{\hlopt{,
+  }}{\hlstd{utstep mpos scr ut}}{\hlopt{)) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{scr }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}x }}{\hlopt{(),
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}y }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ut0 }}{\hlopt{= }}{\hlkwd{Some
+  }}{\hlopt{(}}{\hlkwd{Resize }}{\hlopt{(}}{\hlstd{fst scr}}{\hlopt{,
+  }}{\hlstd{snd scr}}{\hlopt{)), }}{\hlstd{t0 }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ liter draw }}{\hlopt{(}}{\hlstd{anim \$ }}{\hlkwa{lazy
+  }}{\hlopt{(}}{\hlkwd{Cons }}{\hlopt{(}}{\hlstd{ut0}}{\hlopt{,
+  }}{\hlstd{utstep }}{\hlopt{(}}{\hlnum{0}}{\hlopt{,}}{\hlnum{0}}{\hlopt{)
+  }}{\hlstd{scr ut0}}{\hlopt{)));}}{\hlendline{}}\\
+  {\hlstd{ \ close{\textunderscore}graph }}{\hlopt{()}}{\hlendline{Close
+  window -- unfortunately never happens.}}}}
+  
+  \item General-purpose behavior operators.
+  
+  {\hlkwa{let }}{\hlopt{(+}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(+)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(-}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(-)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{( *** ) = }}{\hlstd{liftB2 }}{\hlopt{( *
+  )}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(/}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(/)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(\&\&}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(\&\&)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(}}{\hlstd{{\hlopt{\textbar}}{\hlopt{\textbar}{*}})
+  }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(}}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(<}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(<)}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{(>}}{\hlstd{*) }}{\hlopt{= }}{\hlstd{liftB2
+  }}{\hlopt{(>)}}{\hlendline{}}
+  
+  \item The walls are drawn on left, top and right borders of the window.
+  
+  {\hlkwa{let }}{\hlstd{walls }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ liftB2 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{w h }}{\hlopt{->
+  }}{\hlkwd{Color
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{blue}}{\hlopt{,
+  }}{\hlkwd{Group}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{[}}{\hlkwd{Rect }}{\hlopt{(}}{\hlnum{0}}{\hlopt{,
+  }}{\hlnum{0}}{\hlopt{, }}{\hlnum{20}}{\hlopt{,
+  }}{\hlstd{h}}{\hlopt{-}}{\hlnum{1}}{\hlopt{); }}{\hlkwd{Rect
+  }}{\hlopt{(}}{\hlnum{0}}{\hlopt{,
+  }}{\hlstd{h}}{\hlopt{-}}{\hlnum{21}}{\hlopt{,
+  }}{\hlstd{w}}{\hlopt{-}}{\hlnum{1}}{\hlopt{,
+  }}{\hlnum{20}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ }}{\hlkwd{Rect
+  }}{\hlopt{(}}{\hlstd{w}}{\hlopt{-}}{\hlnum{21}}{\hlopt{,
+  }}{\hlnum{0}}{\hlopt{, }}{\hlnum{20}}{\hlopt{,
+  }}{\hlstd{h}}{\hlopt{-}}{\hlnum{1}}{\hlopt{)]))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ width height}}{\hlendline{}}
+  
+  \item The paddle is tied to the mouse at the bottom border of the window.
+  
+  {\hlkwa{let }}{\hlstd{paddle }}{\hlopt{= }}{\hlstd{liftB
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{mx }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwd{Color
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{black}}{\hlopt{,
+  }}{\hlkwd{Rect }}{\hlopt{(}}{\hlstd{mx}}{\hlopt{, }}{\hlnum{0}}{\hlopt{,
+  }}{\hlnum{50}}{\hlopt{, }}{\hlnum{10}}{\hlopt{)))
+  }}{\hlstd{mouse{\textunderscore}x}}{\hlendline{}}
+  
+  \item The ball has a velocity in pixels per second. It bounces from the
+  walls, which is hard-coded in terms of distance from window borders.
+  \begin{itemize}
+    \item Unfortunately OCaml, being an eager language, does not let us encode
+    recursive behaviors in elegant way. \ We need to unpack behaviors and
+    events as functions of the input stream.
+    
+    \item {\hlstd{xbounce }}{\hlopt{->> (}}{\hlstd{$\sim$}}{\hlopt{-.)}} event
+    is just the negation function happening at each horizontal bounce.
+    
+    \item {\hlstd{step{\textunderscore}accum vel }}{\hlopt{(}}{\hlstd{xbounce
+    }}{\hlopt{->> (}}{\hlstd{$\sim$}}{\hlopt{-.))}} behavior is
+    \tmverbatim{vel} value changing sign at each horizontal bounce.
+    
+    \item {\hlstd{liftB int{\textunderscore}of{\textunderscore}float
+    }}{\hlopt{(}}{\hlstd{integral xvel}}{\hlopt{) +* }}{\hlstd{width
+    }}{\hlopt{/* !*}}{\hlnum{2}} -- first integrate velocity, then truncate it
+    to integers and offset to the middle of the window.
+    
+    \item {\hlstd{whenB }}{\hlopt{((}}{\hlstd{xpos }}{\hlopt{>*
+    }}{\hlstd{width }}{\hlopt{-* !*}}{\hlnum{27}}{\hlopt{)
+    }}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{* (}}{\hlstd{xpos
+    }}{\hlopt{<* !*}}{\hlnum{27}}{\hlopt{))}} -- issue an event the first time
+    the position exceeds the bounds. This ensures there are no further
+    bouncings until the ball moves out of the walls.
+  \end{itemize}
+\end{itemize}
+{\small{{\hlkwa{let }}{\hlstd{pbal vel }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{xvel{\textunderscore} uts
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ step{\textunderscore}accum vel }}{\hlopt{(}}{\hlstd{xbounce
+}}{\hlopt{->> (}}{\hlstd{$\sim$}}{\hlopt{-.)) }}{\hlstd{\$ uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{xvel }}{\hlopt{= \{}}{\hlstd{memo{\textunderscore}f
+}}{\hlopt{= }}{\hlstd{xvel{\textunderscore}}}{\hlopt{;
+}}{\hlstd{memo{\textunderscore}r }}{\hlopt{=
+}}{\hlkwd{None}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{and }}{\hlstd{xpos{\textunderscore} uts
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{liftB
+int{\textunderscore}of{\textunderscore}float }}{\hlopt{(}}{\hlstd{integral
+xvel}}{\hlopt{) +* }}{\hlstd{width }}{\hlopt{/* !*}}{\hlnum{2}}{\hlopt{)
+}}{\hlstd{\$ uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{xpos }}{\hlopt{= \{}}{\hlstd{memo{\textunderscore}f
+}}{\hlopt{= }}{\hlstd{xpos{\textunderscore}}}{\hlopt{;
+}}{\hlstd{memo{\textunderscore}r }}{\hlopt{=
+}}{\hlkwd{None}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{and }}{\hlstd{xbounce{\textunderscore} uts }}{\hlopt{=
+}}{\hlstd{whenB{\hlendline{}}\\
+\ \ \ }}{\hlopt{((}}{\hlstd{xpos }}{\hlopt{>* }}{\hlstd{width }}{\hlopt{-*
+!*}}{\hlnum{27}}{\hlopt{) }}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{*
+(}}{\hlstd{xpos }}{\hlopt{<* !*}}{\hlnum{27}}{\hlopt{)) }}{\hlstd{\$
+uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{xbounce }}{\hlopt{=
+\{}}{\hlstd{memo{\textunderscore}f }}{\hlopt{=
+}}{\hlstd{xbounce{\textunderscore}}}{\hlopt{; }}{\hlstd{memo{\textunderscore}r
+}}{\hlopt{= }}{\hlkwd{None}}{\hlopt{\} }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{yvel{\textunderscore} uts
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{step{\textunderscore}accum vel
+}}{\hlopt{(}}{\hlstd{ybounce }}{\hlopt{->> (}}{\hlstd{$\sim$}}{\hlopt{-.)))
+}}{\hlstd{\$ uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{yvel }}{\hlopt{= \{}}{\hlstd{memo{\textunderscore}f
+}}{\hlopt{= }}{\hlstd{yvel{\textunderscore}}}{\hlopt{;
+}}{\hlstd{memo{\textunderscore}r }}{\hlopt{=
+}}{\hlkwd{None}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{and }}{\hlstd{ypos{\textunderscore} uts
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{liftB
+int{\textunderscore}of{\textunderscore}float }}{\hlopt{(}}{\hlstd{integral
+yvel}}{\hlopt{) +* }}{\hlstd{height }}{\hlopt{/* !*}}{\hlnum{2}}{\hlopt{)
+}}{\hlstd{\$ uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{ypos }}{\hlopt{= \{}}{\hlstd{memo{\textunderscore}f
+}}{\hlopt{= }}{\hlstd{ypos{\textunderscore}}}{\hlopt{;
+}}{\hlstd{memo{\textunderscore}r }}{\hlopt{=
+}}{\hlkwd{None}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{and }}{\hlstd{ybounce{\textunderscore} uts }}{\hlopt{=
+}}{\hlstd{whenB }}{\hlopt{(}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{ypos }}{\hlopt{>* }}{\hlstd{height
+}}{\hlopt{-* !*}}{\hlnum{27}}{\hlopt{)
+}}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{*}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{((}}{\hlstd{ypos }}{\hlopt{<*
+!*}}{\hlnum{17}}{\hlopt{) \&\&* (}}{\hlstd{ypos }}{\hlopt{>*
+!*}}{\hlnum{7}}{\hlopt{) \&\&*}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlopt{(}}{\hlstd{xpos }}{\hlopt{>*
+}}{\hlstd{mouse{\textunderscore}x}}{\hlopt{) \&\&* (}}{\hlstd{xpos
+}}{\hlopt{<* }}{\hlstd{mouse{\textunderscore}x }}{\hlopt{+*
+!*}}{\hlnum{50}}{\hlopt{))) }}{\hlstd{\$ uts{\hlendline{}}\\
+\ }}{\hlkwa{and }}{\hlstd{ybounce }}{\hlopt{=
+\{}}{\hlstd{memo{\textunderscore}f }}{\hlopt{=
+}}{\hlstd{ybounce{\textunderscore}}}{\hlopt{; }}{\hlstd{memo{\textunderscore}r
+}}{\hlopt{= }}{\hlkwd{None}}{\hlopt{\} }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ liftB2 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y }}{\hlopt{->
+}}{\hlkwd{Color
+}}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{red}}{\hlopt{,
+}}{\hlkwd{Circle }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{,
+}}{\hlnum{6}}{\hlopt{)))}}{\hlendline{}}\\
+{\hlstd{ \ \ \ xpos ypos}}{\hlendline{}}}}
+\begin{itemize}
+  \item Invocation:
+  
+  \tmverbatim{ocamlbuild Lec10b.native -cflags -I,+threads\\
+  \ -libs graphics,unix,threads/threads --}
+  
+  \item
+  \resizebox{602px}{479px}{\includegraphics{functional-lecture10-via-latex-6.pdf}}\tmverbatim{}
+\end{itemize}
+
+\section{Reactivity by Incremental Computing}
+
+\begin{itemize}
+  \item In {\tmem{Froc}} behaviors and events are both implemented as
+  changeables but only behaviors persist, events are ``instantaneous''.
+  \begin{itemize}
+    \item Behaviors are composed out of constants and prior events, capture
+    the ``changeable'' aspect.
+    
+    \item Events capture the ``writeable'' aspect -- after their values are
+    propagated, the values are removed.
+  \end{itemize}
+  Events and behaviors are called {\tmem{signals}}.
+  
+  \item {\tmem{Froc}} does not represent time, and provides the function
+  {\hlstd{changes }}{\hlopt{: }}{\hlstd{'a behavior }}{\hlopt{-> }}{\hlstd{'a
+  event}}, which violates the continuous semantics we introduced before.
+  \begin{itemize}
+    \item It breaks the illusion that behaviors vary continuously rather than
+    at discrete points in time.
+    
+    \item But it avoids the need to synchronize global time samples with
+    events in the system. {\small{It is ``less continuous but more dense''.}}
+  \end{itemize}
+  \item Sending an event -- \tmverbatim{send} -- starts an {\tmem{update
+  cycle}}. Signals cannot call \tmverbatim{send}, but can
+  \tmverbatim{send\_deferred} which will send an event in next cycle.
+  \begin{itemize}
+    \item Things that happen in the same update cycle are
+    {\tmem{simultaneous}}.
+    
+    \item Events are removed (detached from dependency graph) after an update
+    cycle.
+  \end{itemize}
+  \item {\tmem{Froc}} provides the \tmverbatim{fix\_b}, \tmverbatim{fix\_e}
+  functions to define signals recursively. Current value refers to value from
+  previous update cycle, and defers next recursive step to next cycle, until
+  convergence.
+  
+  \item Update cycles can happen ``back-to-back'' via
+  \tmverbatim{send\_deferred} and \tmverbatim{fix\_b}, \tmverbatim{fix\_e}, or
+  can be invoked from outside {\tmem{Froc}} by sending events at arbitrary
+  times.
+  \begin{itemize}
+    \item With a \tmverbatim{time} behavior that holds a \tmverbatim{clock}
+    event value, events from ``back-to-back'' update cycles can be at the same
+    clock time although not simultaneous in this sense.
+    
+    \item Update cycles prevent {\tmem{glitches}}, where outdated signal is
+    used e.g. to issue an event.
+  \end{itemize}
+  \item Let's familiarize ourselves with {\tmem{Froc}} API:\\
+  \href{http://jaked.github.com/froc/doc/Froc.html}{http://jaked.github.com/froc/doc/Froc.html}
+  
+  \item A behavior is written in {\tmem{pure style}}, when its definition does
+  not use \tmverbatim{send}, \tmverbatim{send\_deferred},
+  \tmverbatim{notify\_e}, \tmverbatim{notify\_b} and \tmverbatim{sample}:
+  \begin{itemize}
+    \item \tmverbatim{sample}, \tmverbatim{notify\_e}, \tmverbatim{notify\_b}
+    are used from outside the behavior (from its ``environment'') analogously
+    to observing result of a function,
+    
+    \item \tmverbatim{send}, \tmverbatim{send\_deferred} are used from outside
+    analogously to providing input to a function.
+  \end{itemize}
+  \item We will develop an example in a pragmatic, {\tmem{impure}} style, but
+  since purity is an important aspect of functional programming, I propose to
+  rewrite it in pure style as an exercise (ex. 5).
+  
+  \item When writing in impure style we need to remember to refer from
+  somewhere to all the pieces of our behavior, otherwise the unreferred parts
+  will be {\tmstrong{garbage collected}} breaking the behavior.
+  \begin{itemize}
+    \item A value is referred to, when it has a name in the global environment
+    or is part of a bigger value that is referred to (for example it's stored
+    somewhere). Signals can be referred to by being part of the dependency
+    graph, but also by any of the more general ways.
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Reimplementing the Paddle Game example}
+
+\begin{itemize}
+  \item Rather than following our incremental computing example (a scene with
+  changeable parts), we follow our FRP example: a scene behavior.
+  
+  \item First we introduce time:
+  
+  {\hlkwa{open }}{\hlkwd{Froc}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{clock}}{\hlopt{, }}{\hlstd{tick }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{time }}{\hlopt{= }}{\hlstd{hold
+  }}{\hlopt{(}}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday }}{\hlopt{())
+  }}{\hlstd{clock}}{\hlendline{}}
+  
+  \item Next we define integration:
+  
+  {\hlkwa{let }}{\hlstd{integral fb }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{aux }}{\hlopt{(}}{\hlstd{sum}}{\hlopt{,
+  }}{\hlstd{t0}}{\hlopt{) }}{\hlstd{t1 }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ sum }}{\hlopt{+. (}}{\hlstd{t1 }}{\hlopt{-.
+  }}{\hlstd{t0}}{\hlopt{) *. }}{\hlstd{sample fb}}{\hlopt{, }}{\hlstd{t1
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ collect{\textunderscore}b aux }}{\hlopt{(}}{\hlnum{0}}{\hlopt{.,
+  }}{\hlstd{sample time}}{\hlopt{) }}{\hlstd{clock}}{\hlendline{}}
+  
+  For convenience, the integral remembers the current upper limit of
+  integration. It will be useful to get the integer part:
+  
+  {\hlkwa{let }}{\hlstd{integ{\textunderscore}res fb
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ lift }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlopt{(}}{\hlstd{v}}{\hlopt{,}}{\hlstd{{\textunderscore}}}{\hlopt{) ->
+  }}{\hlstd{int{\textunderscore}of{\textunderscore}float v}}{\hlopt{)
+  (}}{\hlstd{integral fb}}{\hlopt{)}}{\hlendline{}}
+  
+  \
+  
+  \item We can also define integration in pure style:
+  
+  {\hlkwa{let }}{\hlstd{pair fa fb }}{\hlopt{= }}{\hlstd{lift2
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y }}{\hlopt{-> }}{\hlstd{x}}{\hlopt{,
+  }}{\hlstd{y}}{\hlopt{) }}{\hlstd{fa fb}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{integral{\textunderscore}nice fb
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{samples }}{\hlopt{= }}{\hlstd{changes
+  }}{\hlopt{(}}{\hlstd{pair fb time}}{\hlopt{) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{aux }}{\hlopt{(}}{\hlstd{sum}}{\hlopt{,
+  }}{\hlstd{t0}}{\hlopt{) (}}{\hlstd{fv}}{\hlopt{, }}{\hlstd{t1}}{\hlopt{)
+  =}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ sum }}{\hlopt{+. (}}{\hlstd{t1 }}{\hlopt{-.
+  }}{\hlstd{t0}}{\hlopt{) *. }}{\hlstd{fv}}{\hlopt{, }}{\hlstd{t1
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ collect{\textunderscore}b aux }}{\hlopt{(}}{\hlnum{0}}{\hlopt{.,
+  }}{\hlstd{sample time}}{\hlopt{) }}{\hlstd{samples}}{\hlendline{}}
+  
+  The initial value {\hlopt{(}}{\hlnum{0}}{\hlopt{., }}{\hlstd{sample
+  time}}{\hlopt{)}} is not ``inside'' the behavior so \tmverbatim{sample} here
+  does not spoil the pure style.
+  
+  \item The \tmverbatim{scene} datatype and how we \tmverbatim{draw} a scene
+  does not change.
+  
+  \item Signals which will be sent to behaviors:
+  
+  {\small{{\hlkwa{let
+  }}{\hlstd{mouse{\textunderscore}move{\textunderscore}x}}{\hlopt{,
+  }}{\hlstd{move{\textunderscore}mouse{\textunderscore}x }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let
+  }}{\hlstd{mouse{\textunderscore}move{\textunderscore}y}}{\hlopt{,
+  }}{\hlstd{move{\textunderscore}mouse{\textunderscore}y }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mouse{\textunderscore}x }}{\hlopt{= }}{\hlstd{hold
+  }}{\hlnum{0
+  }}{\hlstd{mouse{\textunderscore}move{\textunderscore}x}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mouse{\textunderscore}y }}{\hlopt{= }}{\hlstd{hold
+  }}{\hlnum{0
+  }}{\hlstd{mouse{\textunderscore}move{\textunderscore}x}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{width{\textunderscore}resized}}{\hlopt{,
+  }}{\hlstd{resize{\textunderscore}width }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{height{\textunderscore}resized}}{\hlopt{,
+  }}{\hlstd{resize{\textunderscore}height }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{width }}{\hlopt{= }}{\hlstd{hold }}{\hlnum{640
+  }}{\hlstd{width{\textunderscore}resized}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{height }}{\hlopt{= }}{\hlstd{hold }}{\hlnum{512
+  }}{\hlstd{height{\textunderscore}resized}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{mbutton{\textunderscore}pressed}}{\hlopt{,
+  }}{\hlstd{press{\textunderscore}mbutton }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{key{\textunderscore}pressed}}{\hlopt{,
+  }}{\hlstd{press{\textunderscore}key }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()}}{\hlendline{}}}}
+  
+  \item The user interface main loop, emiting signals and observing behaviors:
+  
+  {\small{{\hlkwa{let }}{\hlstd{reactimate }}{\hlopt{(}}{\hlstd{anim
+  }}{\hlopt{: }}{\hlstd{scene behavior}}{\hlopt{) =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let open }}{\hlkwd{Graphics
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{loop omx omy osx osy omb t0
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let rec }}{\hlstd{delay }}{\hlopt{()
+  =}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{t1 }}{\hlopt{=
+  }}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{d }}{\hlopt{= }}{\hlnum{0.01
+  }}{\hlopt{-. (}}{\hlstd{t1 }}{\hlopt{-. }}{\hlstd{t0}}{\hlopt{)
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{try if }}{\hlstd{d }}{\hlopt{>
+  }}{\hlnum{0}}{\hlopt{. }}{\hlkwa{then
+  }}{\hlkwc{Thread}}{\hlopt{.}}{\hlstd{delay d}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday
+  }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{with
+  }}{\hlkwc{Unix}}{\hlopt{.}}{\hlkwd{Unix{\textunderscore}error
+  }}{\hlopt{(}}{\hlcom{(* Unix.EAGAIN *)}}{\hlstd{{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{{\textunderscore}}}{\hlopt{) -> }}{\hlstd{delay }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{t1 }}{\hlopt{= }}{\hlstd{delay
+  }}{\hlopt{() }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{s }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{wait{\textunderscore}next{\textunderscore}event
+  }}{\hlopt{[}}{\hlkwd{Poll}}{\hlopt{] }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{x }}{\hlopt{=
+  }}{\hlstd{s}}{\hlopt{.}}{\hlstd{mouse{\textunderscore}x }}{\hlkwa{and
+  }}{\hlstd{y }}{\hlopt{=
+  }}{\hlstd{s}}{\hlopt{.}}{\hlstd{mouse{\textunderscore}y{\hlendline{}}\\
+  \ \ \ }}{\hlkwa{and }}{\hlstd{scr{\textunderscore}x }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}x }}{\hlopt{()
+  }}{\hlkwa{and }}{\hlstd{scr{\textunderscore}y }}{\hlopt{=
+  }}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{size{\textunderscore}y }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{s}}{\hlopt{.}}{\hlstd{keypressed
+  }}{\hlkwa{then }}{\hlstd{send press{\textunderscore}key
+  s}}{\hlopt{.}}{\hlstd{key}}{\hlopt{;}}{\hlendline{We can send signals}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{scr{\textunderscore}x }}{\hlopt{<>
+  }}{\hlstd{osx }}{\hlkwa{then }}{\hlstd{send resize{\textunderscore}width
+  scr{\textunderscore}x}}{\hlopt{;}}{\hlendline{one by one.}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{scr{\textunderscore}y }}{\hlopt{<>
+  }}{\hlstd{osy }}{\hlkwa{then }}{\hlstd{send resize{\textunderscore}height
+  scr{\textunderscore}y}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{s}}{\hlopt{.}}{\hlstd{button
+  }}{\hlopt{\&\& }}{\hlstd{not omb }}{\hlkwa{then }}{\hlstd{send
+  press{\textunderscore}mbutton }}{\hlopt{();}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{x }}{\hlopt{<> }}{\hlstd{omx
+  }}{\hlkwa{then }}{\hlstd{send move{\textunderscore}mouse{\textunderscore}x
+  x}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{y }}{\hlopt{<> }}{\hlstd{omy
+  }}{\hlkwa{then }}{\hlstd{send move{\textunderscore}mouse{\textunderscore}y
+  y}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ send tick t1}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ draw }}{\hlopt{(}}{\hlstd{sample
+  anim}}{\hlopt{);}}{\hlendline{After all signals are updated, observe
+  behavior.}}\\
+  {\hlstd{ \ \ \ loop x y scr{\textunderscore}x scr{\textunderscore}y
+  s}}{\hlopt{.}}{\hlstd{button t1 }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ open{\textunderscore}graph
+  }}{\hlstr{""}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ display{\textunderscore}mode
+  }}{\hlkwa{false}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ loop }}{\hlnum{0 0 640 512 }}{\hlkwa{false
+  }}{\hlopt{(}}{\hlkwc{Unix}}{\hlopt{.}}{\hlstd{gettimeofday
+  }}{\hlopt{());}}{\hlendline{}}\\
+  {\hlstd{ \ close{\textunderscore}graph }}{\hlopt{()}}{\hlendline{}}}}
+  
+  \item The simple behaviors as in \tmverbatim{Lec10b.ml}. Pragmatic (impure)
+  bouncing:
+  
+  {\small{{\hlkwa{let }}{\hlstd{pbal vel }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{xbounce}}{\hlopt{,
+  }}{\hlstd{bounce{\textunderscore}x }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ybounce}}{\hlopt{,
+  }}{\hlstd{bounce{\textunderscore}y }}{\hlopt{=
+  }}{\hlstd{make{\textunderscore}event }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{xvel }}{\hlopt{=
+  }}{\hlstd{collect{\textunderscore}b }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{v
+  {\textunderscore} }}{\hlopt{->
+  }}{\hlstd{$\sim$}}{\hlopt{-.}}{\hlstd{v}}{\hlopt{) }}{\hlstd{vel xbounce
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{yvel }}{\hlopt{=
+  }}{\hlstd{collect{\textunderscore}b }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{v
+  {\textunderscore} }}{\hlopt{->
+  }}{\hlstd{$\sim$}}{\hlopt{-.}}{\hlstd{v}}{\hlopt{) }}{\hlstd{vel ybounce
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{xpos }}{\hlopt{=
+  }}{\hlstd{integ{\textunderscore}res xvel }}{\hlopt{+* }}{\hlstd{width
+  }}{\hlopt{/* !*}}{\hlnum{2 }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ypos }}{\hlopt{=
+  }}{\hlstd{integ{\textunderscore}res yvel }}{\hlopt{+* }}{\hlstd{height
+  }}{\hlopt{/* !*}}{\hlnum{2 }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{xbounce{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{when{\textunderscore}true{\hlendline{}}\\
+  \ \ \ }}{\hlopt{((}}{\hlstd{xpos }}{\hlopt{>* }}{\hlstd{width }}{\hlopt{-*
+  !*}}{\hlnum{27}}{\hlopt{) }}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{*
+  (}}{\hlstd{xpos }}{\hlopt{<* !*}}{\hlnum{27}}{\hlopt{))
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ notify{\textunderscore}e xbounce{\textunderscore}
+  }}{\hlopt{(}}{\hlstd{send
+  bounce{\textunderscore}x}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ybounce{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{when{\textunderscore}true }}{\hlopt{(}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{ypos }}{\hlopt{>* }}{\hlstd{height
+  }}{\hlopt{-* !*}}{\hlnum{27}}{\hlopt{)
+  }}{\hlstd{{\hlopt{\textbar\textbar}}}}{\hlopt{*}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{((}}{\hlstd{ypos }}{\hlopt{<*
+  !*}}{\hlnum{17}}{\hlopt{) \&\&* (}}{\hlstd{ypos }}{\hlopt{>*
+  !*}}{\hlnum{7}}{\hlopt{) \&\&*}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlopt{(}}{\hlstd{xpos }}{\hlopt{>*
+  }}{\hlstd{mouse{\textunderscore}x}}{\hlopt{) \&\&* (}}{\hlstd{xpos
+  }}{\hlopt{<* }}{\hlstd{mouse{\textunderscore}x }}{\hlopt{+*
+  !*}}{\hlnum{50}}{\hlopt{))) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ notify{\textunderscore}e ybounce{\textunderscore}
+  }}{\hlopt{(}}{\hlstd{send
+  bounce{\textunderscore}y}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ lift4 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y {\textunderscore}
+  {\textunderscore} }}{\hlopt{-> }}{\hlkwd{Color
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{red}}{\hlopt{,
+  }}{\hlkwd{Circle }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{,
+  }}{\hlnum{6}}{\hlopt{)))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ xpos ypos }}{\hlopt{(}}{\hlstd{hold }}{\hlopt{()
+  }}{\hlstd{xbounce{\textunderscore}}}{\hlopt{) (}}{\hlstd{hold }}{\hlopt{()
+  }}{\hlstd{ybounce{\textunderscore}}}{\hlopt{)}}{\hlendline{}}}}
+  
+  \item We hold on to {\hlstd{xbounce{\textunderscore}}} and
+  {\hlstd{ybounce{\textunderscore}}} above to prevent garbage collecting them.
+  We could instead remember them in the ``toplevel'':
+  
+  {\small{{\hlkwa{let }}{\hlstd{pbal vel }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}...{\hlendline{}}\\
+  {\hlstd{ \ xbounce{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{ybounce{\textunderscore}}}{\hlopt{,}}{\hlendline{}}\\
+  {\hlstd{ \ lift2 }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x y }}{\hlopt{->
+  }}{\hlkwd{Color
+  }}{\hlopt{(}}{\hlkwc{Graphics}}{\hlopt{.}}{\hlstd{red}}{\hlopt{,
+  }}{\hlkwd{Circle }}{\hlopt{(}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{,
+  }}{\hlnum{6}}{\hlopt{)))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ xpos ypos}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{xb{\textunderscore}}}{\hlopt{,
+  }}{\hlstd{yb{\textunderscore}}}{\hlopt{, }}{\hlstd{ball }}{\hlopt{=
+  }}{\hlstd{pbal }}{\hlnum{100}}{\hlopt{.}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{game }}{\hlopt{= }}{\hlstd{lift3
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{walls paddle ball
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwd{Group }}{\hlopt{[}}{\hlstd{walls}}{\hlopt{;
+  }}{\hlstd{paddle}}{\hlopt{; }}{\hlstd{ball}}{\hlopt{]) }}{\hlstd{walls
+  paddle ball}}{\hlendline{}}}}
+  
+  \item We can easily monitor signals while debugging, e.g.:
+  
+  {\small{{\hlstd{ \ notify{\textunderscore}e xbounce }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlopt{() -> }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+  }}{\hlstr{"xbounce}}{\hlesc{\textbackslash
+  n}}{\hlstr{\%!"}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ notify{\textunderscore}e ybounce }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlopt{() -> }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+  }}{\hlstr{"ybounce}}{\hlesc{\textbackslash
+  n}}{\hlstr{\%!"}}{\hlopt{);}}{\hlendline{}}}}
+  
+  \item Invocation:\\
+  \tmverbatim{ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs
+  froc/froc,unix,graphics,threads/threads --}
+\end{itemize}
+
+\section{Direct Control}
+
+\begin{itemize}
+  \item Real-world behaviors often are {\tmem{state machines}}, going through
+  several stages. We don't have declarative means for it yet.
+  \begin{itemize}
+    \item Example: baking recipes. {\tmem{1. Preheat the oven. 2. Put flour,
+    sugar, eggs into a bowl. 3. Spoon the mixture.}} etc.
+  \end{itemize}
+  \item We want a {\tmem{flow}} to be able to proceed through events: when the
+  first event arrives we remember its result and wait for the next event,
+  disregarding any further arrivals of the first event!
+  \begin{itemize}
+    \item Therefore {\tmem{Froc}} constructs like mapping an event:
+    \tmverbatim{map}, or attaching a notification to a behavior change:
+    \tmverbatim{bind b1 (fun v1 -> notify\_b \~{}now:false b2 (fun v2 ->
+    }...\tmverbatim{))}, will not work.
+  \end{itemize}
+  \item We also want to be able to repeat or loop a flow, but starting from
+  the notification of the first event that happens after the notification of
+  the last event.
+  
+  \item \tmverbatim{next e} is an event propagating only the first occurrence
+  of \tmverbatim{e}. This will be the basis of our \tmverbatim{await}
+  function.
+  
+  \item The whole flow should be cancellable from outside at any time.
+  
+  \item A flow is a kind of a {\tmem{lightweight thread}} as in end of lecture
+  8, we'll make it a monad. It only ``stores'' a non-unit value when it
+  \tmverbatim{await}s an event. But it has a primitive to \tmverbatim{emit}
+  values.
+  \begin{itemize}
+    \item We actually implement {\tmem{coarse-grained}} threads (lecture 8
+    exercise 11), with \tmverbatim{await} in the role of \tmverbatim{suspend}.
+  \end{itemize}
+  \item We build a module {\hlkwc{Flow}} with monadic type
+  {\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{) }}{\hlstd{flow}}
+  ``storing'' \tmverbatim{'b} and emitting \tmverbatim{'a}.
+  
+  {\hlkwa{type }}{\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{cancellable}}{\hlendline{A handle to cancel a flow
+  (stop further computation).}}\\
+  {\hlkwa{val }}{\hlstd{noop{\textunderscore}flow }}{\hlopt{:
+  (}}{\hlstd{'a}}{\hlopt{, }}{\hlkwb{unit}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{Same as \tmverbatim{return }{\hlopt{()}}.}}\\
+  {\hlkwa{val }}{\hlstd{return }}{\hlopt{: }}{\hlstd{'b }}{\hlopt{->
+  (}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{Completed flow.}}\\
+  {\hlkwa{val }}{\hlstd{await }}{\hlopt{: }}{\hlstd{'b
+  }}{\hlkwc{Froc}}{\hlopt{.}}{\hlstd{event }}{\hlopt{->
+  (}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{Wait and store event:}}\\
+  {\hlkwa{val }}{\hlstd{bind }}{\hlopt{:}}{\hlendline{the principled way to
+  input.}}\\
+  {\hlstd{ \ }}{\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{flow }}{\hlopt{-> (}}{\hlstd{'b }}{\hlopt{->
+  (}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'c}}{\hlopt{) }}{\hlstd{flow}}{\hlopt{)
+  -> (}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'c}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{emit }}{\hlopt{: }}{\hlstd{'a }}{\hlopt{->
+  (}}{\hlstd{'a}}{\hlopt{, }}{\hlkwb{unit}}{\hlopt{)
+  }}{\hlstd{flow}}{\hlendline{The principled way to output.}}\\
+  {\hlkwa{val }}{\hlstd{cancel }}{\hlopt{: }}{\hlstd{cancellable }}{\hlopt{->
+  }}{\hlkwb{unit}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{repeat }}{\hlopt{:}}{\hlendline{Loop the given flow
+  and store the stop event.}}\\
+  {\hlstd{ \ ?until}}{\hlopt{:}}{\hlstd{'a
+  }}{\hlkwc{Froc}}{\hlopt{.}}{\hlstd{event }}{\hlopt{->
+  (}}{\hlstd{'b}}{\hlopt{, }}{\hlkwb{unit}}{\hlopt{)}}{\hlstd{ flow
+  }}{\hlopt{-> (}}{\hlstd{'b}}{\hlopt{, }}{\hlstd{'a}}{\hlopt{)
+  }}{\hlstd{flow}}\\
+  {\hlkwa{val }}{\hlstd{event{\textunderscore}flow
+  }}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlkwb{unit}}{\hlopt{)
+  }}{\hlstd{flow }}{\hlopt{-> }}{\hlstd{'a
+  }}{\hlkwc{Froc}}{\hlopt{.}}{\hlstd{event }}{\hlopt{*
+  }}{\hlstd{cancellable}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{behavior{\textunderscore}flow
+  }}{\hlopt{:}}{\hlendline{The initial value of a behavior and a flow to
+  update it.}}\\
+  {\hlstd{ \ 'a }}{\hlopt{-> (}}{\hlstd{'a}}{\hlopt{,
+  }}{\hlkwb{unit}}{\hlopt{) }}{\hlstd{flow }}{\hlopt{-> }}{\hlstd{'a
+  }}{\hlkwc{Froc}}{\hlopt{.}}{\hlstd{behavior }}{\hlopt{*
+  }}{\hlstd{cancellable}}{\hlendline{}}\\
+  {\hlkwa{val }}{\hlstd{is{\textunderscore}cancelled }}{\hlopt{:
+  }}{\hlstd{cancellable }}{\hlopt{-> }}{\hlkwb{bool}}{\hlendline{}}
+  
+  \item We follow our (or {\tmem{Lwt}}) implementation of lightweight threads,
+  adapting it to the need of cancelling flows.
+  
+  {\hlkwa{module }}{\hlkwd{F }}{\hlopt{= }}{\hlkwd{Froc}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{'a result }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Return }}{\hlkwa{of
+  }}\tmverbatim{'a}{\hlendline{$\downarrow$Notifications to cancel when
+  cancelled.}}\\
+  {\hlopt{\textbar}}{\hlkwd{ Sleep }}{\hlkwa{of }}{\hlopt{(}}{\hlstd{'a
+  }}{\hlopt{-> }}{\hlkwb{unit}}{\hlopt{) }}{\hlstd{list }}{\hlopt{*
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{cancel }}{\hlkwb{ref
+  }}{\hlstd{list{\hlendline{}}\\
+  {\hlopt{\textbar}} }}{\hlkwd{Cancelled}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{Link }}{\hlkwa{of }}{\hlstd{'a
+  state}}{\hlendline{}}\\
+  {\hlkwa{and }}{\hlstd{'a state }}{\hlopt{= \{}}{\hlkwa{mutable
+  }}{\hlstd{state }}{\hlopt{: }}{\hlstd{'a
+  result}}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{cancellable }}{\hlopt{= }}{\hlkwb{unit
+  }}{\hlstd{state}}{\hlendline{}}
+  
+  \item Functions \tmverbatim{find}, \tmverbatim{wakeup}, \tmverbatim{connect}
+  are as in lecture 8 (but connecting to cancelled thread cancels the other
+  thread).
+  
+  \item Our monad is actually a reader monad over the result state. The reader
+  supplies the \tmverbatim{emit} function. (See exercise 10.)
+  
+  {\hlkwa{type }}{\hlopt{(}}{\hlstd{'a}}{\hlopt{, }}{\hlstd{'b}}{\hlopt{)
+  }}{\hlstd{flow }}{\hlopt{= (}}{\hlstd{'a }}{\hlopt{->
+  }}{\hlkwb{unit}}{\hlopt{) -> }}{\hlstd{'b state}}{\hlendline{}}
+  
+  \item The \tmverbatim{return} and \tmverbatim{bind} functions are as in our
+  lightweight threads, but we need to handle cancelled flows: for
+  \tmverbatim{m = bind a b}, if \tmverbatim{a} is cancelled then
+  \tmverbatim{m} is cancelled, and if \tmverbatim{m} is cancelled then don't
+  wake up \tmverbatim{b}:
+  
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{waiter x
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{if }}{\hlstd{not
+  }}{\hlopt{(}}{\hlstd{is{\textunderscore}cancelled
+  m}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{then }}{\hlstd{connect m
+  }}{\hlopt{(}}{\hlstd{b x emit}}{\hlopt{) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}...
+  
+  \item \tmverbatim{await} is implemented like \tmverbatim{next}, but it wakes
+  up a flow:
+  
+  {\hlkwa{let }}{\hlstd{await t }}{\hlopt{= }}{\hlkwa{fun }}{\hlstd{emit
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{c }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{no{\textunderscore}cancel
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{m }}{\hlopt{=
+  \{}}{\hlstd{state}}{\hlopt{=}}{\hlkwd{Sleep }}{\hlopt{([],
+  [}}{\hlstd{c}}{\hlopt{])\} }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ c }}{\hlopt{:=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{notify{\textunderscore}e{\textunderscore}cancel
+  t }}{\hlkwa{begin fun }}{\hlstd{r }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{cancel
+  }}{\hlopt{!}}{\hlstd{c}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ c }}{\hlopt{:=
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{no{\textunderscore}cancel}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ wakeup m r{\hlendline{}}\\
+  \ \ \ }}{\hlkwa{end}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ m}}{\hlendline{}}
+  
+  \item \tmverbatim{repeat} attaches the whole loop as a waiter for the loop
+  body.
+  
+  {\small{{\hlkwa{let }}{\hlstd{repeat
+  ?}}{\hlopt{(}}{\hlstd{until}}{\hlopt{=}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{never}}{\hlopt{)
+  }}{\hlstd{fa }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{fun }}{\hlstd{emit }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{c }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{no{\textunderscore}cancel
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{out }}{\hlopt{=
+  \{}}{\hlstd{state}}{\hlopt{=}}{\hlkwd{Sleep }}{\hlopt{([],
+  [}}{\hlstd{c}}{\hlopt{])\} }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{cancel{\textunderscore}body
+  }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlopt{\{}}{\hlstd{state}}{\hlopt{=}}{\hlkwd{Cancelled}}{\hlopt{\}
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ c }}{\hlopt{:=}}{\hlkwc{
+  F}}{\hlopt{.}}{\hlstd{notify{\textunderscore}e{\textunderscore}cancel until
+  }}{\hlkwa{begin fun }}{\hlstd{tv }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{cancel
+  }}{\hlopt{!}}{\hlstd{c}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ c }}{\hlopt{:=
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{no{\textunderscore}cancel}}{\hlopt{;}}{\hlendline{
+  Exiting the loop consists of cancelling the loop body}}\\
+  {\hlstd{ \ \ \ \ \ \ \ cancel
+  }}{\hlopt{!}}{\hlstd{cancel{\textunderscore}body}}{\hlopt{;
+  }}\tmverbatim{wakeup out tv}{\hlendline{and waking up loop
+  waiters.}}\tmverbatim{\\
+  \ \ \ \ \ }{\hlkwa{end}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let rec }}{\hlstd{loop }}{\hlopt{()
+  =}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{a }}{\hlopt{= }}{\hlstd{find
+  }}{\hlopt{(}}{\hlstd{fa emit}}{\hlopt{) }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ cancel{\textunderscore}body }}{\hlopt{:=
+  }}{\hlstd{a}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{match
+  }}{\hlstd{a}}{\hlopt{.}}{\hlstd{state }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Cancelled }}{\hlopt{->
+  }}{\hlstd{cancel out}}{\hlopt{; }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{cancel
+  }}{\hlopt{!}}{\hlstd{c{\hlendline{}}\\
+  \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Return }}{\hlstd{x
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ failwith }}{\hlstr{"loop{\textunderscore}until: not
+  implemented for unsuspended flows"}}{\hlstd{{\hlendline{}}\\
+  \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Sleep
+  }}{\hlopt{(}}{\hlstd{xwaiters}}{\hlopt{, }}{\hlstd{xcancels}}{\hlopt{)
+  ->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ a}}{\hlopt{.}}{\hlstd{state }}{\hlopt{<-
+  }}{\hlkwd{Sleep
+  }}{\hlopt{(}}{\hlstd{loop}}{\hlopt{::}}{\hlstd{xwaiters}}{\hlopt{,
+  }}{\hlstd{xcancels}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Link
+  }}{\hlstd{{\textunderscore} }}{\hlopt{-> }}{\hlkwa{assert false}}{\hlopt{)
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ loop }}{\hlopt{(); }}{\hlstd{out}}{\hlendline{}}}}
+  
+  \item Example: drawing shapes. Invocation:\\
+  \tmverbatim{ocamlbuild Lec10d.native -pp "camlp4o monad/pa\_monad.cmo" -libs
+  froc/froc,graphics -cflags -I,+froc --}
+  
+  \item The event handlers and drawing/event dispatch loop
+  \tmverbatim{reactimate} is similar to the paddle game example (we removed
+  unnecessary events).
+  
+  \item The scene is a list of shapes, the first shape is open.
+  
+  {\hlkwa{type }}{\hlstd{scene }}{\hlopt{= (}}{\hlkwb{int }}{\hlopt{*
+  }}{\hlkwb{int}}{\hlopt{) }}{\hlstd{list list}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{draw sc }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let open }}{\hlkwd{Graphics
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ clear{\textunderscore}graph }}{\hlopt{();}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{(}}{\hlkwa{match }}{\hlstd{sc
+  }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar  [] -> ()}}{\hlendline{}}\\
+  {\hlstd{ \ {\hlopt{\textbar}} opn}}{\hlopt{::}}{\hlstd{cld
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ draw{\textunderscore}poly{\textunderscore}line
+  }}{\hlopt{(}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{of{\textunderscore}list
+  opn}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{iter
+  }}{\hlopt{(}}{\hlstd{fill{\textunderscore}poly }}{\hlopt{-\textbar
+  }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{of{\textunderscore}list}}{\hlopt{)
+  }}{\hlstd{cld}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ synchronize }}{\hlopt{()}}{\hlendline{}}
+  
+  \item We build a flow and turn it into a behavior to animate.
+  
+  {\hlkwa{let }}{\hlstd{painter }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{cld }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlopt{[] }}{\hlkwa{in}}{\hlendline{Global state of painter.}}\\
+  {\hlstd{ \ repeat }}{\hlopt{(}}{\hlkwa{perform}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ await
+  mbutton{\textunderscore}pressed}}{\hlopt{;}}{\hlendline{Start when button
+  down.}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{opn }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlopt{[] }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ repeat }}{\hlopt{(}}{\hlkwa{perform}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ mpos }}{\hlopt{<-- }}{\hlstd{await
+  mouse{\textunderscore}move}}{\hlopt{;}}{\hlendline{$\swarrow$Add next
+  position to line.}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ emit }}{\hlopt{(}}{\hlstd{opn }}{\hlopt{:=
+  }}{\hlstd{mpos }}{\hlopt{:: !}}{\hlstd{opn}}{\hlopt{; !}}{\hlstd{opn
+  }}{\hlopt{:: !}}{\hlstd{cld}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \
+  $\sim$until}}{\hlopt{:}}{\hlstd{mbutton{\textunderscore}released}}{\hlopt{;}}{\hlendline{$\swarrow$Start
+  new shape.}}\\
+  {\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlstd{cld }}{\hlopt{:= !}}{\hlstd{opn
+  }}{\hlopt{:: !}}{\hlstd{cld}}{\hlopt{; }}{\hlstd{opn }}{\hlopt{:= []; [] ::
+  !}}{\hlstd{cld}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{painter}}{\hlopt{,
+  }}{\hlstd{cancel{\textunderscore}painter }}{\hlopt{=
+  }}{\hlstd{behavior{\textunderscore}flow }}{\hlopt{[]
+  }}{\hlstd{painter}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{() = }}{\hlstd{reactimate painter}}{\hlendline{}}
+  
+  \item
+  \resizebox{602px}{479px}{\includegraphics{functional-lecture10-via-latex-7.pdf}}
+\end{itemize}
+
+\subsubsection{Flows and state}
+
+Global state and thread-local state can be used with lightweight threads, but
+pay attention to semantics -- which computations are inside the monad and
+which while building the initial monadic value.
+\begin{itemize}
+  \item Side effects hidden in \tmverbatim{return} and \tmverbatim{emit}
+  arguments are not inside the monad. E.g. if in the ``first line'' of a loop
+  effects are executed only at the start of the loop -- but if after bind
+  (``below first line'' of a loop), at each step of the loop.
+\end{itemize}
+{\small{{\hlkwa{let }}{\hlstd{f }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ repeat }}{\hlopt{(}}{\hlkwa{perform}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"[0]}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlopt{;
+}}{\hlstd{'}}{\hlnum{0}}{\hlstd{'}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{() <-- }}{\hlstd{await
+aas}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"[1]}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlopt{;
+}}{\hlstd{'}}{\hlnum{1}}{\hlstd{'}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{() <-- }}{\hlstd{await
+bs}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"[2]}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlopt{;
+}}{\hlstd{'}}{\hlnum{2}}{\hlstd{'}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{() <-- }}{\hlstd{await
+cs}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"[3]}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlopt{;
+}}{\hlstd{'}}{\hlnum{3}}{\hlstd{'}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{() <-- }}{\hlstd{await
+ds}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"[4]}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlopt{;
+}}{\hlstd{'}}{\hlnum{4}}{\hlstd{'}}{\hlopt{))}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{e}}{\hlopt{, }}{\hlstd{cancel{\textunderscore}e
+}}{\hlopt{= }}{\hlstd{event{\textunderscore}flow f}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{notify{\textunderscore}e e
+}}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{c }}{\hlopt{->
+}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf }}{\hlstr{"flow:
+\%c}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlstd{
+c}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf }}{\hlstr{"notification
+installed}}{\hlesc{\textbackslash n}}{\hlstr{\%!"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send a }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send b }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send c }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send d }}{\hlopt{();}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send a }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send b }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send c }}{\hlopt{();
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send d }}{\hlopt{()}}{\hlendline{}}}}
+
+{\hlopt{[}}{\hlnum{0}}{\hlopt{]}}{\hlendline{Only printed once -- when
+building the loop.}}\\
+\tmverbatim{notification installed}{\hlendline{Only installed
+{\tmstrong{after}} the first flow event sent.}}\\
+event{\hlopt{: }}{\hlstd{a}}{\hlendline{Event notification (see source
+\tmverbatim{Lec10e.ml}).}}\\
+{\hlopt{[}}{\hlnum{1}}{\hlopt{]}}{\hlendline{Second \tmverbatim{emit} computed
+after first \tmverbatim{await} returns.}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{1}}{\hlendline{Emitted signal.}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{b}}{\hlendline{Next event...}}\\
+{\hlopt{[}}{\hlnum{2}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{2}}{\hlendline{}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{c}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{3}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{3}}{\hlendline{}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{d}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{4}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{4}}{\hlendline{Last signal emitted from
+first turn of the loop --}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{0}}{\hlendline{and first signal of the
+second turn (but \tmverbatim{[0]} not printed).}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{a}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{1}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{1}}{\hlendline{}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{b}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{2}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{2}}{\hlendline{}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{c}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{3}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{3}}{\hlendline{}}\\
+{\hlstd{event}}{\hlopt{: }}{\hlstd{d}}{\hlendline{}}\\
+{\hlopt{[}}{\hlnum{4}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{4}}{\hlendline{}}\\
+{\hlstd{flow}}{\hlopt{: }}{\hlnum{0}}{\hlendline{Program ends while flow in
+third turn of the loop.}}
+
+\
+
+\section{Graphical User Interfaces}
+
+\begin{itemize}
+  \item In-depth discussion of GUIs is beyond the scope of this course. We
+  only cover what's needed for an example reactive program with direct
+  control.
+  
+  \item Demo of libraries {\tmem{LablTk}} based on optional labelled arguments
+  discussed in lecture 2 exercise 2, and polymorphic variants, and
+  {\tmem{LablGtk}} additionally based on objects. We will learn more about
+  objects and polymorphic variants in next lecture.
+\end{itemize}
+
+\subsection{Calculator Flow}
+
+{\hlkwa{let }}{\hlstd{digits}}{\hlopt{, }}{\hlstd{digit }}{\hlopt{=
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{make{\textunderscore}event
+}}{\hlopt{()}}{\hlendline{We represent the mechanics}}\\
+{\hlkwa{let }}{\hlstd{ops}}{\hlopt{, }}{\hlstd{op }}{\hlopt{=
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{make{\textunderscore}event
+}}{\hlopt{()}}{\hlendline{of the calculator directly as a flow.}}\\
+{\hlkwa{let }}{\hlstd{dots}}{\hlopt{, }}{\hlstd{dot }}{\hlopt{=
+}}{\hlkwc{F}}{\hlopt{.}}{\hlstd{make{\textunderscore}event
+}}{\hlopt{()}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{calc }}{\hlopt{=}}{\hlendline{We need two state
+variables for two arguments of calculation}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{f }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{x }}{\hlopt{-> }}{\hlstd{x}}{\hlopt{)
+}}{\hlkwa{and }}{\hlstd{now }}{\hlopt{= }}{\hlkwb{ref }}{\hlnum{0.0
+}}{\hlkwa{in}}{\hlendline{but we}}\\
+{\hlstd{ \ repeat }}{\hlopt{(}}{\hlkwa{perform}}{\hlendline{remember the older
+argument in partial application.}}\\
+{\hlstd{ \ \ \ \ \ op }}{\hlopt{<-- }}{\hlstd{repeat{\hlendline{}}\\
+\ \ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{perform}}{\hlendline{Enter the digits of a
+number (on later turns}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \ \ \ d }}{\hlopt{<-- }}{\hlstd{await
+digits}}{\hlopt{;}}{\hlendline{starting from the second digit)}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \ \ \ emit }}{\hlopt{(}}{\hlstd{now }}{\hlopt{:=
+}}{\hlnum{10}}{\hlopt{. *. !}}{\hlstd{now }}{\hlopt{+. }}{\hlstd{d}}{\hlopt{;
+!}}{\hlstd{now}}{\hlopt{))}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \
+$\sim$until}}{\hlopt{:}}{\hlstd{ops}}{\hlopt{;}}{\hlendline{until operator
+button is pressed.}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlstd{now }}{\hlopt{:= !}}{\hlstd{f
+}}{\hlopt{!}}{\hlstd{now}}{\hlopt{; }}{\hlstd{f }}{\hlopt{:= }}{\hlstd{op
+}}{\hlopt{!}}{\hlstd{now}}{\hlopt{;
+!}}{\hlstd{now}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ d }}{\hlopt{<--
+}}\tmverbatim{repeat}{\hlendline{$\nwarrow$Compute the result and ``store
+away'' the operator.}}\tmverbatim{\\
+\ \ \ \ \ \ \ }{\hlopt{(}}{\hlkwa{perform }}{\hlstd{op }}{\hlopt{<--
+}}{\hlstd{await ops}}{\hlopt{; }}{\hlstd{return }}{\hlopt{(}}{\hlstd{f
+}}{\hlopt{:= }}{\hlstd{op
+}}{\hlopt{!}}{\hlstd{now}}{\hlopt{))}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \
+$\sim$until}}{\hlopt{:}}{\hlstd{digits}}{\hlopt{;}}{\hlendline{The user can
+pick a different operator.}}\\
+{\hlstd{ \ \ \ \ \ emit }}{\hlopt{(}}{\hlstd{now }}{\hlopt{:=
+}}{\hlstd{d}}{\hlopt{; !}}{\hlstd{now}}{\hlopt{))}}{\hlendline{Reset the state
+to a new number.}}\\
+{\hlkwa{let }}{\hlstd{calc{\textunderscore}e}}{\hlopt{,
+}}{\hlstd{cancel{\textunderscore}calc }}{\hlopt{=
+}}{\hlstd{event{\textunderscore}flow calc}}{\hlendline{Notifies display
+update.}}
+
+\subsection{{\tmem{Tk}}: {\tmem{LablTk}}}
+
+\begin{itemize}
+  \item Widget toolkit {\tmstrong{{\tmem{Tk}}}} known from the {\tmem{Tcl}}
+  language.
+  
+  \item Invocation:\\
+  \tmverbatim{ocamlbuild Lec10tk.byte -cflags -I,+froc -libs froc/froc\\
+  \ -pkg labltk -pp "camlp4o monad/pa\_monad.cmo" --}
+  \begin{itemize}
+    \item For unknown reason I had build problems with \tmverbatim{ocamlopt}
+    (native).
+  \end{itemize}
+  \item Layout of the calculator -- common across GUIs.
+  
+  {\hlkwa{let }}{\hlstd{layout }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}}}{\hlstr{"7"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{7}}{\hlopt{.; }}{\hlstr{"8"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{8}}{\hlopt{.; }}{\hlstr{"9"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{9}}{\hlopt{.; }}{\hlstr{"+"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{O
+  }}{\hlopt{(+.)}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{];}}\\
+  {\hlstd{ \ \
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}}}{\hlstr{"4"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{4}}{\hlopt{.; }}{\hlstr{"5"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{5}}{\hlopt{.; }}{\hlstr{"6"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{6}}{\hlopt{.; }}{\hlstr{"-"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{O
+  }}{\hlopt{(-.)}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{];}}\\
+  {\hlstd{ \ \
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}}}{\hlstr{"1"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{1}}{\hlopt{.; }}{\hlstr{"2"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{2}}{\hlopt{.; }}{\hlstr{"3"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{3}}{\hlopt{.; }}{\hlstr{"*"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{O
+  }}{\hlopt{( *.)}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{];}}\\
+  {\hlstd{ \ \
+  }}{\hlopt{[}}{\hlstd{{\hlopt{\textbar}}}}{\hlstr{"0"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Di
+  }}{\hlnum{0}}{\hlopt{.;
+  }}{\hlstr{"."}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{Dot}}{\hlopt{;}}{\hlstd{ \ \
+  }}{\hlstr{"="}}{\hlopt{,}}{\hlstd{ `}}{\hlkwd{O }}{\hlstd{sk}}{\hlopt{;
+  }}{\hlstr{"/"}}{\hlopt{,}}{\hlstd{`}}{\hlkwd{O
+  }}{\hlopt{(/.)}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{]}}{\hlstd{{\hlopt{\textbar}}}}{\hlopt{]}}\\
+  
+  
+  \item Every {\tmem{widget}} (window gadget) has a parent in which it is
+  located.
+  
+  \item {\tmem{Buttons}} have action associated with pressing them,
+  {\tmem{labels}} just provide information, {\tmem{entries}} (aka.
+  {\tmem{edit}} fields) are for entering info from keyboard.
+  \begin{itemize}
+    \item Actions are {\tmem{callback}} functions passed as the
+    $\sim$\tmverbatim{command} argument.
+  \end{itemize}
+  \item {\tmem{Frames}} in {\tmem{Tk}} group widgets.
+  
+  \item The parent is sent as last argument, after optional labelled
+  arguments.
+  
+  {\hlkwa{let }}{\hlstd{top }}{\hlopt{=
+  }}{\hlkwc{Tk}}{\hlopt{.}}{\hlstd{openTk }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{btn{\textunderscore}frame
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Frame}}{\hlopt{.}}{\hlstd{create
+  $\sim$relief}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{Groove
+  }}{\hlstd{$\sim$borderwidth}}{\hlopt{:}}{\hlnum{2
+  }}{\hlstd{top}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{buttons }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{map
+  }}{\hlopt{(}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{map
+  }}{\hlopt{(}}{\hlkwa{function}}{\hlendline{}}\\
+  {\hlstd{ \ {\hlopt{\textbar}} text}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{Dot
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{Button}}{\hlopt{.}}{\hlstd{create
+  $\sim$text{\hlendline{}}\\
+  \ \ \ \ \ $\sim$command}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send dot }}{\hlopt{())
+  }}{\hlstd{btn{\textunderscore}frame{\hlendline{}}\\
+  \ {\hlopt{\textbar}} text}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{Di }}{\hlstd{d
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{Button}}{\hlopt{.}}{\hlstd{create
+  $\sim$text{\hlendline{}}\\
+  \ \ \ \ \ $\sim$command}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send digit d}}{\hlopt{)
+  }}{\hlstd{btn{\textunderscore}frame{\hlendline{}}\\
+  \ {\hlopt{\textbar}} text}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{O }}{\hlstd{f
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{Button}}{\hlopt{.}}{\hlstd{create
+  $\sim$text{\hlendline{}}\\
+  \ \ \ \ \ $\sim$command}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send op f}}{\hlopt{)
+  }}{\hlstd{btn{\textunderscore}frame}}{\hlopt{))
+  }}{\hlstd{layout}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{result }}{\hlopt{=
+  }}{\hlkwc{Label}}{\hlopt{.}}{\hlstd{create
+  $\sim$text}}{\hlopt{:}}{\hlstr{"0"}}{\hlstd{
+  $\sim$relief}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{Sunken
+  }}{\hlstd{top}}{\hlendline{}}
+  
+  \item GUI toolkits have layout algorithms, so we only need to tell which
+  widgets hang together and whether they should fill all available space etc.
+  -- via \tmverbatim{pack}, or \tmverbatim{grid} for ``rectangular''
+  organization.
+  
+  \item {\hlstd{$\sim$fill}}{\hlopt{:}} the allocated space in
+  \tmverbatim{`X}, \tmverbatim{`Y}, \tmverbatim{`Both} or \tmverbatim{`None}
+  axes;\\
+  {\hlstd{$\sim$expand}}{\hlopt{:}} maximally how much space is allocated or
+  only as needed.
+  
+  \item {\hlstd{$\sim$anchor}}{\hlopt{:}} allows to glue a widget in
+  particular direction (\tmverbatim{`Center}, \tmverbatim{`E},
+  \tmverbatim{`Ne} etc.)
+  
+  \item The \tmverbatim{grid} packing flexibility: {\hlstd{$\sim$columnspan}}
+  and {\hlstd{$\sim$rowspan}}.
+  
+  \item \tmverbatim{configure} functions accept the same arguments as
+  \tmverbatim{create} but change existing widgets.
+  
+  \item {\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Wm}}{\hlopt{.}}{\hlstd{title{\textunderscore}set top
+  }}{\hlstr{"Calculator"}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Tk}}{\hlopt{.}}{\hlstd{pack
+  }}{\hlopt{[}}{\hlstd{result}}{\hlopt{]
+  }}{\hlstd{$\sim$side}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{Top
+  }}{\hlstd{$\sim$fill}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{X}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Tk}}{\hlopt{.}}{\hlstd{pack
+  }}{\hlopt{[}}{\hlstd{btn{\textunderscore}frame}}{\hlopt{]
+  }}{\hlstd{$\sim$side}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{Bottom
+  }}{\hlstd{$\sim$expand}}{\hlopt{:}}{\hlkwa{true}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{iteri
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{column
+  }}{\hlopt{->}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{iteri}}{\hlopt{
+  (}}{\hlkwa{fun }}{\hlstd{row button }}{\hlopt{->}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{Tk}}{\hlopt{.}}{\hlstd{grid $\sim$column $\sim$row
+  }}{\hlopt{[}}{\hlstd{button}}{\hlopt{]))
+  }}{\hlstd{buttons}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Wm}}{\hlopt{.}}{\hlstd{geometry{\textunderscore}set top
+  }}{\hlstr{"200x200"}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlkwc{ \ F}}{\hlopt{.}}{\hlstd{notify{\textunderscore}e
+  calc{\textunderscore}e{\hlendline{}}\\
+  \ }}{\hlopt{ \ (}}{\hlkwa{fun }}{\hlstd{now }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwc{Label}}{\hlopt{.}}{\hlstd{configure
+  $\sim$text}}{\hlopt{:(}}{\hlstd{string{\textunderscore}of{\textunderscore}float
+  now}}{\hlopt{) }}{\hlstd{result}}{\hlopt{);}}\\
+  {\hlstd{ \ }}{\hlkwc{Tk}}{\hlopt{.}}{\hlstd{mainLoop
+  }}{\hlopt{()}}{\hlendline{}}
+  
+  \item
+  \resizebox{202px}{229px}{\includegraphics{functional-lecture10-via-latex-8.pdf}}
+\end{itemize}
+
+\subsection{{\tmem{GTk+}}: {\tmem{LablGTk}}}
+
+\begin{itemize}
+  \item {\tmstrong{{\tmem{LablGTk}}}} is build as an object-oriented layer
+  over a low-level layer of functions interfacing with the {\tmem{GTk+}}
+  library, which is written in {\tmem{C}}.
+  
+  \item In OCaml, object fields are only visible to object methods, and
+  methods are called with {\hlopt{\#}} syntax, e.g. {\hlstd{window\#show
+  }}{\hlopt{()}}
+  
+  \item The interaction with the application is reactive:
+  \begin{itemize}
+    \item Our events are called signals in {\tmem{GTk+}}.
+    
+    \item Registering a notification is called connecting a signal handler,
+    e.g.\\
+    {\hlstd{button\#connect\#clicked
+    $\sim$callback}}{\hlopt{:}}{\hlstd{hello}} which takes {\hlstd{$\sim
+    {\nobreak}$callback}}{\hlopt{:(}}{\hlkwb{unit }}{\hlopt{->
+    }}{\hlkwb{unit}}{\hlopt{)}} and returns
+    {\hlkwc{GtkSignal}}{\hlopt{.}}{\hlstd{id}}.
+    \begin{itemize}
+      \item As with {\tmem{Froc}} notifications, multiple handlers can be
+      attached.
+    \end{itemize}
+    \item {\tmem{GTk+}} events are a subclass of signals related to more
+    specific window events, e.g.\\
+    {\hlstd{window\#event\#connect\#delete
+    $\sim$callback}}{\hlopt{:}}{\hlstd{delete{\textunderscore}event}}
+    
+    \item {\tmem{GTk+}} event callbacks take more info:
+    {\hlstd{$\sim$callback}}{\hlopt{:(}}{\hlstd{event }}{\hlopt{->
+    }}{\hlkwb{unit}}{\hlopt{)}} for some type \tmverbatim{event}.
+  \end{itemize}
+  \item Automatic layout (aka. packing) seems less sophisticated than in
+  {\tmem{Tk}}:
+  \begin{itemize}
+    \item only horizontal and vertical boxes,
+    
+    \item therefore {\hlstd{$\sim$fill}} is binary and {\hlstd{$\sim$anchor}}
+    is replaced by {\hlstd{$\sim$from}} \tmverbatim{`START} or
+    \tmverbatim{`END}.
+  \end{itemize}
+  \item Automatic grid layout is called \tmverbatim{table}.
+  \begin{itemize}
+    \item {\hlstd{$\sim$fill}} and {\hlstd{$\sim$expand}} take
+    \tmverbatim{`X}, \tmverbatim{`Y}, \tmverbatim{`BOTH}, \tmverbatim{`NONE}.
+  \end{itemize}
+  \item The \tmverbatim{coerce} method casts the type of the object (in
+  {\tmem{Tk}} there is \tmverbatim{coe} function).
+  
+  \item Labels don't have a dedicated module -- see definition of
+  \tmverbatim{result} widget.
+  
+  \item Widgets have setter methods \tmverbatim{widget\#set\_X} (instead of a
+  single \tmverbatim{configure} function in {\tmem{Tk}}).
+  
+  \item Invocation:\\
+  \tmverbatim{ocamlbuild Lec10gtk.native -cflags -I,+froc -libs froc/froc\\
+  \ -pkg lablgtk2 -pp "camlp4o monad/pa\_monad.cmo" -- }
+  
+  \item The model part of application doesn't change.
+  
+  \item Setup:
+  
+  {\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlkwc{GtkMain}}{\hlopt{.}}{\hlkwc{Main}}{\hlopt{.}}{\hlstd{init
+  }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{window }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{GWindow}}{\hlopt{.}}{\hlstd{window
+  $\sim$width}}{\hlopt{:}}{\hlnum{200
+  }}{\hlstd{$\sim$height}}{\hlopt{:}}{\hlnum{200
+  }}{\hlstd{$\sim$title}}{\hlopt{:}}{\hlstr{"Calculator"}}{\hlstd{
+  }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{top }}{\hlopt{=
+  }}{\hlkwc{GPack}}{\hlopt{.}}{\hlstd{vbox
+  $\sim$packing}}{\hlopt{:}}{\hlstd{window\#add }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{result }}{\hlopt{=
+  }}{\hlkwc{GMisc}}{\hlopt{.}}{\hlstd{label
+  $\sim$text}}{\hlopt{:}}{\hlstr{"0"}}{\hlstd{
+  $\sim$packing}}{\hlopt{:}}{\hlstd{top\#add }}{\hlopt{()}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{btn{\textunderscore}frame
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{GPack}}{\hlopt{.}}{\hlstd{table
+  $\sim$rows}}{\hlopt{:(}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length
+  layout}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \
+  $\sim$columns}}{\hlopt{:(}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length
+  layout}}{\hlopt{.(}}{\hlnum{0}}{\hlopt{))
+  }}{\hlstd{$\sim$packing}}{\hlopt{:}}{\hlstd{top\#add }}{\hlopt{()}}
+  
+  \item Button actions:
+  
+  {\hlkwa{let }}{\hlstd{buttons }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{map
+  }}{\hlopt{(}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{map
+  }}{\hlopt{(}}{\hlkwa{function}}{\hlendline{}}\\
+  {\hlstd{ \ {\hlopt{\textbar}} label}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{Dot
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{b }}{\hlopt{=
+  }}{\hlkwc{GButton}}{\hlopt{.}}{\hlstd{button $\sim$label }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{b\#connect\#clicked{\hlendline{}}\\
+  \ \ \ \ \ $\sim$callback}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send dot }}{\hlopt{()) }}{\hlkwa{in
+  }}{\hlstd{b{\hlendline{}}\\
+  \ {\hlopt{\textbar}} label}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{Di }}{\hlstd{d
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{b }}{\hlopt{=
+  }}{\hlkwc{GButton}}{\hlopt{.}}{\hlstd{button $\sim$label }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{b\#connect\#clicked{\hlendline{}}\\
+  \ \ \ \ \ $\sim$callback}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send digit d}}{\hlopt{) }}{\hlkwa{in
+  }}{\hlstd{b{\hlendline{}}\\
+  \ {\hlopt{\textbar}} label}}{\hlopt{, }}{\hlstd{`}}{\hlkwd{O }}{\hlstd{f
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{b }}{\hlopt{=
+  }}{\hlkwc{GButton}}{\hlopt{.}}{\hlstd{button $\sim$label }}{\hlopt{()
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{b\#connect\#clicked{\hlendline{}}\\
+  \ \ \ \ \ $\sim$callback}}{\hlopt{:(}}{\hlkwa{fun }}{\hlopt{() ->
+  }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{send op f}}{\hlopt{) }}{\hlkwa{in
+  }}{\hlstd{b}}{\hlopt{)) }}{\hlstd{layout}}{\hlendline{}}
+  
+  \item Button layout, result notification, start application:
+  
+  {\hlkwa{let }}{\hlstd{delete{\textunderscore}event {\textunderscore}
+  }}{\hlopt{=
+  }}{\hlkwc{GMain}}{\hlopt{.}}{\hlkwc{Main}}{\hlopt{.}}{\hlstd{quit
+  }}{\hlopt{(); }}{\hlkwa{false}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=
+  }}{\hlstd{window\#event\#connect\#delete
+  $\sim$callback}}{\hlopt{:}}{\hlstd{delete{\textunderscore}event
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{iteri
+  }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlstd{column}}{\hlopt{->}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{iteri
+  }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{row button }}{\hlopt{->}}\\
+  {\hlstd{ \ \ \ btn{\textunderscore}frame\#attach
+  $\sim$left}}{\hlopt{:}}{\hlstd{column
+  $\sim$top}}{\hlopt{:}}{\hlstd{row{\hlendline{}}\\
+  \ \ \ \ \ $\sim$fill}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{BOTH
+  }}{\hlstd{$\sim$expand}}{\hlopt{:}}{\hlstd{`}}{\hlkwd{BOTH
+  }}{\hlopt{(}}{\hlstd{button\#coerce}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{) }}{\hlstd{buttons}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{F}}{\hlopt{.}}{\hlstd{notify{\textunderscore}e
+  calc{\textunderscore}e{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{now }}{\hlopt{->
+  }}{\hlstd{result\#set{\textunderscore}label
+  }}{\hlopt{(}}{\hlstd{string{\textunderscore}of{\textunderscore}float
+  now}}{\hlopt{));}}{\hlendline{}}\\
+  {\hlstd{ \ window\#show }}{\hlopt{();}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwc{GMain}}{\hlopt{.}}{\hlkwc{Main}}{\hlopt{.}}{\hlstd{main
+  }}{\hlopt{()}}{\hlendline{}}
+  
+  \item
+  \resizebox{202px}{229px}{\includegraphics{functional-lecture10-via-latex-9.pdf}}
+\end{itemize}
+
+\end{document}

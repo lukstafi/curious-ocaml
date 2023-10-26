@@ -1,0 +1,72 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,theorem}
+\geometry{letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+{\theorembodyfont{\rmfamily\small}\newtheorem{exercise}{Exercise}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\class{Functional Programming}}
+
+{\title{Computation}}
+
+\begin{exercise}
+  \label{TravTreeEx}By ``traverse a tree'' below we mean: write a function
+  that takes a tree and returns a list of values in the nodes of the tree.
+  \begin{enumerate}
+    \item Write a function (of type \tmverbatim{btree -> int list}) that
+    traverses a binary tree: in prefix order -- first the value stored in a
+    node, then values in all nodes to the left, then values in all nodes to
+    the right;
+    
+    \item in infix order -- first values in all nodes to the left, then value
+    stored in a node, then values in all nodes to the right (so it is
+    ``left-to-right'' order);
+    
+    \item in breadth-first order -- first values in more shallow nodes.
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Turn the function from ex. \ref{TravTreeEx} point 1 or 2 into continuation
+  passing style.
+\end{exercise}
+
+\begin{exercise}
+  Do the homework from the end of last week slides: write
+  \tmverbatim{btree\_deriv\_at}.
+\end{exercise}
+
+\begin{exercise}
+  Write a function \tmverbatim{simplify: expression -> expression} that
+  simplifies the expression a bit, so that for example the result of
+  \tmverbatim{simplify (deriv exp dv)} looks more like what a human would get
+  computing the derivative of \tmverbatim{exp} with respect to
+  \tmverbatim{dv}:
+  
+  Write a \tmverbatim{simplify\_once} function that performs a single step of
+  the simplification, and wrap it using a general \tmverbatim{fixpoint}
+  function that performs an operation until a {\tmem{fixed point}} is reached:
+  given $f$ and $x$, it computes $f^n (x)$ such that $f^n (x) = f^{n + 1}
+  (x)$.
+\end{exercise}
+
+\begin{exercise}
+  Write two sorting algorithms, working on lists: merge sort and quicksort.
+  \begin{enumerate}
+    \item Merge sort splits the list roughly in half, sorts the parts, and
+    merges the sorted parts into the sorted result.
+    
+    \item Quicksort splits the list into elements smaller/greater than the
+    first element, sorts the parts, and puts them together.
+  \end{enumerate}
+\end{exercise}
+
+\
+
+\end{document}

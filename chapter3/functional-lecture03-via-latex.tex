@@ -1,0 +1,344 @@
+\documentclass{beamer}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,amssymb,alltt}
+\geometry{landscape, letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\<=\active \def<{
+\fontencoding{T1}\selectfont\symbol{60}\fontencoding{\encodingdefault}}
+\newcommand{\assign}{:=}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmfnhomepage}[1]{\thanks{\textit{Web:} \texttt{#1}}}
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\tmstrong}[1]{\textbf{#1}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+\newenvironment{tmcode}[1][]{\begin{alltt} }{\end{alltt}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+\title{Functional Programming}
+
+\author{
+  {\L}ukasz Stafiniak
+  \tmfnhomepage{www.ii.uni.wroc.pl/\~{}lukstafi}
+}
+
+\institute{{\L}ukasz Stafiniak}
+
+\maketitle
+
+\title{Lecture 3: Computation}
+
+\subtitle{{\scriptsize{``Using, Understanding and Unraveling the OCaml
+Language'' Didier R{\'e}my, chapter 1\\
+``The OCaml system'' manual, the tutorial part, chapter 1}}}
+
+\maketitle
+
+{\newpage}
+
+\section{Function Composition}
+
+\begin{itemize}
+  \item The usual way function composition is defined in math is ``backward'':
+  \begin{itemize}
+    \item math: $(f \circ g) (x) = f (g (x))$
+    
+    \item OCaml: \tmverbatim{let (-\textbar) f g x = f (g x)}
+    
+    \item F\#: \tmverbatim{let (<<) f g x = f (g x)}
+    
+    \item Haskell: \tmverbatim{(.) f g = \textbackslash x -> f (g x)}
+  \end{itemize}
+  \item It looks like function application, but needs less parentheses. Do you
+  recall the functions \tmverbatim{iso1} and \tmverbatim{iso2} from previous
+  lecture?
+  \begin{tmcode}
+  let iso2 = step1l -| step2l -| step3l
+  \end{tmcode}
+  \item A more natural definition of function composition is ``forward'':
+  \begin{itemize}
+    \item OCaml: \tmverbatim{let (\textbar -) f g x = g (f x)}
+    
+    \item F\#: \tmverbatim{let (>>) f g x = g (f x)}
+  \end{itemize}
+  \item It follows the order in which computation proceeds.
+  \begin{tmcode}
+  let iso1 = step1r |- step2r |- step3r
+  \end{tmcode}
+  \item {\tmem{Partial application}} is e.g. \tmverbatim{((+) 1)} from last
+  week: we don't pass all arguments a function needs, in result we get a
+  function that requires the remaining arguments. How is it used above?
+  
+  \item Now we define $f^n (x) \assign (f \circ \ldots \circ f) (x)$ ($f$
+  appears $n$ times).
+  \begin{tmcode}
+  let rec power f n =
+  if n <= 0 then (fun x -> x) else f -| power f (n-1)
+  \end{tmcode}
+  \item Now we define a numerical derivative:
+  \begin{tmcode}
+  let derivative dx f = fun x -> (f(x +. dx) -. f(x)) /. dx
+  \end{tmcode}
+  where the intent to use with two arguments is stressed, or for short:
+  \begin{tmcode}
+  let derivative dx f x = (f(x +. dx) -. f(x)) /. dx
+  \end{tmcode}
+  \item We have \tmverbatim{(+): int -> int -> int}, so cannot use with
+  \tmverbatim{float}ing point numbers -- operators followed by dot work on
+  \tmverbatim{float} numbers.
+  \begin{tmcode}
+  let pi = 4.0 *. atan 1.0
+let sin''' = (power (derivative 1e-5) 3) sin;;
+sin''' pi;;
+  \end{tmcode}
+\end{itemize}
+
+\section{Evaluation Rules (reduction semantics)}
+
+\begin{itemize}
+  \item Programs consist of {\tmstrong{expressions}}:
+  \begin{eqnarray*}
+    a \assign & x & \text{variables}\\
+    | & \text{\tmverbatim{fun }} x \text{\tmverbatim{->}} a & \text{(defined)
+    functions}\\
+    | & a a & \text{applications}\\
+    | & C^0 & \text{value constructors of arity } 0\\
+    | & C^n (a, \ldots, a) & \text{value constructors of arity } n\\
+    | & f^n & \text{built-in values (primitives) of a. } n\\
+    | & \text{\tmverbatim{let }} x = a \text{\tmverbatim{ in }} a & \text{name
+    bindings (local definitions)}\\
+    | & \text{\tmverbatim{match }} a \text{\tmverbatim{ with} \ \ \ \ \ \ \ }
+    & \\
+    & p \text{\tmverbatim{->}} a \text{\tmverbatim{ \textbar }} \ldots
+    \text{\tmverbatim{ \textbar }} p \text{\tmverbatim{->}} a & \text{pattern
+    matching}\\
+    p \assign & x & \text{pattern variables}\\
+    | & (p, \ldots, p) & \text{tuple patterns}\\
+    | & C^0 & \text{variant patterns of arity } 0\\
+    | & C^n (p, \ldots, p) & \text{variant patterns of arity } n
+  \end{eqnarray*}
+  \item {\tmem{Arity}} means how many arguments something requires; (and for
+  tuples, the length of a tuple).
+  
+  \item To simplify presentation, we will use a primitive \tmverbatim{fix} to
+  define a limited form of \tmverbatim{let rec}:
+  \[ \text{\tmverbatim{let rec }} f \text{\tmverbatim{ }} x = e_1
+     \text{\tmverbatim{ in }} e_2 \equiv \text{\tmverbatim{let }} f =
+     \text{\tmverbatim{fix (fun }} f \text{\tmverbatim{ }} x
+     \text{\tmverbatim{->}} e_1 \text{\tmverbatim{) in }} e_2 \]
+  \item Expressions evaluate (i.e. compute) to {\tmstrong{values}}:
+  \begin{eqnarray*}
+    v \assign & \text{\tmverbatim{fun }} x \text{\tmverbatim{->}} a &
+    \text{(defined) functions}\\
+    | & C^n (v_1, \ldots, v_n) & \text{constructed values}\\
+    | & f^n v_1 \ldots v_k & k < n \text{ partially applied primitives}
+  \end{eqnarray*}
+  \item To {\tmem{substitute}} a value $v$ for a variable $x$ in expression
+  $a$ we write $a [x \assign v]$ -- it behaves as if every occurrence of $x$
+  in $a$ was {\tmem{rewritten}} by $v$.
+  \begin{itemize}
+    \item (But actually the value $v$ is not duplicated.)
+  \end{itemize}
+  \item Reduction (i.e. computation) proceeds as follows: first we give
+  {\tmem{redexes}}
+  \begin{eqnarray*}
+    \left( \text{\tmverbatim{fun }} x \text{\tmverbatim{->}} a \right) v &
+    \rightsquigarrow & a [x \assign v]\\
+    \text{\tmverbatim{let }} x = v \text{\tmverbatim{ in }} a &
+    \rightsquigarrow & a [x \assign v]\\
+    f^n v_1 \ldots v_n & \rightsquigarrow & f (v_1, \ldots, v_n)\\
+    \text{\tmverbatim{match }} v \text{\tmverbatim{ with} } x
+    \text{\tmverbatim{->}} a \text{\tmverbatim{ \textbar }} \ldots &
+    \rightsquigarrow & a [x \assign v]\\
+    \text{\tmverbatim{match }} C_1^n (v_1, \ldots, v_n) \text{\tmverbatim{
+    with}} &  & \\
+    C_2^n (p_1, \ldots, p_k) \text{\tmverbatim{->}} a \text{\tmverbatim{
+    \textbar }} \tmop{pm} & \rightsquigarrow & \text{\tmverbatim{match }}
+    C_1^n (v_1, \ldots, v_n)\\
+    &  & \text{\tmverbatim{with} } \tmop{pm}\\
+    \text{\tmverbatim{match }} C_1^n (v_1, \ldots, v_n) \text{\tmverbatim{
+    with}} &  & \\
+    C_1^n (x_1, \ldots, x_n) \text{\tmverbatim{->}} a \text{\tmverbatim{
+    \textbar }} \ldots & \rightsquigarrow & a [x_1 \assign v_1 ; \ldots ; x_n
+    \assign v_n]
+  \end{eqnarray*}
+  If $n = 0$, $C_1^n (v_1, \ldots, v_n)$ stands for $C^0_1$, etc. By $f (v_1,
+  \ldots, v_n)$ we denote the actual value resulting from computing the
+  primitive. We omit the more complex cases of pattern matching.
+  
+  \item {\scriptsize{Rule variables: $x$ matches any expression/pattern
+  variable; $a, a_1, \ldots, a_n$ match any expression; $v, v_1, \ldots, v_n$
+  match any value. Substitute them so that the left-hand-side of a rule is
+  your expression, then the right-hand-side is the reduced expression.}}
+  
+  \item The remaining rules evaluate the arguments in arbitrary order, but
+  keep the order in which \tmverbatim{let}...\tmverbatim{in} and
+  \tmverbatim{match}...\tmverbatim{with} is evaluated.
+  
+  If $a_i \rightsquigarrow a_i'$, then:
+  \begin{eqnarray*}
+    a_1 a_2 & \rightsquigarrow & a_1' a_2\\
+    a_1 a_2 & \rightsquigarrow & a_1 a_2'\\
+    C^n (a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n (a_1, \ldots,
+    a_i', \ldots, a_n)\\
+    \text{\tmverbatim{let }} x = a_1 \text{\tmverbatim{ in }} a_2 &
+    \rightsquigarrow & \text{\tmverbatim{let }} x = a_1' \text{\tmverbatim{ in
+    }} a_2\\
+    \text{\tmverbatim{match }} a_1 \text{\tmverbatim{ with} } \tmop{pm} &
+    \rightsquigarrow & \text{\tmverbatim{match }} a_1' \text{\tmverbatim{
+    with} } \tmop{pm}
+  \end{eqnarray*}
+  \item Finally, we give the rule for the primitive \tmverbatim{fix} -- it is
+  a binary primitive:
+  \begin{eqnarray*}
+    \text{\tmverbatim{fix}}^2 v_1 v_2 & \rightsquigarrow & v_1  \left(
+    \text{\tmverbatim{fix}}^2 v_1 \right) v_2
+  \end{eqnarray*}
+  Because \tmverbatim{fix} is binary, $\left( \text{\tmverbatim{fix}}^2 v_1
+  \right)$ is already a value so it will not be further computed until it is
+  applied inside of $v_1$.
+  
+  \item Compute some programs using the rules by hand.
+\end{itemize}
+
+\section{Symbolic Derivation Example}
+
+Go through the examples from the \tmverbatim{Lec3.ml} file in the
+toplevel.{\newpage}
+
+{\scriptsize{\begin{tmcode}
+eval_1_2 <-- 3.00 * x + 2.00 * y + x * x * y
+  eval_1_2 <-- x * x * y
+    eval_1_2 <-- y
+    eval_1_2 --> 2.
+    eval_1_2 <-- x * x
+      eval_1_2 <-- x
+      eval_1_2 --> 1.
+      eval_1_2 <-- x
+      eval_1_2 --> 1.
+    eval_1_2 --> 1.
+  eval_1_2 --> 2.
+  eval_1_2 <-- 3.00 * x + 2.00 * y
+    eval_1_2 <-- 2.00 * y
+      eval_1_2 <-- y
+      eval_1_2 --> 2.
+      eval_1_2 <-- 2.00
+      eval_1_2 --> 2.
+    eval_1_2 --> 4.
+    eval_1_2 <-- 3.00 * x
+      eval_1_2 <-- x
+      eval_1_2 --> 1.
+      eval_1_2 <-- 3.00
+      eval_1_2 --> 3.
+    eval_1_2 --> 3.
+  eval_1_2 --> 7.
+eval_1_2 --> 9.
+- : float = 9.
+\end{tmcode}}}
+
+\section{Tail Calls (and tail recursion)}
+
+\begin{itemize}
+  \item Excuse me for not defining what a {\tmem{function call}} is...
+  
+  \item Computers normally evaluate programs by creating {\tmem{stack frames}}
+  on the stack for function calls (roughly like indentation levels in the
+  above example).
+  
+  \item A {\tmstrong{tail call}} is a function call that is performed last
+  when computing a function.
+  
+  \item Functional language compilers will often insert a ``jump'' for a tail
+  call instead of creating a stack frame.
+  
+  \item A function is {\tmstrong{tail recursive}} if it calls itself, and
+  functions it mutually-recursively depends on, only using a tail call.
+  
+  \item Tail recursive functions often have special {\tmem{accumulator}}
+  arguments that store intermediate computation results which in a
+  non-tail-recursive function would just be values of subexpressions.
+  
+  \item The accumulated result is computed in ``reverse order'' -- while
+  climbing up the recursion rather than while descending (i.e. returning) from
+  it.
+  
+  \item The issue is more complex for {\tmem{lazy}} programming languages like
+  Haskell.
+  
+  \item Compare:
+  
+  {\small{\begin{tmcode}
+  \# let rec unfold n = if n <= 0 then [] else n :: unfold (n-1);;
+val unfold : int -> int list = <fun>
+# unfold 100000;;
+- : int list =
+[100000; 99999; 99998; 99997; 99996; 99995; 99994; 99993; ...]
+# unfold 1000000;;
+Stack overflow during evaluation (looping recursion?).
+# let rec unfold_tcall acc n =
+  if n <= 0 then acc else unfold_tcall (n::acc) (n-1);;
+  val unfold_tcall : int list -> int -> int list = <fun>
+# unfold_tcall [] 100000;;
+- : int list =
+[1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18; ...]
+# unfold_tcall [] 1000000;;
+- : int list =
+[1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; 13; 14; 15; 16; 17; 18; ...]
+  \end{tmcode}}}
+  
+  \item Is it possible to find the depth of a tree using a tail-recursive
+  function?
+\end{itemize}
+
+\section{First Encounter of Continuation Passing Style}
+
+We can postpone doing the actual work till the last moment:
+\begin{tmcode}
+let rec depth tree k = match tree with
+    | Tip -> k 0
+    | Node(_,left,right) ->
+      depth left (fun dleft ->
+        depth right (fun dright ->
+          k (1 + (max dleft dright))))
+
+let depth tree = depth tree (fun d -> d)
+\end{tmcode}
+
+\section{Homework}
+
+By ``traverse a tree'' below we mean: write a function that takes a tree and
+returns a list of values in the nodes of the tree.
+\begin{enumerate}
+  \item Write a function (of type \tmverbatim{btree -> int list}) that
+  traverses a binary tree: in prefix order -- first the value stored in a
+  node, then values in all nodes to the left, then values in all nodes to the
+  right;
+  
+  \item in infix order -- first values in all nodes to the left, then value
+  stored in a node, then values in all nodes to the right (so it is
+  ``left-to-right'' order);
+  
+  \item in breadth-first order -- first values in more shallow nodes.
+  
+  \item Turn the function from ex. 1 or 2 into continuation passing style.
+  
+  \item Do the homework from the end of last week slides: write
+  \tmverbatim{btree\_deriv\_at}.
+  
+  \item Write a function \tmverbatim{simplify: expression -> expression} that
+  simplifies the expression a bit, so that for example the result of
+  \tmverbatim{simplify (deriv exp dv)} looks more like what a human would get
+  computing the derivative of \tmverbatim{exp} with respect to
+  \tmverbatim{dv}.
+  \begin{itemize}
+    \item Write a \tmverbatim{simplify\_once} function that performs a single
+    step of the simplification, and wrap it using a general
+    \tmverbatim{fixpoint} function that performs an operation until a
+    {\tmem{fixed point}} is reached: given $f$ and $x$, it computes $f^n (x)$
+    such that $f^n (x) = f^{n + 1} (x)$.
+  \end{itemize}
+\end{enumerate}
+
+\end{document}

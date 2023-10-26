@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,theorem}
+\geometry{letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+{\theorembodyfont{\rmfamily\small}\newtheorem{exercise}{Exercise}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\class{Functional Programming}}{\titledate{February 5th 2013}}
+
+{\title{Exam set 2}}
+
+\begin{exercise}
+  (Blue.) What is the type of the subexpression \tmverbatim{f} as part of the
+  expression below assuming that the whole expression has the type given?
+  
+  {\hlopt{(}}{\hlkwa{fun }}{\hlstd{double g x }}{\hlopt{-> }}{\hlstd{double
+  }}{\hlopt{(}}{\hlstd{g x}}{\hlopt{)) (}}{\hlkwa{fun}}{\hlstd{ f y
+  }}{\hlopt{-> }}\begin{tabular}{|l|}
+    \hline
+    {\hlstd{f}}\\
+    \hline
+  \end{tabular}{\hlopt{ (}}{\hlstd{f y}}{\hlopt{))}}
+  
+  {\hlopt{ : (}}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b }}{\hlopt{->
+  }}{\hlstd{'b}}{\hlopt{) -> }}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b
+  }}{\hlopt{-> }}{\hlstd{'b}}
+\end{exercise}
+
+\begin{exercise}
+  (Blue.) Write an example function with type:
+  
+  \tmverbatim{(int -> int list) -> bool}
+  
+  Tell ``in your words'' what it does.
+\end{exercise}
+
+\begin{exercise}
+  (Green.) Find the number of elements of a list.
+\end{exercise}
+
+\begin{exercise}
+  (Green.) Split a list into two parts; the length of the first part is given.
+\end{exercise}
+
+\begin{exercise}
+  (Yellow.) Rotate a list N places to the left.
+\end{exercise}
+
+\begin{exercise}
+  (Yellow.) Let us call a binary tree symmetric if you can draw a vertical
+  line through the root node and then the right subtree is the mirror image of
+  the left subtree. Write a function \tmverbatim{is\_symmetric} to check
+  whether a given binary tree is symmetric.
+\end{exercise}
+
+\begin{exercise}
+  (White.) By ``traverse a tree'' we mean: write a function that takes a tree
+  and returns a list of values in the nodes of the tree. Traverse a tree in
+  breadth-first order -- first values in more shallow nodes.
+\end{exercise}
+
+\begin{exercise}
+  (White.) Generate all combinations of K distinct elements chosen from the N
+  elements of a list.
+\end{exercise}
+
+\begin{exercise}
+  (Orange.) Implement a topological sort of a graph: write a function that
+  either returns a list of graph nodes in topological order or informs (via
+  exception or option type) that the graph has a cycle.
+\end{exercise}
+
+\begin{exercise}
+  (Orange.) Express \tmverbatim{fold\_left} in terms of
+  \tmverbatim{fold\_right}. Hint: continuation passing style.
+\end{exercise}
+
+\begin{exercise}
+  (Purple.) Show why for a monomorphic specification, if datastructures $d_1$
+  and $d_2$ have the same behavior under all operations, then they have the
+  same representation $d_1 = d_2$ in all implementations.
+\end{exercise}
+
+\begin{exercise}
+  (Purple.) \tmverbatim{append} for lazy lists returns in constant time. Where
+  has its linear-time complexity gone? Explain how you would account for this
+  in a time complexity analysis.
+\end{exercise}
+
+\begin{exercise}
+  (Red.) Write a function \tmverbatim{ms\_tree graph} to construct the
+  {\tmem{minimal spanning tree}} of a given weighted graph. A weighted graph
+  will be represented as follows:
+  
+  \tmverbatim{type 'a weighted\_graph = \{nodes : 'a list; edges : ('a * 'a *
+  int) list\}}
+  
+  The labels identify the nodes \tmverbatim{'a} uniquely and there is at most
+  one edge between a pair of nodes. A triple \tmverbatim{(a,b,w)} inside
+  \tmverbatim{edges} corresponds to edge between \tmverbatim{a} and
+  \tmverbatim{b} with weight \tmverbatim{w}. The minimal spanning tree is a
+  subset of \tmverbatim{edges} that forms an undirected tree, covers all nodes
+  of the graph, and has the minimal sum of weights.
+\end{exercise}
+
+\begin{exercise}
+  (Crimson.) Von Koch's conjecture. Given a tree with N nodes (and hence N-1
+  edges). Find a way to enumerate the nodes from 1 to N and, accordingly, the
+  edges from 1 to N-1 in such a way, that for each edge K the difference of
+  its node numbers equals to K. The conjecture is that this is always
+  possible.
+  
+  For small trees the problem is easy to solve by hand. However, for larger
+  trees, and 14 is already very large, it is extremely difficult to find a
+  solution. And remember, we don't know for sure whether there is always a
+  solution!
+  
+  Write a function that calculates a numbering scheme for a given tree. What
+  is the solution for the larger tree pictured above?
+\end{exercise}
+
+\begin{exercise}
+  (Black.) Based on our search engine implementation, write a function that
+  for a list of keywords returns three best "next keyword" suggestions (in
+  some sense of "best", e.g. occurring in most of documents containing the
+  given words).
+\end{exercise}
+
+\
+
+\end{document}

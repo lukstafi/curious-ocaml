@@ -1,0 +1,3349 @@
+\documentclass{beamer}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,graphicx,hyperref,alltt}
+\geometry{landscape, letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\<=\active \def<{
+\fontencoding{T1}\selectfont\symbol{60}\fontencoding{\encodingdefault}}
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmfnhomepage}[1]{\thanks{\textit{Web:} \texttt{#1}}}
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\tmstrong}[1]{\textbf{#1}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+\newenvironment{tmcode}[1][]{\begin{alltt} }{\end{alltt}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+\title{Functional Programming}
+
+\author{
+  {\L}ukasz Stafiniak
+  \tmfnhomepage{www.ii.uni.wroc.pl/\~{}lukstafi}
+}
+
+\institute{{\L}ukasz Stafiniak}
+
+\maketitle
+
+\title{Lecture 9: Compiler}
+
+\subtitle{Compilation. Runtime. Optimization. Parsing.\\
+{\small{Andrew W. Appel {\tmem{``Modern Compiler Implementation in ML''}}\\
+E. Chailloux, P. Manoury, B. Pagano {\tmem{``Developing Applications with
+OCaml''}}\\
+Jon D. Harrop {\tmem{``OCaml for Scientists''}}\\
+Francois Pottier, Yann Regis-Gianas ``{\tmem{Menhir Reference Manual}}''}}}
+
+\maketitle
+
+{\center{If you see any error on the slides, let me know!}}
+
+\section{OCaml Compilers}
+
+\begin{itemize}
+  \item OCaml has two {\scriptsize{primary}} compilers: the bytecode compiler
+  \tmverbatim{ocamlc} and the native code compiler \tmverbatim{ocamlopt}.
+  \begin{itemize}
+    \item Natively compiled code runs about 10 times faster than bytecode --
+    depending on program.
+  \end{itemize}
+  \item OCaml has an interactive shell called {\tmem{toplevel}} (in other
+  languages, {\tmem{repl}}): \tmverbatim{ocaml} which is based on the bytecode
+  compiler.
+  \begin{itemize}
+    \item There is a toplevel \tmverbatim{ocamlnat} based on the native code
+    compiler but currently not part of the binary distribution.
+  \end{itemize}
+  \item There are ``third-party'' compilers, most notably
+  \tmverbatim{js\_of\_ocaml} which translates OCaml bytecode into JavaScript
+  source.
+  \begin{itemize}
+    \item On modern JS virtual machines like V8 the result can be 2-3x faster
+    than on OCaml virtual machine (but can also be slower).
+  \end{itemize}
+  \item Stages of compilation:
+  
+  \begin{tabular}{ll}
+    \begin{tabular}{|l|}
+      \hline
+      preprocessing\\
+      \hline
+      compiling\\
+      \hline
+      assembling\\
+      \hline
+      linking\\
+      \hline
+    \end{tabular} & \begin{tabular}{|l|}
+      \hline
+      Source program\\
+      \hline
+      Source or abstract syntax tree program\\
+      \hline
+      Assembly program\\
+      \hline
+      Machine instrucitons\\
+      \hline
+      Executable code\\
+      \hline
+    \end{tabular}
+  \end{tabular}
+  
+  \item Programs:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{ocaml} & toplevel loop\\
+    \hline
+    \tmverbatim{ocamlrun} & bytecode interpreter (VM)\\
+    \hline
+    \tmverbatim{camlp4} & preprocessor (syntax extensions)\\
+    \hline
+    \tmverbatim{ocamlc} & bytecode compiler\\
+    \hline
+    \tmverbatim{ocamlopt} & native code compiler\\
+    \hline
+    \tmverbatim{ocamlmktop} & new toplevel constructor\\
+    \hline
+    \tmverbatim{ocamldep} & dependencies between modules\\
+    \hline
+    \tmverbatim{ocamlbuild} & building projects tool\\
+    \hline
+    \tmverbatim{ocamlbrowser} & graphical browsing of sources\\
+    \hline
+  \end{tabular}
+  
+  \item File extensions:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{.ml} & OCaml source file\\
+    \hline
+    \tmverbatim{.mli} & OCaml interface source file\\
+    \hline
+    \tmverbatim{.cmi} & compiled interface\\
+    \hline
+    \tmverbatim{.cmo} & bytecode-compiled file\\
+    \hline
+    \tmverbatim{.cmx} & native-code-compiled file\\
+    \hline
+    \tmverbatim{.cma} & bytecode-compiled library (several source files)\\
+    \hline
+    \tmverbatim{.cmxa} & native-code-compiled library\\
+    \hline
+    \tmverbatim{.cmt}/\tmverbatim{.cmti}/\tmverbatim{.annot} & type
+    information for editors\\
+    \hline
+    \tmverbatim{.c} & C source file\\
+    \hline
+    \tmverbatim{.o} & C native-code-compiled file\\
+    \hline
+    \tmverbatim{.a} & C native-code-compiled library\\
+    \hline
+  \end{tabular}
+  
+  \item Both compilers commands:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{-a} & construct a runtime library \\
+    \hline
+    \tmverbatim{-c} & compile without linking \\
+    \hline
+    \tmverbatim{-o} & name\_of\_executable specify the name of the executable
+    \\
+    \hline
+    \tmverbatim{-linkall} & link with all libraries used \\
+    \hline
+    \tmverbatim{-i} & display all compiled global declarations \\
+    \hline
+    \tmverbatim{-pp} & command uses command as preprocessor \\
+    \hline
+    \tmverbatim{-unsafe} & turn off index checking for arrays\\
+    \hline
+    \tmverbatim{-v} & display the version of the compiler \\
+    \hline
+    \tmverbatim{-w} list & choose among the list the level of warning message
+    \\
+    \hline
+    \tmverbatim{-impl} file & indicate that file is a Caml source (.ml) \\
+    \hline
+    \tmverbatim{-intf} file & indicate that file is a Caml interface (.mli) \\
+    \hline
+    \tmverbatim{-I} directory & add directory in the list of directories;
+    prefix \tmverbatim{+} for relative\\
+    \hline
+    \tmverbatim{-g} & generate debugging information\\
+    \hline
+  \end{tabular}
+  
+  \item Warning levels:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{A}/\tmverbatim{a} & enable/disable all messages\\
+    \hline
+    \tmverbatim{F}/\tmverbatim{f} & partial application in a sequence \\
+    \hline
+    \tmverbatim{P}/\tmverbatim{p} & for incomplete pattern matching\\
+    \hline
+    \tmverbatim{U}/\tmverbatim{u} & for missing cases in pattern matching\\
+    \hline
+    \tmverbatim{X}/\tmverbatim{x} & enable/disable all other messages for
+    hidden object\\
+    \hline
+    \tmverbatim{M}/\tmverbatim{m}, \tmverbatim{V}/\tmverbatim{v} &
+    object-oriented related warnings\\
+    \hline
+  \end{tabular}
+  
+  \item Native compiler commands:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{-compact} & optimize the produced code for space\\
+    \hline
+    \tmverbatim{-S} & keeps the assembly code in a file\\
+    \hline
+    \tmverbatim{-inline} & level set the aggressiveness of inlining\\
+    \hline
+  \end{tabular}
+  
+  \item Environment variable \tmverbatim{OCAMLRUNPARAM}:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{b} & print detailed stack backtrace of runtime exceptions\\
+    \hline
+    \tmverbatim{s}/\tmverbatim{h}/\tmverbatim{i} & size of the minor
+    heap/major heap/size increment\\
+    \hline
+    \tmverbatim{o}/\tmverbatim{O} & major GC speed setting / heap compaction
+    trigger setting\\
+    \hline
+  \end{tabular}
+  
+  Typical use, running \tmverbatim{prog}: \tmverbatim{export
+  OCAMLRUNPARAM='b'; ./prog}
+  
+  To have stack backtraces, compile with option \tmverbatim{-g}.
+  
+  \item Toplevel loop directives:
+  
+  \begin{tabular}{|l|l|}
+    \hline
+    \tmverbatim{\#quit;;} & exit\\
+    \hline
+    \tmverbatim{\#directory "dir";;} & add \tmverbatim{dir} to the ``search
+    path''; \tmverbatim{+} for rel.\\
+    \hline
+    \tmverbatim{\#cd "dir-name";;} & change directory\\
+    \hline
+    \tmverbatim{\#load "file-name";;} & load a bytecode
+    \tmverbatim{.cmo}/\tmverbatim{.cma} file\\
+    \hline
+    \tmverbatim{\#load\_rec "file-name";;} & load the files
+    \tmverbatim{file-name} depends on too\\
+    \hline
+    \tmverbatim{\#use "file-name";;} & read, compile and execute source
+    phrases\\
+    \hline
+    \tmverbatim{\#instal\_printer pr\_nm;;} & register \tmverbatim{pr\_nm} to
+    print values of a type\\
+    \hline
+    \tmverbatim{\#print\_depth num;;} & how many nestings to print\\
+    \hline
+    \tmverbatim{\#print\_length num;;} & how many nodes to print -- the rest
+    \tmverbatim{...}\\
+    \hline
+    \tmverbatim{\#trace func;;}/\tmverbatim{\#untrace} & trace calls to
+    \tmverbatim{func}/stop tracing\\
+    \hline
+  \end{tabular}
+\end{itemize}
+
+\subsection{Compiling multiple-file projects}
+
+\begin{itemize}
+  \item Traditionally the file containing a module would have a lowercase
+  name, although the module name is always uppercase.
+  \begin{itemize}
+    \item Some people think it is more elegant to use uppercase for file
+    names, to reflect module names, i.e. for {\hlkwc{MyModule}}, use
+    \tmverbatim{MyModule.ml} rather than \tmverbatim{myModule.ml}.
+  \end{itemize}
+  \item We have a project with main module \tmverbatim{main.ml} and helper
+  modules \tmverbatim{sub1.ml} and \tmverbatim{sub2.ml} with corresponding
+  interfaces.
+  
+  \item Native compilation by hand:
+  
+  \tmverbatim{...:.../Lec9\$ ocamlopt sub1.mli\\
+  ...:.../Lec9\$ ocamlopt sub2.mli\\
+  ...:.../Lec9\$ ocamlopt -c sub1.ml\\
+  ...:.../Lec9\$ ocamlopt -c sub2.ml\\
+  ...:.../Lec9\$ ocamlopt -c main.ml\\
+  ...:.../Lec9\$ ocamlopt unix.cmxa sub1.cmx sub2.cmx main.cmx -o prog\\
+  ...:.../Lec9\$ ./prog\\
+  }
+  
+  \item Native compilation using \tmverbatim{make}:
+  \begin{tmcode}
+  PROG := prog
+LIBS := unix
+SOURCES := sub1.ml sub2.ml main.ml
+INTERFACES := $(wildcard *.mli)
+OBJS := $(patsubst %.ml,%.cmx,$(SOURCES))
+LIBS := $(patsubst %,%.cmxa,$(LIBS))
+$(PROG): $(OBJS)
+ocamlopt -o $@ $(LIBS) $(OBJS)
+clean: rm -rf $(PROG) *.o *.cmx *.cmi *~
+%.cmx: %.ml
+ocamlopt -c $*.ml
+%.cmi: %.mli
+ocamlopt -c $*.mli
+depend: $(SOURCES) $(INTERFACES)
+ocamldep -native $(SOURCES) $(INTERFACES)
+  \end{tmcode}
+  \begin{itemize}
+    \item First use command: \tmverbatim{touch .depend; make depend; make}
+    
+    \item Later just \tmverbatim{make}, after creating new source files
+    \tmverbatim{make depend}
+  \end{itemize}
+  \item Using \tmverbatim{ocamlbuild}
+  \begin{itemize}
+    \item files with compiled code are created in \tmverbatim{\_build}
+    directory
+    
+    \item Command: \tmverbatim{ocamlbuild -libs unix main.native}
+    
+    \item Resulting program is called \tmverbatim{main.native} (in directory
+    \tmverbatim{\_build}, but with a link in the project directory)
+    
+    \item More arguments passed after comma, e.g.
+    
+    \tmverbatim{ocamlbuild -libs nums,unix,graphics main.native}
+    
+    \item Passing parameters to the compiler with \tmverbatim{-cflags}, e.g.:
+    
+    \tmverbatim{ocamlbuild -cflags -I,+lablgtk,-rectypes hello.native}
+    
+    \item Adding a \tmverbatim{--} at the end (followed with command-line
+    arguments for the program) will compile and run the program:
+    
+    \tmverbatim{ocamlbuild -libs unix main.native --}
+  \end{itemize}
+\end{itemize}
+
+\subsection{Editors}
+
+\begin{itemize}
+  \item Emacs
+  \begin{itemize}
+    \item \tmverbatim{ocaml-mode} from the standard distribution
+    
+    \item {\small{alternative}} \tmverbatim{tuareg-mode}
+    \href{https://forge.ocamlcore.org/projects/tuareg/}{https://forge.ocamlcore.org/projects/tuareg/}
+    \begin{itemize}
+      \item cheat-sheet:
+      \href{http://www.ocamlpro.com/files/tuareg-mode.pdf}{http://www.ocamlpro.com/files/tuareg-mode.pdf}
+    \end{itemize}
+    \item \tmverbatim{camldebug} intergration with debugger
+    
+    \item type feedback with \tmverbatim{C-c C-t} key shortcut, needs
+    \tmverbatim{.annot} files
+  \end{itemize}
+  \item Vim
+  \begin{itemize}
+    \item OMLet plugin \\
+    \href{http://www.lix.polytechnique.fr/~dbaelde/productions/omlet.html}{http://www.lix.polytechnique.fr/\~{}dbaelde/productions/omlet.html}
+    
+    \item For type lookup: either
+    \href{https://github.com/avsm/ocaml-annot}{https://github.com/avsm/ocaml-annot}
+    \begin{itemize}
+      \item or
+      \href{http://www.vim.org/scripts/script.php?script_id=2025}{http://www.vim.org/scripts/script.php?script\_id=2025}
+      
+      \item also?
+      \href{http://www.vim.org/scripts/script.php?script_id=1197}{http://www.vim.org/scripts/script.php?script\_id=1197}
+    \end{itemize}
+  \end{itemize}
+  \item Eclipse
+  \begin{itemize}
+    \item {\tmem{OCaml Development Tools}}
+    \href{http://ocamldt.free.fr/}{http://ocamldt.free.fr/}
+    
+    \item an old plugin OcaIDE
+    \href{http://www.algo-prog.info/ocaide/}{http://www.algo-prog.info/ocaide/}
+  \end{itemize}
+  \item TypeRex \href{http://www.typerex.org/}{http://www.typerex.org/}
+  \begin{itemize}
+    \item currently mostly as \tmverbatim{typerex-mode} for Emacs but
+    integration with other editors will become better
+    
+    \item Auto-completion of identifiers (experimental)
+    
+    \item Browsing of identifiers: show type and comment, go to definition
+    
+    \item local and whole-program refactoring: renaming identifiers and
+    compilation units, {\hlkwa{open}} elimination
+  \end{itemize}
+  \item Indentation tool \tmverbatim{ocp-ident}
+  \href{https://github.com/OCamlPro/ocp-indent}{https://github.com/OCamlPro/ocp-indent}
+  \begin{itemize}
+    \item Installation instructions for Emacs and Vim
+    
+    \item Can be used with other editors.
+  \end{itemize}
+  \item Some dedicated editors
+  \begin{itemize}
+    \item OCamlEditor
+    \href{http://ocamleditor.forge.ocamlcore.org/}{http://ocamleditor.forge.ocamlcore.org/}
+    
+    \item \tmverbatim{ocamlbrowser} inspects libraries and programs
+    \begin{itemize}
+      \item browsing contents of modules
+      
+      \item search by name and by type
+      
+      \item basic editing, with syntax highlighting
+    \end{itemize}
+    \item Cameleon
+    \href{http://home.gna.org/cameleon/}{http://home.gna.org/cameleon/}
+    (older)
+    
+    \item Camelia
+    \href{http://camelia.sourceforge.net/}{http://camelia.sourceforge.net/}
+    (even older)
+  \end{itemize}
+\end{itemize}
+
+\section{Imperative features in OCaml}
+
+OCaml is {\tmstrong{not}} a {\tmem{purely functional}} language, it has
+built-in:
+\begin{itemize}
+  \item Mutable arrays.
+  
+  {\hlkwa{let }}{\hlstd{a }}{\hlopt{= }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{make
+  }}{\hlnum{5 0 }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{a}}{\hlopt{.(}}{\hlnum{3}}{\hlopt{) <- }}{\hlnum{7}}{\hlopt{;
+  }}{\hlstd{a}}{\hlopt{.(}}{\hlnum{2}}{\hlopt{),
+  }}{\hlstd{a}}{\hlopt{.(}}{\hlnum{3}}{\hlopt{)}}{\hlendline{}}
+  \begin{itemize}
+    \item Hashtables in the standard distribution (based on arrays).
+    
+    {\hlkwa{let }}{\hlstd{h }}{\hlopt{=
+    }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{create }}{\hlnum{11
+    }}{\hlkwa{in}}{\hlendline{Takes initial size of the array.}}\\
+    {\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{add h }}{\hlstr{"Alpha"}}{\hlstd{
+    }}{\hlnum{5}}{\hlopt{; }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{find h
+    }}{\hlstr{"Alpha"}}{\hlendline{}}
+  \end{itemize}
+  \item Mutable strings. (Historical reasons...)
+  
+  {\hlkwa{let }}{\hlstd{a }}{\hlopt{=
+  }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{make }}{\hlnum{4 }}{\hlstd{'a'
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{a}}{\hlopt{.[}}{\hlnum{2}}{\hlopt{] <- }}{\hlstd{'b'}}{\hlopt{;
+  }}{\hlstd{a}}{\hlopt{.[}}{\hlnum{2}}{\hlopt{],
+  }}{\hlstd{a}}{\hlopt{.[}}{\hlnum{3}}{\hlopt{]}}{\hlendline{}}
+  \begin{itemize}
+    \item Extensible mutable strings {\hlkwc{Buffer}}{\hlopt{.}}{\hlstd{t}} in
+    standard distribution.
+  \end{itemize}
+  \item Loops:
+  \begin{itemize}
+    \item {\hlkwa{for}} i {\hlopt{=}} a {\hlkwa{to}}/{\hlkwa{downto}} b
+    {\hlkwa{do}} body {\hlkwa{done}}
+    
+    \item {\hlkwa{while}} condition {\hlkwa{do}} body {\hlkwa{done}}
+  \end{itemize}
+  \item Mutable record fields, for example:
+  
+  {\hlkwa{type }}{\hlstd{'a }}{\hlkwb{ref }}{\hlopt{= \{ }}{\hlkwa{mutable
+  }}{\hlstd{contents }}{\hlopt{: }}{\hlstd{'a
+  }}{\hlopt{\}}}{\hlendline{Single, mutable field.}}
+  
+  A record can have both mutable and immutable fields.
+  \begin{itemize}
+    \item Modifying the field: {\hlstd{record}}{\hlopt{.}}{\hlstd{field
+    }}{\hlopt{<- }}{\hlstd{new\_value}}
+    
+    \item The {\hlkwb{ref }}type has operations:
+    
+    {\hlkwa{let }}{\hlopt{(:=) }}{\hlstd{r v }}{\hlopt{=
+    }}{\hlstd{r}}{\hlopt{.}}{\hlstd{contents }}{\hlopt{<-
+    }}{\hlstd{v}}{\hlendline{}}\\
+    {\hlkwa{let }}{\hlopt{(!) }}{\hlstd{r }}{\hlopt{=
+    }}{\hlstd{r}}{\hlopt{.}}{\hlstd{contents}}{\hlendline{}}
+  \end{itemize}
+  \item Exceptions, defined by {\hlkwa{exception}}, raised by {\hlkwa{raise}}
+  and caught by {\hlkwa{try}}-{\hlkwa{with}} clauses.
+  \begin{itemize}
+    \item An exception is a variant of type {\hlkwa{exception}}, which is the
+    only open algebraic datatype -- new variants can be added to it.
+  \end{itemize}
+  \item Input-output functions have no ``type safeguards'' (no {\tmem{IO
+  monad}}).
+\end{itemize}
+Using {\tmstrong{global}} state e.g. reference cells makes code {\tmem{non
+re-entrant}}: finish one task before starting another -- any form of
+concurrency is excluded.
+
+\subsection{Parsing command-line arguments}
+
+To go beyond {\hlkwc{Sys}}{\hlopt{.}}{\hlstd{argv}} array, see {\hlkwc{Arg}}
+module:\\
+\href{http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html}{http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html}
+
+{\hlkwa{type }}{\hlstd{config }}{\hlopt{= \{ }}{\hlendline{Example:
+configuring a {\tmem{Mine Sweeper}} game.}}\\
+{\hlstd{ \ \ nbcols \ }}{\hlopt{: }}{\hlkwb{int }}{\hlopt{; }}{\hlstd{nbrows
+}}{\hlopt{: }}{\hlkwb{int }}{\hlopt{; }}{\hlstd{nbmines }}{\hlopt{:
+}}{\hlkwb{int }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{default{\textunderscore}config }}{\hlopt{= \{
+}}{\hlstd{nbcols}}{\hlopt{=}}{\hlnum{10}}{\hlopt{;
+}}{\hlstd{nbrows}}{\hlopt{=}}{\hlnum{10}}{\hlopt{;
+}}{\hlstd{nbmines}}{\hlopt{=}}{\hlnum{15 }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{set{\textunderscore}nbcols cf n }}{\hlopt{= }}{\hlstd{cf
+}}{\hlopt{:= \{!}}{\hlstd{cf }}{\hlkwa{with }}{\hlstd{nbcols }}{\hlopt{=
+}}{\hlstd{n}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{set{\textunderscore}nbrows cf n }}{\hlopt{= }}{\hlstd{cf
+}}{\hlopt{:= \{!}}{\hlstd{cf }}{\hlkwa{with }}{\hlstd{nbrows }}{\hlopt{=
+}}{\hlstd{n}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{set{\textunderscore}nbmines cf n }}{\hlopt{=
+}}{\hlstd{cf }}{\hlopt{:= \{!}}{\hlstd{cf }}{\hlkwa{with }}{\hlstd{nbmines
+}}{\hlopt{= }}{\hlstd{n}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{read{\textunderscore}args}}{\hlopt{()
+=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{cf }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlstd{default{\textunderscore}config }}{\hlkwa{in}}{\hlendline{State of
+configuration}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{speclist }}{\hlopt{= }}{\hlendline{will be
+updated by given functions.}}\\
+{\hlstd{ \ \ }}{\hlopt{[(}}{\hlstr{"-col"}}{\hlopt{,
+}}{\hlkwc{Arg}}{\hlopt{.}}{\hlkwd{Int
+}}{\hlopt{(}}{\hlstd{set{\textunderscore}nbcols cf}}{\hlopt{),
+}}{\hlstr{"number of columns"}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstr{"-lin"}}{\hlopt{,
+}}{\hlkwc{Arg}}{\hlopt{.}}{\hlkwd{Int
+}}{\hlopt{(}}{\hlstd{set{\textunderscore}nbrows cf}}{\hlopt{),
+}}{\hlstr{"number of lines"}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstr{"-min"}}{\hlopt{,
+}}{\hlkwc{Arg}}{\hlopt{.}}{\hlkwd{Int
+}}{\hlopt{(}}{\hlstd{set{\textunderscore}nbmines cf}}{\hlopt{),
+}}{\hlstr{"number of mines"}}{\hlopt{)] }}{\hlkwa{in}}{\hlstd{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{usage{\textunderscore}msg
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlstr{"usage : minesweep [-col n] [-lin n] [-min
+n]"}}{\hlstd{ }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ }}{\hlkwc{Arg}}{\hlopt{.}}{\hlstd{parse speclist
+}}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{s }}{\hlopt{-> ())
+}}{\hlstd{usage{\textunderscore}msg}}{\hlopt{; !}}{\hlstd{cf}}{\hlendline{}}
+
+\section{OCaml Garbage Collection}
+
+\subsection{Representation of values}
+
+\begin{itemize}
+  \item Pointers always end with \tmverbatim{00} in binary (addresses are in
+  number of bytes).
+  
+  \item Integers are represented by shifting them 1 bit, setting the last bit
+  to \tmverbatim{1}.
+  
+  \item Constant constructors (i.e. variants without parameters) like
+  \tmverbatim{None}, \tmverbatim{[]} and \tmverbatim{()}, and other
+  integer-like types (\tmverbatim{char}, \tmverbatim{bool}) are represented in
+  the same way as integers.
+  
+  \item Pointers are always to OCaml {\tmem{blocks}}. Variants with
+  parameters, strings and OCaml arrays are stored as blocks.
+  
+  \item A block starts with a header, followed by an array of values of size 1
+  word: either integer-like, or pointers.
+  
+  \item The header stores the size of the block, the 2-bit color used for
+  garbage collection, and 8-bit {\tmem{tag}} -- which variant it is.
+  \begin{itemize}
+    \item Therefore there can be at most about 240 variants with parameters in
+    a variant type (some tag numbers are reserved).
+    
+    \item {\tmem{Polymorphic variants}} are a different story.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Generational Garbage Collection}
+
+\begin{itemize}
+  \item OCaml has two heaps to store blocks: a small, continuous {\tmem{minor
+  heap}} and a growing-as-necessary {\tmem{major heap}}.
+  
+  \item Allocation simply moves the minor heap pointer (aka. the {\tmem{young
+  pointer}}) and returns the pointed address.
+  \begin{itemize}
+    \item Allocation of very large blocks uses the major heap instead.
+  \end{itemize}
+  \item When the minor heap runs out of space, it triggers the {\tmem{minor
+  (garbage) collection}}, which uses the {\tmem{Stop \& Copy}} algorithm.
+  
+  \item Together with the minor collection, a slice of {\tmem{major (garbage)
+  collection}} is performed to cleanup the major heap a bit.
+  \begin{itemize}
+    \item The major heap is not cleaned all at once because it might stop the
+    main program (i.e. our application) for too long.
+    
+    \item Major collection uses the {\tmem{Mark \& Sweep}} algorithm.
+  \end{itemize}
+  \item Great if most minor heap blocks are already not needed when collection
+  starts -- garbage does {\tmstrong{not}} slow down collection.
+\end{itemize}
+
+\subsection{Stop \& Copy GC}
+
+\begin{itemize}
+  \item Minor collection starts from a set of {\tmem{roots}} -- young blocks
+  that definitely are not garbage.
+  
+  \item Besides the root set, OCaml also maintains the {\tmem{remembered set}}
+  of minor heap blocks pointed at from the major heap.
+  \begin{itemize}
+    \item Most mutations must check whether they assign a minor heap block to
+    a major heap block field. This is called {\tmem{write barrier}}.
+    
+    \item Immutable blocks cannot contain pointers from major to minor heap.
+    \begin{itemize}
+      \item Unless they are {\hlkwa{lazy}} blocks.
+    \end{itemize}
+  \end{itemize}
+  \item Collection follows pointers in the root set and remembered set to find
+  other used blocks.
+  
+  \item Every found block is copied to the major heap.
+  
+  \item At the end of collection, the young pointer is reset so that the minor
+  heap is empty again.
+\end{itemize}
+
+\subsection{Mark \& Sweep GC}
+
+\begin{itemize}
+  \item Major collection starts from a separate root set -- old blocks that
+  definitely are not garbage.
+  
+  \item Major garbage collection consists of a {\tmem{mark}} phase which
+  colors blocks that are still in use and a {\tmem{sweep}} phase that searches
+  for stretches of unused memory.
+  \begin{itemize}
+    \item Slices of the mark phase are performed by-after each minor
+    collection.
+    
+    \item Unused memory is stored in a {\tmem{free list}}.
+  \end{itemize}
+  \item The ``proper'' major collection is started when a minor collection
+  consumes the remaining free list. The mark phase is finished and sweep phase
+  performed.
+  
+  \item Colors:
+  \begin{itemize}
+    \item {\tmstrong{gray}}: marked cells whose descendents are not yet
+    marked;
+    
+    \item {\tmstrong{black}}: marked cells whose descendents are also marked;
+    
+    \item {\tmstrong{hatched}}: free list element;
+    
+    \item {\tmstrong{white}}: elements previously being in use.
+  \end{itemize}
+  \item \tmverbatim{\# let u = let l = ['c'; 'a'; 'm'] in List.tl l ;;\\
+  }\tmverbatim{val u : char list = ['a'; 'm']}\\
+  {\small{\tmverbatim{\# let v = let r = ( ['z'] , u ) in match r with p ->
+  (fst p) @ (snd p) ;;}}}\\
+  \tmverbatim{val v : char list = ['z'; 'a'; 'm']}
+  
+  \item
+  \resizebox{900.0px}{250px}{\includegraphics{functional-lecture09-via-latex-1.pdf}}
+  
+  \item
+  \resizebox{900px}{300px}{\includegraphics{functional-lecture09-via-latex-2.pdf}}
+\end{itemize}
+
+\section{Stack Frames and Closures}
+
+\begin{itemize}
+  \item The nesting of procedure calls is reflected in the {\tmem{stack}} of
+  procedure data.
+  
+  \item The stretch of stack dedicated to a single function is {\tmem{stack
+  frame}} aka. {\tmem{activation record}}.
+  
+  \item {\tmem{Stack pointer}} is where we create new frames, stored in a
+  special register.
+  
+  \item {\tmem{Frame pointer}} allows to refer to function data by offset --
+  data known early in compilation is close to the frame pointer.
+  
+  \item Local variables are stored in the stack frame or in registers -- some
+  regis{\nobreak}ters need to be saved prior to function call
+  ({\tmem{caller-save}}) or at entry to a function ({\tmem{callee-save}}).
+  OCaml avoids callee-save registers.
+  
+  \item Up to 4-6 arguments can be passed in registers, remaining ones on
+  stack.
+  \begin{itemize}
+    \item Note that {\tmem{x86}} architecture has a small number of registers.
+  \end{itemize}
+  \item Using registers, tail call optimization and function inlining can
+  eliminate the use of stack entirely. OCaml compiler can also use stack more
+  efficiently than by creating full stack frames as depicted below.
+  
+  \item {\small{\begin{tabular}{ll}
+    \begin{tabular}{l}
+      \\
+      incoming\\
+      arguments\\
+      \\
+      \\
+      frame pointer$\rightarrow$\\
+      \\
+      \\
+      \\
+      \\
+      \\
+      \\
+      \\
+      \\
+      \\
+      \\
+      outgoing\\
+      arguments\\
+      \\
+      \\
+      stack pointer$\rightarrow$\\
+      \\
+      \\
+      
+    \end{tabular} & \begin{tabular}{|l|l|}
+      \hline
+      & \begin{tabular}{l}
+        $\uparrow$higher addresses\\
+        \\
+        previous frame\\
+        
+      \end{tabular}\\
+      \hline
+      \begin{tabular}{l}
+        argument $n$\\
+        $\vdots$\\
+        argument $2$\\
+        argument $1$\\
+        static link
+      \end{tabular} & \\
+      \hline
+      \begin{tabular}{l}
+        \\
+        local variables\\
+        
+      \end{tabular} & current frame\\
+      \hline
+      return address & \\
+      \hline
+      \begin{tabular}{l}
+        \\
+        temporaries\\
+        
+      \end{tabular} & \\
+      \hline
+      \begin{tabular}{l}
+        saved\\
+        registers
+      \end{tabular} & \\
+      \hline
+      \begin{tabular}{l}
+        argument $m$\\
+        $\vdots$\\
+        argument $2$\\
+        argument $1$\\
+        static link
+      \end{tabular} & \\
+      \hline
+      & \begin{tabular}{l}
+        \\
+        next frame\\
+        \\
+        $\downarrow$lower addresses
+      \end{tabular}\\
+      \hline
+    \end{tabular}
+  \end{tabular}}}
+  
+  \item {\tmem{Static links}} point to stack frames of parent functions, so we
+  can access stack-based data, e.g. arguments of a main function from inside
+  \tmverbatim{aux}.
+  
+  \item A {\tmem{{\tmstrong{closure}}}} represents a function: it is a block
+  that contains address of the function: either another closure or a
+  machine-code pointer, and a way to access non-local variables of the
+  function.
+  \begin{itemize}
+    \item For partially applied functions, it contains the values of arguments
+    and the address of the original function.
+  \end{itemize}
+  \item {\tmem{Escaping variables}} are the variables of a function
+  \tmverbatim{f} -- arguments and local definitions -- which are accessed from
+  a nested function which is part of the returned value of \tmverbatim{f} (or
+  assigned to a mutable field).
+  \begin{itemize}
+    \item Escaping variables must be either part of the closures representing
+    the nested functions, or of a closure representing the function
+    \tmverbatim{f} -- in the latter case, the nested functions must also be
+    represented by closures that have a link to the closure of \tmverbatim{f}.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Tail Recursion}
+
+\begin{itemize}
+  \item A function call \tmverbatim{f x} within the body of another function
+  \tmverbatim{g} is in {\tmem{tail position}} if, roughly ``calling
+  \tmverbatim{f} is the last thing that \tmverbatim{g} will do before
+  returning''.
+  
+  \item Call inside {\hlkwa{try }}{\hlopt{... }}{\hlkwa{with}} clause is not
+  in tail position!
+  \begin{itemize}
+    \item For efficient exceptions, OCaml stores {\tmem{traps}} for
+    {\hlkwa{try}}-{\hlkwa{with}} on the stack with topmost trap in a register,
+    after {\hlkwa{raise}} unwinding directly to the trap.
+  \end{itemize}
+  \item The steps for a tail call are:
+  \begin{enumerate}
+    \item Move actual parameters into argument registers (if they aren't
+    already there).
+    
+    \item Restore callee-save registers (if needed).
+    
+    \item Pop the stack frame of the calling function (if it has one).
+    
+    \item Jump to the callee.
+  \end{enumerate}
+  \item Bytecode always throws \tmverbatim{Stack\_overflow} exception on too
+  deep recursion, native code will sometimes cause {\tmem{segmentation
+  fault}}!
+  
+  \item {\hlkwc{List}}\tmverbatim{.map} from the standard distribution is
+  {\tmstrong{not}} tail-recursive.
+\end{itemize}
+
+\subsection{Generated assembly}
+
+\begin{itemize}
+  \item Let us look at examples from\\
+  \href{http://ocaml.org/tutorials/performance_and_profiling.html}{http://ocaml.org/tutorials/performance\_and\_profiling.html}
+\end{itemize}
+
+\section{Profiling and Optimization}
+
+\begin{itemize}
+  \item Steps of optimizing a program:
+  \begin{enumerate}
+    \item Profile the program to find bottlenecks: where the time is spent.
+    
+    \item If possible, modify the algorithm used by the bottleneck to an
+    algorithm with better asymptotic complexity.
+    
+    \item If possible, modify the bottleneck algorithm to access data less
+    randomly, to increase {\tmem{cache locality}}.
+    \begin{itemize}
+      \item Additionally, {\tmem{realtime}} systems may require avoiding use
+      of huge arrays, traversed by the garbage collector in one go.
+    \end{itemize}
+    \item Experiment with various implementations of data structures used
+    {\small{(related to step 3).}}
+    
+    \item Avoid {\tmem{boxing}} and polymorphic functions. Especially for
+    numerical processing. (OCaml specific.)
+    
+    \item {\tmem{Deforestation}}.
+    
+    \item {\tmem{Defunctorization}}.
+  \end{enumerate}
+\end{itemize}
+
+\subsection{Profiling}
+
+\begin{itemize}
+  \item We cover native code profiling because it is more useful.
+  \begin{itemize}
+    \item It relies on the ``Unix'' profiling program \tmverbatim{gprof}.
+  \end{itemize}
+  \item First we need to compile the sources in profiling mode:
+  \tmverbatim{ocamlopt -p }...
+  \begin{itemize}
+    \item or using \tmverbatim{ocamlbuild} when program source is in
+    \tmverbatim{prog.ml}:
+    
+    \tmverbatim{ocamlbuild prog.p.native --}
+  \end{itemize}
+  \item The execution of program \tmverbatim{./prog} produces a file
+  \tmverbatim{gmon.out}
+  
+  \item We call \tmverbatim{gprof prog > profile.txt}
+  \begin{itemize}
+    \item or when we used \tmverbatim{ocamlbuild} as above:
+    
+    \tmverbatim{gprof prog.p.native > profile.txt}
+    
+    \item This redirects profiling analysis to \tmverbatim{profile.txt} file.
+  \end{itemize}
+  \item The result \tmverbatim{profile.txt} has three parts:
+  \begin{enumerate}
+    \item List of functions in the program in descending order of the time
+    which was spent within the body of the function, excluding time spent in
+    the bodies of any other functions.
+    
+    \item A hierarchical representation of the time taken by each function,
+    and the total time spent in it, including time spent in functions it
+    called.
+    
+    \item A bibliography of function references.
+  \end{enumerate}
+  \item It contains C/assembly function names like
+  \tmverbatim{camlList\_\_assoc\_1169}:
+  \begin{itemize}
+    \item Prefix \tmverbatim{caml} means function comes from OCaml source.
+    
+    \item \tmverbatim{List\_\_} means it belongs to a {\hlkwc{List}} module.
+    
+    \item \tmverbatim{assoc} is the name of the function in source.
+    
+    \item Postfix \tmverbatim{\_1169} is used to avoid name clashes, as in
+    OCaml different functions often have the same names.
+  \end{itemize}
+  \item Example: computing words histogram for a large file,
+  \tmverbatim{Optim0.ml}.
+\end{itemize}
+{\hlkwa{let }}{\hlstd{read{\textunderscore}words file
+}}{\hlopt{=}}{\hlendline{Imperative programming example.}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{input }}{\hlopt{=
+}}{\hlstd{open{\textunderscore}in file }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlopt{[] }}{\hlkwa{and }}{\hlstd{more }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlkwa{true in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{try}}{\hlendline{Lecture 6 \tmverbatim{read\_lines}
+function would stack-overflow}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{while }}{\hlopt{!}}{\hlstd{more
+}}{\hlkwa{do}}{\hlendline{because of the {\hlkwa{try}}-{\hlkwa{with}}
+clause.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwc{Scanf}}{\hlopt{.}}{\hlstd{fscanf input
+}}{\hlstr{"\%[{\textasciicircum}a-zA-Z0-9']\%[a-zA-Z0-9']"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{b x }}{\hlopt{->
+}}{\hlstd{words }}{\hlopt{:= }}{\hlstd{x }}{\hlopt{::
+!}}{\hlstd{words}}{\hlopt{; }}{\hlstd{more }}{\hlopt{:= }}{\hlstd{x
+}}{\hlopt{<> }}{\hlstr{""}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{done}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+}}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl
+}}{\hlopt{!}}{\hlstd{words}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{with
+}}{\hlkwd{End{\textunderscore}of{\textunderscore}file }}{\hlopt{->
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+}}{\hlopt{!}}{\hlstd{words}}{\hlendline{}}\\
+{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{empty }}{\hlopt{() = []}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{increment h w }}{\hlopt{=}}{\hlendline{Inefficient map
+update.}}\\
+{\hlstd{ \ }}{\hlkwa{try}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{c }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{assoc w h }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{w}}{\hlopt{,
+}}{\hlstd{c}}{\hlopt{+}}{\hlnum{1}}{\hlopt{) ::
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{remove{\textunderscore}assoc w
+h{\hlendline{}}\\
+\ }}{\hlkwa{with }}{\hlkwd{Not{\textunderscore}found }}{\hlopt{->
+(}}{\hlstd{w}}{\hlopt{, }}{\hlnum{1}}{\hlopt{)::}}{\hlstd{h}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{iterate f h }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{iter }}{\hlopt{(}}{\hlkwa{fun
+}}{\hlopt{(}}{\hlstd{k}}{\hlopt{,}}{\hlstd{v}}{\hlopt{)->}}{\hlstd{f k
+v}}{\hlopt{) }}{\hlstd{h}}{\hlendline{}}\\
+{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{histogram words }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{fold{\textunderscore}left
+increment }}{\hlopt{(}}{\hlstd{empty }}{\hlopt{())
+}}{\hlstd{words}}{\hlendline{}}\\
+{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{{\textunderscore} }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{=
+}}{\hlstd{read{\textunderscore}words }}{\hlstr{"./shakespeare.xml"}}{\hlstd{
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev{\textunderscore}map
+}}{\hlkwc{String}}{\hlopt{.}}{\hlstd{lowercase words
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{h }}{\hlopt{= }}{\hlstd{histogram words
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{output }}{\hlopt{=
+}}{\hlstd{open{\textunderscore}out }}{\hlstr{"histogram.txt"}}{\hlstd{
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ iterate }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{fprintf
+output }}{\hlstr{"\%s: \%d}}{\hlesc{n}}{\hlstr{"}}{\hlopt{)
+}}{\hlstd{h}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ close{\textunderscore}out output}}{\hlendline{}}
+\begin{itemize}
+  \item Now we look at the profiling analysis, first part begins with:
+\end{itemize}
+{\small{\begin{tmcode}
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 37.88      8.54     8.54 306656698    0.00     0.00  compare_val
+ 19.97     13.04     4.50   273169     0.00     0.00  camlList__assoc_1169
+  9.17     15.10     2.07 633527269    0.00     0.00  caml_page_table_lookup
+  8.72     17.07     1.97   260756    0.00  0.00 camlList__remove_assoc_1189
+  7.10     18.67     1.60 612779467    0.00     0.00  caml_string_length
+  4.97     19.79     1.12 306656692     0.00    0.00  caml_compare
+  2.84     20.43     0.64                             caml_c_call
+  1.53     20.77     0.35    14417     0.00     0.00  caml_page_table_modify
+  1.07     21.01     0.24     1115     0.00     0.00  sweep_slice
+  0.89     21.21     0.20      484     0.00     0.00  mark_slice
+\end{tmcode}}}
+\begin{itemize}
+  \item {\hlkwc{List}}{\hlopt{.}}{\hlstd{assoc}} and
+  {\hlkwc{List}}{\hlopt{.}}{\hlstd{remove{\textunderscore}assoc}} high in the
+  ranking suggests to us that \tmverbatim{increment} could be the bottleneck.
+  \begin{itemize}
+    \item They both use comparison which could explain why
+    \tmverbatim{compare\_val} consumes the most of time.
+  \end{itemize}
+  \item Next we look at the interesting pieces of the second part: data about
+  the \tmverbatim{increment} function.
+  \begin{itemize}
+    \item Each block, separated by \tmverbatim{------} lines, describes the
+    function whose line starts with an index in brackets.
+    
+    \item The functions that called it are above, the functions it calls
+    below.
+  \end{itemize}
+\end{itemize}
+{\small{\begin{tmcode}
+index % time    self  children    called     name
+-----------------------------------------------
+                0.00    6.47  273169/273169  camlList__fold_left_1078 [7]
+[8]     28.7    0.00    6.47  273169         camlOptim0__increment_1038 [8]
+                4.50    0.00  273169/273169  camlList__assoc_1169 [9]
+               1.97    0.00  260756/260756  camlList__remove_assoc_1189 [11]
+\end{tmcode}}}
+\begin{itemize}
+  \item As expected, \tmverbatim{increment} is only called by
+  {\hlkwc{List}}{\hlopt{.}}{\hlstd{fold\_left}}. But it seems to account for
+  only 29\% of time. It is because \tmverbatim{compare} is not analysed
+  correctly, thus not included in time for \tmverbatim{increment}:
+\end{itemize}
+{\small{\begin{tmcode}
+-----------------------------------------------
+                1.12   12.13 306656692/306656692     caml_c_call [1]
+[2]     58.8    1.12   12.13 306656692         caml_compare [2]
+                8.54    3.60 306656692/306656698     compare_val [3]
+\end{tmcode}}}
+
+\subsection{Algorithmic optimizations}
+
+\begin{itemize}
+  \item (All times measured with profiling turned on.)
+  
+  \item \tmverbatim{Optim0.ml} asymptotic time complexity: $\mathcal{O}
+  (n^2)$, time: 22.53s.
+  \begin{itemize}
+    \item Garbage collection takes 6\% of time.
+    \begin{itemize}
+      \item So little because data access wastes a lot of time.
+    \end{itemize}
+  \end{itemize}
+  \item Optimize the data structure, keep the algorithm.
+  
+  {\hlkwa{let }}{\hlstd{empty }}{\hlopt{() =
+  }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{create }}{\hlnum{511}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{increment h w }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{try}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{c }}{\hlopt{=
+  }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{find h w
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{replace h w
+  }}{\hlopt{(}}{\hlstd{c}}{\hlopt{+}}{\hlnum{1}}{\hlopt{);
+  }}{\hlstd{h{\hlendline{}}\\
+  \ }}{\hlkwa{with }}{\hlkwd{Not{\textunderscore}found }}{\hlopt{->
+  }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{add h w }}{\hlnum{1}}{\hlopt{;
+  }}{\hlstd{h}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{iterate f h }}{\hlopt{=
+  }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{iter f h}}{\hlendline{}}
+  
+  \tmverbatim{Optim1.ml} asymptotic time complexity: $\mathcal{O} (n)$, time:
+  0.63s.
+  \begin{itemize}
+    \item Garbage collection takes 17\% of time.
+  \end{itemize}
+  \item Optimize the algorithm, keep the data structure.
+  
+  {\hlkwa{let }}{\hlstd{histogram words }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{=
+  }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{sort
+  }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{compare words
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let
+  }}{\hlstd{k}}{\hlopt{,}}{\hlstd{c}}{\hlopt{,}}{\hlstd{h }}{\hlopt{=
+  }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{fold{\textunderscore}left{\hlendline{}}\\
+  \ \ \ }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlopt{(}}{\hlstd{k}}{\hlopt{,}}{\hlstd{c}}{\hlopt{,}}{\hlstd{h}}{\hlopt{)
+  }}{\hlstd{w }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlstd{k }}{\hlopt{= }}{\hlstd{w
+  }}{\hlkwa{then }}{\hlstd{k}}{\hlopt{,
+  }}{\hlstd{c}}{\hlopt{+}}{\hlnum{1}}{\hlopt{, }}{\hlstd{h }}{\hlkwa{else
+  }}{\hlstd{w}}{\hlopt{, }}{\hlnum{1}}{\hlopt{,
+  ((}}{\hlstd{k}}{\hlopt{,}}{\hlstd{c}}{\hlopt{)::}}{\hlstd{h}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstr{""}}{\hlopt{, }}{\hlnum{0}}{\hlopt{, [])
+  }}{\hlstd{words }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \
+  }}{\hlopt{(}}{\hlstd{k}}{\hlopt{,}}{\hlstd{c}}{\hlopt{)::}}{\hlstd{h}}{\hlendline{}}
+  
+  \tmverbatim{Optim2.ml} asymptotic time complexity: $\mathcal{O} (n \log n)$,
+  time: 1s.
+  \begin{itemize}
+    \item Garbage collection takes 40\% of time. 
+  \end{itemize}
+  \item Optimizing for cache efficiency is more advanced, we will not attempt
+  it.
+  
+  \item With algorithmic optimizations we should be concerned with
+  {\tmstrong{asymptotic complexity}} in terms of the $\mathcal{O} (\cdot)$
+  notation, but we will not pursue complexity analysis in the remainder of the
+  lecture.
+\end{itemize}
+
+\subsection{Low-level optimizations}
+
+\begin{itemize}
+  \item Optimizations below have been made {\tmem{for educational purposes
+  only}}.
+  
+  \item Avoid polymorphism in generic comparison function {\hlopt{(=)}}.
+  
+  {\small{{\hlkwa{let rec }}{\hlstd{assoc x }}{\hlopt{=
+  }}{\hlkwa{function}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{[] -> }}{\hlstd{raise
+  }}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar 
+  (}}{\hlstd{a}}{\hlopt{,}}{\hlstd{b}}{\hlopt{)::}}{\hlstd{l }}{\hlopt{->
+  }}{\hlkwa{if }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{compare a x }}{\hlopt{=
+  }}{\hlnum{0 }}{\hlkwa{then }}{\hlstd{b }}{\hlkwa{else }}{\hlstd{assoc x
+  l}}{\hlendline{}}\\
+  {\hlkwa{let rec }}{\hlstd{remove{\textunderscore}assoc x }}{\hlopt{=
+  }}{\hlkwa{function}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar  [] -> []}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlstd{a}}{\hlopt{, }}{\hlstd{b
+  }}{\hlkwa{as }}{\hlstd{pair}}{\hlopt{) :: }}{\hlstd{l
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{compare
+  a x }}{\hlopt{= }}{\hlnum{0 }}{\hlkwa{then }}{\hlstd{l }}{\hlkwa{else
+  }}{\hlstd{pair }}{\hlopt{:: }}{\hlstd{remove{\textunderscore}assoc x
+  l}}{\hlendline{}}}}
+  
+  \tmverbatim{Optim3.ml} (based on \tmverbatim{Optim0.ml}) time: 19s.
+  \begin{itemize}
+    \item Despite implementation-wise the code is the same, as
+    {\hlkwc{String}}{\hlopt{.}}{\hlstd{compare}} =
+    {\hlkwc{Pervasives}}{\hlopt{.}}{\hlstd{compare}} inside module
+    {\hlkwc{String}}, and {\hlkwc{List}}{\hlopt{.}}\tmverbatim{assoc} is like
+    above but uses {\hlkwc{Pervasives}}{\hlopt{.}}{\hlstd{compare}}!
+    
+    \item We removed polymorphism, no longer \tmverbatim{caml\_compare\_val}
+    function.
+    
+    \item Usually, adding type annotations would be enough. (Useful especially
+    for numeric types {\hlkwb{int}}, {\hlkwb{float}}.)
+  \end{itemize}
+  \item {\tmstrong{Deforestation}} means removing intermediate data
+  structures.
+  
+  {\hlkwa{let }}{\hlstd{read{\textunderscore}to{\textunderscore}histogram file
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{input }}{\hlopt{=
+  }}{\hlstd{open{\textunderscore}in file }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{h }}{\hlopt{= }}{\hlstd{empty
+  }}{\hlopt{() }}{\hlkwa{and }}{\hlstd{more }}{\hlopt{= }}{\hlkwb{ref
+  }}{\hlkwa{true in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{try}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{while }}{\hlopt{!}}{\hlstd{more
+  }}{\hlkwa{do}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwc{Scanf}}{\hlopt{.}}{\hlstd{fscanf input
+  }}{\hlstr{"\%[{\textasciicircum}a-zA-Z0-9']\%[a-zA-Z0-9']"}}{\hlstd{{\hlendline{}}\\
+  \ \ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{b w
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{w }}{\hlopt{=
+  }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{lowercase w
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ increment h w}}{\hlopt{; }}{\hlstd{more
+  }}{\hlopt{:= }}{\hlstd{w }}{\hlopt{<>
+  }}{\hlstr{""}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{done}}{\hlopt{; }}{\hlstd{h{\hlendline{}}\\
+  \ }}{\hlkwa{with }}{\hlkwd{End{\textunderscore}of{\textunderscore}file
+  }}{\hlopt{-> }}{\hlstd{h}}{\hlendline{}}
+  
+  \tmverbatim{Optim4.ml} (based on \tmverbatim{Optim1.ml}) time: 0.51s.
+  \begin{itemize}
+    \item Garbage collection takes 8\% of time.
+    \begin{itemize}
+      \item So little because we have eliminated garbage.
+    \end{itemize}
+  \end{itemize}
+  \item {\tmstrong{Defunctorization}} means computing functor applications by
+  hand.
+  \begin{itemize}
+    \item There was a tool \tmverbatim{ocamldefun} but it is out of date.
+    
+    \item The slight speedup comes from the fact that functor arguments are
+    implemented as records of functions.
+  \end{itemize}
+\end{itemize}
+
+\subsection{Comparison of data structure implementations}
+
+\begin{itemize}
+  \item We perform a rough comparison of association lists, tree-based maps
+  and hashtables. Sets would give the same results.
+  
+  \item We always create hashtables with initial size 511.
+  
+  \item $10^7$ operations of: adding an association (creation), finding a key
+  that is in the map, finding a key out of a small number of keys not in the
+  map.
+  
+  \item First row gives sizes of maps. Time in seconds, to two significant
+  digits.
+\end{itemize}
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  create: & $2^1$ & $2^2$ & $2^3$ & $2^4$ & $2^5$ & $2^6$ & $2^7$ & $2^8$ &
+  $2^9$ & $2^{10}$\\
+  \hline
+  assoc list & 0.25 & 0.25 & 0.18 & 0.19 & 0.17 & 0.22 & 0.19 & 0.19 & 0.19 &
+  \\
+  \hline
+  tree map & 0.48 & 0.81 & 0.82 & 1.2 & 1.6 & 2.3 & 2.7 & 3.6 & 4.1 & 5.1\\
+  \hline
+  hashtable & 27 & 9.1 & 5.5 & 4 & 2.9 & 2.4 & 2.1 & 1.9 & 1.8 & 3.7\\
+  \hline
+\end{tabular}
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  create: & $2^{11}$ & $2^{12}$ & $2^{13}$ & $2^{14}$ & $2^{15}$ & $2^{16}$ &
+  $2^{17}$ & $2^{18}$ & $2^{19}$ & $2^{20}$ & $2^{21}$ & $2^{22}$\\
+  \hline
+  tree map & 6.5 & 8 & 9.8 & 15 & 19 & 26 & 34 & 41 & 51 & 67 & 80 & 130\\
+  \hline
+  hashtable & 4.8 & 5.6 & 6.4 & 8.4 & 12 & 15 & 19 & 20 & 22 & 24 & 23 & 33\\
+  \hline
+\end{tabular}
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  found: & $2^1$ & $2^2$ & $2^3$ & $2^4$ & $2^5$ & $2^6$ & $2^7$ & $2^8$ &
+  $2^9$ & $2^{10}$\\
+  \hline
+  assoc list & 1.1 & 1.5 & 2.5 & 4.2 & 8.1 & 17 & 30 & 60 & 120 & \\
+  \hline
+  tree map & 1 & 1.1 & 1.3 & 1.5 & 1.9 & 2.1 & 2.5 & 2.8 & 3.1 & 3.6\\
+  \hline
+  hashtable & 1.4 & 1.5 & 1.4 & 1.4 & 1.5 & 1.5 & 1.6 & 1.6 & 1.8 & 1.8\\
+  \hline
+\end{tabular}
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  found: & $2^{11}$ & $2^{12}$ & $2^{13}$ & $2^{14}$ & $2^{15}$ & $2^{16}$ &
+  $2^{17}$ & $2^{18}$ & $2^{19}$ & $2^{20}$ & $2^{21}$ & $2^{22}$\\
+  \hline
+  tree map & 4.3 & 5.2 & 6 & 7.6 & 9.4 & 12 & 15 & 17 & 19 & 24 & 28 & 32\\
+  \hline
+  hashtable & 1.8 & 2 & 2.5 & 3.1 & 4 & 5.1 & 5.9 & 6.4 & 6.8 & 7.6 & 6.7 &
+  7.5\\
+  \hline
+\end{tabular}
+
+{\small{\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  not found: & $2^1$ & $2^2$ & $2^3$ & $2^4$ & $2^5$ & $2^6$ & $2^7$ & $2^8$ &
+  $2^9$ & $2^{10}$\\
+  \hline
+  assoc list & 1.8 & 2.6 & 4.6 & 8 & 16 & 32 & 60 & 120 & 240 & \\
+  \hline
+  tree map & 1.5 & 1.5 & 1.8 & 2.1 & 2.4 & 2.7 & 3 & 3.2 & 3.5 & 3.8\\
+  \hline
+  hashtable & 1.4 & 1.4 & 1.5 & 1.5 & 1.6 & 1.5 & 1.7 & 1.9 & 2 & 2.1\\
+  \hline
+\end{tabular}
+
+\begin{tabular}{|l|l|l|l|l|l|l|l|l|l|l|l|l|}
+  \hline
+  not found: & $2^{11}$ & $2^{12}$ & $2^{13}$ & $2^{14}$ & $2^{15}$ & $2^{16}$
+  & $2^{17}$ & $2^{18}$ & $2^{19}$ & $2^{20}$ & $2^{21}$ & $2^{22}$\\
+  \hline
+  tree map & 4.2 & 4.3 & 4.7 & 4.9 & 5.3 & 5.5 & 6.1 & 6.3 & 6.6 & 7.2 & 7.5 &
+  7.3\\
+  \hline
+  hashtable & 1.8 & 1.9 & 2 & 1.9 & 1.9 & 1.9 & 2 & 2 & 2.2 & 2 & 2 & 1.9\\
+  \hline
+\end{tabular}}}
+\begin{itemize}
+  \item Using lists makes sense for up to about 15 elements.
+  
+  \item Unfortunately OCaml and Haskell do not encourage the use of efficient
+  maps, the way Scala and Python have built-in syntax for them.
+\end{itemize}
+
+\section{Parsing: ocamllex and Menhir}
+
+\begin{itemize}
+  \item {\tmem{Parsing}} means transforming text, i.e. a string of characters,
+  into a data structure that is well fitted for a given task, or generally
+  makes information in the text more explicit.
+  
+  \item Parsing is usually done in stages:
+  \begin{enumerate}
+    \item {\tmem{Lexing}} or {\tmem{tokenizing}}, dividing the text into
+    smallest meaningful pieces called {\tmem{lexemes}} or {\tmem{tokens}},
+    
+    \item composing bigger structures out of lexemes/tokens (and smaller
+    structures) according to a {\tmem{grammar}}.
+    \begin{itemize}
+      \item Alternatively to building such hierarchical structure, sometimes
+      we build relational structure over the tokens, e.g. {\tmem{dependency
+      gram{\nobreak}mars}}.
+    \end{itemize}
+  \end{enumerate}
+  \item We will use \tmverbatim{ocamllex} for lexing, whose rules are like
+  pattern matching functions, but with patterns being {\tmem{regular
+  expressions}}.
+  
+  \item We will either consume the results from lexer directly, or use
+  {\tmem{Menhir}} for parsing, a successor of \tmverbatim{ocamlyacc},
+  belonging to the {\tmem{yacc}}/{\tmem{bison}} family of parsers.
+\end{itemize}
+
+\subsection{Lexing with {\tmem{ocamllex}}}
+
+\begin{itemize}
+  \item The format of lexer definitions is as follows: file with extension
+  \tmverbatim{.mll}
+  
+  {\hlopt{\{ }}header{\hlopt{ \}}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{ident1 }}{\hlopt{= }}regexp ...{\hlendline{}}\\
+  {\hlkwa{rule}}\tmverbatim{ entrypoint1 }[\tmverbatim{arg1}...\tmverbatim{
+  argN}]{\hlopt{ =}}{\hlendline{}}\\
+  {\hlkwa{ \ parse }}regexp{\hlopt{ \{ }}action1{\hlopt{ \}}}{\hlendline{}}\\
+  \tmverbatim{ \ \ \ \ \ }{\hlopt{\textbar}} ...{\hlendline{}}\\
+  \tmverbatim{ \ \ \ \ \ }{\hlopt{\textbar}} regexp {\hlopt{\{
+  }}actionN{\hlopt{ \}}}{\hlendline{}}\\
+  {\hlkwa{and }}{\hlstd{entrypointN }}{\hlopt{[}}{\hlstd{arg1? argN}}{\hlopt{]
+  =}}{\hlendline{}}\\
+  {\hlkwa{ \ parse }}...{\hlendline{}}\\
+  {\hlkwa{and }}...{\hlendline{}}\\
+  {\hlopt{\{ }}trailer{\hlopt{ \}}}{\hlendline{}}
+  \begin{itemize}
+    \item Comments are delimited by {\hlcom{(* and *)}}, as in OCaml.
+    
+    \item The {\hlkwa{parse}} keyword can be replaced by the
+    {\hlkwa{shortest}} keyword.
+    
+    \item ''Header'', ``trailer'', ``action1'', ... ``actionN'' are arbitrary
+    OCaml code.
+    
+    \item There can be multiple let-clauses and rule-clauses.
+  \end{itemize}
+  \item Let-clauses are shorthands for regular expressions.
+  
+  \item Each rule-clause \tmverbatim{entrypoint} defines function(s) that as
+  the last argument (after \tmverbatim{arg1}...\tmverbatim{ argN} if
+  \tmverbatim{N}>0) takes argument \tmverbatim{lexbuf} of type
+  {\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexbuf}}.
+  \begin{itemize}
+    \item \tmverbatim{lexbuf} is also visible in actions, just as a regular
+    argument.
+    
+    \item \tmverbatim{entrypoint1}...\tmverbatim{ entrypointN} can be mutually
+    recursive if we need to read more before we can return output.
+    
+    \item It seems {\hlkwa{rule}} keyword can be used only once.
+  \end{itemize}
+  \item We can use \tmverbatim{lexbuf} in actions:
+  \begin{itemize}
+    \item {\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme lexbuf}} -- Return the
+    matched string.
+    
+    \item {\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme{\textunderscore}char
+    lexbuf n}} -- Return the nth character in the matched string. The first
+    character corresponds to n = 0.
+    
+    \item
+    {\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme{\textunderscore}start}}/{\hlstd{lexeme{\textunderscore}end
+    lexbuf}} -- Return the absolute position in the input text of the
+    beginning/end of the matched string (i.e. the offset of the first
+    character of the matched string). The first character read from the input
+    text has offset 0.
+  \end{itemize}
+  \item The parser will call an \tmverbatim{entrypoint} when it needs another
+  lexeme/token.
+  
+  \item The syntax of {\tmstrong{regular expressions}}
+  \begin{itemize}
+    \item {\hlstr{'c'}} -- match the character {\hlstr{'c'}}
+    
+    \item \tmverbatim{\_} -- match a {\tmstrong{single}} character
+    
+    \item \tmverbatim{eof} -- match end of lexer input
+    
+    \item {\hlstr{"string"}} -- match the corresponding sequence of characters
+    
+    \item {\hlopt{[}}character set{\hlopt{]}} -- match the character set,
+    characters {\hlstr{'c'}} and ranges of characters
+    {\hlstr{'c'}}{\hlopt{-}}{\hlstr{'d'}} separated by space
+    
+    \item {\hlopt{[\^{}}}character set{\hlopt{]}} -- match characters outside
+    the character set
+    
+    \item {\hlopt{[}}character set 1{\hlopt{] \# }}{\hlopt{[}}character set
+    2{\hlopt{]}} -- match the difference, i.e. only characters in set 1 that
+    are not in set 2
+    
+    \item regexp{\hlopt{*}} -- (repetition) match the concatenation of zero or
+    more strings that match regexp
+    
+    \item regexp{\hlopt{+}} -- (strict repetition) match the concatenation of
+    one or more strings that match regexp
+    
+    \item regexp{\hlopt{?}} -- (option) match the empty string, or a string
+    matching regexp.
+    
+    \item regexp1{\hlopt{ \textbar }}regexp2 -- (alternative) match any string
+    that matches regexp1 or regexp2
+    
+    \item regexp1 regexp2 -- (concatenation) match the concatenation of two
+    strings, the first matching regexp1, the second matching regexp2.
+    
+    \item {\hlopt{(}} regexp {\hlopt{)}} -- match the same strings as regexp
+    
+    \item \tmverbatim{ident} -- reference the regular expression bound to
+    ident by an earlier {\hlkwa{let }}\tmverbatim{ident }{\hlopt{= }}regexp
+    definition
+    
+    \item regexp{\hlkwa{ as }}\tmverbatim{ident} -- bind the substring matched
+    by regexp to identifier \tmverbatim{ident}.
+  \end{itemize}
+  The precedences are: {\hlopt{\#}} highest, followed by {\hlopt{*}},
+  {\hlopt{+}}, {\hlopt{?}}, concatenation, {\hlopt{\textbar}}, {\hlkwa{as}}.
+  
+  \item The type of{\hlkwa{ as }}\tmverbatim{ident} variables can be
+  {\hlkwb{string}}, {\hlkwb{char}}, {\hlkwb{string option }}or {\hlkwb{char
+  option}}
+  \begin{itemize}
+    \item {\hlkwb{char}} means obviously a single character pattern
+    
+    \item {\hlkwb{option}} means situations like {\hlopt{(}}regexp {\hlkwa{as
+    }}\tmverbatim{ident}{\hlopt{)?}} or regexp1{\hlopt{\textbar (}}regexp2
+    {\hlkwa{as }}\tmverbatim{ident}{\hlopt{)}}
+    
+    \item The variables can repeat in the pattern ({\tmstrong{unlike}} in
+    normal paterns) -- meaning both regexpes match the same substrings.
+  \end{itemize}
+  \item \tmverbatim{ocamllex Lexer.mll} produces the lexer code in
+  \tmverbatim{Lexer.ml}
+  \begin{itemize}
+    \item \tmverbatim{ocamlbuild} will call \tmverbatim{ocamllex} and
+    \tmverbatim{ocamlyacc}/\tmverbatim{menhir} if needed
+  \end{itemize}
+  \item Unfortunately if the lexer patterns are big we get an error:
+  
+  {\tmem{transition table overflow, automaton is too big}}
+\end{itemize}
+
+\subsubsection{Example: Finding email addresses}
+
+\begin{itemize}
+  \item We mine a text file for email addresses, that could have been
+  obfuscated to hinder our job...
+  
+  \item To compile and run \tmverbatim{Emails.mll}, processing a file
+  \tmverbatim{email\_corpus.xml}:
+  
+  \tmverbatim{ocamlbuild Emails.native -- email\_corpus.xml}
+\end{itemize}
+{\hlopt{\{}}{\hlendline{The header with OCaml code.}}\\
+{\hlstd{ \ }}{\hlkwa{open }}{\hlkwc{Lexing}}{\hlendline{Make accessing
+{\hlkwc{Lexing}} easier.}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{nextline lexbuf
+}}{\hlopt{=}}{\hlendline{Typical lexer function: move position to next
+line.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{pos }}{\hlopt{=
+}}{\hlstd{lexbuf}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \
+lexbuf}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlopt{<- \{ }}{\hlstd{pos }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ pos{\textunderscore}lnum }}{\hlopt{=
+}}{\hlstd{pos}}{\hlopt{.}}{\hlstd{pos{\textunderscore}lnum }}{\hlopt{+
+}}{\hlnum{1}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ pos{\textunderscore}bol }}{\hlopt{=
+}}{\hlstd{pos}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{type }}{\hlstd{state }}{\hlopt{=}}{\hlendline{Which step
+of searching for address we're at:}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Seek}}{\hlendline{{\hlkwd{Seek}}:
+still seeking, {\hlkwd{Addr }}{\hlopt{(}}{\hlkwa{true}}...{\hlopt{)}}:
+possibly finished,}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlkwd{Addr }}{\hlkwa{of }}{\hlkwb{bool
+}}{\hlopt{* }}{\hlkwb{string }}{\hlopt{* }}{\hlkwb{string
+}}\tmverbatim{list}{\hlendline{{\hlkwd{Addr
+}}{\hlopt{(}}{\hlkwa{false}}...{\hlopt{)}}: no domain.}}
+
+\tmverbatim{ \ }{\hlkwa{let }}{\hlstd{report state lexbuf
+}}{\hlopt{=}}{\hlendline{Report the found address, if any.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{match }}{\hlstd{state
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Seek }}{\hlopt{->
+()}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlkwa{false}}{\hlopt{, }}{\hlstd{{\textunderscore}}}{\hlopt{,
+}}{\hlstd{{\textunderscore}}}{\hlopt{) -> ()}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlkwa{true}}{\hlopt{, }}{\hlstd{name}}{\hlopt{,
+}}{\hlstd{addr}}{\hlopt{) ->}}{\hlendline{With line at which it is found.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf }}{\hlstr{"\%d:
+\%s@\%s}}{\hlesc{n}}{\hlstr{"}}{\hlstd{
+lexbuf}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p}}{\hlopt{.}}{\hlstd{pos{\textunderscore}lnum{\hlendline{}}\\
+\ \ \ \ \ \ \ name }}{\hlopt{(}}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat
+}}{\hlstr{"."}}{\hlstd{ }}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+addr}}{\hlopt{))}}{\hlendline{}}\\
+{\hlopt{\}}}{\hlendline{}}\\
+{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{newline }}{\hlopt{= (}}{\hlesc{'\textbackslash
+n'}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"}}{\hlesc{\textbackslash
+r\textbackslashn}}{\hlstr{"}}{\hlopt{)}}{\hlendline{Regexp for end of
+line.}}\\
+{\hlkwa{let }}{\hlstd{addr{\textunderscore}char }}{\hlopt{=
+[}}{\hlstr{'a'}}{\hlopt{-}}{\hlstr{'z'}}\tmverbatim{
+}{\hlstr{'A'}}{\hlopt{-}}{\hlstr{'Z'}}\tmverbatim{
+}{\hlstr{'0'}}{\hlopt{-}}{\hlstr{'9'}}\tmverbatim{ }{\hlstr{'-'}}\tmverbatim{
+}{\hlstr{'{\textunderscore}'}}{\hlopt{]}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{at{\textunderscore}w{\textunderscore}symb }}{\hlopt{=
+}}{\hlstr{"where"}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"WHERE"}}{\hlstd{
+{\hlopt{\textbar}} }}{\hlstr{"at"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"At"}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"AT"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{at{\textunderscore}nw{\textunderscore}symb }}{\hlopt{=
+}}{\hlstd{{\hlstr{'@'}} {\hlopt{\textbar}} }}{\hlstr{"\&\#x40;"}}{\hlstd{
+{\hlopt{\textbar}} }}{\hlstr{"\&\#64;"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{open{\textunderscore}symb }}{\hlopt{= }}{\hlstr{'
+'}}{\hlopt{* }}{\hlstr{'('}} {\hlstr{' '}}{\hlopt{* }}{\hlopt{\textbar
+}}{\hlstr{' '}}{\hlopt{+}}{\hlendline{Demarcate a possible @}}\\
+{\hlkwa{let }}{\hlstd{close{\textunderscore}symb }}{\hlopt{= }}{\hlstr{'
+'}}{\hlopt{* }}{\hlstr{')'}}\tmverbatim{ }{\hlstr{' '}}{\hlopt{*
+}}{\hlopt{\textbar }}{\hlstr{' '}}{\hlopt{+}}{\hlendline{or . symbol.}}\\
+{\hlkwa{let }}{\hlstd{at{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ open{\textunderscore}symb?
+at{\textunderscore}nw{\textunderscore}symb close{\textunderscore}symb?
+{\hlopt{\textbar}}{\hlendline{}}\\
+\ open{\textunderscore}symb at{\textunderscore}w{\textunderscore}symb
+close{\textunderscore}symb}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{dot{\textunderscore}w{\textunderscore}symb }}{\hlopt{=
+}}{\hlstr{"dot"}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"DOT"}}{\hlstd{
+{\hlopt{\textbar}} }}{\hlstr{"dt"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"DT"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{dom{\textunderscore}w{\textunderscore}symb }}{\hlopt{=
+}}{\hlstd{dot{\textunderscore}w{\textunderscore}symb {\hlopt{\textbar}}
+}}{\hlstr{"dom"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"DOM"}}{\hlendline{Obfuscation for last dot.}}\\
+{\hlkwa{let }}{\hlstd{dot{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ open{\textunderscore}symb
+dot{\textunderscore}w{\textunderscore}symb close{\textunderscore}symb
+{\hlopt{\textbar}}{\hlendline{}}\\
+\ open{\textunderscore}symb? }}{\hlstr{'.'}}{\hlstd{
+close{\textunderscore}symb?}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{dom{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ open{\textunderscore}symb
+dom{\textunderscore}w{\textunderscore}symb close{\textunderscore}symb
+{\hlopt{\textbar}}{\hlendline{}}\\
+\ open{\textunderscore}symb? }}{\hlstr{'.'}}{\hlstd{
+close{\textunderscore}symb?}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{addr{\textunderscore}dom }}{\hlopt{=
+}}\tmverbatim{addr{\textunderscore}char
+addr{\textunderscore}char}{\hlendline{Restricted form of last part}}\\
+\tmverbatim{ \ }{\hlopt{\textbar }}{\hlstr{"edu"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"EDU"}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"org"}}{\hlstd{
+{\hlopt{\textbar}} }}{\hlstr{"ORG"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"com"}}{\hlstd{ {\hlopt{\textbar}} }}{\hlstr{"COM"}}{\hlendline{of
+address.}}\\
+{\hlendline{}}\\
+{\hlkwa{rule }}\tmverbatim{email state }{\hlopt{= }}parse{\hlendline{}}\\
+{\hlopt{\textbar}} \tmverbatim{newline}{\hlendline{Check state before moving
+on.}}\tmverbatim{\\
+\ \ \ }{\hlopt{\{ }}{\hlstd{report state lexbuf}}{\hlopt{; }}{\hlstd{nextline
+lexbuf}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ email }}{\hlkwd{Seek }}{\hlstd{lexbuf
+}}{\hlopt{\}}}{\hlendline{$\swarrow$Detected possible start of address.}}\\
+{\hlopt{\textbar  (}}{\hlstd{addr{\textunderscore}char}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{name}}{\hlopt{)
+}}{\hlstd{at{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{(}}{\hlstd{addr{\textunderscore}char}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{addr}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{email }}{\hlopt{(}}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlkwa{false}}{\hlopt{, }}{\hlstd{name}}{\hlopt{,
+[}}{\hlstd{addr}}{\hlopt{])) }}{\hlstd{lexbuf }}{\hlopt{\}}}{\hlendline{}}
+
+{\hlstd{{\hlopt{\textbar}} dom{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{(}}{\hlstd{addr{\textunderscore}dom }}{\hlkwa{as
+}}{\hlstd{dom}}{\hlopt{)}}{\hlendline{Detected possible finish of address.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlkwa{let }}{\hlstd{state
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{match }}{\hlstd{state
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Seek }}{\hlopt{->
+}}{\hlkwd{Seek}}{\hlendline{We weren't looking at an address.}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlstd{{\textunderscore}}}{\hlopt{, }}{\hlstd{name}}{\hlopt{,
+}}{\hlstd{addrs}}{\hlopt{) ->}}{\hlendline{Bingo.}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlkwd{Addr }}{\hlopt{(}}{\hlkwa{true}}{\hlopt{,
+}}{\hlstd{name}}{\hlopt{, }}{\hlstd{dom}}{\hlopt{::}}{\hlstd{addrs}}{\hlopt{)
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ email state lexbuf }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} dot{\textunderscore}sep{\textunderscore}symb
+}}{\hlopt{(}}{\hlstd{addr{\textunderscore}char}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{addr}}{\hlopt{)}}{\hlendline{Next part of address --}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlkwa{let }}{\hlstd{state
+}}{\hlopt{=}}{\hlendline{must be continued.}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{match }}{\hlstd{state
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Seek }}{\hlopt{->
+}}{\hlkwd{Seek}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlstd{{\textunderscore}}}{\hlopt{, }}{\hlstd{name}}{\hlopt{,
+}}{\hlstd{addrs}}{\hlopt{) ->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \ }}{\hlkwd{Addr
+}}{\hlopt{(}}{\hlkwa{false}}{\hlopt{, }}{\hlstd{name}}{\hlopt{,
+}}{\hlstd{addr}}{\hlopt{::}}{\hlstd{addrs}}{\hlopt{)
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ email state lexbuf }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar}} \tmverbatim{eof}{\hlendline{End of file -- end loop.}}\\
+\tmverbatim{ \ \ \ \ }{\hlopt{\{ }}{\hlstd{report state lexbuf
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar}}\tmverbatim{ {\textunderscore}}{\hlendline{Some boring
+character -- not looking at an address yet.}}\\
+\tmverbatim{ \ \ \ \ }{\hlopt{\{ }}{\hlstd{report state lexbuf}}{\hlopt{;
+}}{\hlstd{email }}{\hlkwd{Seek }}{\hlstd{lexbuf }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlendline{}}\\
+{\hlopt{\{}}{\hlendline{The trailer with OCaml code.}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore}
+}}{\hlopt{=}}{\hlendline{Open a file and start mining for email addresses.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{ch }}{\hlopt{=
+}}{\hlstd{open{\textunderscore}in
+}}{\hlkwc{Sys}}{\hlopt{.}}{\hlstd{argv}}{\hlopt{.(}}{\hlnum{1}}{\hlopt{)
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ email }}{\hlkwd{Seek
+}}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}channel
+ch}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ close{\textunderscore}in ch}}{\hlendline{Close the file at the
+end.}}\\
+{\hlopt{\}}}{\hlendline{}}\\
+
+
+\subsection{Parsing with Menhir}
+
+\begin{itemize}
+  \item The format of parser definitions is as follows: file with extension
+  \tmverbatim{.mly}
+  
+  {\hlopt{\%\{ }}header {\hlopt{\%\}}}{\hlendline{OCaml code put in front.}}\\
+  {\hlopt{\%}}{\hlstd{parameter }}{\hlopt{< }}{\hlkwd{M }}{\hlopt{:
+  }}signature {\hlopt{>}}{\hlendline{Parameters make a functor.}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlopt{< }}type1 {\hlopt{> }}{\hlkwd{Token1
+  Token2}}{\hlendline{Terminal productions, variants}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlopt{< }}type3 {\hlopt{>
+  }}{\hlkwd{Token3}}{\hlendline{returned from lexer.}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlkwd{NoArgToken}}{\hlendline{Without an
+  argument, e.g. keywords or symbols.}}\\
+  {\hlopt{\%}}{\hlstd{nonassoc }}{\hlkwd{Token1}}{\hlendline{This token cannot
+  be stacked without parentheses.}}\\
+  {\hlopt{\%}}{\hlstd{left }}{\hlkwd{Token3}}{\hlendline{Associates to
+  left,}}\\
+  {\hlopt{\%}}{\hlstd{right }}{\hlkwd{Token2}}{\hlendline{to right.}}\\
+  {\hlopt{\%}}{\hlkwa{type }}{\hlopt{< }}type4 {\hlopt{>
+  }}{\hlstd{rule1}}{\hlendline{Type of the action of the rule.}}\\
+  {\hlopt{\%}}{\hlstd{start }}{\hlopt{< }}type5 {\hlopt{>
+  }}{\hlstd{rule2}}{\hlendline{The entry point of the grammar.}}\\
+  {\hlopt{\%\%}}{\hlendline{Separate out the rules part.}}\\
+  {\hlopt{\%}}{\hlstd{inline rule1 }}{\hlopt{(}}{\hlstd{id1}}{\hlopt{, ...,
+  }}{\hlstd{inN}}{\hlopt{) :}}{\hlendline{Inlined rules can propagate
+  priorities.}}\\
+  \tmverbatim{ }{\hlopt{\textbar}}\tmverbatim{ }production1 {\hlopt{\{
+  }}{\hlstd{action1 }}{\hlopt{\}}}{\hlendline{If production matches, perform
+  action.}}\tmverbatim{\\
+  }{\hlopt{\textbar}}\tmverbatim{ }production2 {\hlopt{\textbar}}\tmverbatim{
+  }production3{\hlendline{Several productions}}\tmverbatim{\\
+  \ \ \ \ }{\hlopt{\{ }}action2{\hlopt{ \}}}{\hlendline{with the same
+  action.}}
+  
+  {\hlopt{\%}}{\hlstd{public rule2 }}{\hlopt{:}}{\hlendline{Visible in other
+  files of the grammar.}}\\
+  {\hlopt{ \textbar }}production4{\hlopt{ \{ }}action4{\hlopt{
+  \}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public rule3 }}{\hlopt{:}}{\hlendline{Override
+  precedence of production5 to that of productions}}\\
+  {\hlopt{ \textbar }}production5{\hlopt{ \{ }}action5{\hlopt{ \}}}{\hlstd{
+  }}{\hlopt{\%}}{\hlstd{prec }}{\hlkwd{Token1}}{\hlendline{ending with
+  {\hlkwd{Token1}}}}\\
+  {\hlopt{\%\%}}{\hlendline{The separations are needed even if the sections
+  are empty.}}\\
+  trailer{\hlendline{OCaml code put at the end of generated source.}}
+  
+  \item Header, actions and trailer are OCaml code.
+  
+  \item Comments are {\hlcom{(* ... *)}} in OCaml code, {\hlcom{/* ... */}} or
+  {\hlcom{// ...}} outisde
+  
+  \item Rules can optionally be separated by {\hlopt{;}}
+  
+  \item {\hlopt{\%}}{\hlstd{parameter }}turns the {\tmstrong{whole}} resulting
+  grammar into a functor, multiple parameters are allowed. The parameters are
+  visible in {\hlopt{\%\{}}...{\hlopt{\%\}}}.
+  
+  \item Terminal symbols {\hlkwd{Token1}} and {\hlkwd{Token2}} are both
+  variants with argument of type type1, called their {\tmem{semantic value}}.
+  
+  \item \tmverbatim{rule1}... \tmverbatim{ruleN} must be lower-case
+  identifiers.
+  
+  \item Parameters \tmverbatim{id1}... \tmverbatim{idN} can be lower- or
+  upper-case.
+  
+  \item Priorities, i.e. precedence, are declared implicitly:
+  {\hlopt{\%}}{\hlstd{nonassoc}}, {\hlopt{\%}}{\hlstd{left}},
+  {\hlopt{\%}}{\hlstd{right}} list tokens in increasing priority
+  ({\hlkwd{Token2}} has highest precedence).
+  \begin{itemize}
+    \item Higher precedence = a rule is applied even when tokens so far could
+    be part of the other rule.
+    
+    \item Precedence of a production comes from its rightmost terminal.
+    
+    \item {\hlopt{\%}}{\hlstd{left}}/{\hlopt{\%}}{\hlstd{right}} means
+    left/right associativity: the rule will/won't be applied if the ``other''
+    rule is the same production.
+  \end{itemize}
+  \item {\hlopt{\%}}{\hlstd{start}} symbols become names of functions exported
+  in the \tmverbatim{.mli} file to invoke the parser. They are automatically
+  {\hlopt{\%}}{\hlstd{public}}.
+  
+  \item {\hlopt{\%}}{\hlstd{public}} rules can even be defined over multiple
+  files, with productions joined by {\hlopt{\textbar}}.
+  
+  \item The syntax of productions, i.e. patterns, each line shows one aspect,
+  they can be combined:
+  
+  \tmverbatim{rule2}{\hlkwd{ Token1 }}\tmverbatim{rule3}{\hlendline{Match
+  tokens in sequence with {\hlkwd{Token1}} in the middle.}}\\
+  a{\hlopt{=}}{\hlstd{rule2 t}}{\hlopt{=}}{\hlkwd{Token3}}{\hlendline{Name
+  semantic values produced by rules/tokens.}}\\
+  {\hlstd{rule2}}{\hlopt{; }}{\hlkwd{Token3}}{\hlendline{Parts of pattern can
+  be separated by semicolon.}}\\
+  {\hlstd{rule1}}{\hlopt{(}}{\hlstd{arg1}}{\hlopt{,...,}}{\hlstd{argN}}{\hlopt{)}}{\hlendline{Use
+  a rule that takes arguments.}}\\
+  \tmverbatim{rule2}{\hlopt{?}}{\hlendline{Shorthand for
+  {\hlkwb{option}}{\hlopt{(}}{\hlstd{rule2}}{\hlopt{)}}}}\\
+  \tmverbatim{rule2}{\hlopt{+}}{\hlendline{Shorthand for
+  {\hlstd{nonempty{\textunderscore}list}}{\hlopt{(}}{\hlstd{rule2}}{\hlopt{)}}}}\\
+  {\hlstd{rule2}}{\hlopt{*}}{\hlendline{Shorthand for
+  {\hlstd{list}}{\hlopt{(}}{\hlstd{rule2}}{\hlopt{)}}}}
+  
+  \item Always-visible ``standard library'' -- most of rules copied below:
+  
+  {\hlopt{\%}}{\hlstd{public
+  }}{\hlkwb{option}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{/* }}{\hlstd{nothing }}{\hlopt{*/}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlkwd{None }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} x }}{\hlopt{= }}{\hlkwd{X}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlkwd{Some }}{\hlstd{x
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public }}{\hlopt{\%}}{\hlstd{inline
+  pair}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{,
+  }}{\hlkwd{Y}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{; }}{\hlstd{y }}{\hlopt{=
+  }}{\hlkwd{Y}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ (}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{)
+  \}}}{\hlendline{}}
+  
+  {\hlopt{\%}}{\hlstd{public }}{\hlopt{\%}}{\hlstd{inline
+  separated{\textunderscore}pair}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{,
+  }}{\hlstd{sep}}{\hlopt{, }}{\hlkwd{Y}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{; }}{\hlstd{sep}}{\hlopt{;
+  }}{\hlstd{y }}{\hlopt{= }}{\hlkwd{Y}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ (}}{\hlstd{x}}{\hlopt{, }}{\hlstd{y}}{\hlopt{)
+  \}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public }}{\hlopt{\%}}{\hlstd{inline
+  delimited}}{\hlopt{(}}{\hlstd{opening}}{\hlopt{, }}{\hlkwd{X}}{\hlopt{,
+  }}{\hlstd{closing}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ opening}}{\hlopt{; }}{\hlstd{x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{;
+  }}{\hlstd{closing{\hlendline{}}\\
+  \ \ \ }}{\hlopt{\{ }}{\hlstd{x }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public
+  list}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlopt{/* }}{\hlstd{nothing }}{\hlopt{*/}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ [] \}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{; }}{\hlstd{xs
+  }}{\hlopt{=
+  }}{\hlstd{list}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{x }}{\hlopt{:: }}{\hlstd{xs
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public
+  nonempty{\textunderscore}list}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ x }}{\hlopt{= }}{\hlkwd{X}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ [ }}{\hlstd{x }}{\hlopt{] \}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{; }}{\hlstd{xs
+  }}{\hlopt{=
+  }}{\hlstd{nonempty{\textunderscore}list}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{x }}{\hlopt{:: }}{\hlstd{xs
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{public }}{\hlopt{\%}}{\hlstd{inline
+  separated{\textunderscore}list}}{\hlopt{(}}{\hlstd{separator}}{\hlopt{,
+  }}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ xs }}{\hlopt{=
+  }}{\hlstd{loption}}{\hlopt{(}}{\hlstd{separated{\textunderscore}nonempty{\textunderscore}list}}{\hlopt{(}}{\hlstd{separator}}{\hlopt{,
+  }}{\hlkwd{X}}{\hlopt{))}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{xs }}{\hlopt{\}}}{\hlendline{}}
+  
+  {\hlopt{\%}}{\hlstd{public
+  separated{\textunderscore}nonempty{\textunderscore}list}}{\hlopt{(}}{\hlstd{separator}}{\hlopt{,
+  }}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{ \ x }}{\hlopt{= }}{\hlkwd{X}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ [ }}{\hlstd{x }}{\hlopt{] \}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} x }}{\hlopt{= }}{\hlkwd{X}}{\hlopt{;
+  }}{\hlstd{separator}}{\hlopt{; }}{\hlstd{xs }}{\hlopt{=
+  }}{\hlstd{separated{\textunderscore}nonempty{\textunderscore}list}}{\hlopt{(}}{\hlstd{separator}}{\hlopt{,
+  }}{\hlkwd{X}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{x }}{\hlopt{:: }}{\hlstd{xs
+  }}{\hlopt{\}}}{\hlendline{}}
+  
+  \item Only {\tmem{left-recursive}} rules are truly tail-recursive, as in:
+  
+  {\hlstd{declarations}}{\hlopt{:}}{\hlendline{}}\\
+  {\hlopt{\textbar \{ [] \}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} ds }}{\hlopt{= }}{\hlstd{declarations}}{\hlopt{;
+  }}{\hlkwb{option}}{\hlopt{(}}{\hlkwd{COMMA}}{\hlopt{);}}{\hlendline{}}\\
+  {\hlstd{ \ d }}{\hlopt{= }}{\hlstd{declaration }}{\hlopt{\{ }}{\hlstd{d
+  }}{\hlopt{:: }}{\hlstd{ds }}{\hlopt{\}}}{\hlendline{}}
+  \begin{itemize}
+    \item This is opposite to code expressions (or {\tmem{recursive descent
+    parsers}}), i.e. if both OK, first rather than last invocation should be
+    recursive.
+  \end{itemize}
+  \item Invocations can be nested in arguments, e.g.:
+  
+  {\hlstd{plist}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} xs }}{\hlopt{=
+  }}{\hlstd{loption}}{\hlopt{(}}{\hlendline{Like \tmverbatim{option}, but
+  returns a list.}}\\
+  {\hlstd{ \ delimited}}{\hlopt{(}}{\hlkwd{LPAREN}}{\hlopt{,}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ \ \
+  separated{\textunderscore}nonempty{\textunderscore}list}}{\hlopt{(}}{\hlkwd{COMMA}}{\hlopt{,
+  }}{\hlkwd{X}}{\hlopt{),}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ \ \ \ \ \ \ }}{\hlkwd{RPAREN}}{\hlopt{)) \{ }}{\hlstd{xs
+  }}{\hlopt{\}}}{\hlendline{}}
+  
+  \item Higher-order parameters are allowed.
+  
+  {\hlstd{procedure}}{\hlopt{(}}{\hlstd{list}}{\hlopt{):}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{PROCEDURE ID
+  }}{\hlstd{list}}{\hlopt{(}}{\hlstd{formal}}{\hlopt{) }}{\hlkwd{SEMICOLON
+  }}{\hlstd{block }}{\hlkwd{SEMICOLON }}{\hlopt{\{}}...{\hlopt{\}}}
+  
+  \item Example where inlining is required (besides being an optimization)
+  
+  {\hlopt{\%}}{\hlstd{token }}{\hlopt{< }}{\hlkwb{int }}{\hlopt{>
+  }}{\hlkwd{INT}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlkwd{PLUS TIMES}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{left }}{\hlkwd{PLUS}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{left }}{\hlkwd{TIMES}}{\hlendline{Multiplication has
+  higher priority.}}\\
+  {\hlopt{\%\%}}{\hlendline{}}\\
+  {\hlstd{expression}}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} i }}{\hlopt{= }}{\hlkwd{INT }}{\hlopt{\{
+  }}{\hlstd{i }}{\hlopt{\}}}{\hlendline{$\swarrow$ Without inlining, would not
+  distinguish priorities.}}\\
+  {\hlstd{{\hlopt{\textbar}} e }}{\hlopt{= }}{\hlstd{expression}}{\hlopt{;
+  }}{\hlstd{o }}{\hlopt{= }}{\hlstd{op}}{\hlopt{; }}{\hlstd{f }}{\hlopt{=
+  }}{\hlstd{expression }}{\hlopt{\{ }}{\hlstd{o e f
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{inline op}}{\hlopt{:}}{\hlendline{Inline operator --
+  generate corresponding rules.}}\\
+  {\hlopt{\textbar }}{\hlkwd{PLUS }}{\hlopt{\{ ( + ) \}}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{TIMES }}{\hlopt{\{ ( * ) \}}}{\hlendline{}}
+  
+  \item Menhir is an $\tmop{LR} (1)$ parser generator, i.e. it fails for
+  grammars where looking one token ahead, together with precedences, is
+  insufficient to determine whether a rule applies.
+  \begin{itemize}
+    \item In particular, only unambiguous grammars.
+  \end{itemize}
+  \item Although $\tmop{LR} (1)$ grammars are a small subset of {\tmem{context
+  free grammars}}, the semantic actions can depend on context: actions can be
+  functions that take some form of context as input.
+  
+  \item Positions are available in actions via keywords
+  {\hlopt{\$}}\tmverbatim{startpos}{\hlopt{(}}\tmverbatim{x}{\hlopt{)}} and
+  {\hlopt{\$}}\tmverbatim{endpos}{\hlopt{(}}\tmverbatim{x}{\hlopt{)}} where
+  \tmverbatim{x} is name given to part of pattern.
+  \begin{itemize}
+    \item Do not use the {\hlkwc{Parsing}} module from OCaml standard library.
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Example: parsing arithmetic expressions}
+
+\begin{itemize}
+  \item Example based on a Menhir demo. Due to difficulties with
+  \tmverbatim{ocamlbuild}, we use option \tmverbatim{--external-tokens} to
+  provide {\hlkwa{type }}{\hlstd{token}} directly rather than having it
+  generated.
+  
+  \item File \tmverbatim{lexer.mll}:
+  
+  {\hlopt{\{}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{type }}{\hlstd{token }}{\hlopt{= }}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{TIMES}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{RPAREN}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{PLUS}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{MINUS}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{LPAREN}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{INT }}{\hlkwa{of
+  }}{\hlopt{(}}{\hlkwb{int}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{EOL}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{DIV}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{exception }}{\hlkwd{Error }}{\hlkwa{of
+  }}{\hlkwb{string}}{\hlendline{}}\\
+  {\hlopt{\}}}{\hlendline{}}
+  
+  {\hlstd{rule line }}{\hlopt{= }}{\hlstd{parse{\hlendline{}}\\
+  {\hlopt{\textbar}}
+  }}{\hlopt{([}}{\hlstd{{\textasciicircum}'}}{\hlesc{n}}{\hlstd{'}}{\hlopt{]*
+  }}{\hlstd{'}}{\hlesc{n}}{\hlstd{'}}{\hlopt{) }}{\hlkwa{as }}{\hlstd{line
+  }}{\hlopt{\{ }}{\hlstd{line }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} eof \ }}{\hlopt{\{ }}{\hlstd{exit }}{\hlnum{0
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlkwa{and }}{\hlstd{token }}{\hlopt{= }}{\hlstd{parse{\hlendline{}}\\
+  {\hlopt{\textbar}} }}{\hlopt{[}}{\hlstd{' '
+  '}}{\hlesc{t}}{\hlstd{'}}{\hlopt{]}}{\hlstd{ \ \ \ \ \ }}{\hlopt{\{
+  }}{\hlstd{token lexbuf }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlesc{n}}{\hlstd{' }}{\hlopt{\{
+  }}{\hlkwd{EOL }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\textbar 
+  [}}{\hlstd{'}}{\hlnum{0}}{\hlstd{'}}{\hlopt{-}}{\hlstd{'}}{\hlnum{9}}{\hlstd{'}}{\hlopt{]+
+  }}{\hlkwa{as }}{\hlstd{i }}{\hlopt{\{ }}{\hlkwd{INT
+  }}{\hlopt{(}}{\hlstd{int{\textunderscore}of{\textunderscore}string
+  i}}{\hlopt{) \}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{+}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{PLUS }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{-}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{MINUS }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{*}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{TIMES }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{/}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{DIV }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{(}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{LPAREN }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} '}}{\hlopt{)}}{\hlstd{' \ }}{\hlopt{\{
+  }}{\hlkwd{RPAREN }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} eof \ }}{\hlopt{\{ }}{\hlstd{exit }}{\hlnum{0
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} {\textunderscore} \ \ \ }}{\hlopt{\{
+  }}{\hlstd{raise }}{\hlopt{(}}{\hlkwd{Error
+  }}{\hlopt{(}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{sprintf }}{\hlstr{"At offset
+  \%d: unexpected character.}}{\hlesc{n}}{\hlstr{"}}{\hlstd{
+  }}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme{\textunderscore}start
+  lexbuf}}{\hlopt{))) \}}}{\hlendline{}}
+  
+  \item File \tmverbatim{parser.mly}:
+  
+  {\hlopt{\%}}{\hlstd{token }}{\hlopt{<}}{\hlkwb{int}}{\hlopt{>
+  }}{\hlkwd{INT}}{\hlendline{We still need to define tokens,}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlkwd{PLUS MINUS TIMES DIV}}{\hlendline{Menhir
+  does its own checks.}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlkwd{LPAREN RPAREN}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{token }}{\hlkwd{EOL}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{left }}{\hlkwd{PLUS MINUS}}{\hlstd{ \ \ \ \ \ \ \
+  }}{\hlopt{/* }}{\hlstd{lowest precedence }}{\hlopt{*/}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{left }}{\hlkwd{TIMES DIV}}{\hlstd{ \ \ \ \ \ \ \ \
+  }}{\hlopt{/* }}{\hlstd{medium precedence }}{\hlopt{*/}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{nonassoc }}{\hlkwd{UMINUS}}{\hlstd{ \ \ \ \ \ \ \
+  }}{\hlopt{/* }}{\hlstd{highest precedence }}{\hlopt{*/}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{parameter}}{\hlopt{<}}{\hlkwd{Semantics }}{\hlopt{:
+  }}{\hlkwa{sig}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{type }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlstd{inject}}{\hlopt{: }}{\hlkwb{int }}{\hlopt{->
+  }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlopt{( + ): }}{\hlstd{number }}{\hlopt{->
+  }}{\hlstd{number }}{\hlopt{-> }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlopt{( - ): }}{\hlstd{number }}{\hlopt{->
+  }}{\hlstd{number }}{\hlopt{-> }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlopt{( * ): }}{\hlstd{number }}{\hlopt{->
+  }}{\hlstd{number }}{\hlopt{-> }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlopt{( / ): }}{\hlstd{number }}{\hlopt{->
+  }}{\hlstd{number }}{\hlopt{-> }}{\hlstd{number{\hlendline{}}\\
+  \ }}{\hlkwa{val }}{\hlopt{( }}{\hlstd{$\sim$}}{\hlopt{-): }}{\hlstd{number
+  }}{\hlopt{-> }}{\hlstd{number}}{\hlendline{}}\\
+  {\hlkwa{end}}{\hlopt{>}}{\hlendline{}}\\
+  {\hlopt{\%}}{\hlstd{start
+  }}{\hlopt{<}}{\hlkwc{Semantics}}{\hlopt{.}}{\hlstd{number}}{\hlopt{>
+  }}{\hlstd{main}}{\hlendline{}}\\
+  {\hlopt{\%\{ }}{\hlkwa{open }}{\hlkwd{Semantics
+  }}{\hlopt{\%\}}}{\hlendline{}}
+  
+  {\hlopt{\%\%}}{\hlendline{}}\\
+  {\hlstd{main}}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} e }}{\hlopt{= }}{\hlstd{expr
+  }}{\hlkwd{EOL}}{\hlstd{ \ \ }}{\hlopt{\{ }}{\hlstd{e
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{expr}}{\hlopt{:}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} i }}{\hlopt{= }}{\hlkwd{INT}}{\hlstd{ \ \ \ \
+  }}{\hlopt{\{ }}{\hlstd{inject i }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{LPAREN }}{\hlstd{e }}{\hlopt{= }}{\hlstd{expr
+  }}{\hlkwd{RPAREN}}{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{e
+  }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} e1 }}{\hlopt{= }}{\hlstd{expr }}{\hlkwd{PLUS
+  }}{\hlstd{e2 }}{\hlopt{= }}{\hlstd{expr \ }}{\hlopt{\{ }}{\hlstd{e1
+  }}{\hlopt{+ }}{\hlstd{e2 }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} e1 }}{\hlopt{= }}{\hlstd{expr }}{\hlkwd{MINUS
+  }}{\hlstd{e2 }}{\hlopt{= }}{\hlstd{expr }}{\hlopt{\{ }}{\hlstd{e1
+  }}{\hlopt{- }}{\hlstd{e2 }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} e1 }}{\hlopt{= }}{\hlstd{expr }}{\hlkwd{TIMES
+  }}{\hlstd{e2 }}{\hlopt{= }}{\hlstd{expr }}{\hlopt{\{ }}{\hlstd{e1
+  }}{\hlopt{* }}{\hlstd{e2 }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlstd{{\hlopt{\textbar}} e1 }}{\hlopt{= }}{\hlstd{expr }}{\hlkwd{DIV
+  }}{\hlstd{e2 }}{\hlopt{= }}{\hlstd{expr \ \ }}{\hlopt{\{ }}{\hlstd{e1
+  }}{\hlopt{/ }}{\hlstd{e2 }}{\hlopt{\}}}{\hlendline{}}\\
+  {\hlopt{\textbar }}{\hlkwd{MINUS }}{\hlstd{e }}{\hlopt{= }}{\hlstd{expr
+  }}{\hlopt{\%}}{\hlstd{prec }}{\hlkwd{UMINUS }}{\hlopt{\{ - }}{\hlstd{e
+  }}{\hlopt{\}}}{\hlendline{}}
+  
+  \item File \tmverbatim{calc.ml}:
+  
+  {\hlkwa{module }}{\hlkwd{FloatSemantics }}{\hlopt{=
+  }}{\hlkwa{struct}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{type }}{\hlstd{number }}{\hlopt{=
+  }}{\hlkwb{float}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{inject }}{\hlopt{=
+  }}{\hlstd{float{\textunderscore}of{\textunderscore}int{\hlendline{}}\\
+  \ }}{\hlkwa{let }}{\hlopt{( + ) = ( +. )}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlopt{( - ) = ( -. )}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlopt{( * ) = ( *. )}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlopt{( / ) = ( /. )}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlopt{(}}{\hlstd{$\sim$}}{\hlopt{- ) =
+  (}}{\hlstd{$\sim$}}{\hlopt{-. )}}{\hlendline{}}\\
+  {\hlkwa{end}}{\hlendline{}}\\
+  {\hlkwa{module }}{\hlkwd{FloatParser }}{\hlopt{=
+  }}{\hlkwc{Parser}}{\hlopt{.}}{\hlkwd{Make}}{\hlopt{(}}{\hlkwd{FloatSemantics}}{\hlopt{)}}{\hlendline{}}
+  
+  {\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{stdinbuf }}{\hlopt{=
+  }}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}channel stdin
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{while true do}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{linebuf }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \
+  }}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}string
+  }}{\hlopt{(}}{\hlkwc{Lexer}}{\hlopt{.}}{\hlstd{line stdinbuf}}{\hlopt{)
+  }}{\hlkwa{in}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{try}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+  }}{\hlstr{"\%.1f}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{{\hlendline{}}\\
+  \ \ \ \ \ \ \ }}{\hlopt{(}}{\hlkwc{FloatParser}}{\hlopt{.}}{\hlstd{main
+  }}{\hlkwc{Lexer}}{\hlopt{.}}{\hlstd{token
+  linebuf}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{with}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwc{Lexer}}{\hlopt{.}}{\hlkwd{Error
+  }}{\hlstd{msg }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ }}{\hlkwc{ \ \ \ \ Printf}}{\hlopt{.}}{\hlstd{fprintf stderr
+  }}{\hlstr{"\%s\%!"}}{\hlstd{ msg{\hlendline{}}\\
+  \ \ \ }}{\hlopt{\textbar }}{\hlkwc{FloatParser}}{\hlopt{.}}{\hlkwd{Error
+  }}{\hlopt{->}}{\hlendline{}}\\
+  {\hlstd{ }}{\hlkwc{ \ \ \ \ Printf}}{\hlopt{.}}{\hlstd{fprintf stderr }}\\
+  {\hlstr{ \ \ \ \ \ \ \ "At offset \%d: syntax
+  error.}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{{\hlendline{}}\\
+  \ \ \ \ \ \ \
+  }}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme{\textunderscore}start
+  linebuf}}{\hlopt{)}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{done}}{\hlendline{}}
+  
+  \item Build and run command:
+  \begin{alltt}
+ocamlbuild calc.native -use-menhir -menhir "menhir parser.mly --base parser --external-tokens Lexer" --
+\end{alltt}
+  \begin{itemize}
+    \item Other grammar files can be provided besides \tmverbatim{parser.mly}
+    
+    \item \tmverbatim{--base} gives the file (without extension) which will
+    become the module accessed from OCaml
+    
+    \item \tmverbatim{--external-tokens} provides the OCaml module which
+    defines the \tmverbatim{token} type
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Example: a toy sentence grammar}
+
+\begin{itemize}
+  \item Our lexer is a simple limited {\tmem{part-of-speech tagger}}. Not
+  re-entrant.
+  
+  \item For debugging, we log execution in file \tmverbatim{log.txt}.
+  
+  \item File \tmverbatim{EngLexer.mll}:
+\end{itemize}
+{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ }}{\hlkwa{type }}{\hlstd{sentence }}{\hlopt{= \{}}{\hlendline{Could
+be in any module visible to {\hlkwc{EngParser}}.}}\\
+{\hlstd{ \ \ subject }}{\hlopt{: }}{\hlkwb{string}}{\hlopt{;}}{\hlendline{The
+actor/actors, i.e. subject noun.}}\\
+{\hlstd{ \ \ action }}{\hlopt{: }}{\hlkwb{string}}{\hlopt{;}}{\hlendline{The
+action, i.e. verb.}}\\
+{\hlstd{ \ \ plural }}{\hlopt{: }}{\hlkwb{bool}}{\hlopt{;}}{\hlendline{Whether
+one or multiple actors.}}\\
+{\hlstd{ \ \ adjs }}{\hlopt{: }}{\hlkwb{string
+}}{\hlstd{list}}{\hlopt{;}}{\hlendline{Characteristics of actor.}}\\
+{\hlstd{ \ \ advs }}{\hlopt{: }}{\hlkwb{string
+}}\tmverbatim{list}{\hlendline{Characteristics of action.}}\\
+{\hlopt{\}}}{\hlendline{}}
+
+{\hlstd{ }}{\hlkwa{type }}{\hlstd{token }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{VERB }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{NOUN }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{ADJ }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{ADV }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{PLURAL }}{\hlopt{\textbar
+}}{\hlkwd{SINGULAR}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{A{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THE{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THIS{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THAT{\textunderscore}DET}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{THESE{\textunderscore}DET
+}}{\hlopt{\textbar }}{\hlkwd{THOSE{\textunderscore}DET}}{\hlendline{}}\\
+{\hlstd{ {\hlopt{\textbar}} }}{\hlkwd{COMMA{\textunderscore}CNJ
+}}{\hlopt{\textbar }}{\hlkwd{AND{\textunderscore}CNJ }}{\hlopt{\textbar
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlstd{ }}{\hlkwa{let }}{\hlstd{tok{\textunderscore}str }}{\hlopt{=
+}}{\hlkwa{function }}...{\hlendline{Print the token.}}\\
+{\hlstd{ }}{\hlkwa{let }}{\hlstd{adjectives
+}}{\hlopt{=}}{\hlendline{Recognized adjectives.}}\\
+{\hlstd{ \ \ }}{\hlopt{[}}{\hlstr{"smart"}}{\hlopt{;
+}}{\hlstr{"extreme"}}{\hlopt{; }}{\hlstr{"green"}}{\hlopt{;
+}}{\hlstr{"slow"}}{\hlopt{; }}{\hlstr{"old"}}{\hlopt{;
+}}{\hlstr{"incredible"}}{\hlopt{;}}\\
+{\hlstd{ \ \ \ }}{\hlstr{"quiet"}}{\hlopt{; }}{\hlstr{"diligent"}}{\hlopt{;
+}}{\hlstr{"mellow"}}{\hlopt{; }}{\hlstr{"new"}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{ }}{\hlkwa{let }}{\hlstd{log{\textunderscore}file }}{\hlopt{=
+}}{\hlstd{open{\textunderscore}out }}{\hlstr{"log.txt"}}{\hlendline{File with
+debugging information.}}\\
+\tmverbatim{ }{\hlkwa{let }}{\hlstd{log s }}{\hlopt{=
+}}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{fprintf log{\textunderscore}file
+}}{\hlstr{"\%s}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{ s{\hlendline{}}\\
+}}{\hlkwa{let }}{\hlstd{last{\textunderscore}tok }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{State for better tagging.}}
+
+{\hlstd{ }}{\hlkwa{let }}{\hlstd{tokbuf }}{\hlopt{=
+}}{\hlkwc{Queue}}{\hlopt{.}}{\hlstd{create }}{\hlopt{()}}{\hlendline{Token
+buffer, since single word}}\\
+{\hlstd{ }}{\hlkwa{let }}{\hlstd{push w }}{\hlopt{=}}{\hlendline{is sometimes
+two tokens.}}\\
+{\hlstd{ \ \ log }}{\hlopt{(}}{\hlstr{"lex:
+"}}{\hlstd{{\textasciicircum}tok{\textunderscore}str
+w}}{\hlopt{);}}{\hlendline{Log lexed token.}}\\
+{\hlstd{ \ \ last{\textunderscore}tok }}{\hlopt{:= }}{\hlstd{w}}{\hlopt{;
+}}{\hlkwc{Queue}}{\hlopt{.}}{\hlstd{push w tokbuf{\hlendline{}}\\
+}}{\hlkwa{exception }}{\hlkwd{LexError }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{alphanum }}{\hlopt{=
+[}}{\hlstd{'}}{\hlnum{0}}{\hlstd{'}}{\hlopt{-}}{\hlstd{'}}{\hlnum{9}}{\hlstd{'
+'a'}}{\hlopt{-}}{\hlstd{'z' '}}{\hlkwd{A'}}{\hlopt{-}}{\hlstd{'}}{\hlkwd{Z'
+}}{\hlstd{''' '}}{\hlopt{-}}{\hlstd{'}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{rule line }}{\hlopt{= }}{\hlkwa{parse}}{\hlendline{For line-based
+interface.}}\\
+{\hlopt{\textbar}}
+{\hlopt{([}}{\hlstd{{\textasciicircum}'}}{\hlesc{\textbackslash
+n}}{\hlstd{'}}{\hlopt{]*
+}}{\hlstd{'}}{\hlesc{\textbackslashn}}{\hlstd{'}}{\hlopt{) }}{\hlkwa{as
+}}{\hlstd{l }}{\hlopt{\{ }}{\hlstd{l }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} eof }}{\hlopt{\{ }}{\hlstd{exit }}{\hlnum{0
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{and }}{\hlstd{lex{\textunderscore}word }}{\hlopt{=
+}}{\hlstd{parse{\hlendline{}}\\
+{\hlopt{\textbar}} }}{\hlopt{[}}{\hlstd{' ' '}}{\hlesc{\textbackslash
+t}}{\hlstd{'}}{\hlopt{]}}{\hlendline{Skip whitespace.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{lex{\textunderscore}word lexbuf
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} '}}{\hlopt{.}}{\hlstd{' }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{DOT{\textunderscore}PUNCT }}{\hlopt{\}}}{\hlendline{End of
+sentence.}}\\
+{\hlopt{\textbar }}{\hlstr{"a"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{A{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"the"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THE{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{``Keywords''.}}\\
+{\hlopt{\textbar }}{\hlstr{"some"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"this"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THIS{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"that"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THAT{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"these"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THESE{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"those"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THOSE{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"A"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{A{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"The"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THE{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"Some"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"This"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THIS{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"That"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THAT{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"These"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THESE{\textunderscore}DET }}{\hlopt{\} \textbar
+}}{\hlstr{"Those"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{THOSE{\textunderscore}DET }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlstr{"and"}}{\hlstd{ }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{AND{\textunderscore}CNJ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} '}}{\hlopt{,}}{\hlstd{' }}{\hlopt{\{ }}{\hlstd{push
+}}{\hlkwd{COMMA{\textunderscore}CNJ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlopt{\textbar  (}}{\hlstd{alphanum}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{w}}{\hlopt{) }}{\hlstr{"ly"}}{\hlendline{Adverb is adjective that
+ends in ``ly''.}}\\
+\tmverbatim{ \ \ \ }{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{mem w
+adjectives{\hlendline{}}\\
+\ \ \ \ \ }}{\hlkwa{then }}{\hlstd{push }}{\hlopt{(}}{\hlkwd{ADV
+}}{\hlstd{w}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{else if }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{mem
+}}{\hlopt{(}}{\hlstd{w{\textasciicircum}}}{\hlstr{"le"}}{\hlopt{)
+}}{\hlstd{adjectives{\hlendline{}}\\
+\ \ \ \ \ }}{\hlkwa{then }}{\hlstd{push }}{\hlopt{(}}{\hlkwd{ADV
+}}{\hlopt{(}}{\hlstd{w{\textasciicircum}}}{\hlstr{"le"}}{\hlopt{))}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{else }}{\hlopt{(}}{\hlstd{push
+}}{\hlopt{(}}{\hlkwd{NOUN }}{\hlstd{w}}{\hlopt{); }}{\hlstd{push
+}}{\hlkwd{SINGULAR}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\}}}{\hlendline{}}
+
+{\hlopt{\textbar  (}}{\hlstd{alphanum}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{w}}{\hlopt{) }}{\hlstr{"s"}}{\hlendline{Plural noun or singular
+verb.}}\\
+\tmverbatim{ \ \ \ }{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{mem w
+adjectives }}{\hlkwa{then }}{\hlstd{push }}{\hlopt{(}}{\hlkwd{ADJ
+}}{\hlstd{w}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{else match
+}}{\hlopt{!}}{\hlstd{last{\textunderscore}tok }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{THE{\textunderscore}DET
+}}{\hlopt{\textbar }}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THESE{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THOSE{\textunderscore}DET}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{DOT{\textunderscore}PUNCT
+}}{\hlopt{\textbar }}{\hlkwd{ADJ }}{\hlstd{{\textunderscore}
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ push }}{\hlopt{(}}{\hlkwd{NOUN }}{\hlstd{w}}{\hlopt{);
+}}{\hlstd{push }}{\hlkwd{PLURAL}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ {\hlopt{\textbar}} {\textunderscore} }}{\hlopt{->
+}}{\hlstd{push }}{\hlopt{(}}{\hlkwd{VERB }}{\hlstd{w}}{\hlopt{);
+}}{\hlstd{push }}{\hlkwd{SINGULAR}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} alphanum}}{\hlopt{+ }}{\hlkwa{as
+}}\tmverbatim{w}{\hlendline{Noun contexts vs. verb contexts.}}\\
+\tmverbatim{ \ \ \ }{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{mem w
+adjectives }}{\hlkwa{then }}{\hlstd{push }}{\hlopt{(}}{\hlkwd{ADJ
+}}{\hlstd{w}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{else match
+}}{\hlopt{!}}{\hlstd{last{\textunderscore}tok }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{A{\textunderscore}DET
+}}{\hlopt{\textbar }}{\hlkwd{THE{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THIS{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THAT{\textunderscore}DET}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{DOT{\textunderscore}PUNCT
+}}{\hlopt{\textbar }}{\hlkwd{ADJ }}{\hlstd{{\textunderscore}
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ push }}{\hlopt{(}}{\hlkwd{NOUN }}{\hlstd{w}}{\hlopt{);
+}}{\hlstd{push }}{\hlkwd{SINGULAR}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ {\hlopt{\textbar}} {\textunderscore} }}{\hlopt{->
+}}{\hlstd{push }}{\hlopt{(}}{\hlkwd{VERB }}{\hlstd{w}}{\hlopt{);
+}}{\hlstd{push }}{\hlkwd{PLURAL}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\}}}{\hlendline{}}
+
+{\hlstd{{\hlopt{\textbar}} {\textunderscore} }}{\hlkwa{as
+}}{\hlstd{w{\hlendline{}}\\
+\ \ \ }}{\hlopt{\{ }}{\hlstd{raise }}{\hlopt{(}}{\hlkwd{LexError
+}}{\hlopt{(}}{\hlstr{"Unrecognized character "}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
+{\textasciicircum}}}{\hlkwc{Char}}{\hlopt{.}}{\hlstd{escaped w}}{\hlopt{))
+\}}}{\hlendline{}}\\
+{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{lexeme lexbuf }}{\hlopt{=}}{\hlendline{The
+proper interface reads from the token buffer.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if
+}}{\hlkwc{Queue}}{\hlopt{.}}{\hlstd{is{\textunderscore}empty tokbuf
+}}{\hlkwa{then }}{\hlstd{lex{\textunderscore}word
+lexbuf}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwc{Queue}}{\hlopt{.}}{\hlstd{pop
+tokbuf}}{\hlendline{}}\\
+{\hlopt{\}}}{\hlendline{}}
+\begin{itemize}
+  \item File \tmverbatim{EngParser.mly}:
+\end{itemize}
+{\hlopt{\%\{}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{open }}{\hlkwd{EngLexer}}{\hlendline{Source of the token
+type and sentence type.}}\\
+{\hlopt{\%\}}}{\hlendline{}}\\
+{\hlopt{\%}}{\hlstd{token }}{\hlopt{<}}{\hlkwb{string}}{\hlopt{>
+}}{\hlkwd{VERB NOUN ADJ ADV}}{\hlendline{{\tmem{Open word classes}}.}}\\
+{\hlopt{\%}}{\hlstd{token }}{\hlkwd{PLURAL SINGULAR}}{\hlendline{Number
+marker.}}\\
+{\hlopt{\%}}{\hlstd{token }}{\hlkwd{A{\textunderscore}DET
+THE{\textunderscore}DET SOME{\textunderscore}DET THIS{\textunderscore}DET
+THAT{\textunderscore}DET}}{\hlendline{``Keywords''.}}\\
+{\hlopt{\%}}{\hlstd{token }}{\hlkwd{THESE{\textunderscore}DET
+THOSE{\textunderscore}DET}}{\hlendline{}}\\
+{\hlopt{\%}}{\hlstd{token }}{\hlkwd{COMMA{\textunderscore}CNJ
+AND{\textunderscore}CNJ DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlopt{\%}}{\hlstd{start
+}}{\hlopt{<}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{sentence}}{\hlopt{>
+}}{\hlstd{sentence}}{\hlendline{Grammar entry.}}\\
+{\hlopt{\%\%}}{\hlendline{}}
+
+{\hlopt{\%}}{\hlstd{public }}{\hlopt{\%}}{\hlstd{inline
+sep2{\textunderscore}list}}{\hlopt{(}}{\hlstd{sep1}}{\hlopt{,
+}}{\hlstd{sep2}}{\hlopt{, }}{\hlkwd{X}}{\hlopt{):}}{\hlendline{General
+purpose.}}\\
+{\hlstd{{\hlopt{\textbar}} xs }}{\hlopt{=
+}}{\hlstd{separated{\textunderscore}nonempty{\textunderscore}list}}{\hlopt{(}}{\hlstd{sep1}}{\hlopt{,
+}}{\hlkwd{X}}{\hlopt{) }}{\hlstd{sep2
+x}}{\hlopt{=}}{\hlkwd{X}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{xs @ }}{\hlopt{[}}{\hlstd{x}}{\hlopt{]
+\}}}{\hlendline{We use it for ``comma-and'' lists:}}\\
+{\hlstd{{\hlopt{\textbar}}
+x}}{\hlopt{=}}{\hlkwb{option}}{\hlopt{(}}{\hlkwd{X}}{\hlopt{)}}{\hlendline{{\tmem{smart{\tmstrong{,}}
+quiet {\tmstrong{and}} diligent.}}}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlkwa{match }}{\hlstd{x }}{\hlkwa{with
+}}{\hlkwd{None}}{\hlopt{->[] \textbar }}{\hlkwd{Some
+}}{\hlstd{x}}{\hlopt{->[}}{\hlstd{x}}{\hlopt{] \}}}{\hlendline{}}\\
+{\hlstd{sing{\textunderscore}only{\textunderscore}det}}{\hlopt{:}}{\hlendline{How
+determiners relate to number.}}\\
+{\hlopt{\textbar }}{\hlkwd{A{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THIS{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THAT{\textunderscore}DET }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sing{\textunderscore}only{\textunderscore}det"}}{\hlstd{
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{plu{\textunderscore}only{\textunderscore}det}}{\hlopt{:}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlkwd{THESE{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{THOSE{\textunderscore}DET }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+plu{\textunderscore}only{\textunderscore}det"}}{\hlstd{
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{other{\textunderscore}det}}{\hlopt{:}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlkwd{THE{\textunderscore}DET }}{\hlopt{\textbar
+}}{\hlkwd{SOME{\textunderscore}DET }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+other{\textunderscore}det"}}{\hlstd{ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{np}}{\hlopt{(}}{\hlstd{det}}{\hlopt{):}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} det
+adjs}}{\hlopt{=}}{\hlstd{list}}{\hlopt{(}}{\hlkwd{ADJ}}{\hlopt{)
+}}{\hlstd{subject}}{\hlopt{=}}{\hlkwd{NOUN}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs: np"}}{\hlopt{;
+}}{\hlstd{adjs}}{\hlopt{, }}{\hlstd{subject }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{vp}}{\hlopt{(}}{\hlkwd{NUM}}{\hlopt{):}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}}
+advs}}{\hlopt{=}}{\hlstd{separated{\textunderscore}list}}{\hlopt{(}}{\hlkwd{AND{\textunderscore}CNJ}}{\hlopt{,}}{\hlkwd{ADV}}{\hlopt{)
+}}{\hlstd{action}}{\hlopt{=}}{\hlkwd{VERB NUM}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}} action}}{\hlopt{=}}{\hlkwd{VERB NUM
+}}{\hlstd{advs}}{\hlopt{=}}{\hlstd{sep2{\textunderscore}list}}{\hlopt{(}}{\hlkwd{COMMA{\textunderscore}CNJ}}{\hlopt{,}}{\hlkwd{AND{\textunderscore}CNJ}}{\hlopt{,}}{\hlkwd{ADV}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs: vp"}}{\hlopt{;
+}}{\hlstd{action}}{\hlopt{, }}{\hlstd{advs }}{\hlopt{\}}}{\hlendline{}}
+
+{\hlstd{sent}}{\hlopt{(}}{\hlstd{det}}{\hlopt{,}}{\hlkwd{NUM}}{\hlopt{):}}{\hlendline{Sentence
+parameterized by number.}}\\
+{\hlstd{{\hlopt{\textbar}}
+adjsub}}{\hlopt{=}}{\hlstd{np}}{\hlopt{(}}{\hlstd{det}}{\hlopt{) }}{\hlkwd{NUM
+}}{\hlstd{vbadv}}{\hlopt{=}}{\hlstd{vp}}{\hlopt{(}}{\hlkwd{NUM}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sent"}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{}}{\hlstd{subject}}{\hlopt{=}}{\hlstd{snd
+adjsub}}{\hlopt{; }}{\hlstd{action}}{\hlopt{=}}{\hlstd{fst vbadv}}{\hlopt{;
+}}{\hlstd{plural}}{\hlopt{=}}{\hlkwa{false}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ adjs}}{\hlopt{=}}{\hlstd{fst adjsub}}{\hlopt{;
+}}{\hlstd{advs}}{\hlopt{=}}{\hlstd{snd vbadv}}{\hlopt{\} \}}}{\hlendline{}}\\
+{\hlstd{vbsent}}{\hlopt{(}}{\hlkwd{NUM}}{\hlopt{):}}{\hlendline{Unfortunately,
+it doesn't always work...}}\\
+{\hlopt{\textbar }}{\hlkwd{NUM
+}}{\hlstd{vbadv}}{\hlopt{=}}{\hlstd{vp}}{\hlopt{(}}{\hlkwd{NUM}}{\hlopt{)}}{\hlstd{
+\ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs: vbsent"}}{\hlopt{;
+}}{\hlstd{vbadv }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{sentence}}{\hlopt{:}}{\hlendline{Sentence, either singular or plural
+number.}}\\
+{\hlstd{{\hlopt{\textbar}}
+s}}{\hlopt{=}}{\hlstd{sent}}{\hlopt{(}}{\hlstd{sing{\textunderscore}only{\textunderscore}det}}{\hlopt{,}}{\hlkwd{SINGULAR}}{\hlopt{)
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sentence1"}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{}}{\hlstd{s }}{\hlkwa{with }}{\hlstd{plural
+}}{\hlopt{= }}{\hlkwa{false}}{\hlopt{\} \}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}}
+s}}{\hlopt{=}}{\hlstd{sent}}{\hlopt{(}}{\hlstd{plu{\textunderscore}only{\textunderscore}det}}{\hlopt{,}}{\hlkwd{PLURAL}}{\hlopt{)
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sentence2"}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{}}{\hlstd{s }}{\hlkwa{with }}{\hlstd{plural
+}}{\hlopt{= }}{\hlkwa{true}}{\hlopt{\} \}}}{\hlendline{}}
+
+{\hlstd{{\hlopt{\textbar}}
+adjsub}}{\hlopt{=}}{\hlstd{np}}{\hlopt{(}}{\hlstd{other{\textunderscore}det}}{\hlopt{)
+}}{\hlstd{vbadv}}{\hlopt{=}}{\hlstd{vbsent}}{\hlopt{(}}{\hlkwd{SINGULAR}}{\hlopt{)
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sentence3"}}{\hlopt{;}}{\hlendline{Because parser allows only one token
+look-ahead}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{}}{\hlstd{subject}}{\hlopt{=}}{\hlstd{snd
+adjsub}}{\hlopt{; }}{\hlstd{action}}{\hlopt{=}}{\hlstd{fst vbadv}}{\hlopt{;
+}}{\hlstd{plural}}{\hlopt{=}}{\hlkwa{false}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ adjs}}{\hlopt{=}}{\hlstd{fst adjsub}}{\hlopt{;
+}}{\hlstd{advs}}{\hlopt{=}}{\hlstd{snd vbadv}}{\hlopt{\} \}}}{\hlendline{}}\\
+{\hlstd{{\hlopt{\textbar}}
+adjsub}}{\hlopt{=}}{\hlstd{np}}{\hlopt{(}}{\hlstd{other{\textunderscore}det}}{\hlopt{)
+}}{\hlstd{vbadv}}{\hlopt{=}}{\hlstd{vbsent}}{\hlopt{(}}{\hlkwd{PLURAL}}{\hlopt{)
+}}{\hlkwd{DOT{\textunderscore}PUNCT}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\{ }}{\hlstd{log }}{\hlstr{"prs:
+sentence4"}}{\hlopt{;}}{\hlendline{we need to factor-out the ``common
+subset''.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{}}{\hlstd{subject}}{\hlopt{=}}{\hlstd{snd
+adjsub}}{\hlopt{; }}{\hlstd{action}}{\hlopt{=}}{\hlstd{fst vbadv}}{\hlopt{;
+}}{\hlstd{plural}}{\hlopt{=}}{\hlkwa{true}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ adjs}}{\hlopt{=}}{\hlstd{fst adjsub}}{\hlopt{;
+}}{\hlstd{advs}}{\hlopt{=}}{\hlstd{snd vbadv}}{\hlopt{\} \}}}{\hlendline{}}
+\begin{itemize}
+  \item File \tmverbatim{Eng.ml} is the same as \tmverbatim{calc.ml} from
+  previous example:
+\end{itemize}
+{\hlkwa{open }}{\hlkwd{EngLexer}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlopt{() =}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{stdinbuf }}{\hlopt{=
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}channel stdin
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{while true do}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlcom{(* Read line by line. *)}}{\hlstd{{\hlendline{}}\\
+\ \ \ }}{\hlkwa{let }}{\hlstd{linebuf }}{\hlopt{=
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}string
+}}{\hlopt{(}}{\hlstd{line stdinbuf}}{\hlopt{) }}{\hlkwa{in}}{\hlendline{}}
+
+{\hlstd{ \ \ \ }}{\hlkwa{try}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlcom{(* Run the parser on a single line of input.
+*)}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlkwa{let }}{\hlstd{s }}{\hlopt{=
+}}{\hlkwc{EngParser}}{\hlopt{.}}{\hlstd{sentence lexeme linebuf
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf\\
+}}{\hlstr{ \ \ "subject=\%s}}{\hlesc{\textbackslash
+n}}{\hlstr{plural=\%b}}{\hlesc{\textbackslash
+n}}{\hlstr{adjs=\%s}}{\hlesc{\textbackslash
+n}}{\hlstr{action=\%s}}{\hlesc{n}}{\hlstr{advs=\%s}}{\hlesc{\textbackslash
+n\textbackslashn}}{\hlstr{\%!"}}{\hlstd{\\
+\ \ \ \ \ \ \ s}}{\hlopt{.}}{\hlstd{subject s}}{\hlopt{.}}{\hlstd{plural
+}}{\hlopt{(}}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat }}{\hlstr{",
+"}}{\hlstd{ s}}{\hlopt{.}}{\hlstd{adjs}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ s}}{\hlopt{.}}{\hlstd{action
+}}{\hlopt{(}}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat }}{\hlstr{",
+"}}{\hlstd{ s}}{\hlopt{.}}{\hlstd{advs}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{LexError }}{\hlstd{msg
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{fprintf stderr
+}}{\hlstr{"\%s}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{ msg{\hlendline{}}\\
+\ \ \ }}{\hlopt{\textbar }}{\hlkwc{EngParser}}{\hlopt{.}}{\hlkwd{Error
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{fprintf stderr
+}}{\hlstr{"At offset \%d: syntax
+error.}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ \ \ \ \
+}}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme{\textunderscore}start
+linebuf}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{done}}{\hlendline{}}
+\begin{itemize}
+  \item Build \& run command:
+  
+  \tmverbatim{ocamlbuild Eng.native -use-menhir -menhir "menhir EngParser.mly
+  --base EngParser --external-tokens EngLexer" --}
+\end{itemize}
+
+\section{Example: Phrase search}
+
+\begin{itemize}
+  \item In lecture 6 we performed keyword search, now we turn to {\tmem{phrase
+  search}} i.e. require that given words be consecutive in the document.
+  
+  \item We start with some English-specific transformations used in lexer:
+  
+  {\small{{\hlkwa{let }}{\hlstd{wh{\textunderscore}or{\textunderscore}pronoun
+  w }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{ \ w }}{\hlopt{= }}{\hlstr{"where"}}{\hlstd{
+  {\hlopt{\textbar\textbar}} w }}{\hlopt{= }}{\hlstr{"what"}}{\hlstd{
+  {\hlopt{\textbar\textbar}} w }}{\hlopt{= }}{\hlstr{"who"}}{\hlstd{
+  {\hlopt{\textbar\textbar}}{\hlendline{}}\\
+  \ w }}{\hlopt{= }}{\hlstr{"he"}}{\hlstd{ {\hlopt{\textbar\textbar}} w
+  }}{\hlopt{= }}{\hlstr{"she"}}{\hlstd{ {\hlopt{\textbar\textbar}} w
+  }}{\hlopt{= }}{\hlstr{"it"}}{\hlstd{
+  {\hlopt{\textbar\textbar}}{\hlendline{}}\\
+  \ w }}{\hlopt{= }}{\hlstr{"I"}}{\hlstd{ {\hlopt{\textbar\textbar}} w
+  }}{\hlopt{= }}{\hlstr{"you"}}{\hlstd{ {\hlopt{\textbar\textbar}} w
+  }}{\hlopt{= }}{\hlstr{"we"}}{\hlstd{ {\hlopt{\textbar\textbar}} w
+  }}{\hlopt{= }}{\hlstr{"they"}}{\hlendline{}}\\
+  {\hlkwa{let }}{\hlstd{abridged w1 w2 }}{\hlopt{=}}{\hlendline{Remove
+  shortened forms like {\tmem{I'll}} or {\tmem{press'd}}.}}\\
+  {\hlstd{ \ }}{\hlkwa{if }}{\hlstd{w2 }}{\hlopt{= }}{\hlstr{"ll"}}{\hlstd{
+  }}{\hlkwa{then }}{\hlopt{[}}{\hlstd{w1}}{\hlopt{;
+  }}{\hlstr{"will"}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else if }}{\hlstd{w2 }}{\hlopt{=
+  }}{\hlstr{"s"}}{\hlstd{ }}{\hlkwa{then}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if
+  }}{\hlstd{wh{\textunderscore}or{\textunderscore}pronoun w1 }}{\hlkwa{then
+  }}{\hlopt{[}}{\hlstd{w1}}{\hlopt{;
+  }}{\hlstr{"is"}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{else }}{\hlopt{[}}{\hlstr{"of"}}{\hlopt{;
+  }}{\hlstd{w1}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else if }}{\hlstd{w2 }}{\hlopt{=
+  }}{\hlstr{"d"}}{\hlstd{ }}{\hlkwa{then
+  }}{\hlopt{[}}{\hlstd{w1{\textasciicircum}}}{\hlstr{"ed"}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else if }}{\hlstd{w1 }}{\hlopt{=
+  }}{\hlstr{"o"}}{\hlstd{ {\hlopt{\textbar\textbar}} w1 }}{\hlopt{=
+  }}{\hlstr{"O"}}{\hlstd{{\hlendline{}}\\
+  \ }}{\hlkwa{then}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{w2}}{\hlopt{.[}}{\hlnum{0}}{\hlopt{] =
+  }}{\hlstd{'e' }}{\hlopt{\&\& }}{\hlstd{w2}}{\hlopt{.[}}{\hlnum{1}}{\hlopt{]
+  = }}{\hlstd{'r' }}{\hlkwa{then
+  }}{\hlopt{[}}{\hlstd{w1{\textasciicircum}}}{\hlstr{"v"}}{\hlstd{{\textasciicircum}w2}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ \ \ }}{\hlkwa{else }}{\hlopt{[}}{\hlstr{"of"}}{\hlopt{;
+  }}{\hlstd{w2}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else if }}{\hlstd{w2 }}{\hlopt{=
+  }}{\hlstr{"t"}}{\hlstd{ }}{\hlkwa{then }}{\hlopt{[}}{\hlstd{w1}}{\hlopt{;
+  }}{\hlstr{"it"}}{\hlopt{]}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlkwa{else
+  }}{\hlopt{[}}{\hlstd{w1{\textasciicircum}}}{\hlstr{"'"}}{\hlstd{{\textasciicircum}w2}}{\hlopt{]}}{\hlendline{}}}}
+  
+  \item For now we normalize words just by lowercasing, but see exercise 8.
+  
+  \item In lexer we {\tmem{tokenize}} text: separate words and normalize them.
+  \begin{itemize}
+    \item We also handle simple aspects of {\tmem{XML}} syntax.
+  \end{itemize}
+  \item We store the number of each word occurrence, excluding XML tags.
+\end{itemize}
+{\small{{\hlopt{\{}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{open }}{\hlkwd{IndexParser}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{word }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlnum{0}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{linebreaks }}{\hlopt{= }}{\hlkwb{ref
+}}{\hlopt{[]}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{comment{\textunderscore}start }}{\hlopt{=
+}}{\hlkwb{ref
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{dummy{\textunderscore}pos{\hlendline{}}\\
+\ }}{\hlkwa{let }}{\hlstd{reset{\textunderscore}as{\textunderscore}file
+lexbuf s }}{\hlopt{=}}{\hlendline{General purpose lexer function:}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{pos }}{\hlopt{=
+}}{\hlstd{lexbuf}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlkwa{in}}{\hlendline{start lexing from a file.}}\\
+{\hlstd{ \ \ \
+lexbuf}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlopt{<- \{ }}{\hlstd{pos }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}lnum
+}}{\hlopt{=}}{\hlstd{ \ }}{\hlnum{1}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ pos{\textunderscore}fname }}{\hlopt{=
+}}{\hlstd{s}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ pos{\textunderscore}bol }}{\hlopt{=
+}}{\hlstd{pos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\};}}{\hlendline{}}\\
+{\hlstd{ \ \ \ linebreaks }}{\hlopt{:= []; }}{\hlstd{word }}{\hlopt{:=
+}}{\hlnum{0}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{nextline lexbuf
+}}{\hlopt{=}}{\hlendline{Old friend.}}\\
+{\hlstd{ \ \ \ }}...{\hlendline{Besides changing position, remember a line
+break.}}\\
+{\hlstd{ \ \ \ linebreaks }}{\hlopt{:= !}}{\hlstd{word }}{\hlopt{::
+!}}\tmverbatim{linebreaks}{\hlendline{}}
+
+\tmverbatim{ \ }{\hlkwa{let
+}}{\hlstd{parse{\textunderscore}error{\textunderscore}msg startpos endpos
+report }}{\hlopt{=}}{\hlendline{General purpose lexer function:}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{clbeg }}{\hlopt{=}}{\hlendline{report a
+syntax error.}}\\
+{\hlstd{ \ \ \ \ \
+startpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum
+}}{\hlopt{-
+}}{\hlstd{startpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}bol
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ ignore
+}}{\hlopt{(}}{\hlkwc{Format}}{\hlopt{.}}{\hlstd{flush{\textunderscore}str{\textunderscore}formatter
+}}{\hlopt{());}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{sprintf{\hlendline{}}\\
+\ \ \ \ \ }}{\hlstr{"File }}{\hlesc{"}}{\hlstr{\%s}}{\hlesc{"}}{\hlstr{,
+lines \%d-\%d, characters \%d-\%d:
+\%s}}{\hlesc{n}}{\hlstr{"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \
+startpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}fname
+startpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}lnum{\hlendline{}}\\
+\ \ \ \ \
+endpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}lnum
+clbeg{\hlendline{}}\\
+\ \ \ \ \
+}}{\hlopt{(}}{\hlstd{clbeg}}{\hlopt{+(}}{\hlstd{endpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum
+}}{\hlopt{-
+}}{\hlstd{startpos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum}}{\hlopt{))}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ report}}{\hlendline{}}\\
+{\hlopt{\}}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{alphanum }}{\hlopt{=
+[}}{\hlstd{'}}{\hlnum{0}}{\hlstd{'}}{\hlopt{-}}{\hlstd{'}}{\hlnum{9}}{\hlstd{'
+'a'}}{\hlopt{-}}{\hlstd{'z'
+'}}{\hlkwd{A'}}{\hlopt{-}}{\hlstd{'}}{\hlkwd{Z'}}{\hlopt{]}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{newline }}{\hlopt{= (}}{\hlstd{'}}{\hlesc{n}}{\hlstd{'
+{\hlopt{\textbar}}
+}}{\hlstr{"}}{\hlesc{rn}}{\hlstr{"}}{\hlopt{)}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{xml{\textunderscore}start }}{\hlopt{=
+(}}{\hlstr{"<!--"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"<?"}}{\hlopt{)}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{xml{\textunderscore}end }}{\hlopt{=
+(}}{\hlstr{"-->"}}{\hlstd{ {\hlopt{\textbar}}
+}}{\hlstr{"?>"}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{rule token }}{\hlopt{= }}{\hlstd{parse{\hlendline{}}\\
+\ }}{\hlopt{\textbar  [}}{\hlstd{' '
+'}}{\hlesc{t}}{\hlstd{'}}{\hlopt{]}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{token lexbuf
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} newline{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{nextline lexbuf}}{\hlopt{; }}{\hlstd{token
+lexbuf }}{\hlopt{\}}}{\hlendline{}}
+
+{\hlstd{ \ {\hlopt{\textbar}} '}}{\hlopt{<}}{\hlstd{' alphanum}}{\hlopt{+
+}}{\hlstd{'}}{\hlopt{>}}{\hlstd{' }}{\hlkwa{as
+}}\tmverbatim{w}{\hlendline{Dedicated token variants for XML tags.}}\\
+\tmverbatim{ \ \ \ \ \ }{\hlopt{\{ }}{\hlkwd{OPEN }}{\hlstd{w
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"</"}}{\hlstd{ alphanum}}{\hlopt{+
+}}{\hlstd{'}}{\hlopt{>}}{\hlstd{' }}{\hlkwa{as }}{\hlstd{w{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwd{CLOSE }}{\hlstd{w
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"'tis"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{word }}{\hlopt{:=
+!}}{\hlstd{word}}{\hlopt{+}}{\hlnum{2}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstr{"it"}}{\hlopt{,
+!}}{\hlstd{word}}{\hlopt{-}}{\hlnum{1}}{\hlopt{; }}{\hlstr{"is"}}{\hlopt{,
+!}}{\hlstd{word}}{\hlopt{] \}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"'Tis"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{word }}{\hlopt{:=
+!}}{\hlstd{word}}{\hlopt{+}}{\hlnum{2}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstr{"It"}}{\hlopt{,
+!}}{\hlstd{word}}{\hlopt{-}}{\hlnum{1}}{\hlopt{; }}{\hlstr{"is"}}{\hlopt{,
+!}}{\hlstd{word}}{\hlopt{] \}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"o'clock"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{incr word}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstr{"o'clock"}}{\hlopt{, !}}{\hlstd{word}}{\hlopt{]
+\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"O'clock"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{incr word}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstr{"O'clock"}}{\hlopt{, !}}{\hlstd{word}}{\hlopt{]
+\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  (}}{\hlstd{alphanum}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{w1}}{\hlopt{) }}{\hlstd{''' }}{\hlopt{(}}{\hlstd{alphanum}}{\hlopt{+
+}}{\hlkwa{as }}{\hlstd{w2}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlopt{\{ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{=
+}}{\hlkwc{EngMorph}}{\hlopt{.}}{\hlstd{abridged w1 w2
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{words }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map{\hlendline{}}\\
+\ \ \ \ \ \ \ \ \ }}{\hlopt{(}}{\hlkwa{fun }}{\hlstd{w }}{\hlopt{->
+}}{\hlstd{incr word}}{\hlopt{; }}{\hlstd{w}}{\hlopt{,
+!}}{\hlstd{word}}{\hlopt{) }}{\hlstd{words }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwd{WORDS }}{\hlstd{words
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} alphanum}}{\hlopt{+ }}{\hlkwa{as
+}}{\hlstd{w{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{incr word}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstd{w}}{\hlopt{, !}}{\hlstd{word}}{\hlopt{]
+\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"\&amp;"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{incr word}}{\hlopt{; }}{\hlkwd{WORDS
+}}{\hlopt{[}}{\hlstr{"\&"}}{\hlopt{, !}}{\hlstd{word}}{\hlopt{]
+\}}}{\hlendline{}}
+
+{\hlstd{ \ }}{\hlopt{\textbar  [}}{\hlstd{'}}{\hlopt{.}}{\hlstd{'
+'}}{\hlopt{!}}{\hlstd{' '?'}}{\hlopt{] }}{\hlkwa{as }}p{\hlendline{Dedicated
+tokens for punctuation}}\\
+\ \ \ \ \ {\hlopt{\{ }}{\hlkwd{SENTENCE
+}}{\hlopt{(}}{\hlkwc{Char}}{\hlopt{.}}{\hlstd{escaped p}}{\hlopt{)
+\}}}{\hlendline{so that it doesn't break phrases.}}\\
+{\hlstd{ \ }}{\hlopt{\textbar }}{\hlstr{"--"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwd{PUNCT }}{\hlstr{"--"}}{\hlstd{
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{\textbar  [}}{\hlstd{'}}{\hlopt{,}}{\hlstd{'
+'}}{\hlopt{:}}{\hlstd{' ''' '}}{\hlopt{-}}{\hlstd{'
+'}}{\hlopt{;}}{\hlstd{'}}{\hlopt{] }}{\hlkwa{as }}{\hlstd{p{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwd{PUNCT
+}}{\hlopt{(}}{\hlkwc{Char}}{\hlopt{.}}{\hlstd{escaped p}}{\hlopt{)
+\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} eof }}{\hlopt{\{ }}{\hlkwd{EOF
+}}{\hlopt{\}}}{\hlstd{ \ \ \ \ }}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} xml{\textunderscore}start{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{comment{\textunderscore}start }}{\hlopt{:=
+}}{\hlstd{lexbuf}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{s }}{\hlopt{= }}{\hlstd{comment
+}}{\hlopt{[] }}{\hlstd{lexbuf }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwd{COMMENT }}{\hlstd{s
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} {\textunderscore}{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwa{let }}{\hlstd{pos }}{\hlopt{=
+}}{\hlstd{lexbuf}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{pos' }}{\hlopt{=
+\{}}{\hlstd{pos }}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ \
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum }}{\hlopt{=
+}}{\hlstd{pos}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{pos{\textunderscore}cnum
+}}{\hlopt{+ }}{\hlnum{1}}{\hlopt{\} }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"\%s}}{\hlesc{\textbackslash
+n}}{\hlstr{\%!"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ \ \ \ \
+}}{\hlopt{(}}{\hlstd{parse{\textunderscore}error{\textunderscore}msg pos pos'
+}}{\hlstr{"lexer error"}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ failwith }}{\hlstr{"LEXER ERROR"}}{\hlstd{
+}}{\hlopt{\}}}{\hlendline{}}
+
+{\hlkwa{and }}{\hlstd{comment strings }}{\hlopt{=
+}}{\hlstd{parse{\hlendline{}}\\
+\ {\hlopt{\textbar}} xml{\textunderscore}end{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat
+}}{\hlstr{""}}{\hlstd{ }}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+strings}}{\hlopt{) \}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} eof{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlkwa{let }}{\hlstd{pos }}{\hlopt{=
+!}}{\hlstd{comment{\textunderscore}start }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{pos' }}{\hlopt{=
+}}{\hlstd{lexbuf}}{\hlopt{.}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lex{\textunderscore}curr{\textunderscore}p
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf
+}}{\hlstr{"\%s}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{{\hlendline{}}\\
+\ \ \ \ \ \ \ \ \
+}}{\hlopt{(}}{\hlstd{parse{\textunderscore}error{\textunderscore}msg pos pos'
+}}{\hlstr{"lexer error: unclosed comment"}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ failwith }}{\hlstr{"LEXER ERROR"}}{\hlstd{
+}}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} newline{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{nextline lexbuf}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ comment
+}}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme lexbuf }}{\hlopt{::
+}}{\hlstd{strings}}{\hlopt{) }}{\hlstd{lexbuf{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\}}}{\hlendline{}}\\
+{\hlstd{ \ {\hlopt{\textbar}} {\textunderscore}{\hlendline{}}\\
+\ \ \ \ \ }}{\hlopt{\{ }}{\hlstd{comment
+}}{\hlopt{(}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{lexeme lexbuf }}{\hlopt{::
+}}{\hlstd{strings}}{\hlopt{) }}{\hlstd{lexbuf }}{\hlopt{\}}}{\hlendline{}}}}
+\begin{itemize}
+  \item Parsing: the inverted index and the query.
+\end{itemize}
+{\small{{\hlkwa{type }}{\hlstd{token }}{\hlopt{=}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlkwd{WORDS }}{\hlkwa{of }}{\hlopt{(}}{\hlkwb{string
+}}{\hlopt{* }}{\hlkwb{int}}{\hlopt{) }}{\hlstd{list{\hlendline{}}\\
+{\hlopt{\textbar}} }}{\hlkwd{OPEN }}{\hlkwa{of }}{\hlkwb{string
+}}{\hlopt{\textbar }}{\hlkwd{CLOSE }}{\hlkwa{of }}{\hlkwb{string
+}}{\hlopt{\textbar }}{\hlkwd{COMMENT }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlkwd{SENTENCE }}{\hlkwa{of }}{\hlkwb{string
+}}{\hlopt{\textbar }}{\hlkwd{PUNCT }}{\hlkwa{of
+}}{\hlkwb{string}}{\hlendline{}}\\
+{\hlopt{\textbar }}{\hlkwd{EOF}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{inv{\textunderscore}index update ii lexer lexbuf
+}}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux ii }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{match }}{\hlstd{lexer lexbuf
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{WORDS }}{\hlstd{ws
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{ws }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map }}{\hlopt{(}}{\hlkwa{fun
+}}{\hlopt{(}}{\hlstd{w}}{\hlopt{,}}{\hlstd{p}}{\hlopt{)->}}{\hlkwc{EngMorph}}{\hlopt{.}}{\hlstd{normalize
+w}}{\hlopt{, }}{\hlstd{p}}{\hlopt{) }}{\hlstd{ws
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ aux
+}}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{fold{\textunderscore}left update
+ii ws}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{OPEN }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{CLOSE }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{SENTENCE }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{PUNCT }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{COMMENT }}{\hlstd{{\textunderscore}
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ aux ii{\hlendline{}}\\
+\ \ \ }}{\hlopt{\textbar }}{\hlkwd{EOF }}{\hlopt{-> }}{\hlstd{ii
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ aux ii}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{phrase lexer lexbuf }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux words }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{match }}{\hlstd{lexer lexbuf
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{WORDS }}{\hlstd{ws
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{ws }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map }}{\hlopt{(}}{\hlkwa{fun
+}}{\hlopt{(}}{\hlstd{w}}{\hlopt{,}}{\hlstd{p}}{\hlopt{)->}}{\hlkwc{EngMorph}}{\hlopt{.}}{\hlstd{normalize
+w}}{\hlopt{) }}{\hlstd{ws }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ aux
+}}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev{\textunderscore}append ws
+words}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar }}{\hlkwd{OPEN }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{CLOSE }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{SENTENCE }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{PUNCT }}{\hlstd{{\textunderscore}
+{\hlopt{\textbar}} }}{\hlkwd{COMMENT }}{\hlstd{{\textunderscore}
+}}{\hlopt{->}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ aux words{\hlendline{}}\\
+\ \ \ }}{\hlopt{\textbar }}{\hlkwd{EOF }}{\hlopt{->
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev words }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ aux }}{\hlopt{[]}}{\hlendline{}}}}
+
+\subsubsection{Naive implementation of phrase search}
+
+\begin{itemize}
+  \item We need {\tmem{postings lists}} with positions of words {\small{rather
+  than just the document or line of document they belong to}}.
+  
+  \item First approach: association lists and merge postings lists
+  word-by-word.
+\end{itemize}
+{\small{{\hlkwa{let }}{\hlstd{update ii }}{\hlopt{(}}{\hlstd{w}}{\hlopt{,
+}}{\hlstd{p}}{\hlopt{) =}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{try}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{assoc w ii }}{\hlkwa{in}}{\hlendline{Add
+position to the postings list of \tmverbatim{w}.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{(}}{\hlstd{w}}{\hlopt{,
+}}{\hlstd{p}}{\hlopt{::}}{\hlstd{ps}}{\hlopt{) ::
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{remove{\textunderscore}assoc w
+ii{\hlendline{}}\\
+\ }}{\hlkwa{with }}{\hlkwd{Not{\textunderscore}found }}{\hlopt{->
+(}}{\hlstd{w}}{\hlopt{,
+[}}{\hlstd{p}}{\hlopt{])::}}{\hlstd{ii}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{empty }}{\hlopt{= []}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{find w ii }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{assoc w ii}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{mapv f ii }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map }}{\hlopt{(}}{\hlkwa{fun
+}}{\hlopt{(}}{\hlstd{k}}{\hlopt{,}}{\hlstd{v}}{\hlopt{)->}}{\hlstd{k}}{\hlopt{,
+}}{\hlstd{f v}}{\hlopt{) }}{\hlstd{ii}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{index file }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ch }}{\hlopt{=
+}}{\hlstd{open{\textunderscore}in file }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{lexbuf }}{\hlopt{=
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}channel ch
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \
+}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{reset{\textunderscore}as{\textunderscore}file
+lexbuf file}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ii }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \
+}}{\hlkwc{IndexParser}}{\hlopt{.}}{\hlstd{inv{\textunderscore}index update
+empty }}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{token lexbuf
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ close{\textunderscore}in ch}}{\hlopt{;}}{\hlendline{Keep postings
+lists in increasing order.}}\\
+{\hlstd{ \ mapv }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev ii}}{\hlopt{,
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev
+}}{\hlopt{!}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{linebreaks}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{find{\textunderscore}line linebreaks p
+}}{\hlopt{=}}{\hlendline{Recover the line in document of a position.}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux line }}{\hlopt{=
+}}{\hlkwa{function}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar  [] -> }}{\hlstd{line{\hlendline{}}\\
+\ \ \ {\hlopt{\textbar}} bp}}{\hlopt{::}}{\hlstd{{\textunderscore}
+}}{\hlkwa{when }}{\hlstd{p }}{\hlopt{< }}{\hlstd{bp }}{\hlopt{->
+}}{\hlstd{line{\hlendline{}}\\
+\ \ \ {\hlopt{\textbar}} {\textunderscore}}}{\hlopt{::}}{\hlstd{breaks
+}}{\hlopt{-> }}{\hlstd{aux
+}}{\hlopt{(}}{\hlstd{line}}{\hlopt{+}}{\hlnum{1}}{\hlopt{) }}{\hlstd{breaks
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ aux }}{\hlnum{1 }}{\hlstd{linebreaks}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{search }}{\hlopt{(}}{\hlstd{ii}}{\hlopt{,
+}}{\hlstd{linebreaks}}{\hlopt{) }}{\hlstd{phrase }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{lexbuf }}{\hlopt{=
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}string phrase
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \
+}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{reset{\textunderscore}as{\textunderscore}file
+lexbuf }}{\hlopt{(}}{\hlstr{"search phrase:
+"}}{\hlstd{{\textasciicircum}phrase}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{phrase }}{\hlopt{=
+}}{\hlkwc{IndexParser}}{\hlopt{.}}{\hlstd{phrase
+}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{token lexbuf
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux wpos }}{\hlopt{=
+}}{\hlkwa{function}}{\hlendline{Merge postings lists for words in query:}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar  [] -> }}\tmverbatim{wpos}{\hlendline{no
+more words in query;}}\\
+\tmverbatim{ \ \ \ }{\hlopt{\textbar}}\tmverbatim{ w}{\hlopt{::}}{\hlstd{ws
+}}{\hlopt{->}}{\hlendline{for positions of \tmverbatim{w}, keep those that are
+next to}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{nwpos }}{\hlopt{= }}{\hlstd{find w
+ii }}{\hlkwa{in}}{\hlendline{filtered positions of previous word.}}\\
+{\hlstd{ \ \ \ \ \ aux }}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{filter
+}}{\hlopt{(}}{\hlkwa{fun
+}}{\hlstd{p}}{\hlopt{->}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{mem
+}}{\hlopt{(}}{\hlstd{p}}{\hlopt{-}}{\hlnum{1}}{\hlopt{)
+}}{\hlstd{wpos}}{\hlopt{) }}{\hlstd{nwpos}}{\hlopt{) }}{\hlstd{ws
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{wpos }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{match }}{\hlstd{phrase
+}}{\hlkwa{with}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar  [] -> []}}{\hlendline{No results for an
+empty query.}}\\
+{\hlstd{ \ \ \ {\hlopt{\textbar}} w}}{\hlopt{::}}{\hlstd{ws }}{\hlopt{->
+}}{\hlstd{aux }}{\hlopt{(}}{\hlstd{find w ii}}{\hlopt{) }}{\hlstd{ws
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map
+}}{\hlopt{(}}{\hlstd{find{\textunderscore}line linebreaks}}{\hlopt{)
+}}{\hlstd{wpos}}{\hlendline{Answer in terms of document lines.}}
+
+{\hlkwa{let }}{\hlstd{shakespeare }}{\hlopt{= }}{\hlstd{index
+}}{\hlstr{"./shakespeare.xml"}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{query q }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{lines }}{\hlopt{= }}{\hlstd{search
+shakespeare q }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{Printf}}{\hlopt{.}}{\hlstd{printf }}{\hlstr{"\%s: lines
+\%s}}{\hlesc{n}}{\hlstr{\%!"}}{\hlstd{ q{\hlendline{}}\\
+\ \ \ }}{\hlopt{(}}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat }}{\hlstr{",
+"}}{\hlstd{ }}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map
+string{\textunderscore}of{\textunderscore}int
+lines}}{\hlopt{))}}{\hlendline{}}}}
+\begin{itemize}
+  \item Test: 200 searches of the queries:
+  
+  {\small{{\hlopt{[}}{\hlstr{"first witch"}}{\hlopt{; }}{\hlstr{"wherefore art
+  thou"}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlstr{"captain's captain"}}{\hlopt{;
+  }}{\hlstr{"flatter'd"}}{\hlopt{; }}{\hlstr{"of
+  Fulvia"}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{ \ }}{\hlstr{"that which we call a rose"}}{\hlopt{; }}{\hlstr{"the
+  undiscovered country"}}{\hlopt{]}}{\hlendline{}}}}
+  
+  \item Invocation: \tmverbatim{ocamlbuild InvIndex.native -libs unix --}
+  
+  \item Time: 7.3s
+\end{itemize}
+
+\subsubsection{Replace association list with hash table}
+
+\begin{itemize}
+  \item I recommend using either {\tmem{OCaml Batteries}} or {\tmem{OCaml
+  Core}} -- replacement for the standard library. {\tmem{Batteries}} has
+  efficient {\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{map}} (our \tmverbatim{mapv}).
+  
+  \item Invocation: \tmverbatim{ocamlbuild InvIndex1.native -libs unix --}
+  
+  \item Time: 6.3s
+\end{itemize}
+
+\subsubsection{Replace naive merging with ordered merging}
+
+\begin{itemize}
+  \item Postings lists are already ordered.
+  
+  \item Invocation: \tmverbatim{ocamlbuild InvIndex2.native -libs unix --}
+  
+  \item Time: 2.5s
+\end{itemize}
+
+\subsubsection{Bruteforce optimization: biword indexes}
+
+\begin{itemize}
+  \item Pairs of words are much less frequent than single words so storing
+  them means less work for postings lists merging.
+  
+  \item Can result in much bigger index size: $\min (W^2, N)$ where $W$ is the
+  number of distinct words and $N$ the total number of words in documents.
+  
+  \item Invocation that gives us stack backtraces:
+  
+  \tmverbatim{ocamlbuild InvIndex3.native -cflag -g -libs unix; export
+  OCAMLRUNPARAM="b"; ./InvIndex3.native}
+  
+  \item Time: 2.4s -- disappointing.
+\end{itemize}
+
+\subsection{Smart way: {\tmem{Information Retrieval}} G.V. Cormack et al.}
+
+\begin{itemize}
+  \item You should classify your problem and search literature for
+  state-of-the-art algorithm to solve it.
+  
+  \item The algorithm needs a data structure for inverted index that supports:
+  \begin{itemize}
+    \item \tmverbatim{first(w)} -- first position in documents at which
+    \tmverbatim{w} appears
+    
+    \item \tmverbatim{last(w)} -- last position of \tmverbatim{w}
+    
+    \item \tmverbatim{next(w,cp)} -- first position of \tmverbatim{w} after
+    position \tmverbatim{cp}
+    
+    \item \tmverbatim{prev(w,cp)} -- last position of \tmverbatim{w} before
+    position \tmverbatim{cp}
+  \end{itemize}
+  \item We develop \tmverbatim{next} and \tmverbatim{prev} operations in
+  stages:
+  \begin{itemize}
+    \item First, a naive (but FP) approach using the {\hlkwc{Set}} module of
+    OCaml.
+    \begin{itemize}
+      \item We could use our balanced binary search tree implementation to
+      avoid the overhead due to limitations of {\hlkwc{Set}} API.
+    \end{itemize}
+    \item Then, {\tmem{binary search}} based on arrays.
+    
+    \item Imperative linear search.
+    
+    \item Imperative {\tmem{galloping search}} optimization of binary search.
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{The phrase search algorithm}
+
+\begin{itemize}
+  \item During search we maintain {\tmem{current position}} \tmverbatim{cp} of
+  last found word or phrase.
+  
+  \item Algorithm is almost purely functional, we use {\hlkwd{Not\_found}}
+  exception instead of option type for convenience.
+\end{itemize}
+{\hlkwa{let rec }}{\hlstd{next{\textunderscore}phrase ii phrase cp
+}}{\hlopt{=}}{\hlendline{Return the beginning and end position}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux cp }}{\hlopt{=
+}}{\hlkwa{function}}{\hlendline{of occurrence of \tmverbatim{phrase} after
+position \tmverbatim{cp}.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar  [] -> }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlendline{Empty phrase counts as not
+occurring.}}\\
+{\hlstd{ \ \ \ }}{\hlopt{\textbar  [}}{\hlstd{w}}{\hlopt{]
+->}}{\hlendline{Single or last word of phrase has the same}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{np }}{\hlopt{= }}{\hlstd{next ii w
+cp }}{\hlkwa{in }}{\hlstd{np}}{\hlopt{, }}\tmverbatim{np}{\hlendline{beg. and
+end position.}}\\
+\tmverbatim{ \ \ \ }{\hlopt{\textbar}} w{\hlopt{::}}{\hlstd{ws
+}}{\hlopt{->}}{\hlendline{After locating the endp. move back.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{np}}{\hlopt{, }}{\hlstd{fp
+}}{\hlopt{= }}{\hlstd{aux }}{\hlopt{(}}{\hlstd{next ii w cp}}{\hlopt{)
+}}{\hlstd{ws }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ prev ii w np}}{\hlopt{, }}{\hlstd{fp
+}}{\hlkwa{in}}{\hlendline{If distance is this small,}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{np}}{\hlopt{, }}{\hlstd{fp }}{\hlopt{=
+}}{\hlstd{aux cp phrase }}{\hlkwa{in}}{\hlendline{words are consecutive.}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{fp }}{\hlopt{- }}{\hlstd{np }}{\hlopt{=
+}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{length phrase }}{\hlopt{- }}{\hlnum{1
+}}{\hlkwa{then }}{\hlstd{np}}{\hlopt{, }}{\hlstd{fp{\hlendline{}}\\
+\ }}{\hlkwa{else }}{\hlstd{next{\textunderscore}phrase ii phrase
+fp}}{\hlendline{}}
+
+{\hlkwa{let }}{\hlstd{search }}{\hlopt{(}}{\hlstd{ii}}{\hlopt{,
+}}{\hlstd{linebreaks}}{\hlopt{) }}{\hlstd{phrase }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{lexbuf }}{\hlopt{=
+}}{\hlkwc{Lexing}}{\hlopt{.}}{\hlstd{from{\textunderscore}string phrase
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \
+}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{reset{\textunderscore}as{\textunderscore}file
+lexbuf }}{\hlopt{(}}{\hlstr{"search phrase:
+"}}{\hlstd{{\textasciicircum}phrase}}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{phrase }}{\hlopt{=
+}}{\hlkwc{IndexParser}}{\hlopt{.}}{\hlstd{phrase
+}}{\hlkwc{EngLexer}}{\hlopt{.}}{\hlstd{token lexbuf
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{try}}{\hlendline{Find all occurrences of the
+phrase.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{let }}{\hlstd{np}}{\hlopt{, }}{\hlstd{fp
+}}{\hlopt{= }}{\hlstd{next{\textunderscore}phrase ii phrase cp
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ np }}{\hlopt{:: }}{\hlstd{aux fp{\hlendline{}}\\
+\ \ \ }}{\hlkwa{with }}{\hlkwd{Not{\textunderscore}found }}{\hlopt{-> []
+}}{\hlkwa{in}}{\hlendline{Moved past last occurrence.}}\\
+{\hlstd{ \ }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{map
+}}{\hlopt{(}}{\hlstd{find{\textunderscore}line linebreaks}}{\hlopt{)
+(}}{\hlstd{aux }}{\hlopt{(}}{\hlnum{-1}}{\hlopt{))}}{\hlendline{}}
+
+\subsubsection{Naive but purely functional inverted index}
+
+{\small{{\hlkwa{module }}{\hlkwd{S }}{\hlopt{=
+}}{\hlkwc{Set}}{\hlopt{.}}{\hlkwd{Make}}{\hlopt{(}}{\hlkwa{struct type
+}}{\hlstd{t}}{\hlopt{=}}{\hlkwb{int }}{\hlkwa{let }}{\hlstd{compare i j
+}}{\hlopt{= }}{\hlstd{i}}{\hlopt{-}}{\hlstd{j
+}}{\hlkwa{end}}{\hlopt{)}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{update ii }}{\hlopt{(}}{\hlstd{w}}{\hlopt{,
+}}{\hlstd{p}}{\hlopt{) =}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{(}}{\hlkwa{try}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{=
+}}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{find ii w }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{replace ii w
+}}{\hlopt{(}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{add p
+ps}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{with }}{\hlkwd{Not{\textunderscore}found }}{\hlopt{->
+}}{\hlkwc{Hashtbl}}{\hlopt{.}}{\hlstd{add ii w
+}}{\hlopt{(}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{singleton
+p}}{\hlopt{));}}{\hlendline{}}\\
+{\hlstd{ \ ii}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{first ii w }}{\hlopt{=
+}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{min{\textunderscore}elt
+}}{\hlopt{(}}{\hlstd{find w ii}}{\hlopt{)}}{\hlendline{The functions raise
+{\hlkwd{Not\_found}}}}\\
+{\hlkwa{let }}{\hlstd{last ii w }}{\hlopt{=
+}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{max{\textunderscore}elt
+}}{\hlopt{(}}{\hlstd{find w ii}}{\hlopt{)}}{\hlendline{whenever such position
+would not exist.}}\\
+{\hlkwa{let }}{\hlstd{prev ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{= }}{\hlstd{find w ii
+}}{\hlkwa{in}}{\hlendline{Split the set into elements}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{smaller}}{\hlopt{,
+}}{\hlstd{{\textunderscore}}}{\hlopt{, }}{\hlstd{{\textunderscore} }}{\hlopt{=
+}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{split cp ps }}{\hlkwa{in}}{\hlendline{smaller
+and bigger than \tmverbatim{cp}.}}\\
+{\hlstd{ \ }}{\hlkwc{S}}{\hlopt{.}}{\hlstd{max{\textunderscore}elt
+smaller}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{next ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{= }}{\hlstd{find w ii
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{{\textunderscore}}}{\hlopt{,
+}}{\hlstd{{\textunderscore}}}{\hlopt{, }}{\hlstd{bigger }}{\hlopt{=
+}}{\hlkwc{S}}{\hlopt{.}}{\hlstd{split cp ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwc{S}}{\hlopt{.}}{\hlstd{min{\textunderscore}elt
+bigger}}{\hlendline{}}}}
+\begin{itemize}
+  \item Invocation: \tmverbatim{ocamlbuild InvIndex4.native -libs unix --}
+  
+  \item Time: 3.3s -- would be better without the overhead of
+  {\hlkwc{S}}{\hlopt{.}}{\hlstd{split}}.
+\end{itemize}
+
+\subsubsection{Binary search based inverted index}
+
+{\small{{\hlkwa{let }}{\hlstd{prev ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{= }}{\hlstd{find w ii
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux b e }}{\hlopt{=}}{\hlendline{We
+implement binary search separately for \tmverbatim{prev}}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{e}}{\hlopt{-}}{\hlstd{b }}{\hlopt{<=
+}}{\hlnum{1 }}{\hlkwa{then
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{b}}{\hlopt{)}}{\hlendline{to make sure here
+we return less than \tmverbatim{cp}}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{else let }}{\hlstd{m }}{\hlopt{=
+(}}{\hlstd{b}}{\hlopt{+}}{\hlstd{e}}{\hlopt{)/}}{\hlnum{2
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ }}{\hlkwa{if
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{m}}{\hlopt{) < }}{\hlstd{cp }}{\hlkwa{then
+}}\tmverbatim{aux m e}{\hlendline{}}\\
+\tmverbatim{ \ \ \ \ \ \ \ \ }{\hlkwa{else }}{\hlstd{aux b m
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l }}{\hlopt{=
+}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{l }}{\hlopt{= }}{\hlnum{0
+}}{\hlstd{{\hlopt{\textbar\textbar}} ps}}{\hlopt{.(}}{\hlnum{0}}{\hlopt{) >=
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else }}{\hlstd{aux }}{\hlnum{0
+}}{\hlopt{(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{)}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{next ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{ps }}{\hlopt{= }}{\hlstd{find w ii
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{aux b e }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{e}}{\hlopt{-}}{\hlstd{b }}{\hlopt{<=
+}}{\hlnum{1 }}{\hlkwa{then
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{e}}{\hlopt{)}}{\hlendline{and here more than
+\tmverbatim{cp}.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{else let }}{\hlstd{m }}{\hlopt{=
+(}}{\hlstd{b}}{\hlopt{+}}{\hlstd{e}}{\hlopt{)/}}{\hlnum{2
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ }}{\hlkwa{if
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{m}}{\hlopt{) <= }}{\hlstd{cp }}{\hlkwa{then
+}}{\hlstd{aux m e{\hlendline{}}\\
+\ \ \ \ \ \ \ \ }}{\hlkwa{else }}{\hlstd{aux b m
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l }}{\hlopt{=
+}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{l }}{\hlopt{= }}{\hlnum{0
+}}{\hlstd{{\hlopt{\textbar\textbar}}
+ps}}{\hlopt{.(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) <= }}{\hlstd{cp
+}}{\hlkwa{then }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else }}{\hlstd{aux }}{\hlnum{0
+}}{\hlopt{(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{)}}{\hlendline{}}}}
+\begin{itemize}
+  \item File: \tmverbatim{InvIndex5.ml}. Time: 2.4s
+\end{itemize}
+
+\subsubsection{Imperative, linear scan}
+
+{\small{{\hlkwa{let }}{\hlstd{prev ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{cw}}{\hlopt{,}}{\hlstd{ps }}{\hlopt{=
+}}{\hlstd{find w ii }}{\hlkwa{in}}{\hlendline{For each word we add a cell with
+last visited occurrence.}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l }}{\hlopt{=
+}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{l }}{\hlopt{= }}{\hlnum{0
+}}{\hlstd{{\hlopt{\textbar\textbar}} ps}}{\hlopt{.(}}{\hlnum{0}}{\hlopt{) >=
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else if
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) <
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{cw }}{\hlopt{:=
+}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else }}{\hlopt{(}}{\hlendline{Reset pointer if current
+position is not ``ahead'' of it.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlopt{!}}{\hlstd{cw }}{\hlopt{<
+}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1 }}{\hlopt{\&\&
+}}{\hlstd{ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{+}}{\hlnum{1}}{\hlopt{) <
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{cw }}{\hlopt{:=
+}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{;}}{\hlendline{Otherwise scan}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{while
+}}{\hlstd{ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{) >= }}{\hlstd{cp }}{\hlkwa{do
+}}{\hlstd{decr cw }}{\hlkwa{done}}{\hlendline{starting from last visited.}}\\
+{\hlstd{ \ }}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{)}}{\hlendline{}}\\
+{\hlkwa{let }}{\hlstd{next ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{cw}}{\hlopt{,}}{\hlstd{ps }}{\hlopt{=
+}}{\hlstd{find w ii }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l }}{\hlopt{=
+}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{l }}{\hlopt{= }}{\hlnum{0
+}}{\hlstd{{\hlopt{\textbar\textbar}}
+ps}}{\hlopt{.(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) <= }}{\hlstd{cp
+}}{\hlkwa{then }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else if }}{\hlstd{ps}}{\hlopt{.(}}{\hlnum{0}}{\hlopt{) >
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{cw }}{\hlopt{:=
+}}{\hlnum{0}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else }}{\hlopt{(}}{\hlendline{Reset pointer if current
+position is not ahead of it.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlopt{!}}{\hlstd{cw }}{\hlopt{> }}{\hlnum{0
+}}{\hlopt{\&\&
+}}{\hlstd{ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) >
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{cw }}{\hlopt{:=
+}}{\hlnum{0}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{while
+}}{\hlstd{ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{) <= }}{\hlstd{cp }}{\hlkwa{do
+}}{\hlstd{incr cw }}{\hlkwa{done}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{)}}{\hlendline{}}\\
+}}
+\begin{itemize}
+  \item End of \tmverbatim{index}-building function:
+  
+  {\hlstd{ \ mapv }}{\hlopt{(}}{\hlkwa{fun
+  }}{\hlstd{ps}}{\hlopt{->}}{\hlkwb{ref }}{\hlnum{0}}{\hlopt{,
+  }}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{of{\textunderscore}list
+  }}{\hlopt{(}}{\hlkwc{List}}{\hlopt{.}}{\hlstd{rev ps}}{\hlopt{))
+  }}{\hlstd{ii}}{\hlopt{,}}...
+  
+  \item File: \tmverbatim{InvIndex6.ml}
+  
+  \item Time: 2.8s
+\end{itemize}
+
+
+\subsubsection{Imperative, galloping search}
+
+{\small{{\hlkwa{let }}{\hlstd{next ii w cp }}{\hlopt{=}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{cw}}{\hlopt{,}}{\hlstd{ps }}{\hlopt{=
+}}{\hlstd{find w ii }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let }}{\hlstd{l }}{\hlopt{=
+}}{\hlkwc{Array}}{\hlopt{.}}{\hlstd{length ps }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{l }}{\hlopt{= }}{\hlnum{0
+}}{\hlstd{{\hlopt{\textbar\textbar}}
+ps}}{\hlopt{.(}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) <= }}{\hlstd{cp
+}}{\hlkwa{then }}{\hlstd{raise
+}}{\hlkwd{Not{\textunderscore}found}}{\hlopt{;}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{jump
+}}{\hlopt{(}}{\hlstd{b}}{\hlopt{,}}{\hlstd{e }}{\hlkwa{as
+}}{\hlstd{bounds}}{\hlopt{) }}{\hlstd{j }}{\hlopt{=}}{\hlendline{Locate the
+interval with \tmverbatim{cp} inside.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{e }}{\hlopt{<
+}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1 }}{\hlopt{\&\&
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{e}}{\hlopt{) <= }}{\hlstd{cp }}{\hlkwa{then
+}}{\hlstd{jump
+}}{\hlopt{(}}{\hlstd{e}}{\hlopt{,}}{\hlstd{e}}{\hlopt{+}}{\hlstd{j}}{\hlopt{)
+(}}{\hlnum{2}}{\hlopt{*}}{\hlstd{j}}{\hlopt{)}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{else }}{\hlstd{bounds }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{let rec }}{\hlstd{binse b e
+}}{\hlopt{=}}{\hlendline{Binary search over that interval.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{if }}{\hlstd{e}}{\hlopt{-}}{\hlstd{b }}{\hlopt{<=
+}}{\hlnum{1 }}{\hlkwa{then }}{\hlstd{e{\hlendline{}}\\
+\ \ \ }}{\hlkwa{else let }}{\hlstd{m }}{\hlopt{=
+(}}{\hlstd{b}}{\hlopt{+}}{\hlstd{e}}{\hlopt{)/}}{\hlnum{2
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ \ \ \ \ \ }}{\hlkwa{if
+}}{\hlstd{ps}}{\hlopt{.(}}{\hlstd{m}}{\hlopt{) <= }}{\hlstd{cp }}{\hlkwa{then
+}}{\hlstd{binse m e{\hlendline{}}\\
+\ \ \ \ \ \ \ \ }}{\hlkwa{else }}{\hlstd{binse b m
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{if }}{\hlstd{ps}}{\hlopt{.(}}{\hlnum{0}}{\hlopt{) >
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlstd{cw }}{\hlopt{:=
+}}{\hlnum{0}}{\hlendline{}}\\
+{\hlstd{ \ }}{\hlkwa{else }}{\hlopt{(}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{b }}{\hlopt{=}}{\hlendline{The
+invariant is that {\hlstd{ps}}{\hlopt{.(}}{\hlstd{b}}{\hlopt{) <=
+}}\tmverbatim{cp}.}}\\
+{\hlstd{ \ \ \ \ \ }}{\hlkwa{if }}{\hlopt{!}}{\hlstd{cw }}{\hlopt{>
+}}{\hlnum{0 }}{\hlopt{\&\&
+}}{\hlstd{ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{-}}{\hlnum{1}}{\hlopt{) <=
+}}{\hlstd{cp }}{\hlkwa{then }}{\hlopt{!}}{\hlstd{cw}}{\hlopt{-}}{\hlnum{1
+}}{\hlkwa{else }}{\hlnum{0 }}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{b}}{\hlopt{,}}{\hlstd{e }}{\hlopt{=
+}}{\hlstd{jump
+}}{\hlopt{(}}{\hlstd{b}}{\hlopt{,}}{\hlstd{b}}{\hlopt{+}}{\hlnum{1}}{\hlopt{)
+}}{\hlnum{2 }}{\hlkwa{in}}{\hlendline{Locate interval starting near
+{\hlopt{!}}\tmverbatim{cw}.}}\\
+{\hlstd{ \ \ \ }}{\hlkwa{let }}{\hlstd{e }}{\hlopt{= }}{\hlkwa{if }}{\hlstd{e
+}}{\hlopt{> }}{\hlstd{l}}{\hlopt{-}}{\hlnum{1 }}{\hlkwa{then
+}}{\hlstd{l}}{\hlopt{-}}{\hlnum{1 }}{\hlkwa{else }}{\hlstd{e
+}}{\hlkwa{in}}{\hlendline{}}\\
+{\hlstd{ \ \ \ cw }}{\hlopt{:= }}{\hlstd{binse b e{\hlendline{}}\\
+\ }}{\hlopt{);}}{\hlendline{}}\\
+{\hlstd{ \ ps}}{\hlopt{.(!}}{\hlstd{cw}}{\hlopt{)}}{\hlendline{}}}}
+\begin{itemize}
+  \item \tmverbatim{prev} is symmetric to \tmverbatim{next}.
+  
+  \item File: \tmverbatim{InvIndex7.ml}
+  
+  \item Time: 2.4s -- minimal speedup in our simple test case.
+\end{itemize}
+
+
+\end{document}

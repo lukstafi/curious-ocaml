@@ -1,0 +1,217 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,theorem}
+\geometry{letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmop}[1]{\ensuremath{\operatorname{#1}}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+{\theorembodyfont{\rmfamily\small}\newtheorem{exercise}{Exercise}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\class{Functional Programming}}{\titledate{February 5th 2013}}
+
+{\title{Exam set 1}}
+
+\begin{exercise}
+  (Blue.) What is the type of the subexpression \tmverbatim{y} as part of the
+  expression below assuming that the whole expression has the type given?
+  
+  {\hlopt{(}}{\hlkwa{fun }}{\hlstd{double g x }}{\hlopt{-> }}{\hlstd{double
+  }}{\hlopt{(}}{\hlstd{g x}}{\hlopt{))}}{\hlstd{}}
+  {\hlopt{(}}{\hlkwa{fun}}{\hlstd{ f y }}{\hlopt{-> }}{\hlstd{f
+  }}{\hlopt{(}}{\hlstd{f \begin{tabular}{|l|}
+    \hline
+    y\\
+    \hline
+  \end{tabular}}}{\hlopt{))}}
+  
+  {\hlopt{ : (}}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b }}{\hlopt{->
+  }}{\hlstd{'b}}{\hlopt{) -> }}{\hlstd{'a }}{\hlopt{-> }}{\hlstd{'b
+  }}{\hlopt{-> }}{\hlstd{'b}}
+\end{exercise}
+
+\begin{exercise}
+  (Blue.) Write an example function with type:
+  
+  \tmverbatim{((int -> int) -> bool) -> int}
+  
+  Tell ``in your words'' what it does.
+\end{exercise}
+
+\begin{exercise}
+  (Green.) Write a function \tmverbatim{last : 'a list -> 'a option} that
+  returns the last element of a list.
+\end{exercise}
+
+\begin{exercise}
+  (Green.) Duplicate the elements of a list.
+\end{exercise}
+
+\begin{exercise}
+  (Yellow.) Drop every N'th element from a list.
+\end{exercise}
+
+\begin{exercise}
+  (Yellow.) Construct completely balanced binary trees of given depth.
+  
+  In a completely balanced binary tree, the following property holds for every
+  node: The number of nodes in its left subtree and the number of nodes in its
+  right subtree are almost equal, which means their difference is not greater
+  than one.
+  
+  Write a function \tmverbatim{cbal\_tree} to construct completely balanced
+  binary trees for a given number of nodes. The function should generate the
+  list of all solutions (e.g. via backtracking). Put the letter
+  \tmverbatim{'x'} as information into all nodes of the tree.
+\end{exercise}
+
+\begin{exercise}
+  (White.) Due to Yaron Minsky.
+  
+  Consider a datatype to store internet connection information. The time
+  \tmverbatim{when\_initiated} marks the start of connecting and is not needed
+  after the connection is established (it is only used to decide whether to
+  give up trying to connect). The ping information is available for
+  established connection but not straight away.
+  
+  \\
+  {\hlstd{}}{\hlkwa{type }}{\hlstd{connection{\textunderscore}state
+  }}{\hlopt{=}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlopt{\textbar
+  }}{\hlkwd{Connecting}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlopt{\textbar
+  }}{\hlkwd{Connected}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlopt{\textbar
+  }}{\hlkwd{Disconnected}}{\hlendline{}}\\
+  {\hlstd{}}{\hlendline{}}\\
+  {\hlkwa{type }}{\hlstd{connection{\textunderscore}info }}{\hlopt{=
+  \{}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{state }}{\hlopt{:
+  }}{\hlstd{connection{\textunderscore}state}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{server }}{\hlopt{:
+  }}{\hlstd{}}{\hlkwc{Inet{\textunderscore}addr}}{\hlstd{}}{\hlopt{.}}{\hlstd{t}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \
+  }}{\hlstd{last{\textunderscore}ping{\textunderscore}time }}{\hlopt{:
+  }}{\hlstd{}}{\hlkwc{Time}}{\hlstd{}}{\hlopt{.}}{\hlstd{t
+  }}{\hlkwb{option}}{\hlstd{}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{last{\textunderscore}ping{\textunderscore}id
+  }}{\hlopt{: }}{\hlstd{}}{\hlkwb{int
+  option}}{\hlstd{}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{session{\textunderscore}id }}{\hlopt{:
+  }}{\hlstd{}}{\hlkwb{string option}}{\hlstd{}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{when{\textunderscore}initiated }}{\hlopt{:
+  }}{\hlstd{}}{\hlkwc{Time}}{\hlstd{}}{\hlopt{.}}{\hlstd{t
+  }}{\hlkwb{option}}{\hlstd{}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlstd{ \ }}{\hlstd{when{\textunderscore}disconnected }}{\hlopt{:
+  }}{\hlstd{}}{\hlkwc{Time}}{\hlstd{}}{\hlopt{.}}{\hlstd{t
+  }}{\hlkwb{option}}{\hlstd{}}{\hlopt{;}}{\hlendline{}}\\
+  {\hlstd{}}{\hlopt{\}}}{\hlstd{}}{\hlendline{}}
+  
+  (The types {\hlkwc{Time}}{\hlstd{}}{\hlopt{.}}{\hlstd{t }}and
+  {\hlkwc{Inet{\textunderscore}addr}}{\hlstd{}}{\hlopt{.}}{\hlstd{t}} come
+  from the library {\tmem{Core}} used where Yaron Minsky works. You can
+  replace them with \tmverbatim{float} and
+  {\hlkwc{Unix}}{\hlstd{}}{\hlopt{.}}{\hlstd{inet\_addr}}. Load the Unix
+  library in the interactive toplevel by \tmverbatim{\#load "unix.cma";;}.)
+  Rewrite the type definitions so that the datatype will contain only
+  reasonable combinations of information.
+\end{exercise}
+
+\begin{exercise}
+  (White.) Design an algebraic specification and write a signature for
+  first-in-first-out queues. Provide two implementations: one straightforward
+  using a list, and another one using two lists: one for freshly added
+  elements providing efficient queueing of new elements, and ``reversed'' one
+  for efficient popping of old elements.
+\end{exercise}
+
+\begin{exercise}
+  (Orange.) Implement \tmverbatim{while\_do} in terms of
+  \tmverbatim{repeat\_until}.
+\end{exercise}
+
+\begin{exercise}
+  (Orange.) Implement a map from keys to values (a dictionary) using only
+  functions (without data structures like lists or trees).
+\end{exercise}
+
+\begin{exercise}
+  (Purple.) One way to express constraints on a polymorphic function is to
+  write its type in the form: $\forall \alpha_1 \ldots \alpha_n [C] . \tau$,
+  where $\tau$ is the type of the function, $\alpha_1 \ldots \alpha_n$ are the
+  polymorphic type variables, and $C$ are additional constraints that the
+  variables $\alpha_1 \ldots \alpha_n$ have to meet. Let's say we allow
+  ``local variables'' in $C$: for example $C = \exists \beta . \alpha_1
+  \dot{=} \tmop{list} (\beta)$. Why the general form $\forall \beta [C] .
+  \beta$ is enough to express all types of the general form $\forall \alpha_1
+  \ldots \alpha_n [C] . \tau$?
+\end{exercise}
+
+\begin{exercise}
+  (Purple.) Define a type that corresponds to a set with a googleplex of
+  elements (i.e. $10^{10^{100}}$ elements).
+\end{exercise}
+
+\begin{exercise}
+  (Red.) In a height-balanced binary tree, the following property holds for
+  every node: The height of its left subtree and the height of its right
+  subtree are almost equal, which means their difference is not greater than
+  one. Consider a height-balanced binary tree of height $h$. What is the
+  maximum number of nodes it can contain? Clearly, $\tmop{maxN} = 2 h - 1$.
+  However, finding the minimum number $\tmop{minN}$ is more difficult.
+  
+  Construct all the height-balanced binary trees with a given nuber of nodes.
+  \tmverbatim{hbal\_tree\_nodes n} returns a list of all height-balanced
+  binary tree with \tmverbatim{n} nodes.
+  
+  Find out how many height-balanced trees exist for \tmverbatim{n} = 15.
+\end{exercise}
+
+\begin{exercise}
+  (Crimson.) To construct a Huffman code for symbols with
+  probability/frequency, we can start by building a binary tree as follows.
+  The algorithm uses a priority queue where the node with lowest probability
+  is given highest priority:
+  \begin{enumerate}
+    \item Create a leaf node for each symbol and add it to the priority queue.
+    
+    \item While there is more than one node in the queue:
+    \begin{enumerate}
+      \item Remove the two nodes of highest priority (lowest probability) from
+      the queue.
+      
+      \item Create a new internal node with these two nodes as children and
+      with probability equal to the sum of the two nodes' probabilities.
+      
+      \item Add the new node to the queue.
+    \end{enumerate}
+    \item The remaining node is the root node and the tree is complete.
+  \end{enumerate}
+  Label each left edge by \tmverbatim{0} and right edge by \tmverbatim{1}. The
+  final binary code assigns the string of bits on the path from root to the
+  symbol as its code.
+  
+  We suppose a set of symbols with their frequencies, given as a list of
+  Fr(S,F) terms. Example: \tmverbatim{fs = [Fr(a,45); Fr(b,13); Fr(c,12);
+  Fr(d,16); Fr(e,9); Fr(f,5)]}. Our objective is to construct a list
+  \tmverbatim{Hc(S,C)} terms, where \tmverbatim{C} is the Huffman code word
+  for the symbol \tmverbatim{S}. In our example, the result could be
+  \tmverbatim{hs = [Hc(a,'0'); Hc(b,'101'); Hc(c,'100'); Hc(d,'111');
+  Hc(e,'1101'); Hc(f,'1100')]} [\tmverbatim{Hc(a,'01')},...etc.]. The task
+  shall be performed by the function huffman defined as follows:
+  \tmverbatim{huffman(fs)} returns the Huffman code table for the frequency
+  table \tmverbatim{fs}.
+\end{exercise}
+
+\begin{exercise}
+  (Black.) Implement the Gaussian Elimination algorithm for solving linear
+  equations and inverting square invertible matrices.
+\end{exercise}
+
+\end{document}

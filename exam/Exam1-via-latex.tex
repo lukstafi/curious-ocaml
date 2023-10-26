@@ -1,0 +1,93 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{amsmath,theorem}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\>=\active \def>{
+\fontencoding{T1}\selectfont\symbol{62}\fontencoding{\encodingdefault}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+{\theorembodyfont{\rmfamily\small}\newtheorem{exercise}{Exercise}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\class{Functional Programming}}
+
+{\title{Exam{\titledate{June 8th 2012}}}}
+
+\begin{exercise}
+  Give types of the following expressions, either by guessing or inferring
+  them by hand:
+  \begin{enumerate}
+    \item {\hlstd{}}{\hlkwa{let }}{\hlstd{double f y }}{\hlopt{= }}{\hlstd{f
+    }}{\hlopt{(}}{\hlstd{f y}}{\hlopt{) }}{\hlstd{}}{\hlkwa{in fun }}{\hlstd{g
+    x }}{\hlopt{-> }}{\hlstd{double }}{\hlopt{(}}{\hlstd{g
+    x}}{\hlopt{)}}{\hlstd{}}
+    
+    \item {\hlkwa{let rec }}{\hlstd{tails l }}{\hlopt{= }}{\hlkwa{match
+    }}{\hlstd{l }}{\hlkwa{with }}{\hlopt{[] -> [] }}{\hlstd{{\hlopt{\textbar}}
+    x}}{\hlopt{::}}{\hlstd{xs }}{\hlopt{->
+    }}{\hlstd{xs}}{\hlopt{::}}{\hlstd{tails xs }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlkwa{fun }}{\hlstd{l }}{\hlopt{->
+    }}{\hlkwc{List}}{\hlopt{.}}{\hlstd{combine l }}{\hlopt{(}}{\hlstd{tails
+    l}}{\hlopt{)}}
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Assume that the corresponding expression from previous exercise is bound to
+  name \tmverbatim{foo}. What are the values computed for the expressions
+  (compute in your head or derive on paper):
+  \begin{enumerate}
+    \item {\hlstd{foo }}{\hlopt{(+) }}{\hlnum{2 3}}{\hlopt{, }}{\hlstd{foo
+    }}{\hlopt{( * ) }}{\hlnum{2 3}}{\hlopt{, }}{\hlstd{foo }}{\hlopt{( * )
+    }}{\hlnum{3 2}}
+    
+    \item {\hlstd{foo }}{\hlopt{[}}{\hlnum{1}}{\hlopt{; }}{\hlnum{2}}{\hlopt{;
+    }}{\hlnum{3}}{\hlopt{]}}
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Give example expressions that have the following types (without using type
+  constraints):
+  \begin{enumerate}
+    \item \tmverbatim{(int -> int) -> bool}
+    
+    \item \tmverbatim{'a option -> 'a list}
+  \end{enumerate}
+\end{exercise}
+
+\begin{exercise}
+  Write function that returns the list of all lists containing elements from
+  the input list, preserving order from the input list, but without two
+  elements.
+\end{exercise}
+
+\begin{exercise}
+  Write a breadth-first-search function that returns an element from a binary
+  tree for which a predicate holds, or \tmverbatim{None} if no such element
+  exists. The function should have signature:
+  
+  \tmverbatim{val bfs : ('a -> bool) -> 'a btree -> 'a option}
+\end{exercise}
+
+\begin{exercise}
+  Solve the n-queens problem using backtracking based on lists.
+  
+  Available functions: \tmverbatim{from\_to}, \tmverbatim{concat\_map},
+  \tmverbatim{concat\_foldl}, \tmverbatim{unique}.
+  
+  Hint functions (asking for hint each loses one point):
+  \tmverbatim{valid\_queens}, \tmverbatim{add\_queen},
+  \tmverbatim{find\_queen}, \tmverbatim{find\_queens}. Final function
+  \tmverbatim{solve} takes $n$ as an argument. Each function, other than
+  \tmverbatim{valid\_queens} that takes 3 lines, fits on one line.
+\end{exercise}
+
+\begin{exercise}
+  Provide an algebraic specification and an implementation for
+  first-in-first-out queues (lecture 5 exercise 9).
+\end{exercise}
+
+\end{document}

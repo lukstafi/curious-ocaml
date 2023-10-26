@@ -1,0 +1,420 @@
+\documentclass{beamer}
+\usepackage[english]{babel}
+\usepackage{geometry,amsmath,amssymb,graphicx,hyperref,alltt}
+\geometry{landscape, letterpaper}
+
+%%%%%%%%%% Start TeXmacs macros
+\catcode`\<=\active \def<{
+\fontencoding{T1}\selectfont\symbol{60}\fontencoding{\encodingdefault}}
+\newcommand{\tmem}[1]{{\em #1\/}}
+\newcommand{\tmfnhomepage}[1]{\thanks{\textit{Web:} \texttt{#1}}}
+\newcommand{\tmstrong}[1]{\textbf{#1}}
+\newcommand{\tmverbatim}[1]{\text{{\ttfamily{#1}}}}
+\newenvironment{tmcode}[1][]{\begin{alltt} }{\end{alltt}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+{\screens{\begin{frame}
+  \title{Functional Programming}
+  
+  \author{
+    {\L}ukasz Stafiniak
+    \tmfnhomepage{www.ii.uni.wroc.pl/\~{}lukstafi}
+  }
+  
+  \institute{{\L}ukasz Stafiniak}
+  
+  \maketitle
+  
+  \title{Lecture 1: Logic}
+  
+  \subtitle{From logic rules to programming constructs}
+  
+  \maketitle
+  
+  \ 
+\end{frame}}{\begin{frame}
+  \section{In the Beginning there was Logos}
+  
+  What logical connectives do you know?
+  
+  \begin{tabular}{|l|l|l|l|l|}
+    \hline
+    $\top$ & $\bot$ & $\wedge$ & $\vee$ & $\rightarrow$\\
+    \hline
+    &  & $a \wedge b$ & $a \vee b$ & $a \rightarrow b$\\
+    \hline
+    truth & falsehood & conjunction & disjunction & implication\\
+    \hline
+    ``trivial'' & ``impossible'' & $a$ and $b$ & $a$ or $b$ & $a$ gives $b$\\
+    \hline
+    & shouldn't get & got both & got {\scriptsize{at least }}one & given $a$,
+    we get $b$\\
+    \hline
+  \end{tabular}
+  
+  How can we define them?
+\end{frame}}{\begin{frame}
+  Think in terms of {\tmem{derivation trees}}:
+  \[ \frac{\begin{array}{ll}
+       \frac{\begin{array}{ll}
+         \frac{}{\text{a premise}} & \frac{}{\text{another premise}}
+       \end{array}}{\text{some fact}} & \frac{\frac{}{\text{this we have by
+       default}}}{\text{another fact}}
+     \end{array}}{\text{final conclusion}} \]
+  Define by providing rules for using the connectives: for example, a rule
+  $\frac{\begin{array}{ll}
+    a & b
+  \end{array}}{c}$ matches parts of the tree that have two premises,
+  represented by variables $a$ and $b$, and have any conclusion, represented
+  by variable $c$.
+  
+  Try to use only the connective you define in its definition.
+\end{frame}}{\begin{frame}
+  \section{Rules for Logical Connectives}
+  
+  Introduction rules say how to produce a connective.
+  
+  Elimination rules say how to use it.
+  
+  Text in parentheses is comments. Letters are variables: stand for anything.
+  
+  \begin{tabular}{|l|l|l|}
+    \hline
+    & Introduction Rules & Elimination Rules\\
+    \hline
+    $\top$ & $\frac{}{\begin{array}{lcl}
+      & \top & 
+    \end{array}}$ & doesn't have\\
+    \hline
+    $\bot$ & doesn't have & $\frac{\begin{array}{lll}
+      & \bot & 
+    \end{array}}{a}$ {\scriptsize{(i.e., anything)}}\\
+    \hline
+    $\wedge$ & $\frac{\begin{array}{ll}
+      a & b
+    \end{array}}{a \wedge b}$ & \begin{tabular}{ll}
+      $\frac{a \wedge b}{a}${\scriptsize{ (take first)}} & $\frac{a \wedge
+      b}{b}${\scriptsize{ (take second)}}
+    \end{tabular}\\
+    \hline
+    $\vee$ & \begin{tabular}{ll}
+      $\frac{a}{a \vee b}${\scriptsize{ (put first)}} & $\frac{b}{a \vee
+      b}${\scriptsize{ (put second)}}
+    \end{tabular} & $\frac{\begin{array}{rrl}
+      a \vee b &
+      \raisebox{-0.763902781908135\height}{\includegraphics[width=0.404515938606848cm,height=2.4261445625082cm]{functional-lecture01-via-latex-1.pdf}}
+      \scriptsize{x} \text{ (consider } a \text{)} &
+      \raisebox{-0.763902781908135\height}{\includegraphics[width=0.423291355109537cm,height=2.4261445625082cm]{functional-lecture01-via-latex-2.pdf}}
+      \scriptsize{y} \text{ (consider } b \text{)}
+    \end{array}}{c \text{ {\small{(since in both cases we get
+    it)}}}}${\scriptsize{using $x, y$}}\\
+    \hline
+    $\rightarrow$ &
+    $\frac{\raisebox{-0.764310582139098\height}{\includegraphics[width=0.404515938606848cm,height=2.43034238488784cm]{functional-lecture01-via-latex-3.pdf}}
+    \scriptsize{x}}{a \rightarrow b}${\scriptsize{ using $x$}} &
+    $\frac{\begin{array}{ll}
+      a \rightarrow b & a
+    \end{array}}{b}$\\
+    \hline
+  \end{tabular}
+\end{frame}}{\begin{frame}
+  Notations
+  \[ 
+     \raisebox{-0.764310582139098\height}{\includegraphics[width=0.404515938606848cm,height=2.43034238488784cm]{functional-lecture01-via-latex-4.pdf}}
+     \scriptsize{x} \text{, \ \ or \ \ }
+     \raisebox{-0.763902781908135\height}{\includegraphics[width=0.404515938606848cm,height=2.4261445625082cm]{functional-lecture01-via-latex-5.pdf}}
+     \scriptsize{x} \]
+  match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption
+  $\frac{}{a} \scriptsize{x}$) although otherwise $a$ might not be warranted.
+  For example:
+  \[ \frac{\frac{\frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+     outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow
+     \text{happy}} \small{\text{ using } x} \]
+  Such assumption can only be used in the matched subtree! But it can be used
+  several times, e.g. if someone's mood is more difficult to influence:
+  \[ \frac{\frac{\begin{array}{ll}
+       \frac{\frac{\frac{}{\text{sunny}} \small{x}}{\text{go
+       outdoor}}}{\text{playing}} & \frac{\begin{array}{ll}
+         \frac{}{\text{sunny}} \small{x} & \frac{\frac{}{\text{sunny}}
+         \small{x}}{\text{go outdoor}}
+       \end{array}}{\text{nice view}}
+     \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
+     \small{\text{ using } x} \]
+\end{frame}}{\begin{frame}
+  Elimination rule for disjunction represents {\tmstrong{reasoning by cases}}.
+  
+  How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
+  \[ \frac{\begin{array}{rrl}
+       \frac{}{\text{sunny} \vee \text{cloudy}} \scriptsize{\text{ forecast}}
+       & \frac{\frac{}{\text{sunny}} \scriptsize{x}}{\text{no-umbrella}} &
+       \frac{\frac{}{\text{cloudy}} \scriptsize{y}}{\text{no-umbrella}}
+     \end{array}}{\text{no-umbrella}} \small{\text{ using } x, y} \]
+  We know that it will be sunny or cloudy, by watching weather forecast. If it
+  will be sunny, we won't need an umbrella. If it will be cloudy, we won't
+  need an umbrella. Therefore, won't need an umbrella.
+\end{frame}}{\begin{frame}
+  We need one more kind of rules to do serious math: {\tmstrong{reasoning by
+  induction}} (it is somewhat similar to reasoning by cases). Example rule for
+  induction on natural numbers:
+  \[ \frac{\begin{array}{rr}
+       p (0) &
+       \raisebox{-0.788180506203233\height}{\includegraphics[width=2.3857733175915cm,height=2.70421749967205cm]{functional-lecture01-via-latex-6.pdf}}
+     \end{array}}{p (n)} \text{ by induction, using } x \]
+  So we get any $p$ for any natural number $n$, provided we can get it for
+  $0$, and using it for $x$ we can derive it for the successor $x + 1$, where
+  $x$ is a unique variable (we cannot substitute for it some particular
+  number, because we write ``using $x$'' on the side).
+\end{frame}}{\begin{frame}
+  \section{Logos was Programmed in OCaml}
+  
+  \begin{tabular}{|l|l|l|l|l|}
+    \hline
+    Logic & Type & Expr. & Introduction Rules & Elimination Rules\\
+    \hline
+    $\top$ & \tmverbatim{unit} & \tmverbatim{()} & $\frac{}{\begin{array}{lcl}
+      & \text{\tmverbatim{()}} : \text{\tmverbatim{unit}} & 
+    \end{array}}$ & \\
+    \hline
+    $\bot$ & \tmverbatim{'a} & \tmverbatim{raise} &  &
+    $\frac{\text{oops!}}{\text{\tmverbatim{raise Not\_found}} : c}$\\
+    \hline
+    $\wedge$ & \tmverbatim{*} & \tmverbatim{(,)} & $\frac{\begin{array}{ll}
+      s : a & t : b
+    \end{array}}{s \text{\tmverbatim{,}} t : a \text{\tmverbatim{*}} b}$ &
+    \begin{tabular}{ll}
+      $\frac{p : a \text{\tmverbatim{*}} b}{\text{\tmverbatim{fst} } p : a}$ &
+      $\frac{p : a \text{\tmverbatim{*}} b}{\text{\tmverbatim{snd} } p : b}$
+    \end{tabular}\\
+    \hline
+    $\vee$ & \tmverbatim{\textbar} & \tmverbatim{match} & \begin{tabular}{l}
+      $\frac{s : a}{A (s) : A \text{ \tmverbatim{of} } a
+      \text{\tmverbatim{\textbar$B \text{ \tmverbatim{of} }$}} b}$\\
+      {\scriptsize{(need to name sides)}}\\
+      $\frac{t : b}{B (t) : A \text{ \tmverbatim{of} } a
+      \text{\tmverbatim{\textbar$B \text{ \tmverbatim{of} }$}} b}$
+    \end{tabular} & \begin{tabular}{l}
+      $\frac{\begin{array}{rrl}
+        t : A \text{ \tmverbatim{of} } a \text{\tmverbatim{\textbar$B \text{
+        \tmverbatim{of} }$}} b &
+        \hspace{-0.00839564475928112cm}\raisebox{-0.772143476814496\height}{\includegraphics[width=1.21080939262757cm,height=2.51388888888889cm]{functional-lecture01-via-latex-7.pdf}}\hspace{-0.0474058769513315cm}
+        \scriptsize{x} &
+        \hspace{-0.00839564475928112cm}\raisebox{-0.780555834757262\height}{\includegraphics[width=1.21080939262757cm,height=2.61025842844025cm]{functional-lecture01-via-latex-8.pdf}}\hspace{-0.0474058769513315cm}
+        \scriptsize{y}
+      \end{array}}{\text{\tmverbatim{match} } t \text{ \tmverbatim{with} } A
+      (x) \text{\tmverbatim{->}} e_1 \text{ \tmverbatim{\textbar} } B (y)
+      \text{\tmverbatim{->}} e_2 : c}$\\
+      {\scriptsize{variables $x, y$}}
+    \end{tabular}\\
+    \hline
+    $\rightarrow$ & \tmverbatim{->} & \tmverbatim{fun} &
+    $\frac{\hspace{-0.00839564475928112cm}\raisebox{-0.764310582139098\height}{\includegraphics[width=1.02997507542962cm,height=2.43034238488784cm]{functional-lecture01-via-latex-9.pdf}}\hspace{-0.0236783418601602cm}
+    \scriptsize{x}}{\text{\tmverbatim{fun} } x \text{\tmverbatim{->}} e : a
+    \rightarrow b}${\scriptsize{ var $x$}} & $\frac{\begin{array}{ll}
+      f : a \rightarrow b & t : a
+    \end{array}}{f t : b}$ {\small{(application)}}\\
+    \hline
+    induction &  & \tmverbatim{rec} &
+    $\frac{\raisebox{-0.763902781908135\height}{\includegraphics[width=0.99024334251607cm,height=2.4261445625082cm]{functional-lecture01-via-latex-10.pdf}}
+    \scriptsize{x}}{\text{\tmverbatim{rec} } x \text{\tmverbatim{=}} e :
+    a}${\scriptsize{ variable $x$}} & \\
+    \hline
+  \end{tabular}
+\end{frame}}{\begin{frame}
+  \subsection{Definitions}
+  
+  Writing out expressions and types repetitively is tedious: we need
+  defini{\nobreak}tions. {\tmstrong{Definitions for types}} are written:
+  \tmverbatim{type ty = }some type.
+  \begin{itemize}
+    \item Writing $A (s) : A \text{ \tmverbatim{of} } a
+    \text{\tmverbatim{\textbar$B \text{ \tmverbatim{of} }$}} b$ in the table
+    was cheating. Usually we have to define the type and then use it, e.g.
+    using \tmverbatim{int} for $a$ and \tmverbatim{string} for $b$:\\
+    \tmverbatim{type int\_string\_choice = A of int \textbar  B of string}\\
+    allows us to write $A (s) : \text{\tmverbatim{int\_string\_choice}}$.
+    
+    \item Without the type definition, it is difficult to know what other
+    variants there are when one {\tmem{infers}} (i.e. ``guesses'', computes)
+    the type!
+    
+    \item In OCaml we can write ${}^{\backprime} A (s) : \left[
+    {}^{\backprime} A \text{ \tmverbatim{of} } a
+    \text{\tmverbatim{\textbar${}^{\backprime} B \text{ \tmverbatim{of} }$}} b
+    \right]$. With ``${}^{\backprime}$'' variants, OCaml does guess what other
+    variants are. These types are fun, but we will not use them in future
+    lectures.{\newpage}
+    
+    \item Tuple elements don't need labels because we always know at which
+    position a tuple element stands. But having labels makes code more clear,
+    so we can define a {\tmem{record type}}:
+    \begin{tmcode}
+    type int_string_record = \{a: int; b: string\}
+    \end{tmcode}
+    and create its values: \tmverbatim{\{a = 7; b = "Mary"\}}.
+    
+    \item We access the {\tmem{fields}} of records using the dot notation:
+    
+    \tmverbatim{\{a=7; b="Mary"\}.b = "Mary"}.
+  \end{itemize}
+\end{frame}}{\begin{frame}
+  Recursive expression $\text{\tmverbatim{rec} } x \text{\tmverbatim{=}} e$ in
+  the table was cheating: \tmverbatim{rec} (usually called \tmverbatim{fix})
+  cannot appear alone in OCaml! It must be part of a definition.
+  
+  {\tmstrong{Definitions for expressions}} are introduced by rules a bit more
+  complex than these:
+  \[ \frac{\begin{array}{ll}
+       e_1 : a &
+       \hspace{-0.00839564475928112cm}\raisebox{-0.772523329187369\height}{\includegraphics[width=1.23599632690542cm,height=2.51808671126853cm]{functional-lecture01-via-latex-11.pdf}}\hspace{-0.02367834186016cm}
+       \scriptsize{x}
+     \end{array}}{\text{\tmverbatim{let} } x \text{\tmverbatim{=}} e_1 \text{
+     \tmverbatim{in} } e_2 : b} \]
+  (note that this rule is the same as introducing and eliminating
+  $\rightarrow$), and:
+  \[ \frac{\begin{array}{ll}
+       \raisebox{-0.772143476814496\height}{\includegraphics[width=1.19626459399187cm,height=2.51388888888889cm]{functional-lecture01-via-latex-12.pdf}}
+       \scriptsize{x} &
+       \hspace{-0.00839564475928112cm}\raisebox{-0.772523329187369\height}{\includegraphics[width=1.23599632690542cm,height=2.51808671126853cm]{functional-lecture01-via-latex-13.pdf}}\hspace{-0.02367834186016cm}
+       \scriptsize{x}
+     \end{array}}{\text{\tmverbatim{let rec} } x \text{\tmverbatim{=}} e_1
+     \text{ \tmverbatim{in} } e_2 : b} \]
+  We will cover what is missing in above rules when we will talk about
+  {\tmstrong{poly{\nobreak}morphism.}}
+\end{frame}}{\begin{itemize}
+  \item Type definitions we have seen above are {\tmem{global}}: they need to
+  be at the top-level, not nested in expressions, and they extend from the
+  point they occur till the end of the source file or interactive session.
+  
+  \item \tmverbatim{let}-\tmverbatim{in} definitions for expressions:
+  $\text{\tmverbatim{let} } x \text{\tmverbatim{=}} e_1 \text{ \tmverbatim{in}
+  } e_2$ are {\tmem{local}}, $x$ is only visible in $e_2$. But
+  \tmverbatim{let} definitions are global: placing $\text{\tmverbatim{let} } x
+  \text{\tmverbatim{=}} e_1$ at the top-level makes $x$ visible from after
+  $e_1$ till the end of the source file or interactive session.
+  
+  \item In the interactive session, we mark an end of a top-level ``sentence''
+  by \tmverbatim{;;} -- it is unnecessary in source files.
+  
+  \item Operators like \tmverbatim{+}, \tmverbatim{*}, \tmverbatim{<},
+  \tmverbatim{=}, are names of functions. Just like other names, you can use
+  operator names for your own functions:
+  
+  {\hlkwa{let }}{\hlopt{(+:) }}{\hlstd{a b }}{\hlopt{=
+  }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{concat }}{\hlstr{""}}{\hlstd{
+  }}{\hlopt{[}}{\hlstd{a}}{\hlopt{;
+  }}{\hlstd{b}}{\hlopt{];;}}{\hlendline{Special way of defining}}\\
+  {\hlstr{"Alpha"}}{\hlstd{ }}{\hlopt{+:
+  }}{\hlstr{"Beta"}}{\hlopt{;;}}{\hlendline{but normal way of using
+  operators.}}
+  
+  \item Operators in OCaml are {\tmstrong{not overloaded}}. It means, that
+  every type needs its own set of operators. For example, {\hlopt{+}},
+  {\hlopt{*}}, {\hlopt{/}} work for intigers, while {\hlopt{+.}},
+  {\hlopt{*.}}, {\hlopt{/.}} work for floating point numbers.
+  {\tmstrong{Exception:}} comparisons {\hlopt{<}}, {\hlopt{=}}, etc. work for
+  all values other than functions.
+\end{itemize}}{\begin{frame}
+  \section{Exercises}
+  
+  Exercises from {\tmem{Think OCaml. How to Think Like a Computer Scientist}}
+  by Nicholas Monje and Allen Downey.
+  \begin{enumerate}
+    \item Assume that we execute the following assignment statements:
+    
+    {\hlstd{}}{\hlkwa{let }}{\hlstd{width }}{\hlopt{=
+    }}{\hlstd{}}{\hlnum{17}}{\hlstd{}}{\hlopt{;;}}{\hlendline{}}\\
+    {\hlstd{}}{\hlkwa{let }}{\hlstd{height }}{\hlopt{=
+    }}{\hlstd{}}{\hlnum{12.0}}{\hlstd{}}{\hlopt{;;}}{\hlendline{}}\\
+    {\hlstd{}}{\hlkwa{let }}{\hlstd{delimiter }}{\hlopt{=
+    }}{\hlstd{}}{\hlstr{'.'}}{\hlstd{}}{\hlopt{;;}}{\hlstd{}}{\hlendline{}}
+    
+    For each of the following expressions, write the value of the expression
+    and the type (of the value of the expression), or the resulting type
+    error.
+    \begin{enumerate}
+      \item {\hlstd{width}}{\hlopt{/}}{\hlnum{2}}
+      
+      \item {\hlstd{width}}{\hlopt{/}}{\hlnum{.2.0}}
+      
+      \item {\hlstd{height}}{\hlopt{/}}{\hlnum{3}}
+      
+      \item {\hlnum{1 }}{\hlopt{+ }}{\hlnum{2 }}{\hlopt{* }}{\hlnum{5}}
+      
+      \item {\hlstd{delimiter }}{\hlopt{* }}{\hlnum{5}}
+    \end{enumerate}
+    \item Practice using the OCaml interpreter as a calculator:
+    \begin{enumerate}
+      \item The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$.
+      What is the volume of a sphere with radius 5?
+      
+      Hint: 392.6 is wrong!
+      
+      \item Suppose the cover price of a book is \$24.95, but bookstores get a
+      40\% discount. Shipping costs \$3 for the first copy and 75 cents for
+      each additional copy. What is the total wholesale cost for 60 copies?
+      
+      \item If I leave my house at 6:52 am and run 1 mile at an easy pace
+      (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at
+      easy pace again, what time do I get home for breakfast?
+    \end{enumerate}
+    \item You've probably heard of the fibonacci numbers before, but in case
+    you haven't, they're defined by the following recursive relationship:
+    \[ \left\{\begin{array}{llll}
+         f (0) & = & 0 & \\
+         f (1) & = & 1 & \\
+         f (n + 1) & = & f (n) + f (n - 1) & \text{for } n = 2, 3, \ldots
+       \end{array}\right. \]
+    Write a recursive function to calculate these numbers.
+    
+    \item A palindrome is a word that is spelled the same backward and
+    forward, like ``noon'' and ``redivider''. Recursively, a word is a
+    palindrome if the first and last letters are the same and the middle is a
+    palindrome.
+    
+    The following are functions that take a string argument and return the
+    first, last, and middle letters:
+    
+    {\hlkwa{let }}{\hlstd{first{\textunderscore}char }}{\hlkwb{word
+    }}{\hlopt{=
+    }}{\hlkwb{word}}{\hlopt{.[}}{\hlnum{0}}{\hlopt{];;}}{\hlendline{}}\\
+    {\hlkwa{let }}{\hlstd{last{\textunderscore}char }}{\hlkwb{word
+    }}{\hlopt{=}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{len }}{\hlopt{=
+    }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{length }}{\hlkwb{word }}{\hlopt{-
+    }}{\hlnum{1 }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlstd{ \
+    }}{\hlkwb{word}}{\hlopt{.[}}{\hlstd{len}}{\hlopt{];;}}{\hlendline{}}\\
+    {\hlkwa{let }}{\hlstd{middle }}{\hlkwb{word }}{\hlopt{=}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwa{let }}{\hlstd{len }}{\hlopt{=
+    }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{length }}{\hlkwb{word }}{\hlopt{-
+    }}{\hlnum{2 }}{\hlkwa{in}}{\hlendline{}}\\
+    {\hlstd{ \ }}{\hlkwc{String}}{\hlopt{.}}{\hlstd{sub }}{\hlkwb{word
+    }}{\hlnum{1 }}{\hlstd{len}}{\hlopt{;;}}{\hlendline{}}
+    \begin{enumerate}
+      \item Enter these functions into the toplevel and test them out. What
+      happens if you call middle with a string with two letters? One letter?
+      What about the empty string, which is written {\hlstr{""}}?
+      
+      \item Write a function called is\_palindrome that takes a string
+      argument and returns {\hlkwa{true}} if it is a palindrome and
+      {\hlkwa{false}} otherwise.
+    \end{enumerate}
+    \item The greatest common divisor (GCD) of $a$ and $b$ is the largest
+    number that divides both of them with no remainder.
+    
+    One way to find the GCD of two numbers is Euclid's algorithm, which is
+    based on the observation that if $r$ is the remainder when $a$ is divided
+    by $b$, then $\gcd (a, b) = \gcd (b, r)$. As a base case, we can consider
+    $\gcd (a, 0) = a$.
+    
+    Write a function called gcd that takes parameters a and b and returns
+    their greatest common divisor.
+    
+    If you need help, see
+    \href{http://en.wikipedia.org/wiki/Euclidean_algorithm}{http://en.wikipedia.org/wiki/Euclidean\_algorithm}.
+  \end{enumerate}
+\end{frame}}}
+
+\end{document}
