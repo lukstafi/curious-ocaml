@@ -10,7 +10,6 @@ header-includes:
   - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
        onload="renderMathInElement(document.body);"></script>
-  - <script defer src="renderMathInElement( document.body, { delimiters:[ {left:'$$', right:'$$', display:true},  {left:'$', right:'$', display:false} ] } );"> </script>
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Curious OCaml

@@ -31,7 +31,7 @@
  (target new_book.html)
  (deps README.md)
  (action
-  (system "pandoc -s %{deps} -o %{target}")))
+  (system "pandoc -s --katex %{deps} -o %{target}")))
 
 (rule
  (alias old_lectures_as_book)
@@ -40,4 +40,4 @@
  (deps old_lectures_as_book.md)
  (action
   (system
-   "pandoc -s %{deps} -o %{target}")))
+   "pandoc -s --katex %{deps} -o %{target}")))
