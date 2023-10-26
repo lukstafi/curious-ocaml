@@ -1222,7 +1222,119 @@ elimination:} </span></p>
    \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
    \text{{\texttt{int}}}} </span></p>
-<h1 id="lecture-3-computation">Lecture 3: Computation</h1>
+<p>Exercise 1.</p>
+<p>Due to Yaron Minsky.</p>
+<p>Consider a datatype to store internet connection information. The
+time <code>when_initiated</code> marks the start of connecting and is
+not needed after the connection is established (it is only used to
+decide whether to give up trying to connect). The ping information is
+available for established connection but not straight away.</p>
+<p>type connectionstate = | Connecting | Connected | Disconnectedtype
+connectioninfo = { state : connectionstate; server : Inetaddr.t;<br />
+lastpingtime : Time.t option; lastpingid : int option; sessionid :
+string option; wheninitiated : Time.t option; whendisconnected : Time.t
+option;}</p>
+<p>(The types Time.t and Inetaddr.t come from the library <em>Core</em>
+used where Yaron Minsky works. You can replace them with
+<code>float</code> and Unix.inet_addr. Load the Unix library in the
+interactive toplevel by <code>#load "unix.cma";;</code>.) Rewrite the
+type definitions so that the datatype will contain only reasonable
+combinations of information.</p>
+<p>Exercise 2.</p>
+<p>In OCaml, functions can have named arguments, and also default
+arguments (parameters, possibly with default values, which can be
+omitted when providing arguments). The names of arguments are called
+labels. The labels can be different from the names of the argument
+values:</p>
+<p>let f <span class="math inline">\sim</span>meaningfulname:n = n+1let
+= f <span class="math inline">\sim</span>meaningfulname:5We do not need
+the result so we ignore it.</p>
+<p>When the label and value names are the same, the syntax is
+shorter:</p>
+<p>let g <span class="math inline">\sim</span>pos <span
+class="math inline">\sim</span>len = StringLabels.sub
+“0123456789abcdefghijklmnopqrstuvwxyz” <span
+class="math inline">\sim</span>pos <span
+class="math inline">\sim</span>lenlet () =A nicer way to mark
+computations that do not produce a result (return <code>unit</code>).
+let pos = Random.int 26 in let len = Random.int 10 in printstring (g
+<span class="math inline">\sim</span>pos <span
+class="math inline">\sim</span>len)</p>
+<p>When some function arguments are optional, the function has to take
+non-optional arguments after the last optional argument. When the
+optional parameters have default values:</p>
+<p>let h ?(len=1) pos = g <span class="math inline">\sim</span>pos <span
+class="math inline">\sim</span>lenlet () = printstring (h 10)</p>
+<p>Optional arguments are implemented as parameters of an option type.
+This allows us to check whether the argument was actually provided:</p>
+<p>let foo ?bar n = match bar with | None -&gt; “Argument =” stringofint
+n | Some m -&gt; “Sum =” stringofint (m + n);;foo 5;;foo <span
+class="math inline">\sim</span>bar:5 7;;</p>
+<p>We can also provide the option value directly:</p>
+<p>let bar = if Random.int 10 &lt; 5 then None else Some 7 infoo ?bar
+7;;</p>
+<ol type="1">
+<li>Observe the types that functions with labelled and optional
+arguments have. Come up with coding style guidelines, e.g. when to use
+labeled arguments.</li>
+<li>Write a rectangle-drawing procedure that takes three optional
+arguments: left-upper corner, right-lower corner, and a width-height
+pair. It should draw a correct rectangle whenever two arguments are
+given, and raise exception otherwise. Load the graphics library in the
+interactive toplevel by <code>#load "graphics.cma";;</code>. Use
+“functions” <code>invalid_arg</code>, Graphics.<code>open_graph</code>
+and Graphics.<code>draw_rect</code>.</li>
+<li>Write a function that takes an optional argument of arbitrary type
+and a function argument, and passes the optional argument to the
+function without inspecting it.</li>
+</ol>
+<p>Exercise 3.</p>
+<p>From last year’s exam.</p>
+<ol type="1">
+<li>Give the (most general) types of the following expressions, either
+by guessing or inferring by hand:
+<ol type="1">
+<li>let double f y = f (f y) in fun g x -&gt; double (g x)</li>
+<li>let rec tails l = match l with [] -&gt; [] | x::xs -&gt; xs::tails
+xs infun l -&gt; List.combine l (tails l)</li>
+</ol></li>
+<li>Give example expressions that have the following types (without
+using type constraints):
+<ol type="1">
+<li><code>(int -&gt; int) -&gt; bool</code></li>
+<li><code>'a option -&gt; 'a list</code></li>
+</ol></li>
+</ol>
+<p>Exercise 4.</p>
+<p>We have seen in the class, that algebraic data types can be related
+to analytic functions (the subset that can be defined out of polynomials
+via recursion) – by literally interpreting sum types (i.e. variant
+types) as sums and product types (i.e. tuple and record types) as
+products. We can extend this interpretation to all OCaml types that we
+introduced, by interpreting a function type <span class="math inline">a
+\rightarrow b</span> as <span class="math inline">b^a</span>, <span
+class="math inline">b</span> to the power of <span
+class="math inline">a</span>. Note that the <span
+class="math inline">b^a</span> notation is actually used to denote
+functions in set theory.</p>
+<ol type="1">
+<li>Translate <span class="math inline">a^{b + cd}</span> and <span
+class="math inline">a^b (a^c)^d</span> into OCaml types, using any
+distinct types for <span class="math inline">a, b, c, d</span>, and
+using the <code>('a,'b) choice = Left of 'a     | Right of 'b</code>
+datatype for <span class="math inline">+</span>. Write the bijection
+function in both directions.</li>
+<li>Come up with a type <code>'t exp</code>, that shares with the
+exponential function the following property: <span
+class="math inline">\frac{\partial \exp (t)}{\partial t} = \exp
+(t)</span>, where we translate a derivative of a type as a context,
+i.e. the type with a “hole”, as in the lecture. Explain why your answer
+is correct. Hint: in computer science, our logarithms are mostly base
+2.</li>
+</ol>
+<p>Further reading: <a
+href="http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html">http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html</a>
+# Lecture 3: Computation</p>
 <p>‘‘Using, Understanding and Unraveling the OCaml Language’’ Didier
 Rémy, chapter 1</p>
 <p>‘‘The OCaml system’’ manual, the tutorial part, chapter 1</p>
@@ -2333,7 +2445,7 @@ computed to obtain state at next step; the <code>while_do</code>
 function returns the state after the last step.</p>
 <p>Do not use the imperative features of OCaml and F#, we will not even
 cover them in this course!</p>
-<p>Despite we will not cover them, it is instructive to see the
+<p>Although we will not cover them, it is instructive to see the
 implementation using the imperative features, to better understand what
 is actually required of a solution to the last exercise.</p>
 <ol type="1">
@@ -2415,7 +2527,707 @@ done;<br />
 !s<br />
 done; !s</li>
 <li>let repeatuntil p f s = let s = ref (f s) in while not (p !s) do s
-:= f !s done; !s Functional Programming</li>
+:= f !s done; !s # Lecture 5: Polymorphism &amp; ADTs</li>
+</ol>
+<p>Parametric types. Abstract Data Types.</p>
+<p>Example: maps using red-black trees.</p>
+<p>If you see any error on the slides, let me know!</p>
+<h2 id="type-inference">1 Type Inference</h2>
+<p>We have seen the rules that govern the assignment of types to
+expressions, but how does OCaml guess what types to use, and when no
+correct types exist? It solves equations.</p>
+<ul>
+<li>Variables play two roles: of <em>unknowns</em> and of
+<em>parameters</em>.
+<ul>
+<li><p>Inside:</p>
+<h1 id="let-f-list.hdval-f-a-list---a">let f = List.hd;;val f : ’a list
+-&gt; ’a</h1>
+<p><code>'a</code> is a parameter: it can become any type.
+Mathematically we write: <span class="math inline">f : \forall \alpha .
+\alpha \operatorname{list} \rightarrow \alpha</span> – the quantified
+type is called a <em>type scheme</em>.</p></li>
+<li><p>Inside:</p>
+<h1 id="let-x-ref-val-x-a-list-ref">let x = ref [];;val x : ’a list
+ref</h1>
+<p><code>'_a</code> is an unknown. It stands for a particular type like
+float or (int -&gt; int), OCaml just doesn’t yet know the type.</p></li>
+<li><p>OCaml only reports unknowns like <code>'_a</code> in inferred
+types for reasons not relevant to functional programming. When unknowns
+appear in inferred type against our expectations, <em><span
+class="math inline">\eta</span>-expansion</em> may help: writing let f x
+= expr x instead of let f = expr – for example:</p>
+<h1 id="let-f-list.append-val-f-a-list---a-list">let f = List.append
+[];;val f : ’a list -&gt; ’a list = <fun></h1>
+<p>let f l = List.append [] l;;val f : ’a list -&gt; ’a list =
+<fun></p></li>
+</ul></li>
+<li>A <em>type environment</em> specifies what names (corresponding to
+parameters and definitions) are available for an expression, because
+they were introduced above it, and it specifies their types.</li>
+<li>Type inference solves equations over unknowns. “What has to hold so
+that <span class="math inline">e : \tau</span> in type environment <span
+class="math inline">\Gamma</span>?”
+<ul>
+<li>If, for example, <span class="math inline">f : \forall \alpha .
+\alpha \operatorname{list} \rightarrow \alpha \in \Gamma</span>, then
+for <span class="math inline">f : \tau</span> we introduce <span
+class="math inline">\gamma \operatorname{list} \rightarrow \gamma =
+\tau</span> for some fresh unknown <span
+class="math inline">\gamma</span>.</li>
+<li>For <span class="math inline">e\_{1} e\_{2} : \tau</span> we
+introduce <span class="math inline">\beta = \tau</span> and ask for
+<span class="math inline">e\_{1} : \gamma \rightarrow \beta</span> and
+<span class="math inline">e\_{2} : \gamma</span>, for some fresh
+unknowns <span class="math inline">\beta, \gamma</span>.</li>
+<li>For <span class="math inline">\operatorname{fun}x \rightarrow e :
+\tau</span> we introduce <span class="math inline">\beta \rightarrow
+\gamma = \tau</span> and ask for <span class="math inline">e :
+\gamma</span> in environment <span class="math inline">\lbrace x : \beta
+\rbrace \cup \Gamma</span>, for some fresh unknowns <span
+class="math inline">\beta, \gamma</span>.</li>
+<li>Case <span class="math inline">\operatorname{let}x = e\_{1}
+\operatorname{in}e\_{2} : \tau</span> is different. One approach is to
+<em>first</em> solve the equations that we get by asking for <span
+class="math inline">e\_{1} : \beta</span>, for some fresh unknown <span
+class="math inline">\beta</span>. Let’s say a solution <span
+class="math inline">\beta = \tau \_{\beta}</span> has been found, <span
+class="math inline">\alpha \_{1} \ldots \alpha \_{n} \beta \_{1} \ldots
+\beta \_{m}</span> are the remaining unknowns in <span
+class="math inline">\tau \_{\beta}</span>, and <span
+class="math inline">\alpha \_{1} \ldots \alpha \_{n}</span> are all that
+do not appear in <span class="math inline">\Gamma</span>. Then we ask
+for <span class="math inline">e\_{2} : \tau</span> in environment <span
+class="math inline">\lbrace x : \forall \alpha \_{1} \ldots \alpha \_{n}
+. \tau \_{\beta} \rbrace \cup \Gamma</span>.</li>
+<li>Remember that whenever we establish a solution <span
+class="math inline">\beta = \tau \_{\beta}</span> to an unknown <span
+class="math inline">\beta</span>, it takes effect everywhere!</li>
+<li>To find a type for <span class="math inline">e</span> (in
+environment <span class="math inline">\Gamma</span>), we pick a fresh
+unknown <span class="math inline">\beta</span> and ask for <span
+class="math inline">e : \beta</span> (in <span
+class="math inline">\Gamma</span>).</li>
+</ul></li>
+<li>The “top-level” definitions for which the system infers types with
+variables are called <em>polymorphic</em>, which informally means
+“working with different shapes of data”.
+<ul>
+<li>This kind of polymorphism is called <em>parametric
+polymorphism</em>, since the types have parameters. A different kind of
+polymorphism is provided by object-oriented programming languages.</li>
+</ul></li>
+</ul>
+<h2 id="parametric-types">2 Parametric Types</h2>
+<ul>
+<li><p>Polymorphic functions shine when used with polymorphic data
+types. In:</p>
+<p>type ’a mylist = Empty | Cons of ’a * ’a mylist</p>
+<p>we define lists that can store elements of any type <code>'a</code>.
+Now:</p>
+<h1 id="let-tail-l-match-l-with-empty---invalidarg-tail-cons">let tail l
+= match l with | Empty -&gt; invalidarg “tail” | Cons</h1>
+<p>(, tl) -&gt; tl;; val tail : ’a mylist -&gt; ’a mylist</p>
+<p>is a polymorphic function: works for lists with elements of any
+type.</p></li>
+<li><p>A <em>parametric type</em> like ’a mylist <em>is not</em> itself
+a data type but a family of data types: bool mylist, int mylist etc.
+<em>are</em> different types.</p>
+<ul>
+<li>We say that the type int mylist <em>instantiates</em> the parametric
+type ’a mylist.</li>
+</ul></li>
+<li><p>In OCaml, the syntax is a bit confusing: type parameters precede
+type name. For example:</p>
+<p>type (’a, ’b) choice = Left of ’a | Right of ’b</p>
+<p>has two parameters. Mathematically we would write <span
+class="math inline">\operatorname{choice} (\alpha, \beta)</span>.</p>
+<ul>
+<li><p>Functions do not have to be polymorphic:</p>
+<h1 id="let-getint-c-match-c-with-left-i---i-right-b---if">let getint c
+= match c with | Left i -&gt; i | Right b -&gt; if</h1>
+<p>b then 1 else 0;; val getint : (int, bool) choice -&gt; int</p></li>
+</ul></li>
+<li><p>In F#, we provide parameters (when more than one) after type
+name:</p>
+<p>type choice&lt;<code>'a,'</code>b&gt; = Left of <code>'a</code> |
+<code>Right of</code> ’b</p></li>
+<li><p>In Haskell, we provide type parameters similarly to function
+arguments:</p>
+<p>data Choice a b = Left a | Right b</p></li>
+</ul>
+<h2 id="type-inference-formally">3 Type Inference, Formally</h2>
+<ul>
+<li><p>A statement that an expression has a type in an environment is
+called a <em>type judgement</em>. For environment <span
+class="math inline">\Gamma = \lbrace x : \forall \alpha \_{1} \ldots
+\alpha \_{n} . \tau \_{x} ; \ldots \rbrace</span>, expression <span
+class="math inline">e</span> and type <span
+class="math inline">\tau</span> we write</p>
+<p>\[ e : \]</p></li>
+<li><p>We will derive the equations in one go using <span
+class="math inline">\llbracket \cdot \rrbracket</span>, to be solved
+later. Besides equations we will need to manage introduced variables,
+using existential quantification.</p></li>
+<li><p>For local definitions we require to remember what constraints
+should hold when the definition is used. Therefore we extend <em>type
+schemes</em> in the environment to: <span class="math inline">\Gamma =
+\lbrace x : \forall \beta \_{1} \ldots \beta \_{m} [\exists \alpha \_{1}
+\ldots \alpha \_{n} .D] . \tau \_{x} ; \ldots \rbrace</span> where <span
+class="math inline">D</span> are equations – keeping the variables <span
+class="math inline">\alpha \_{1} \ldots \alpha \_{n}</span> introduced
+while deriving <span class="math inline">D</span> in front.</p>
+<ul>
+<li>A simpler form would be enough: <span class="math inline">\Gamma =
+\lbrace x : \forall \beta [\exists \alpha \_{1} \ldots \alpha \_{n} .D]
+. \beta ; \ldots \rbrace</span></li>
+</ul></li>
+</ul>
+<p><span class="math display">\begin{eqnarray*}
+  \llbracket \Gamma \vdash x : \tau \rrbracket &amp; = &amp; \exists
+\overline{\beta&#39;}
+  \bar{\alpha}&#39; . (D [\bar{\beta} \bar{\alpha} :=
+\overline{\beta&#39;}
+  \bar{\alpha}&#39;] \wedge \tau \_{x} [\bar{\beta} \bar{\alpha} :=
+  \overline{\beta&#39;} \bar{\alpha}&#39;] \dot{=} \tau)\\\\\\
+  &amp;  &amp; \text{where } \Gamma (x) = \forall \bar{\beta} [\exists
+\bar{\alpha}
+  .D] . \tau \_{x}, \overline{\beta&#39;} \bar{\alpha}&#39;
+\#\operatorname{FV}
+  (\Gamma, \tau)\\\\\\
+  &amp;  &amp;  \\\\\\
+  \left\llbracket \Gamma \vdash
+\boldsymbol{\ensuremath{\operatorname{fun}}} x
+  \text{\text{{\ttfamily{-&gt;}}}} e : \tau \right\rrbracket &amp; =
+&amp; \exists
+\alpha
+  \_{1} \alpha \_{2} . (\llbracket \Gamma \lbrace x : \alpha \_{1}
+\rbrace
+  \vdash e : \alpha \_{2} \rrbracket \wedge \alpha \_{1} \rightarrow
+\alpha
+  \_{2} \dot{=} \tau),\\\\\\
+  &amp;  &amp; \text{where } \alpha \_{1} \alpha \_{2}
+\#\operatorname{FV} (\Gamma,
+  \tau)\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma \vdash e\_{1} e\_{2} : \tau \rrbracket &amp; = &amp;
+\exists
+  \alpha . (\llbracket \Gamma \vdash e\_{1} : \alpha \rightarrow \tau
+  \rrbracket \wedge \llbracket \Gamma \vdash e\_{2} : \alpha
+\rrbracket),
+  \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma \vdash K e\_{1} \ldots e\_{n} : \tau \rrbracket
+&amp; = &amp;
+  \exists \bar{\alpha}&#39; . (\wedge \_{i} \llbracket \Gamma \vdash
+e\_{i} : \tau
+  \_{i} [\bar{\alpha} := \bar{\alpha}&#39;] \rrbracket \wedge
+\varepsilon
+  (\bar{\alpha}&#39;) \dot{=} \tau),\\\\\\
+  &amp;  &amp; \text{w. } K \,:\, \forall \bar{\alpha} . \tau \_{1}
+\times \ldots
+  \times \tau \_{n} \rightarrow \varepsilon (\bar{\alpha}),
+\bar{\alpha}&#39;
+  \#\operatorname{FV} (\Gamma, \tau)\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; (\exists
+\beta .C) \wedge
+  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e\_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\ensuremath{\operatorname{let}}} x = e\_{1}
+  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &amp;  &amp;
+\text{where } C =
+  \llbracket \Gamma \vdash e\_{1} : \beta \rrbracket\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; (\exists
+\beta .C) \wedge
+  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e\_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\ensuremath{\operatorname{letrec}}} x = e\_{1}
+  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &amp;  &amp;
+\text{where } C =
+  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e\_{1} : \beta
+  \rrbracket\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; \exists
+\alpha \_{v} .
+  \llbracket \Gamma \vdash e\_{v} : \alpha \_{v} \rrbracket \wedge \_{i}
+  \llbracket \Gamma \vdash p\_{i} .e\_{i} : \alpha \_{v} \rightarrow
+\tau
+  \rrbracket,\\\\\\
+  e = \boldsymbol{\ensuremath{\operatorname{match}}} e\_{v}
+  \boldsymbol{\ensuremath{\operatorname{with}}} \bar{c} &amp;  &amp;
+\alpha \_{v}
+  \#\operatorname{FV} (\Gamma, \tau)\\\\\\
+  \bar{c} = p\_{1} .e\_{1} | \ldots |p\_{n} .e\_{n} &amp;  &amp;  \\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Gamma, \Sigma \vdash p.e : \tau \_{1} \rightarrow \tau
+\_{2}
+  \rrbracket &amp; = &amp; \llbracket \Sigma \vdash p \downarrow \tau
+\_{1} \rrbracket
+  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma&#39; \vdash e :
+\tau \_{2}
+  \rrbracket\\\\\\
+  &amp;  &amp; \text{where } \exists \bar{\beta} \Gamma&#39; \text{ is }
+\llbracket
+  \Sigma \vdash p \uparrow \tau \_{1} \rrbracket, \bar{\beta}
+  \#\operatorname{FV} (\Gamma, \tau \_{2})\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket
+&amp;  &amp;
+  \text{derives constraints on type of matched value}\\\\\\
+  &amp;  &amp;  \\\\\\
+  \llbracket \Sigma \vdash p \uparrow \tau \_{1} \rrbracket &amp;  &amp;
+\text{derives
+  environment for pattern variables}
+\end{eqnarray*}</span></p>
+<ul>
+<li>By <span class="math inline">\bar{\alpha}</span> or <span
+class="math inline">\overline{\alpha \_{i}}</span> we denote a sequence
+of some length: <span class="math inline">\alpha \_{1} \ldots \alpha
+\_{n}</span></li>
+<li>By <span class="math inline">\wedge \_{i} \varphi \_{i}</span> we
+denote a conjunction of <span class="math inline">\overline{\varphi
+\_{i}}</span>: <span class="math inline">\varphi \_{1} \ldots \varphi
+\_{n}</span>.</li>
+</ul>
+<h3 id="polymorphic-recursion">3.1 Polymorphic Recursion</h3>
+<ul>
+<li>Note the limited polymorphism of let rec f = … – we cannot use
+<code>f</code> polymorphically in its definition.
+<ul>
+<li>In modern OCaml we can bypass the problem if we provide type of
+<code>f</code> upfront: let rec f : ’a. ’a -&gt; ’a list = …</li>
+<li>where ’a. ’a -&gt; ’a list stands for <span
+class="math inline">\forall \alpha . \alpha \rightarrow \alpha
+\operatorname{list}</span>.</li>
+</ul></li>
+<li>Using the recursively defined function with different types in its
+definition is called polymorphic recursion.</li>
+<li>It is most useful together with irregular recursive datatypes where
+the recursive use has different type arguments than the actual
+parameters.</li>
+</ul>
+<h4
+id="polymorphic-rec-a-list-alternating-between-two-types-of-elements">3.1.1
+Polymorphic Rec: A list alternating between two types of elements</h4>
+<p>type (’x, ’o) alterning =| Stop| One of ’x * (’o, ’x) alterninglet
+rec tolist : ’x ’o ’a. (’x-&gt;’a) -&gt; (’o-&gt;’a) -&gt; (’x, ’o)
+alterning -&gt; ’a list = fun x2a o2a -&gt; function | Stop -&gt; [] |
+One (x, rest) -&gt; x2a x::tolist o2a x2a restlet tochoicelist alt =
+tolist (fun x-&gt;Left x) (fun o-&gt;Right o) altlet it = tochoicelist
+(One (1, One (“o”, One (2, One (“oo”, Stop)))))</p>
+<h4 id="polymorphic-rec-data-structural-bootstrapping">3.1.2 Polymorphic
+Rec: Data-Structural Bootstrapping</h4>
+<p>type ’a seq = Nil | Zero of (’a * ’a) seq | One of ’a * (’a * ’a)
+seqWe store a list of elements in exponentially increasing chunks.let
+example = One (0, One ((1,2), Zero (One ((((3,4),(5,6)),
+((7,8),(9,10))), Nil))))let rec cons : ’a. ’a -&gt; ’a seq -&gt; ’a seq
+= fun x -&gt; functionAppending an element to the datastructure is like
+| Nil -&gt; One (x, Nil)adding one to a binary number: 1+0=1 | Zero ps
+-&gt; One (x, ps)1+…0=…1 | One (y, ps) -&gt; Zero (cons (x,y)
+ps)1+…1=[…+1]0let rec lookup : ’a. int -&gt; ’a seq -&gt; ’a = fun i s
+-&gt; match i, s withRather than returning <code>None : 'a option</code>
+| , Nil -&gt; raise Notfoundwe raise exception, for convenience. | 0,
+One (x, ) -&gt; x | i, One (, ps) -&gt; lookup (i-1) (Zero ps) | i, Zero
+ps -&gt;Random-Access lookup works let x, y = lookup (i / 2) ps inin
+logarithmic time – much faster than if i mod 2 = 0 then x else yin
+standard lists.</p>
+<h2 id="algebraic-specification">4 Algebraic Specification</h2>
+<ul>
+<li>The way we introduce a data structure, like complex numbers or
+strings, in mathematics, is by specifying an <em>algebraic
+structure</em>.</li>
+<li>Algebraic structures consist of a set (or several sets, for
+so-called <em>multisorted</em> algebras) and a bunch of functions (aka.
+operations) over this set (or sets).</li>
+<li>A <em>signature</em> is a rough description of an algebraic
+structure: it provides sorts – names for the sets (in multisorted case)
+and names of the functions-operations together with their arity (and
+what sorts of arguments they take).</li>
+<li>We select a class of algebraic structures by providing axioms that
+have to hold. We will call such classes <em>algebraic
+specifications</em>.
+<ul>
+<li>In mathematics, a rusty name for some algebraic specifications is a
+<em>variety</em>, a more modern and name is <em>algebraic
+category</em>.</li>
+</ul></li>
+<li>Algebraic structures correspond to “implementations” and signatures
+to “interfaces” in programming languages.</li>
+<li>We will say that an algebraic structure implements an algebraic
+specification when all axioms of the specification hold in the
+structure.</li>
+<li>All algebraic specifications are implemented by multiple
+structures!</li>
+<li>We say that an algebraic structure does not have junk, when all its
+elements (i.e. elements in the sets corresponding to sorts) can be built
+using operations in its signature.</li>
+<li>We allow parametric types as sorts. In that case, strictly speaking,
+we define a family of algebraic specifications (a different
+specification for each instantiation of the parametric type).</li>
+</ul>
+<h3 id="algebraic-specifications-examples">4.1 Algebraic specifications:
+examples</h3>
+<ul>
+<li>An algebraic specification can also use an earlier
+specification.</li>
+<li>In “impure” languages like OCaml and F# we allow that the result of
+any operation be an <span
+class="math inline">\operatorname{error}</span>. In Haskell we could use
+<code>Maybe</code>.</li>
+</ul>
+<table style="display: inline-table; vertical-align: middle">
+<tbody>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<table style="display: inline-table; vertical-align: 
+middle">
+<tbody>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+uses ,
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="homomorphisms">5 Homomorphisms</h2>
+<ul>
+<li>Mappings between algebraic structures with the same signature
+preserving operations.</li>
+<li>A <em>homomorphism</em> from algebraic structure <span
+class="math inline">(A, \lbrace f^A, g^A, \ldots \rbrace)</span> to
+<span class="math inline">(B, \lbrace f^B, g^B, \ldots \rbrace)</span>
+is a function <span class="math inline">h : A \rightarrow B</span> such
+that <span class="math inline">h (f^A (a\_{1}, \ldots, a\_{n\_{f}})) =
+f^B (h (a\_{1}), \ldots, h (a\_{n\_{f}}))</span> for all <span
+class="math inline">(a\_{1}, \ldots, a\_{n\_{f}})</span>, <span
+class="math inline">h (g^A (a\_{1}, \ldots, a\_{n\_{g}})) = g^B (h
+(a\_{1}), \ldots, h (a\_{n\_{g}}))</span> for all <span
+class="math inline">(a\_{1}, \ldots, a\_{n\_{g}})</span>, …</li>
+<li>Two algebraic structures are <em>isomorphic</em> if there are
+homomorphisms <span class="math inline">h\_{1} : A \rightarrow B, h\_{2}
+: B \rightarrow A</span> from one to the other and back, that when
+composed in any order form identity: <span class="math inline">\forall
+(b \in B) h\_{1} (h\_{2} (b)) = b</span>, <span
+class="math inline">\forall (a \in A) h\_{2} (h\_{1} (a)) =
+a</span>.</li>
+<li>An algebraic specification whose all implementations without junk
+are isomorphic is called “<em>monomorphic</em>”.
+<ul>
+<li>We usually only add axioms that really matter to us to the
+specification, so that the implementations have room for optimization.
+For this reason, the resulting specifications will often not be
+monomorphic in the above sense.</li>
+</ul></li>
+</ul>
+<h2 id="example-maps">6 Example: Maps</h2>
+<table style="display: inline-table; vertical-align: middle">
+<tbody>
+<tr>
+<td>
+, or
+</td>
+</tr>
+<tr>
+<td>
+uses , type parameters
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+, ,
+</td>
+</tr>
+<tr>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="modules-and-interfaces-signatures-syntax">7 Modules and
+interfaces (signatures): syntax</h2>
+<ul>
+<li>In the ML family of languages, structures are given names by
+<strong>module</strong> bindings, and signatures are types of
+modules.</li>
+<li>From outside of a structure or signature, we refer to the values or
+types it provides with a dot notation: <code>Module.value</code>.</li>
+<li>Module (and module type) names have to start with a capital letter
+(in ML languages).</li>
+<li>Since modules and module types have names, there is a tradition to
+name the central type of a signature (the one that is “specified” by the
+signature), for brevity, <code>t</code>.</li>
+<li>Module types are often named with “all-caps” (all letters upper
+case).</li>
+</ul>
+<p>module type MAP = sig type (’a, ’b) t val empty : (’a, ’b) t val
+member : ’a -&gt; (’a, ’b) t -&gt; bool val add : ’a -&gt; ’b -&gt; (’a,
+’b) t -&gt; (’a, ’b) t val remove : ’a -&gt; (’a, ’b) t -&gt; (’a, ’b) t
+val find : ’a -&gt; (’a, ’b) t -&gt; ’bendmodule ListMap : MAP = struct
+type (’a, ’b) t = (’a * ’b) list let empty = [] let member =
+List.memassoc let add k v m = (k, v)::m let remove = List.removeassoc
+let find = List.assocend</p>
+<h2 id="implementing-maps-association-lists">8 Implementing maps:
+Association lists</h2>
+<p>Let’s now build an implementation of maps from the ground up. The
+most straightforward implementation… might not be what you expected:</p>
+<p>module TrivialMap : MAP = struct type (’a, ’b) t = | Empty | Add of
+’a * ’b * (’a, ’b) t | Remove of ’a * (’a, ’b) t let empty = Empty let
+rec member k m = match m with | Empty -&gt; false | Add (k2, , ) when k
+= k2 -&gt; true | Remove (k2, ) when k = k2 -&gt; false | Add (, , m2)
+-&gt; member k m2 | Remove (, m2) -&gt; member k m2 let add k v m = Add
+(k, v, m) let remove k m = Remove (k, m) let rec find k m = match m with
+| Empty -&gt; raise Notfound | Add (k2, v, ) when k = k2 -&gt; v |
+Remove (k2, ) when k = k2 -&gt; raise Notfound<br />
+| Add (, , m2) -&gt; find k m2 | Remove (, m2) -&gt; find k m2end</p>
+<p>Here is an implementation based on association lists, i.e. on lists
+of key-value pairs.</p>
+<p>module MyListMap : MAP = struct type (’a, ’b) t = Empty | Add of ’a *
+’b * (’a, ’b) t let empty = Empty let rec member k m = match m with |
+Empty -&gt; false | Add (k2, , ) when k = k2 -&gt; true | Add (, , m2)
+-&gt; member k m2 let rec add k v m = match m with | Empty -&gt; Add (k,
+v, Empty) | Add (k2, , m) when k = k2 -&gt; Add (k, v, m) | Add (k2, v2,
+m) -&gt; Add (k2, v2, add k v m)</p>
+<p>let rec remove k m = match m with | Empty -&gt; Empty | Add (k2, , m)
+when k = k2 -&gt; m | Add (k2, v, m) -&gt; Add (k2, v, remove k m) let
+rec find k m = match m with | Empty -&gt; raise Error<br />
+| Add (k2, v, ) when k = k2 -&gt; v | Add (, , m2) -&gt; find k
+m2end</p>
+<h2 id="implementing-maps-binary-search-trees">9 Implementing maps:
+Binary search trees</h2>
+<ul>
+<li>Binary search trees are binary trees with elements stored at the
+interior nodes, such that elements to the left of a node are smaller
+than, and elements to the right bigger than, elements within a
+node.</li>
+<li>For maps, we store key-value pairs as elements in binary search
+trees, and compare the elements by keys alone.</li>
+<li>On average, binary search trees are fast because they use
+“divide-and-conquer” to search for the value associated with a key.
+(<span class="math inline">O (\log n)</span> compl.)
+<ul>
+<li>In worst case they reduce to association lists.</li>
+</ul></li>
+<li>The simple polymorphic signature for maps is only possible with
+implementations based on some total order of keys because OCaml has
+polymorphic comparison (and equality) operators.
+<ul>
+<li>These operators work on elements of most types, but not on
+functions. They may not work in a way you would want though!</li>
+<li>Our signature for polymorphic maps is not the standard approach
+because of the problem of needing the order of keys; it is just to keep
+things simple.</li>
+</ul></li>
+</ul>
+<p>module BTreeMap : MAP = struct type (‘a, ’b) t = Empty | T of (’a,
+’b) t * ’a * ’b * (’a, ’b) t let empty = Empty let rec member k m
+=‘‘Divide and conquer’’ search through the tree. match m with | Empty
+-&gt; false<br />
+| T (, k2, , ) when k = k2 -&gt; true | T (m1, k2, , ) when k &lt; k2
+-&gt; member k m1 | T (, , , m2) -&gt; member k m2 let rec add k v m
+=Searches the tree in the same way as <code>member</code> match m
+withbut copies every node along the way. | Empty -&gt; T (Empty, k, v,
+Empty) | T (m1, k2, , m2) when k = k2 -&gt; T (m1, k, v, m2) | T (m1,
+k2, v2, m2) when k &lt; k2 -&gt; T (add k v m1, k2, v2, m2) | T (m1, k2,
+v2, m2) -&gt; T (m1, k2, v2, add k v m2) let rec splitrightmost m =A
+helper function, it does not belong match m withto the ‘‘exported’’
+signature.<br />
+| Empty -&gt; raise Notfound | T (Empty, k, v, Empty) -&gt; k, v,
+EmptyWe remove one element, | T (m1, k, v, m2) -&gt;the one that is on
+the bottom right. let rk, rv, rm = splitrightmost m2 in rk, rv, T (m1,
+k, v, rm)</p>
+<p>let rec remove k m = match m with | Empty -&gt; Empty | T (m1, k2, ,
+Empty) when k = k2 -&gt; m1 | T (Empty, k2, , m2) when k = k2 -&gt; m2 |
+T (m1, k2, , m2) when k = k2 -&gt; let rk, rv, rm = splitrightmost m1 in
+T (rm, rk, rv, m2) | T (m1, k2, v, m2) when k &lt; k2 -&gt; T (remove k
+m1, k2, v, m2) | T (m1, k2, v, m2) -&gt; T (m1, k2, v, remove k m2) let
+rec find k m = match m with | Empty -&gt; raise Notfound | T (, k2, v, )
+when k = k2 -&gt; v | T (m1, k2, , ) when k &lt; k2 -&gt; find k m1 | T
+(, , , m2) -&gt; find k m2end</p>
+<h2 id="implementing-maps-red-black-trees">10 Implementing maps:
+red-black trees</h2>
+<p>Based on Wikipedia <a
+href="http://en.wikipedia.org/wiki/Red-black_tree">http://en.wikipedia.org/wiki/Red-black_tree</a>,
+Chris Okasaki’s “Functional Data Structures” and Matt Might’s excellent
+blog post <a
+href="http://matt.might.net/articles/red-black-delete/">http://matt.might.net/articles/red-black-delete/</a>.</p>
+<ul>
+<li>Binary search trees are good when we encounter keys in random order,
+because the cost of operations is limited by the depth of the tree which
+is small relatively to the number of nodes…</li>
+<li>…unless the tree grows unbalanced achieving large depth (which means
+there are sibling subtrees of vastly different sizes on some path).</li>
+<li>To remedy it, we rebalance the tree while building it – i.e. while
+adding elements.</li>
+<li>In <em>red-black trees</em> we achieve balance by remembering one of
+two colors with each node, keeping the same length of each root-leaf
+path if only black nodes are counted, and not allowing a red node to
+have a red child.
+<ul>
+<li>This way the depth is at most twice the depth of a perfectly
+balanced tree with the same number of nodes.</li>
+</ul></li>
+</ul>
+<h3 id="b-trees-of-order-4-2-3-4-trees">10.1 B-trees of order 4 (2-3-4
+trees)</h3>
+<p>How can we have perfectly balanced trees without worrying about
+having <span class="math inline">2^k - 1</span> elements? <strong>2-3-4
+trees</strong> can store from 1 to 3 elements in each node and have 2 to
+4 subtrees correspondingly. Lots of freedom!</p>
+<p>To insert “25” into (“.” stand for leaves, ignored later)</p>
+<p>we descend right, but it is a full node, so we move the middle up and
+split the remaining elements:</p>
+<p>Now there is a place between 24 and 29: next to 29</p>
+<p>To represent 2-3-4 tree as a binary tree with one element per node,
+we color the middle element of a 4-node, or the first element of
+2-/3-node, black and make it the parent of its neighbor elements, and
+make them parents of the original subtrees. Turning this:</p>
+<p>Red-black_tree_B-tree.png</p>
+<p>into this Red-Black tree:</p>
+<p>Red-black_tree_example.png</p>
+<h3 id="red-black-trees-without-deletion">10.2 Red-Black trees, without
+deletion</h3>
+<ul>
+<li><strong>Invariant 1.</strong> No red node has a red child.</li>
+<li><strong>Invariant 2</strong>. Every path from the root to an empty
+node contains the same number of black nodes.</li>
+<li>First we implement Red-Black tree based sets without deletion.</li>
+<li>The implementation proceeds almost exactly like for unbalanced
+binary search trees, we only need to restore invariants.</li>
+<li>By keeping balance at each step of constructing a node, it is enough
+to check locally (around the root of the subtree).</li>
+<li>For understandable implementation of deletion, we need to introduce
+more colors. See Matt Might’s post edited in a separate file.</li>
+</ul>
+<p>type color = R | Btype ’a t = E | T of color * ’a t * ’a * ’a tlet
+empty = Elet rec member x m = match m withLike in unbalanced binary
+search tree. | Empty -&gt; false | T (, , y, ) when x = y -&gt; true | T
+(, a, y, ) when x &lt; y -&gt; member x a | T (, , , b) -&gt; member x
+blet balance = functionRestoring the invariants. | B,T (R,T
+(R,a,x,b),y,c),z,dOn next figure: left, | B,T (R,a,x,T
+(R,b,y,c)),z,dtop, | B,a,x,T (R,T (R,b,y,c),z,d)bottom, | B,a,x,T
+(R,b,y,T (R,c,z,d))right, -&gt; T (R,T (B,a,x,b),y,T (B,c,z,d))center
+tree. | color,a,x,b -&gt; T (color,a,x,b)We allow red-red violation for
+now.</p>
+<p>let insert x s = let rec ins = functionLike in unbalanced binary
+search tree, | E -&gt; T (R,E,x,E)but fix violation above created node.
+| T (color,a,y,b) as s -&gt; if x&lt;y then balance (color,ins
+a,y,b)<br />
+else if x&gt;y then balance (color,a,y,ins b) else s in match ins s
+withWe could still have red-red violation at root, | T (,a,y,b) -&gt; T
+(B,a,y,b)fixed by coloring it black. | E -&gt; failwith “insert:
+impossible”</p>
+<h2 id="homework-2">11 Homework</h2>
+<ol type="1">
+<li><p>Derive the equations and solve them to find the type for:</p>
+<p>let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr
+(true::false::[])</p>
+<p>in environ. <span class="math inline">\Gamma = \left\lbrace
+\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha ;
+\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl}}} : \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha \operatorname{list}
+\right\rbrace</span>. You can take “shortcuts” if it is too many
+equations to write down.</p></li>
+<li><p>What does it mean that an implementation has junk (as an
+algebraic structure for a given signature)? Is it bad?</p></li>
+<li><p>Define a monomorphic algebraic specification (other than, but
+similar to, <span class="math inline">\operatorname{nat}\_{p}</span> or
+<span class="math inline">\operatorname{string}\_{p}</span>, some useful
+data type).</p></li>
+<li><p>Discuss an example of a (monomorphic) algebraic specification
+where it would be useful to drop some axioms (giving up monomorphicity)
+to allow more efficient implementations.</p></li>
+<li><p>Does the example ListMap meet the requirements of the algebraic
+specification for maps? Hint: here is the definition of
+List.removeassoc; <code>compare a x</code> equals 0 if and only if
+<code>a</code> = <code>x</code>.</p>
+<p>let rec removeassoc x = function | [] -&gt; [] | (a, b as pair) :: l
+-&gt; if compare a x = 0 then l else pair :: removeassoc x l</p></li>
+<li><p>Trick question: what is the computational complexity of ListMap
+or TrivialMap?</p></li>
+<li><p>* The implementation MyListMap is inefficient: it performs a lot
+of copying and is not tail-recursive. Optimize it (without changing the
+type definition).</p></li>
+<li><p>Add (and specify) <span
+class="math inline">\operatorname{isEmpty}: (\alpha, \beta)
+\operatorname{map} \rightarrow \operatorname{bool}</span> to the example
+algebraic specification of maps without increasing the burden on its
+implementations (i.e. without affecting implementations of other
+operations). Hint: equational reasoning might be not enough; consider an
+equivalence relation <span class="math inline">\approx</span> meaning
+“have the same keys”, defined and used just in the axioms of the
+specification.</p></li>
+<li><p>Design an algebraic specification and write a signature for
+first-in-first-out queues. Provide two implementations: one
+straightforward using a list, and another one using two lists: one for
+freshly added elements providing efficient queueing of new elements, and
+“reversed” one for efficient popping of old elements.</p></li>
+<li><p>Design an algebraic specification and write a signature for sets.
+Provide two implementations: one straightforward using a list, and
+another one using a map into the unit type.</p></li>
+<li><p>(Ex. 2.2 in Chris Okasaki “Purely Functional Data Structures”) In
+the worst case, <code>member</code> performs approximately <span
+class="math inline">2 d</span> comparisons, where <span
+class="math inline">d</span> is the depth of the tree. Rewrite
+<code>member</code> to take no mare than <span class="math inline">d +
+1</span> comparisons by keeping track of a candidate element that
+<em>might</em> be equal to the query element (say, the last element for
+which <span class="math inline">&lt;</span> returned false) and checking
+for equality only when you hit the bottom of the tree.</p></li>
+<li><p>(Ex. 3.10 in Chris Okasaki “Purely Functional Data Structures”)
+The <code>balance</code> function currently performs several unnecessary
+tests: when e.g.  <code>ins</code> recurses on the left child, there are
+no violations on the right child.</p>
+<ol type="1">
+<li>Split <code>balance</code> into <code>lbalance</code> and
+<code>rbalance</code> that test for violations of left resp. right child
+only. Replace calls to <code>balance</code> appropriately.</li>
+<li>One of the remaining tests on grandchildren is also unnecessary.
+Rewrite <code>ins</code> so that it never tests the color of nodes not
+on the search path.</li>
+</ol></li>
+<li><p>* Implement maps (i.e. write a module for the map signature)
+based on AVL trees. See
+<code>http://en.wikipedia.org/wiki/AVL_tree</code>. Functional
+Programming</p></li>
 </ol>
 <p>Type Inference</p>
 <p>Abstract Data Types</p>
@@ -3670,7 +4482,61 @@ singletons.</li>
 <li>The above definition of <em>finite domain constraint solving</em>
 algorithm is sketchy. Questions?</li>
 <li>We will not discuss a complete implementation example, but you can
-exploit ideas from the algorithm in your homework. # Lecture 7:
+exploit ideas from the algorithm in your homework.</li>
+<li>Recall how we generated all subsequences of a list. Find
+(i.e. generate) all:
+<ol type="1">
+<li>permutations of a list;</li>
+<li>ways of choosing without repetition from a list;</li>
+<li>combinations of K distinct objects chosen from the N elements of a
+list.</li>
+</ol></li>
+<li>Using folding for the <code>expression</code> data type, compute the
+degree of the corresponding polynomial. See <a
+href="http://en.wikipedia.org/wiki/Degree_of_a_polynomial">http://en.wikipedia.org/wiki/Degree_of_a_polynomial</a>.</li>
+<li>Implement simplification of expressions using mapping for the
+<code>expression</code> data type.</li>
+<li>Express in terms of <code>fold_left</code> or
+<code>fold_right</code>:
+<ol type="1">
+<li>indexed : ’a list -&gt; (int * ’a) list, which pairs elements with
+their indices in the list;</li>
+<li>* <code>concat_fold</code>, as used in the solution of <em>Honey
+Islands</em> puzzle:
+<ul>
+<li>let rec concatfold f a = function | [] -&gt; [a] | x::xs -&gt;<br />
+f x a |-&gt; (fun a’ -&gt; concatfold f a’ xs)</li>
+<li>Hint – consider the function:let rec concatfoldl f a = function | []
+-&gt; a | x::xs -&gt; concatfoldl f (concatmap (f x) a) xs</li>
+</ul></li>
+<li>run-length encoding of a list (exercise 10 from <em>99
+Problems</em>).
+<ul>
+<li><code>encode [‘a;‘a;‘a;‘a;‘b;‘c;‘c;‘a;‘a;‘d] = [4,‘a; 1,‘b; 2,‘c; 2,‘a;    1,‘d]</code></li>
+</ul></li>
+</ol></li>
+<li><ol type="1">
+<li>Write a more efficient variant of <code>list_diff</code> that
+computes the difference of sets represented as sorted lists.</li>
+<li><code>is_unique</code> in the provided code takes quadratic time –
+optimize it.</li>
+</ol></li>
+<li>Write functions <code>compose</code> and <code>perform</code> that
+take a list of functions and return their composition, i.e. a function
+<code>compose [f1; …; fn] = x    ↦ f1 (… (fn x)…)</code> and
+<code>perform [f1; …; fn] = x    ↦ fn (… (f1 x)…)</code>.</li>
+<li>Write a solver for the <em>Tents Puzzle</em> <a
+href="http://www.mathsisfun.com/games/tents-puzzle.html">http://www.mathsisfun.com/games/tents-puzzle.html</a>.</li>
+<li>* <strong>Robot Squad</strong>. We are given a map of terrain with
+empty spaces and walls, and lidar readings for multiple robots, 8
+readings of the distance to wall or another robot, for each robot.
+Robots are equipped with compasses, the lidar readings are in directions
+E, NE, N, NW, W, SW, S, SE. Determine the possible positions of
+robots.</li>
+<li>* Write a solver for the <em>Plinx Puzzle</em> <a
+href="http://www.mathsisfun.com/games/plinx-puzzle.html">http://www.mathsisfun.com/games/plinx-puzzle.html</a>.
+It does not need to always return correct solutions but it should
+correctly solve the initial levels from the game. # Lecture 7:
 Laziness</li>
 </ul>
 <p>Lazy evaluation. Stream processing.</p>
@@ -6155,7 +7021,166 @@ Cooperative.access thread2before we proceed.</li>
 </ul>
 <div class="sourceCode" id="cb54"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test =    Cooperative.killthreads ();    <span class="kw">let</span> thread1 = TT.loop <span class="st">&quot;A&quot;</span> <span class="dv">5</span> <span class="kw">in</span>    <span class="kw">let</span> thread2 = TT.loop <span class="st">&quot;B&quot;</span> <span class="dv">4</span> <span class="kw">in</span>    Cooperative.access thread1;    Cooperative.access thread2;;-- A(<span class="dv">5</span>)-- B(<span class="dv">4</span>)-- A(<span class="dv">4</span>)-- B(<span class="dv">3</span>)-- A(<span class="dv">3</span>)-- B(<span class="dv">2</span>)-- A(<span class="dv">2</span>)-- B(<span class="dv">1</span>)-- A(<span class="dv">1</span>)-- B(<span class="dv">0</span>)-- A(<span class="dv">0</span>)<span class="kw">val</span> test : <span class="dt">unit</span> = ()</span></code></pre></div>
-<h1 id="lecture-9-compiler">Lecture 9: Compiler</h1>
+<p>Exercise 1.</p>
+<p>Puzzle via Oleg Kiselyov.</p>
+<p>“U2” has a concert that starts in 17 minutes and they must all cross
+a bridge to get there. All four men begin on the same side of the
+bridge. It is night. There is one flashlight. A maximum of two people
+can cross at one time. Any party who crosses, either 1 or 2 people, must
+have the flashlight with them. The flashlight must be walked back and
+forth, it cannot be thrown, etc.. Each band member walks at a different
+speed. A pair must walk together at the rate of the slower man’s
+pace:</p>
+<ul>
+<li>Bono: 1 minute to cross</li>
+<li>Edge: 2 minutes to cross</li>
+<li>Adam: 5 minutes to cross</li>
+<li>Larry: 10 minutes to cross</li>
+</ul>
+<p>For example: if Bono and Larry walk across first, 10 minutes have
+elapsed when they get to the other side of the bridge. If Larry then
+returns with the flashlight, a total of 20 minutes have passed and you
+have failed the mission.</p>
+<p>Find all answers to the puzzle using a list comprehension. The
+comprehension will be a bit long but recursion is not needed.</p>
+<p>Exercise 2.</p>
+<p>Assume <code>concat_map</code> as defined in lecture 6. What will the
+following expresions return? Why?</p>
+<ol type="1">
+<li>perform with (|-&gt;) in return 5; return 7</li>
+<li>let guard p = if p then [()] else [];;perform with (|-&gt;) in guard
+false; return 7;;</li>
+<li>perform with (|-&gt;) in return 5; guard false; return 7;;</li>
+</ol>
+<p>Exercise 3.</p>
+<p>Define <code>bind</code> in terms of <code>lift</code> and
+<code>join</code>.</p>
+<p>Exercise 4.</p>
+<p><span id="TreeM"></span>Define a monad-plus implementation based on
+binary trees, with constant-time <code>mzero</code> and
+<code>mplus</code>. Starter code:type ’a tree = Empty | Leaf of ’a | T
+of ’a t * ’a tmodule TreeM = MonadPlus (struct type ’a t = ’a tree let
+bind a b = TODO let return a = TODO let mzero = TODO let mplus a b =
+TODOend)</p>
+<p>Exercise 5.</p>
+<p>Show the monad-plus laws for one of:</p>
+<ol type="1">
+<li><code>TreeM</code> from your solution of exercise <a
+href="#TreeM"></a>;</li>
+<li><code>ListM</code> from lecture.</li>
+</ol>
+<p>Exercise 6.</p>
+<p>Why the following monad-plus is not lazy enough?</p>
+<ul>
+<li>let rec badappend l1 l2 = match l1 with lazy LazNil -&gt; l2 | lazy
+(LazCons (hd, tl)) -&gt; lazy (LazCons (hd, badappend tl l2))let rec
+badconcatmap f = function | lazy LazNil -&gt; lazy LazNil | lazy
+(LazCons (a, l)) -&gt; badappend (f a) (badconcatmap f l)</li>
+<li>module BadyListM = MonadPlus (struct type ’a t = ’a lazylist let
+bind a b = badconcatmap b a let return a = lazy (LazCons (a, lazy
+LazNil)) let mzero = lazy LazNil let mplus = badappendend)</li>
+<li>module BadyCountdown = Countdown (BadyListM)let test5 () =
+BadyListM.run (BadyCountdown.solutions [1;3;7;10;25;50] 765)</li>
+<li><h1
+id="let-t5a-sol5-time-test5val-t5a-float-3.3954310417175293val-sol5">let
+t5a, sol5 = time test5;;val t5a : float = 3.3954310417175293val sol5
+:</h1>
+string lazylist = <lazy># let t5b, sol51 = time (fun () -&gt; laztake 1
+sol5);;val t5b : float = 3.0994415283203125e-06val sol51 : string list =
+[“((25-(3+7))*(1+50))”]# let t5c, sol59 = time (fun () -&gt; laztake 10
+sol5);;val t5c : float = 7.8678131103515625e-06val sol59 : string list =
+[“((25-(3+7))*(1+50))”; “(((25-3)-7)*(1+50))”; …# let t5d, sol539 = time
+(fun () -&gt; laztake 49 sol5);;val t5d : float =
+2.59876251220703125e-05val sol539 : string list =<br />
+[“((25-(3+7))*(1+50))”; “(((25-3)-7)*(1+50))”; …</li>
+</ul>
+<p>Exercise 7.</p>
+<p>Convert a “rectangular” list of lists of strings, representing a
+matrix with inner lists being rows, into a string, where elements are
+column-aligned. (Exercise not related to recent material.)</p>
+<p>Exercise 8.</p>
+<p>Recall the overly rich way to introduce monads – providing the
+freedom of additional parametermodule type MONAD = sig type (’s, ’a) t
+val return : ’a -&gt; (’s, ’a) t val bind : (’s, ’a) t -&gt; (’a -&gt;
+(’s, ’b) t) -&gt; (’s, ’b) tend</p>
+<p>Recall the operations for the exception monad:val throw : excn -&gt;
+’a monadval catch : ’a monad -&gt; (excn -&gt; ’a monad) -&gt; ’a
+monad</p>
+<ol type="1">
+<li>Design the signatures for the exception monad operations to use the
+enriched monads with (’s, ’a) monad type, so that they provide more
+flexibility than our exception monad.</li>
+<li>Does the implementation of the exception monad need to change? The
+same implementation can work with both sets of signatures, but the
+implementation given in lecture needs a very slight change. Can you find
+it without implementing? If not, the lecture script provides RMONAD,
+RMONAD_OPS, RMonadOps and RMonad, so you can implement and see for
+yourself – copy ExceptionM and modify:module ExceptionRM : sig type (’e,
+’a) t = KEEP/TODO include RMONADOPS val run : (’e, ’a) monad -&gt; (’e,
+’a) t val throw : TODO val catch : TODOend = struct module M =
+struct<br />
+type (’e, ’a) t = KEEP/TODO let return a = OK a let bind m b = KEEP/TODO
+end include M include RMonadOps(M) let throw e = KEEP/TODO<br />
+let catch m handler = KEEP/TODOend</li>
+</ol>
+<p>Exercise 9.</p>
+<p>Implement the following constructs for <em>all</em> monads:</p>
+<ol type="1">
+<li>for…to…</li>
+<li>for…downto…</li>
+<li>while…do…</li>
+<li>do…while…</li>
+<li>repeat…until…</li>
+</ol>
+<p>Explain how, when your implementation is instantiated with the StateM
+monad, we get the solution to exercise 2 from lecture 4.</p>
+<p>Exercise 10.</p>
+<p>A canonical example of a probabilistic model is that of a lawn whose
+grass may be wet because it rained, because the sprinkler was on, or for
+some other reason. Oleg Kiselyov builds on this example with variables
+<code>rain</code>, <code>sprinkler</code>, and <code>wet_grass</code>,
+by adding variables <code>cloudy</code> and <code>wet_roof</code>. The
+probability tables are:</p>
+<p><span class="math display">\begin{eqnarray*}
+  P (\operatorname{cloudy}) &amp; = &amp; 0.5 \\\\\\
+  P (\operatorname{rain}|\operatorname{cloudy}) &amp; = &amp; 0.8 \\\\\\
+  P (\operatorname{rain}|\operatorname{not}\operatorname{cloudy}) &amp;
+= &amp; 0.2
+  \\\\\\
+  P (\operatorname{sprinkler}|\operatorname{cloudy}) &amp; = &amp; 0.1
+\\\\\\
+  P (\operatorname{sprinkler}|\operatorname{not}\operatorname{cloudy})
+&amp; = &amp;
+  \0.5 \\\\\\
+  P
+  
+(\operatorname{wet}\operatorname{roof}|\operatorname{not}\operatorname{rain})
+  &amp; = &amp; 0 \\\\\\
+  P (\operatorname{wet}\operatorname{roof}|\operatorname{rain}) &amp; =
+&amp; 0.7
+  \\\\\\
+  P (\operatorname{wet}\operatorname{grass}|\operatorname{rain} \wedge
+  \operatorname{not}\operatorname{sprinkler}) &amp; = &amp; 0.9 \\\\\\
+  P (\operatorname{wet}\operatorname{grass}|\operatorname{sprinkler}
+\wedge
+  \operatorname{not}\operatorname{rain}) &amp; = &amp; 0.9
+\end{eqnarray*}</span></p>
+<p>We observe whether the grass is wet and whether the roof is wet. What
+is the probability that it rained?</p>
+<p>Exercise 11.</p>
+<p>Implement the coarse-grained concurrency model.</p>
+<ul>
+<li>Modify <code>bind</code> to compute the resulting monad straight
+away if the input monad has returned.</li>
+<li>Introduce <code>suspend</code> to do what in the fine-grained model
+was the effect of <code>bind (return a) b</code>, i.e. suspend the work
+although it could already be started.</li>
+<li>One possibility is to introduce <code>suspend</code> of type unit
+monad, introduce a “dummy” monadic value <code>Suspend</code> (besides
+<code>Return</code> and <code>Sleep</code>), and define
+<code>bind suspend b</code> to do what <code>bind (return ()) b</code>
+would formerly do. # Lecture 9: Compiler</li>
+</ul>
 <p>Compilation. Runtime. Optimization. Parsing.</p>
 <p>Andrew W. Appel <em>‘‘Modern Compiler Implementation in ML’‘<em>E.
 Chailloux, P. Manoury, B. Pagano </em>‘‘Developing Applications with
@@ -8773,7 +9798,79 @@ cw := binse b e ); ps.(!cw)</p>
 <li>File: <code>InvIndex7.ml</code></li>
 <li>Time: 2.4s – minimal speedup in our simple test case.</li>
 </ul>
-<h1 id="lecture-10-frp">Lecture 10: FRP</h1>
+<p>Exercise 1.</p>
+<p>(Exercise 6.1 from <em>“Modern Compiler Implementation in ML”</em> by
+Andrew W. Appel.) Using the <code>ocamlopt</code> compiler with
+parameter <code>-S</code> and other parameters turning on all possible
+compiler optimizations, evaluate the compiled programs by these
+criteria:</p>
+<ol type="1">
+<li>Are local variables kept in registers? Show on an example.</li>
+<li>If local variable <code>b</code> is live across more than one
+procedure call, is it kept in a callee-save register? Explain how it
+would speed up the program:let f a = let b = a+1 in let c = g () in let
+d = h c in b+c</li>
+<li>If local variable <code>x</code> is never live across a procedure
+call, is it properly kept in a caller-save register? Explain how doing
+thes would speed up the program:let h y = let x = y+1 in let z = f y in
+f z</li>
+</ol>
+<p>Exercise 2.</p>
+<p>As above, verify whether escaping variables of a function are kept in
+a closure corresponding to the function, or in closures corresponding to
+the local, i.e. nested, functions that are returned from the function
+(or assigned to a mutable field).</p>
+<p>Exercise 3.</p>
+<p>As above, verify that OCaml compiler performs <em>inline
+expansion</em> of small functions. Check whether the compiler can
+inline, or specialize (produce a local function to help inlining),
+recursive functions.</p>
+<p>Exercise 4.</p>
+<p>Write a “<code>.mll</code> program” that anonymizes, or masks, text.
+That is, it replaces identified probable full names (of persons,
+companies etc.) with fresh shorthands <em>Mr. A</em>, <em>Ms. B</em>, or
+<em>Mr./Ms. C</em> when the gender cannot be easily determined. The same
+(full) name should be replaced with the same letter.</p>
+<ul>
+<li>Do only a very rough job of course, starting with recognizing two or
+more capitalized words in a row.</li>
+</ul>
+<p>Exercise 5.</p>
+<p>In the lexer EngLexer we call function <code>abridged</code> from the
+module EngMorph. Inline the operation of <code>abridged</code> into the
+lexer by adding a new regular expression pattern for each if clause.
+Assess the speedup on the <em>Shakespeare</em> corpus and the
+readability and either keep the change or revert it.</p>
+<p>Exercise 6.</p>
+<p>Make the lexer re-entrant for the second Menhir example (toy English
+grammar parser).</p>
+<p>Exercise 7.</p>
+<p>Make the determiner optional in the toy English grammar.</p>
+<ol type="1">
+<li>* Can you come up with a factorization that would avoid having two
+more productions in total?</li>
+</ol>
+<p>Exercise 8.</p>
+<p>Integrate into the <em>Phrase search</em> example, the <em>Porter
+Stemmer</em> whose source is in the <code>stemmer.ml</code> file.</p>
+<p>Exercise 9.</p>
+<p>Revisit the search engine example from lecture 6.</p>
+<ol type="1">
+<li>Perform optimization of data structure, i.e. replace association
+lists with hash tables.</li>
+<li>Optimize the algorithm: perform <em>query optimization</em>. Measure
+time gains for selected queries.</li>
+<li>For bonus points, as time and interest permits, extend the query
+language with <em>OR</em> and <em>NOT</em> connectives, in addition to
+<em>AND</em>.</li>
+<li>* Extend query optimization to the query language with <em>AND</em>,
+<em>OR</em> and <em>NOT</em> connectives.</li>
+</ol>
+<p>Exercise 10.</p>
+<p>Write an XML parser tailored to the <code>shakespeare.xml</code>
+corpus provided with the phrase search example. Modify the phrase search
+engine to provide detailed information for each found location,
+e.g. which play and who speaks the phrase. # Lecture 10: FRP</p>
 <p>Zippers. Functional Reactive Programming. GUIs.</p>
 <p>*‘‘Zipper’‘* in <em>Haskell Wikibook</em> and <em>‘‘The Zipper’’</em>
 by Gerard Huet <em>‘‘How <code>froc</code> works’’</em> by Jacob Donham
@@ -10756,8 +11853,52 @@ lazy-monad-plus and odd lazy lists.</em></li>
 </ol>
 <h1 id="exam-exercises-for-review">Exam: Exercises for review</h1>
 <h2 id="exam-set-0">Exam set 0</h2>
-<h2 id="exam-set-1">Exam set 1</h2>
-<p>Functional ProgrammingFebruary 5th 2013</p>
+<p>Exercise 1.</p>
+<p>Give types of the following expressions, either by guessing or
+inferring them by hand:</p>
+<ol type="1">
+<li>let double f y = f (f y) in fun g x -&gt; double (g x)</li>
+<li>let rec tails l = match l with [] -&gt; [] | x::xs -&gt; xs::tails
+xs infun l -&gt; List.combine l (tails l)</li>
+</ol>
+<p>Exercise 2.</p>
+<p>Assume that the corresponding expression from previous exercise is
+bound to name <code>foo</code>. What are the values computed for the
+expressions (compute in your head or derive on paper):</p>
+<ol type="1">
+<li>foo (+) 2 3, foo ( * ) 2 3, foo ( * ) 3 2</li>
+<li>foo [1; 2; 3]</li>
+</ol>
+<p>Exercise 3.</p>
+<p>Give example expressions that have the following types (without using
+type constraints):</p>
+<ol type="1">
+<li><code>(int -&gt; int) -&gt; bool</code></li>
+<li><code>'a option -&gt; 'a list</code></li>
+</ol>
+<p>Exercise 4.</p>
+<p>Write function that returns the list of all lists containing elements
+from the input list, preserving order from the input list, but without
+two elements.</p>
+<p>Exercise 5.</p>
+<p>Write a breadth-first-search function that returns an element from a
+binary tree for which a predicate holds, or <code>None</code> if no such
+element exists. The function should have signature:</p>
+<p><code>val bfs : ('a -&gt; bool) -&gt; 'a btree -&gt; 'a option</code></p>
+<p>Exercise 6.</p>
+<p>Solve the n-queens problem using backtracking based on lists.</p>
+<p>Available functions: <code>from_to</code>, <code>concat_map</code>,
+<code>concat_foldl</code>, <code>unique</code>.</p>
+<p>Hint functions (asking for hint each loses one point):
+<code>valid_queens</code>, <code>add_queen</code>,
+<code>find_queen</code>, <code>find_queens</code>. Final function
+<code>solve</code> takes <span class="math inline">n</span> as an
+argument. Each function, other than <code>valid_queens</code> that takes
+3 lines, fits on one line.</p>
+<p>Exercise 7.</p>
+<p>Provide an algebraic specification and an implementation for
+first-in-first-out queues (lecture 5 exercise 9). ## Exam set 1
+Functional ProgrammingFebruary 5th 2013</p>
 <p>Exam set 1</p>
 <p><strong>Exercise 1:</strong> (Blue.) What is the type of the
 subexpression <code>y</code> as part of the expression below assuming

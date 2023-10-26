@@ -41,26 +41,26 @@
   chapter1/functional-lecture01.md
   chapter2/functional-lecture02.md
   chapter2/functional-lecture02-deriv1.md
-  ; chapter2/lecture02-exercises.md
+  chapter2/lecture02-exercises.md
   chapter3/functional-lecture03.md
   chapter3/lecture03-exercises.md
   chapter4/functional-lecture04.md
   chapter4/lecture04-exercises.md
-  ; chapter5/functional-lecture05.md
+  chapter5/functional-lecture05.md
   chapter5/lecture05-exercises.md
   chapter6/functional-lecture06.md
-  ; chapter/lecture06-exercises.md
+  chapter6/lecture06-exercises.md
   chapter7/functional-lecture07.md
   chapter7/lecture07-exercises.md
   chapter8/functional-lecture08.md
-  ; chapter8/lecture08-exercises.md
+  chapter8/lecture08-exercises.md
   chapter9/functional-lecture09.md
-  ; chapter9/lecture09-exercises.md
+  chapter9/lecture09-exercises.md
   chapter10/functional-lecture10.md
   chapter10/lecture10-exercises.md
   chapter11/functional-lecture11.md
   chapter11/lecture11-exercises.md
-  ; exam/Exam1.md
+  exam/Exam1.md
   exam/exam-Feb2013-set1.md
   exam/exam-Feb2013-set2.md
   exam/exam-Feb2013-set3.md)
@@ -75,28 +75,28 @@
     (cat chapter2/functional-lecture02.md)
     (echo "## Chapter 2: Derivation example\n")
     (cat chapter2/functional-lecture02-deriv1.md)
-    ; (cat chapter2/lecture02-exercises.md)
+    (cat chapter2/lecture02-exercises.md)
     (cat chapter3/functional-lecture03.md)
     (cat chapter3/lecture03-exercises.md)
     (cat chapter4/functional-lecture04.md)
     (cat chapter4/lecture04-exercises.md)
-    ; (cat chapter5/functional-lecture05.md)
+    (cat chapter5/functional-lecture05.md)
     (cat chapter5/lecture05-exercises.md)
     (cat chapter6/functional-lecture06.md)
-    ; (cat chapter/lecture06-exercises.md)
+    (cat chapter6/lecture06-exercises.md)
     (cat chapter7/functional-lecture07.md)
     (cat chapter7/lecture07-exercises.md)
     (cat chapter8/functional-lecture08.md)
-    ; (cat chapter8/lecture08-exercises.md)
+    (cat chapter8/lecture08-exercises.md)
     (cat chapter9/functional-lecture09.md)
-    ; (cat chapter9/lecture09-exercises.md)
+    (cat chapter9/lecture09-exercises.md)
     (cat chapter10/functional-lecture10.md)
     (cat chapter10/lecture10-exercises.md)
     (cat chapter11/functional-lecture11.md)
     (cat chapter11/lecture11-exercises.md)
     (echo "# Exam: Exercises for review\n")
     (echo "## Exam set 0\n")
-    ; (cat exam/Exam1.md)
+     (cat exam/Exam1.md)
     (echo "## Exam set 1\n")
     (cat exam/exam-Feb2013-set1.md)
     (echo "## Exam set 2\n")

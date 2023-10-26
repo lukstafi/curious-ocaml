@@ -87,7 +87,7 @@ $$ \frac{\frac{\begin{array}{ll}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
    \small{\text{ using } x} $$
-   
+
 Elimination rule for disjunction represents **reasoning by cases**.
 
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?

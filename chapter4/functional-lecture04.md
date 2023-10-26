@@ -774,7 +774,7 @@ x -> n) (fun x -> pnsucc (f (pnpred m) n)))      id  ) m n;;decodepnat
    Do not use the imperative features of OCaml and F#, we will not even cover 
    them in this course!
 
-Despite we will not cover them, it is instructive to see the implementation 
+Although we will not cover them, it is instructive to see the implementation 
 using the imperative features, to better understand what is actually required 
 of a solution to the last exercise.
 
