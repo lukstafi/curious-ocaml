@@ -221,6 +221,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
+  <script defer src="renderMathInElement( document.body, { delimiters:[ {left:'$$', right:'$$', display:true},  {left:'$', right:'$', display:false} ] } );"> </script>
 </head>
 <body>
 <header id="title-block-header">
@@ -401,9 +402,10 @@ $$</span></p>
 <p>match any subtree that derives <span
 class="math inline"><em>b</em></span> (or <span
 class="math inline"><em>c</em></span>) and can use <span
-class="math inline"><em>a</em></span> (by assumption $ {x}$) although
-otherwise <span class="math inline"><em>a</em></span> might not be
-warranted. For example:</p>
+class="math inline"><em>a</em></span> (by assumption <span
+class="math inline">$\frac{\,}{a} \tiny{x}$</span>) although otherwise
+<span class="math inline"><em>a</em></span> might not be warranted. For
+example:</p>
 <p><span class="math display">$$
 \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
    outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow
@@ -582,8 +584,9 @@ clear, so we can define a <em>record type</em>:</p></li>
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> int_string_record = {a: <span class="dt">int</span>; b: <span class="dt">string</span>}</span></code></pre></div>
 <p>and create its values: <code>{a = 7; b = "Mary"}</code>. * We access
 the <em>fields</em> of records using the dot notation:</p>
-<p><code>{a=7; b="Mary"}.b = "Mary"</code>.Recursive expression $ x e$
-in the table was cheating: <code>rec</code> (usually called
+<p><code>{a=7; b="Mary"}.b = "Mary"</code>.Recursive expression <span
+class="math inline">$\text{{\texttt{rec}} } x \text{{\texttt{=}}}
+e$</span> in the table was cheating: <code>rec</code> (usually called
 <code>fix</code>) cannot appear alone in OCaml! It must be part of a
 definition.</p>
 <p><strong>Definitions for expressions</strong> are introduced by rules
