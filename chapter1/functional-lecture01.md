@@ -100,7 +100,7 @@ $$ {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or 
    {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
-$\frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
+$ \frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
 For example:
 
 $$ \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
@@ -216,7 +216,7 @@ type int_string_record = {a: int; b: string}
   and create its values: `{a = 7; b = "Mary"}`.
 * We access the *fields* of records using the dot notation:
 
-  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{{\texttt{rec}} } x 
+  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $ \text{{\texttt{rec}} } x 
 \text{{\texttt{=}}} e$ in the table was cheating: `rec` (usually 
 called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 
