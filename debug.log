@@ -1,0 +1,8 @@
+File "dune", line 7, characters 23-41:
+7 |    (copy new_book.html site/new_book.html)
+                           ^^^^^^^^^^^^^^^^^^
+Error: This action has targets in a different directory than the current one,
+this is not allowed by dune at the moment:
+- site
+- site/new_book.html
+- site/old_lectures_as_book.html

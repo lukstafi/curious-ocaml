@@ -1,0 +1,36 @@
+(copy_files
+ (files ../*.md))
+
+(copy_files
+ (files ../chapter6/*.eps))
+
+(copy_files
+ (files ../chapter7/*.eps))
+
+(copy_files
+ (files ../chapter8/*.eps))
+
+(copy_files
+ (files ../chapter9/*.gif))
+
+(copy_files
+ (files ../chapter10/*.png))
+
+(copy_files
+ (files ../exam/*.png))
+
+(rule
+ (alias new_book)
+ (mode promote)
+ (target new_book.pdf)
+ (deps README.md)
+ (action
+  (system "pandoc -s %{deps} -o %{target} --metadata title='Curious OCaml'")))
+
+(rule
+ (alias old_lectures_as_book)
+ (mode promote)
+ (target old_lectures_as_book.pdf)
+ (deps old_lectures_as_book.md)
+ (action
+  (system "pandoc -s %{deps} -o %{target} --metadata title='Functional Programming Course'")))

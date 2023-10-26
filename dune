@@ -1,18 +1,4 @@
 (rule
- (alias new_book)
- (target new_book.pdf)
- (mode promote)
- (deps README.md)
- (action (system "pandoc -s %{deps} -o %{target}")))
-
-(rule
- (alias new_book)
- (target new_book.html)
- (mode promote)
- (deps README.md)
- (action (system "pandoc -s %{deps} -o %{target}")))
-
-(rule
  (target README.md)
  (mode promote)
  (deps
@@ -45,20 +31,6 @@
     (cat chapter9/README.md)
     (cat chapter10/README.md)
     (cat chapter11/README.md)))))
-
-(rule
- (alias old_lectures_as_book)
- (target old_lectures_as_book.html)
- (mode promote)
- (deps old_lectures_as_book.md)
- (action (system "pandoc -s %{deps} -o %{target}")))
-
-(rule
- (alias old_lectures_as_book)
- (target old_lectures_as_book.pdf)
- (mode promote)
- (deps old_lectures_as_book.md)
- (action (system "pandoc -s %{deps} -o %{target}")))
 
 (rule
  (target old_lectures_as_book.md)
