@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 10: FRP
+# Lecture 10: FRP
 
 Zippers. Functional Reactive Programming. GUIs.
 
@@ -13,7 +9,7 @@ Martin Odersky
 
 If you see any error on the slides, let me know!
 
-# 1 Zippers
+## 1 Zippers
 
 * We would like to keep track of a position in a data structure: easily access 
   and modify it at that location, easily move the location around.
@@ -94,7 +90,7 @@ loc =Go to the first (i.e. leftmost) subdocument.  match loc.sub with  | Text
 line"  | Group [] -> invalidarg "godown: at empty"  | Group 
 (doc::docs) -> {sub=doc; ctx=([], docs)::loc.ctx}
 
-## 1.1 Example: Context rewriting
+### 1.1 Example: Context rewriting
 
 * Our friend working on the string theory asked us for help with simplifying 
   his equations.
@@ -147,7 +143,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   "(((x*y)*(3+y))+(((7*y)*(3+y))+5))"
 * For best results we can iterate the `pull_out` function until fixpoint.
 
-# 2 Adaptive Programming aka.Incremental Computing
+## 2 Adaptive Programming aka.Incremental Computing
 
 * Zippers are somewhat unnatural.
 * Once we change the data-structure, it is difficult to propagate the changes 
@@ -163,7 +159,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
     the ability to modify them is exposed by type `'a Froc_sa.u` – 
     the *writeables*.
 
-### 1 Dependency Graphs (explained by Jake Dunham)
+#### 1 Dependency Graphs (explained by Jake Dunham)
 
 * The monadic value `'a changeable` will be the *dependency graph* of the 
   computation of the represented value `'a`.
@@ -218,7 +214,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   updating.
   * Are they up-to-date? Run updating past the node's timestamp range.
 
-## 2.1 Example using *Froc*
+### 2.1 Example using *Froc*
 
 * Download *Froc* from 
   [https://github.com/jaked/froc/downloads](https://github.com/jaked/froc/downloads)
@@ -290,7 +286,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   </tr></tbody>
 </table>
 
-# 3 Functional Reactive Programming
+## 3 Functional Reactive Programming
 
 * FRP is an attempt to declaratively deal with time.
 * *Behaviors* are functions of time.
@@ -375,7 +371,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   “signal” is used as our behavior (check terminology when looking at a new 
   FRP library).
 
-# 4 Reactivity by Stream Processing
+## 4 Reactivity by Stream Processing
 
 * The stream processing infrastructure should be familiar.
 
@@ -453,7 +449,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   snd mm)let width : int behavior = step 640 (liftE fst screen)let height : 
   int behavior = step 512 (liftE snd screen)
 
-### 1 The Paddle Game example
+#### 1 The Paddle Game example
 
 * A *scene graph* is a data structure that represents a “world” which can be 
   drawn on screen.
@@ -535,7 +531,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   graphics,unix,threads/threads --`
 * ![](Lec10b.png)
 
-# 5 Reactivity by Incremental Computing
+## 5 Reactivity by Incremental Computing
 
 * In *Froc* behaviors and events are both implemented as changeables but only 
   behaviors persist, events are “instantaneous”.
@@ -586,7 +582,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
     somewhere). Signals can be referred to by being part of the dependency 
     graph, but also by any of the more general ways.
 
-### 1 Reimplementing the Paddle Game example
+#### 1 Reimplementing the Paddle Game example
 
 * Rather than following our incremental computing example (a scene with 
   changeable parts), we follow our FRP example: a scene behavior.
@@ -668,7 +664,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
 * Invocation:`ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs 
   froc/froc,unix,graphics,threads/threads --`
 
-# 6 Direct Control
+## 6 Direct Control
 
 * Real-world behaviors often are *state machines*, going through several 
   stages. We don't have declarative means for it yet.
@@ -764,7 +760,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   behaviorflow [] painterlet () = reactimate painter
 * ![](Lec10d.png)
 
-### 1 Flows and state
+#### 1 Flows and state
 
 Global state and thread-local state can be used with lightweight threads, but 
 pay attention to semantics – which computations are inside the monad and which 
@@ -788,7 +784,7 @@ d[4]flow: 4flow: 0Program ends while flow in third turn of the loop.
 
 
 
-# 7 Graphical User Interfaces
+## 7 Graphical User Interfaces
 
 * In-depth discussion of GUIs is beyond the scope of this course. We only 
   cover what's needed for an example reactive program with direct control.
@@ -797,7 +793,7 @@ d[4]flow: 4flow: 0Program ends while flow in third turn of the loop.
   based on objects. We will learn more about objects and polymorphic variants 
   in next lecture.
 
-## 7.1 Calculator Flow
+### 7.1 Calculator Flow
 
 let digits, digit = F.makeevent ()We represent the mechanicslet ops, op = 
 F.makeevent ()of the calculator directly as a flow.let dots, dot = F.makeevent 
@@ -813,7 +809,7 @@ op <-- await ops; return (f := op !now))        $\sim$until:digits;The
 user can pick a different operator.      emit (now := d; !now))Reset the state 
 to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
 
-## 7.2 *Tk*: *LablTk*
+### 7.2 *Tk*: *LablTk*
 
 * Widget toolkit ***Tk*** known from the *Tcl* language.
 * Invocation:`ocamlbuild Lec10tk.byte -cflags -I,+froc -libs froc/froc  -pkg 
@@ -859,7 +855,7 @@ to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
   $\sim$text:(stringoffloat now) result);  Tk.mainLoop ()
 * ![](Lec10-Calc_Tk.png)
 
-## 7.3 *GTk+*: *LablGTk*
+### 7.3 *GTk+*: *LablGTk*
 
 * ***LablGTk*** is build as an object-oriented layer over a low-level layer of 
   functions interfacing with the *GTk+* library, which is written in *C*.

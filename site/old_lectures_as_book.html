@@ -245,93 +245,64 @@
 <p class="author">Lukasz Stafiniak</p>
 </header>
 <!-- Do NOT modify this file, it is automatically generated -->
-<h1 id="curious-ocaml">Curious OCaml</h1>
-<h1 id="chapter-1">Chapter 1</h1>
-<p>Functional Programming</p>
-<p>Lecture 1: Logic</p>
+<h1 id="lecture-1-logic">Lecture 1: Logic</h1>
 <p>From logic rules to programming constructs</p>
-<h1 id="in-the-beginning-there-was-logos">1 In the Beginning there was
-Logos</h1>
+<h2 id="in-the-beginning-there-was-logos">1 In the Beginning there was
+Logos</h2>
 <p>What logical connectives do you know?</p>
-<table style="display: inline-table; vertical-align: middle">
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><span class="math inline">\top</span></th>
+<th><span class="math inline">\bot</span></th>
+<th><span class="math inline">\wedge</span></th>
+<th><span class="math inline">\vee</span></th>
+<th><span class="math inline">\rightarrow</span></th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
-<td>
-</td>
+<tr class="odd">
+<td></td>
+<td></td>
+<td><span class="math inline">a \wedge b</span></td>
+<td><span class="math inline">a \vee b</span></td>
+<td><span class="math inline">a \rightarrow b</span></td>
 </tr>
-<tr>
-<td>
-</td>
-<td>
-</td>
-<td>
-</td>
-<td>
-</td>
-<td>
-</td>
+<tr class="even">
+<td>truth</td>
+<td>falsehood</td>
+<td>conjunction</td>
+<td>disjunction</td>
+<td>implication</td>
 </tr>
-<tr>
-<td style="text-align: center">
-truth
-</td>
-<td>
-falsehood
-</td>
-<td>
-conjunction
-</td>
-<td>
-disjunction
-</td>
-<td>
-implication
-</td>
+<tr class="odd">
+<td>“trivial”</td>
+<td>“impossible”</td>
+<td><span class="math inline">a</span> and <span
+class="math inline">b</span></td>
+<td><span class="math inline">a</span> or <span
+class="math inline">b</span></td>
+<td><span class="math inline">a</span> gives <span
+class="math inline">b</span></td>
 </tr>
-<tr>
-<td>
-“trivial”
-</td>
-<td>
-“impossible”
-</td>
-<td>
-and
-</td>
-<td>
-or
-</td>
-<td>
-gives
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-shouldn’t get
-</td>
-<td>
-got both
-</td>
-<td>
-got one
-</td>
-<td>
-given , we get
-</td>
+<tr class="even">
+<td></td>
+<td>shouldn’t get</td>
+<td>got both</td>
+<td>got at least one</td>
+<td>given <span class="math inline">a</span>, we get <span
+class="math inline">b</span></td>
 </tr>
 </tbody>
 </table>
-<p>How can we define them?Think in terms of <em>derivation
+<p>How can we define them? Think in terms of <em>derivation
 trees</em>:</p>
 <p><span class="math display"> \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
@@ -716,11 +687,10 @@ class="math inline">\gcd (a, 0) = a</span>.</p>
 their greatest common divisor.</p>
 <p>If you need help, see <a
 href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/wiki/Euclidean_algorithm</a>.
-# Chapter 2 Functional Programming</p></li>
+# Lecture 2: Algebra</p></li>
 </ol>
-<p>Lecture 2: Algebra</p>
 <p>Algebraic Data Types and some curious analogies</p>
-<h1 id="a-glimpse-at-type-inference">1 A Glimpse at Type Inference</h1>
+<h2 id="a-glimpse-at-type-inference">1 A Glimpse at Type Inference</h2>
 <p>For a refresher, let’s try to use the rules we introduced last time
 on some simple examples. Starting with <code>fun x -&gt; x</code>. <span
 class="math inline">[?]</span> will mean “dunno yet”.</p>
@@ -816,7 +786,7 @@ as in other places with <span class="math inline">[?
   1}}}} : \text{{\texttt{int}}} \rightarrow
   \text{{\texttt{int}}}} &amp;
 \end{matrix} </span></p>
-<h2 id="curried-form">1.1 Curried form</h2>
+<h3 id="curried-form">1.1 Curried form</h3>
 <p>When there are several arrows “on the same depth” in a function type,
 it means that the function returns a function: e.g. <span
 class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
@@ -834,7 +804,7 @@ class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
 correspond to exactly (computationally)?</p>
 <p>We will get used to functions returning functions when learning about
 the <em>lambda calculus</em>.</p>
-<h1 id="algebraic-data-types">2 Algebraic Data Types</h1>
+<h2 id="algebraic-data-types">2 Algebraic Data Types</h2>
 <ul>
 <li>Last time we learned about the <code>unit</code> type, variant types
 like:</li>
@@ -876,7 +846,7 @@ example:</li>
 <li>Haskell:<code>data Choice a b = Left a | Right b</code></li>
 </ul></li>
 </ul>
-<h1 id="syntactic-bread-and-sugar">3 Syntactic Bread and Sugar</h1>
+<h2 id="syntactic-bread-and-sugar">3 Syntactic Bread and Sugar</h2>
 <ul>
 <li>Names of variants, called <em>constructors</em>, must start with
 capital letter – so if we wanted to define our own booleans, it would
@@ -899,7 +869,7 @@ etc. * the general form is: <code>function *PATTERN-MATCHING*</code>
 stands for<code>fun v -&gt;      match v with *PATTERN-MATCHING*</code>
 * <code>let f ARGS = e</code> is a shorthand for
 <code>let f = fun ARGS -&gt; e</code></p>
-<h1 id="pattern-matching">4 Pattern Matching</h1>
+<h2 id="pattern-matching">4 Pattern Matching</h2>
 <ul>
 <li>Recall that we introduced <code>fst</code> and <code>snd</code> as
 means to access elements of a pair. But what about bigger tuples? The
@@ -975,8 +945,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb16-1"><a hre
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>      <span class="kw">when</span> <span class="dt">not</span> (day.month = Dec &amp;&amp; day.day = <span class="dv">24</span>) -&gt;</span>
 <span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Some</span> (work (get_plan wday))</span>
 <span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  | _ -&gt; <span class="dt">None</span></span></code></pre></div>
-<h1 id="interpreting-algebraic-dts-as-polynomials">5 Interpreting
-Algebraic DTs as Polynomials</h1>
+<h2 id="interpreting-algebraic-dts-as-polynomials">5 Interpreting
+Algebraic DTs as Polynomials</h2>
 <p>Let’s do a peculiar translation: take a data type and replace | with
 <span class="math inline">+</span>, * with <span
 class="math inline">\times</span>, treating record types as tuple types
@@ -1096,8 +1066,8 @@ compiler will then tell you if you have forgotten about a case.</li>
 <li>Divide solutions into small steps so that each step can be easily
 understood and checked.</li>
 </ul>
-<h2 id="differentiating-algebraic-data-types">5.1 Differentiating
-Algebraic Data Types</h2>
+<h3 id="differentiating-algebraic-data-types">5.1 Differentiating
+Algebraic Data Types</h3>
 <p>Of course, you would say, the pompous title is wrong, we will
 differentiate the translated polynomials. But what sense does it
 make?</p>
@@ -1164,7 +1134,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb31-1"><a hre
 <span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    Node (m, btree_integr n ltree, rtree)</span>
 <span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  | Below (RightBranch, m, ltree) -&gt;</span>
 <span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    Node (m, ltree, btree_integr n rtree)</span></code></pre></div>
-<h1 id="homework">6 Homework</h1>
+<h2 id="homework">6 Homework</h2>
 <p>Write a function <code>btree_deriv_at</code> that takes a predicate
 over integers (i.e. a function <code>f: int -&gt; bool</code>), and a
 <code>btree</code>, and builds a <code>btree_deriv</code> whose “hole”
@@ -1173,8 +1143,7 @@ actually return a <code>btree_deriv option</code>, with
 <code>None</code> in case the predicate does not hold for any node.</p>
 <p><em>This homework is due for the class <strong>after</strong> the
 Computation class, i.e. for (before) the Functions class.</em> ##
-Chapter 2: Derivation example Functional Programming</p>
-<p>Lecture 2: Algebra, Fig. 1</p>
+Chapter 2: Derivation example # Lecture 2: Algebra, Fig. 1</p>
 <p>Type inference example derivation</p>
 <p><span class="math display"> \frac{[?]}{\text{{\texttt{fun x -&gt;
 ((+) x) 1}}} : [?]} </span></p>
@@ -1253,13 +1222,11 @@ elimination:} </span></p>
    \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
    \text{{\texttt{int}}}} </span></p>
-<h1 id="chapter-3">Chapter 3</h1>
-<p>Functional Programming</p>
-<p>Lecture 3: Computation</p>
+<h1 id="lecture-3-computation">Lecture 3: Computation</h1>
 <p>‘‘Using, Understanding and Unraveling the OCaml Language’’ Didier
 Rémy, chapter 1</p>
 <p>‘‘The OCaml system’’ manual, the tutorial part, chapter 1</p>
-<h1 id="function-composition">1 Function Composition</h1>
+<h2 id="function-composition">1 Function Composition</h2>
 <ul>
 <li>The usual way function composition is defined in math is “backward”:
 <ul>
@@ -1315,8 +1282,8 @@ work on <code>float</code> numbers.</li>
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pi = <span class="fl">4.0</span> *. <span class="dt">atan</span> <span class="fl">1.0</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sin&#39;&#39;&#39; = (power (derivative <span class="fl">1e-5</span>) <span class="dv">3</span>) <span class="dt">sin</span>;;</span>
 <span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>sin&#39;&#39;&#39; pi;;</span></code></pre></div>
-<h1 id="evaluation-rules-reduction-semantics">2 Evaluation Rules
-(reduction semantics)</h1>
+<h2 id="evaluation-rules-reduction-semantics">2 Evaluation Rules
+(reduction semantics)</h2>
 <ul>
 <li><p>Programs consist of <strong>expressions</strong>:</p>
 <p><span class="math display"> \begin{matrix}
@@ -1439,7 +1406,7 @@ will not be further computed until it is applied inside of <span
 class="math inline">v_{1}</span>.</p></li>
 <li><p>Compute some programs using the rules by hand.</p></li>
 </ul>
-<h1 id="symbolic-derivation-example">3 Symbolic Derivation Example</h1>
+<h2 id="symbolic-derivation-example">3 Symbolic Derivation Example</h2>
 <p>Go through the examples from the <code>Lec3.ml</code> file in the
 toplevel.</p>
 <div class="sourceCode" id="cb38"><pre
@@ -1470,8 +1437,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb38-1"><a hre
 <span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>  eval_1_2 --&gt; <span class="dv">7</span>.</span>
 <span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>eval_1_2 --&gt; <span class="dv">9</span>.</span>
 <span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>- : <span class="dt">float</span> = <span class="dv">9</span>.</span></code></pre></div>
-<h1 id="tail-calls-and-tail-recursion">4 Tail Calls (and tail
-recursion)</h1>
+<h2 id="tail-calls-and-tail-recursion">4 Tail Calls (and tail
+recursion)</h2>
 <ul>
 <li>Excuse me for not defining what a <em>function call</em> is…</li>
 <li>Computers normally evaluate programs by creating <em>stack
@@ -1515,8 +1482,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb39-1"><a hre
 <li>Is it possible to find the depth of a tree using a tail-recursive
 function?</li>
 </ul>
-<h1 id="first-encounter-of-continuation-passing-style">5 First Encounter
-of Continuation Passing Style</h1>
+<h2 id="first-encounter-of-continuation-passing-style">5 First Encounter
+of Continuation Passing Style</h2>
 <p>We can postpone doing the actual work till the last moment:</p>
 <div class="sourceCode" id="cb40"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> depth tree k = <span class="kw">match</span> tree <span class="kw">with</span></span>
@@ -1527,7 +1494,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb40-1"><a hre
 <span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>          k (<span class="dv">1</span> + (<span class="dt">max</span> dleft dright))))</span>
 <span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> depth tree = depth tree (<span class="kw">fun</span> d -&gt; d)</span></code></pre></div>
-<h1 id="homework-1">6 Homework</h1>
+<h2 id="homework-1">6 Homework</h2>
 <p>By “traverse a tree” below we mean: write a function that takes a
 tree and returns a list of values in the nodes of the tree.</p>
 <ol type="1">
@@ -1600,16 +1567,14 @@ merges the sorted parts into the sorted result.</em></li>
 <li><em>Quicksort splits the list into elements smaller/greater than the
 first element, sorts the parts, and puts them together.</em></li>
 </ol>
-<h1 id="chapter-4">Chapter 4</h1>
-<p>Functional Programming</p>
-<p>Lecture 4: Functions.</p>
+<h1 id="lecture-4-functions.">Lecture 4: Functions.</h1>
 <p>Programming in untyped <span
 class="math inline">\lambda</span>-calculus.</p>
 <p><em>Introduction to Lambda Calculus</em> Henk Barendregt, Erik
 Barendsen</p>
 <p><em>Lecture Notes on the Lambda Calculus</em> Peter Selinger</p>
-<h1 id="review-a-computation-by-hand-example">1 Review: a “computation
-by hand” example</h1>
+<h2 id="review-a-computation-by-hand-example">1 Review: a “computation
+by hand” example</h2>
 <p>Let’s compute some larger, recursive program.Recall that we use fix
 instead of let rec to simplify rules for recursion. Also remember our
 syntactic conventions: <code>fun x y -&gt; e</code> stands for
@@ -1892,9 +1857,9 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
   v_{n})
 \end{matrix} </span></p>
 <p>2</p>
-<h1 id="language-and-rules-of-the-untyped-lambda-calculus">2 Language
+<h2 id="language-and-rules-of-the-untyped-lambda-calculus">2 Language
 and rules of the untyped <span
-class="math inline">\lambda</span>-calculus</h1>
+class="math inline">\lambda</span>-calculus</h2>
 <ul>
 <li><p>First, let’s forget about types.</p></li>
 <li><p>Next, let’s introduce a shortcut:</p>
@@ -1924,7 +1889,7 @@ class="math inline">\beta</span>-reduction rule in the
 than the rule we use?</li>
 </ul></li>
 </ul>
-<h1 id="booleans">3 Booleans</h1>
+<h2 id="booleans">3 Booleans</h2>
 <ul>
 <li>Alonzo Church introduced <span
 class="math inline">\lambda</span>-calculus to encode logic.</li>
@@ -1951,7 +1916,7 @@ true falseTest the functions in the toplevel.</p>
 <ul>
 <li>Define <code>c_or</code> and <code>c_not</code> yourself!</li>
 </ul>
-<h1 id="if-then-else-and-pairs">4 If-then-else and pairs</h1>
+<h2 id="if-then-else-and-pairs">4 If-then-else and pairs</h2>
 <ul>
 <li>We will just use the OCaml syntax from now.</li>
 </ul>
@@ -1967,8 +1932,8 @@ decodeboolpair c = decodepair decodebool decodebool c</p>
 <li><p>We can define larger tuples in the same manner:</p>
 <p>let ctriple l m n = fun x -&gt; x l m n</p></li>
 </ul>
-<h1 id="pair-encoded-natural-numbers">5 Pair-encoded natural
-numbers</h1>
+<h2 id="pair-encoded-natural-numbers">5 Pair-encoded natural
+numbers</h2>
 <ul>
 <li>Our first encoding of natural numbers is as the depth of nested
 pairs whose rightmost leaf is <span class="math inline">\lambda
@@ -1985,8 +1950,8 @@ if n <span class="math inline">&lt;</span>= 0 then Obj.magic pn0 else
 pnsucc (Obj.magic (encodepnat (n-1)))Disregarding types,let rec
 decodepnat pn =these functions are straightforward! if decodebool
 (pniszero pn) then 0 else 1 + decodepnat (pnpred (Obj.magic pn))</p>
-<h1 id="church-numerals-natural-numbers-in-ch.-enc.">6 Church numerals
-(natural numbers in Ch. enc.)</h1>
+<h2 id="church-numerals-natural-numbers-in-ch.-enc.">6 Church numerals
+(natural numbers in Ch. enc.)</h2>
 <ul>
 <li>Do you remember our function <code>power f n</code>? We will use its
 variant for a different representation of numbers:</li>
@@ -2051,8 +2016,8 @@ z-&gt;0)) ((+) 1)</p>
 <p>((+) 1) 1</p>
 <p><span class="math display"> \Downarrow </span></p>
 <p>2</p>
-<h1 id="recursion-fixpoint-combinator">7 Recursion: Fixpoint
-Combinator</h1>
+<h2 id="recursion-fixpoint-combinator">7 Recursion: Fixpoint
+Combinator</h2>
 <ul>
 <li><p>Turing’s fixpoint combinator: <span class="math inline">\Theta =
 (\lambda x y.y (x x y)) (\lambda x y.y (x x y))</span></p>
@@ -2224,7 +2189,7 @@ a (<em>ground</em>, a.k.a. <em>closed</em>) expression.</p></li>
 </ul></li>
 <li><p>What does <code>fix (fun x -&gt; cn_succ x)</code> mean?</p></li>
 </ul>
-<h1 id="encoding-of-lists-and-trees">8 Encoding of Lists and Trees</h1>
+<h2 id="encoding-of-lists-and-trees">8 Encoding of Lists and Trees</h2>
 <ul>
 <li><p>A list is either empty, which we often call <code>Empty</code> or
 <code>Nil</code>, or it consists of an element followed by another list
@@ -2294,7 +2259,7 @@ guaranteed exhaustiveness: <span class="math inline">k</span>th argument
 corresponds to <span class="math inline">k</span>th branch of pattern
 matching.</p></li>
 </ul>
-<h1 id="looping-recursion">9 Looping Recursion</h1>
+<h2 id="looping-recursion">9 Looping Recursion</h2>
 <ul>
 <li>Let’s come back to numbers defined as lengths lists and define
 addition:</li>
@@ -2332,7 +2297,7 @@ class="math inline">\lambda</span>-calculus.</li>
 <p>let pnadd m n = fix (fun f m n -&gt; (ifthenelse (pniszero m) (fun x
 -&gt; n) (fun x -&gt; pnsucc (f (pnpred m) n))) id ) m n;;decodepnat
 (pnadd pn3 pn3);;decodepnat (pnadd pn3 pn7);;</p>
-<h1 id="in-class-work-and-homework">10 In-class Work and Homework</h1>
+<h2 id="in-class-work-and-homework">10 In-class Work and Homework</h2>
 <p>Define (implement) and verify: 1. <code>c_or</code> and
 <code>c_not</code>; 1. exponentiation for Church numerals; 1. is-zero
 predicate for Church numerals; 1. even-number predicate for Church
@@ -2450,7 +2415,7 @@ done;<br />
 !s<br />
 done; !s</li>
 <li>let repeatuntil p f s = let s = ref (f s) in while not (p !s) do s
-:= f !s done; !s # Chapter 5 Functional Programming</li>
+:= f !s done; !s Functional Programming</li>
 </ol>
 <p>Type Inference</p>
 <p>Abstract Data Types</p>
@@ -2633,11 +2598,10 @@ test for violations of left resp. right child only. Replace calls
 to</em> <code>*balance*</code> <em>appropriately.</em></li>
 <li><em>One of the remaining tests on grandchildren is also unnecessary.
 Rewrite</em> <code>*ins*</code> <em>so that it never tests the color of
-nodes not on the search path.</em> # Chapter 6 Functional
-Programming</li>
+nodes not on the search path.</em> # Lecture 6: Folding and
+Backtracking</li>
 </ol></li>
 </ol>
-<p>Lecture 6: Folding and Backtracking</p>
 <p>Mapping and folding.Backtracking using lists. Constraint solving.</p>
 <p>Martin Odersky ‘‘Functional Programming Fundamentals’’ Lectures 2, 5
 and 6</p>
@@ -2646,7 +2610,7 @@ and 6</p>
 Problem’’</p>
 <p>Tomasz Wierzbicki ‘‘<em>Honey Islands</em> Puzzle Solver’’</p>
 <p>If you see any error on the slides, let me know!</p>
-<h1 id="plan">1 Plan</h1>
+<h2 id="plan">1 Plan</h2>
 <ul>
 <li><code>map</code> and <code>fold_right</code>: recursive function
 examples, abstracting over gets the higher-order functions.</li>
@@ -2685,8 +2649,8 @@ along the way.</li>
 <li>Constraint variables, splitting and constraint propagation.</li>
 <li>Another example with “heavier” constraint propagation.</li>
 </ul>
-<h1 id="basic-generic-list-operations">2 Basic generic list
-operations</h1>
+<h2 id="basic-generic-list-operations">2 Basic generic list
+operations</h2>
 <p>How to print a comma-separated list of integers? In module
 <code>String</code>:</p>
 <p>val concat : string -&gt; string list -&gt; string</p>
@@ -2699,8 +2663,8 @@ length:</p>
 <p>let rec stringslengths = function | [] -&gt; [] | hd::tl -&gt;
 (String.length hd, hd) :: stringslengths tllet bysize = List.sort
 compare -| stringslengths</p>
-<h2 id="always-extract-common-patterns">2.1 Always extract common
-patterns</h2>
+<h3 id="always-extract-common-patterns">2.1 Always extract common
+patterns</h3>
 <table style="display: inline-table; vertical-align: middle">
 <tbody>
 <tr>
@@ -2874,8 +2838,8 @@ the structure as a scaffolding:
 </tr>
 </tbody>
 </table>
-<h2 id="can-we-make-fold-tail-recursive">2.2 Can we make
-<code>fold</code> tail-recursive?</h2>
+<h3 id="can-we-make-fold-tail-recursive">2.2 Can we make
+<code>fold</code> tail-recursive?</h3>
 <p>Let’s investigate some tail-recursive functions. (Not hidden as
 helpers.)</p>
 <table style="display: inline-table; vertical-align: middle">
@@ -2981,8 +2945,8 @@ else t) l []</p></li>
 <li><p>Tail-recursive map returning elements in reverse order:</p>
 <p>let listrevmap f l = List.foldleft (fun t h-&gt;f h::t) [] l</p></li>
 </ul>
-<h1 id="map-and-fold-for-trees-and-other-structures">3 <code>map</code>
-and <code>fold</code> for trees and other structures</h1>
+<h2 id="map-and-fold-for-trees-and-other-structures">3 <code>map</code>
+and <code>fold</code> for trees and other structures</h2>
 <ul>
 <li><p>Mapping binary trees is straightforward:</p>
 <p>type ’a btree = Empty | Node of ’a * ’a btree * ’a btree let rec
@@ -3010,8 +2974,8 @@ element together with partial results for the subtrees.</p>
 (fun<br />
 l r -&gt; 1 + max l r) 1 t</p></li>
 </ul>
-<h2 id="map-and-fold-for-more-complex-structures">3.1 <code>map</code>
-and <code>fold</code> for more complex structures</h2>
+<h3 id="map-and-fold-for-more-complex-structures">3.1 <code>map</code>
+and <code>fold</code> for more complex structures</h3>
 <p>To have a data structure to work with, we recall expressions from
 lecture 3.</p>
 <p>type expression = Const of float | Var of string | Sum of expression
@@ -3070,7 +3034,7 @@ foldconst = id;<br />
 foldvar = (fun x -&gt; List.assoc x env); foldsum = (+.); folddiff =
 (-.);<br />
 foldprod = ( *.); foldquot = (/.);}</p>
-<h1 id="point-free-programming">4 Point-free Programming</h1>
+<h2 id="point-free-programming">4 Point-free Programming</h2>
 <ul>
 <li><p>In 1977/78, John Backus designed <strong>FP</strong>, the first
 <em>function-level programming</em> language. Over the next decade it
@@ -3143,8 +3107,8 @@ List.maplet func2 f = flip (-|) List.map ((-|) (List.filter f))let func2
 f = (((|-) List.map) -| ((-|) -| List.filter)) flet func2 = (|-)
 List.map -| ((-|) -| List.filter)</p></li>
 </ul>
-<h1 id="reductions.-more-higher-orderlist-functions">5 Reductions. More
-higher-order/list functions</h1>
+<h2 id="reductions.-more-higher-orderlist-functions">5 Reductions. More
+higher-order/list functions</h2>
 <p>Mathematics has notation for sum over an interval: <span
 class="math inline">\sum_{n = a}^b f (n)</span>.</p>
 <p>In OCaml, we do not have a universal addition operator:</p>
@@ -3167,8 +3131,8 @@ concatmap f l</p>
 <p>let concatmap f l = let rec cmapf accu = function | [] -&gt; accu |
 a::l -&gt; cmapf (List.revappend (f a) accu) l in List.rev (cmapf []
 l)</p>
-<h2 id="list-manipulation-all-subsequences-of-a-list">5.1 List
-manipulation: All subsequences of a list</h2>
+<h3 id="list-manipulation-all-subsequences-of-a-list">5.1 List
+manipulation: All subsequences of a list</h3>
 <p>let rec subseqs l = match l with | [] -&gt; [[]] | x::xs -&gt;<br />
 let pxs = subseqs xs in List.map (fun px -&gt; x::px) pxs @ pxs</p>
 <p>Tail-recursively:</p>
@@ -3181,8 +3145,8 @@ splitting a list into two non-empty parts.</p>
 <p><strong>Homework:</strong></p>
 <p>Find all permutations of a list.</p>
 <p>Find all ways of choosing without repetition from a list.</p>
-<h2 id="by-key-group_by-and-map_reduce">5.2 By key:
-<code>group_by</code> and <code>map_reduce</code></h2>
+<h3 id="by-key-group_by-and-map_reduce">5.2 By key:
+<code>group_by</code> and <code>map_reduce</code></h3>
 <p>It is often useful to organize values by some property.</p>
 <p>First we collect an elements from an association list by key.</p>
 <p>let collect l = match List.sort (fun x y -&gt; compare (fst x) (fst
@@ -3209,8 +3173,8 @@ upfront. Since we first map the elements into the extracted key-value
 pairs, we call the operation <code>map_reduce</code>:</p>
 <p>let mapreduce mapf redf base l = List.map mapf l |&gt; collect |&gt;
 List.map (fun (k,vs)-&gt;k, List.foldright redf vs base)</p>
-<h3 id="map_reduceconcat_reduce-examples">5.2.1
-<code>map_reduce</code>/<code>concat_reduce</code> examples</h3>
+<h4 id="map_reduceconcat_reduce-examples">5.2.1
+<code>map_reduce</code>/<code>concat_reduce</code> examples</h4>
 <p>Sometimes we have multiple sources of information rather than
 records.</p>
 <p>let concatreduce mapf redf base l = concatmap mapf l |&gt; collect
@@ -3232,7 +3196,7 @@ with | [] -&gt; [] | idx::idcs -&gt; List.foldleft intersect idx
 idcs</p>
 <p>where <code>intersect</code> computes intersection of sets
 represented as lists.</p>
-<h3 id="tail-recursive-variants">5.2.2 Tail-recursive variants</h3>
+<h4 id="tail-recursive-variants">5.2.2 Tail-recursive variants</h4>
 <p>let revcollect l = match List.sort (fun x y -&gt; compare (fst x)
 (fst y)) l with | [] -&gt; [] | (k0, v0)::tl -&gt; let k0, vs, l =
 List.foldleft<br />
@@ -3244,8 +3208,8 @@ revcollect<br />
 |&gt; List.revmap (fun (k,vs)-&gt;k, List.foldleft redf base vs)</p>
 <p>let rcons tl hd = hd::tllet invertedindex documents = let mapf (addr,
 doc) = … in trconcatreduce mapf rcons [] documents</p>
-<h3 id="helper-functions-for-inverted-index-demonstration">5.2.3 Helper
-functions for inverted index demonstration</h3>
+<h4 id="helper-functions-for-inverted-index-demonstration">5.2.3 Helper
+functions for inverted index demonstration</h4>
 <p>let intersect xs ys =Sets as <strong>sorted</strong> lists. let rec
 aux acc = function<br />
 | [], | , [] -&gt; acc | (x::xs’ as xs), (y::ys’ as ys) -&gt; let c =
@@ -3266,8 +3230,8 @@ List.map (flip List.assoc lines) ans</p>
 <p>let searchbible = searchengine (readlines “./bible-kjv.txt”)let
 testresult =<br />
 searchbible [“Abraham”; “sons”; “wife”]</p>
-<h2 id="higher-order-functions-for-the-option-type">5.3 Higher-order
-functions for the <code>option</code> type</h2>
+<h3 id="higher-order-functions-for-the-option-type">5.3 Higher-order
+functions for the <code>option</code> type</h3>
 <p>Operate on an optional value:</p>
 <p>let mapoption f = function | None -&gt; None | Some e -&gt; f e</p>
 <p>Map an operation over a list and filter-out cases when it does not
@@ -3279,8 +3243,8 @@ lTail-recurively:</p>
 <p>let mapsome f l = let rec mapsf accu = function | [] -&gt; accu |
 a::l -&gt; mapsf (match f a with None -&gt; accu | Some r -&gt; r::accu)
 l in List.rev (mapsf [] l)</p>
-<h1 id="the-countdown-problem-puzzle">6 The Countdown Problem
-Puzzle</h1>
+<h2 id="the-countdown-problem-puzzle">6 The Countdown Problem
+Puzzle</h2>
 <ul>
 <li><p>Using a given set of numbers and arithmetic operators +, -, *, /,
 construct an expression with a given value.</p></li>
@@ -3326,7 +3290,7 @@ numbers and a target number:</p>
 <p>let solution e ns n = listdiff (values e) ns = [] &amp;&amp; isunique
 (values e) &amp;&amp; eval e = Some n</p></li>
 </ul>
-<h2 id="brute-force-solution">6.1 Brute force solution</h2>
+<h3 id="brute-force-solution">6.1 Brute force solution</h3>
 <ul>
 <li><p>Return a list of all possible ways of splitting a list into two
 non-empty parts:</p>
@@ -3355,8 +3319,8 @@ guard n)</p></li>
 <p>let solutions ns n = choices ns |-&gt; (fun ns’ -&gt; exprs ns’
 |-&gt; guard (fun e -&gt; eval e = Some n))</p></li>
 </ul>
-<h2 id="fuse-the-generate-phase-with-the-test-phase">6.2 Fuse the
-generate phase with the test phase</h2>
+<h3 id="fuse-the-generate-phase-with-the-test-phase">6.2 Fuse the
+generate phase with the test phase</h3>
 <ul>
 <li><p>We seek to define a function that fuses together the generation
 and evaluation of expressions:</p>
@@ -3377,7 +3341,7 @@ only check if it equals the target.</p>
 |&gt; List.filter (fun (e,m)-&gt; m=n) |&gt; List.map fst)We discard the
 memorized values.</p></li>
 </ul>
-<h2 id="eliminate-symmetric-cases">6.3 Eliminate symmetric cases</h2>
+<h3 id="eliminate-symmetric-cases">6.3 Eliminate symmetric cases</h3>
 <ul>
 <li><p>Strengthening the valid predicate to take account of
 commutativity and identity properties:</p>
@@ -3391,7 +3355,7 @@ is both easier and gives better results.</li>
 </ul></li>
 <li><p>Now recompile combine’, results and solutions’.</p></li>
 </ul>
-<h1 id="the-honey-islands-puzzle">7 The Honey Islands Puzzle</h1>
+<h2 id="the-honey-islands-puzzle">7 The Honey Islands Puzzle</h2>
 <ul>
 <li>Be a bee! Find the cells to eat honey out of, so that the least
 amount of honey becomes sour, assuming that sourness spreads through
@@ -3407,7 +3371,7 @@ black, mark some more cells so that unmarked cells form
 </ul>
 <p>Task: 3 islands x 3<embed src="honey0.eps" />Solution:<embed
 src="honey1.eps" /></p>
-<h2 id="representing-the-honeycomb">7.1 Representing the honeycomb</h2>
+<h3 id="representing-the-honeycomb">7.1 Representing the honeycomb</h3>
 <p>type cell = int * intWe address cells using ‘‘cartesian’’
 coordinatesmodule CellSet =and store them in either lists or sets.
 Set.Make (struct type t = cell let compare = compare end)type task =
@@ -3419,12 +3383,12 @@ required number of cells in an island. emptycells : CellSet.t;The cells
 that are initially without honey.}</p>
 <p>let cellsetoflist l =List into set, inverse of CellSet.elements<br />
 List.foldright CellSet.add l CellSet.empty</p>
-<h3 id="neighborhood">7.1.1 Neighborhood</h3>
+<h4 id="neighborhood">7.1.1 Neighborhood</h4>
 <p><embed
 src="honey_min2.eps" /><code>x,y</code>-0.902203-0.291672<code>x+2,y</code>2.23049-0.376339<code>x+1,y+1</code>0.410142.35418<code>x-1,y+1</code>-2.637882.33301<code>x-2,y</code>-4.20423-0.418673<code>x-1,y-1</code>-2.65905-3.08569<code>x+1,y-1</code>0.431307-3.191530cm</p>
 <p>let neighbors n eaten (x,y) = List.filter (insideboard n eaten)
 [x-1,y-1; x+1,y-1; x+2,y; x+1,y+1; x-1,y+1; x-2,y]</p>
-<h3 id="building-the-honeycomb">7.1.2 Building the honeycomb</h3>
+<h4 id="building-the-honeycomb">7.1.2 Building the honeycomb</h4>
 <p><embed
 src="honey_demo.eps" />0,0-0.373032-0.1543520,2-0.3730323.041840,-2-0.394199-3.541041,10.5159741.496664,03.33116-0.239023,12.505661.496662,21.510813.063-2,0-2.23571-0.1543520cm</p>
 <p>let even x = x mod 2 = 0</p>
@@ -3434,7 +3398,7 @@ src="honey_demo.eps" />0,0-0.373032-0.1543520,2-0.3730323.041840,-2-0.394199-3.5
 <p>let honeycells n eaten = fromto (-2<em>n) (2</em>n)|-&gt;(fun x -&gt;
 fromto (-n) n |-&gt; (fun y -&gt; guard (insideboard n eaten) (x,
 y)))</p>
-<h3 id="drawing-honeycombs">7.1.3 Drawing honeycombs</h3>
+<h4 id="drawing-honeycombs">7.1.3 Drawing honeycombs</h4>
 <p>We separately generate colored polygons:</p>
 <p>let drawhoneycomb <span class="math inline">\sim</span>w <span
 class="math inline">\sim</span>h task eaten = let i2f = floatofint in
@@ -3474,7 +3438,7 @@ stroke-width=“3” /&gt;n” r g b in List.iter drawshape curves;
 Printf.fprintf f “</svg>%!”</p>
 <p>But we also want to draw on a screen window – we need to link the
 <code>Graphics</code> library. In the interactive toplevel:</p>
-<p>#load “graphics.cma”;;</p>
+<p>##load “graphics.cma”;;</p>
 <p>When compiling we just provide <code>graphics.cma</code> to the
 command.</p>
 <p>let drawtoscreen <span class="math inline">\sim</span>w <span
@@ -3486,8 +3450,8 @@ Graphics.setcolor (Graphics.rgb r g b); Graphics.fillpoly points)
 curves; if Graphics.readkey () = <code>'q'</code>We wait so that
 solutions can be seen then failwith “User interrupted finding
 solutions.”;as they’re computed. Graphics.closegraph ()</p>
-<h2 id="testing-correctness-of-a-solution">7.2 Testing correctness of a
-solution</h2>
+<h3 id="testing-correctness-of-a-solution">7.2 Testing correctness of a
+solution</h3>
 <p>We walk through each island counting its cells, depth-first: having
 visited everything possible in one direction, we check whether something
 remains in another direction.</p>
@@ -3523,8 +3487,8 @@ let beensize = beensize + 1 in checkisland neighbor<br />
 current overall state (initial <code>been_size</code> is 1).</p>
 <p>Initially there are no islands already visited.</p>
 <p>checkboard 0 honey emptycells</p>
-<h2 id="interlude-multiple-results-per-step">7.3 Interlude: multiple
-results per step</h2>
+<h3 id="interlude-multiple-results-per-step">7.3 Interlude: multiple
+results per step</h3>
 <p>When there is only one possible result per step, we work through a
 list using List.foldright and List.foldleft functions.</p>
 <p>What if there are multiple results? Recall that when we have multiple
@@ -3536,7 +3500,7 @@ a_result -&gt; …)” scheme. Here we need to collect results once per
 step.</p>
 <p>let rec concatfold f a = function | [] -&gt; [a] | x::xs -&gt; f x a
 |-&gt; (fun a’ -&gt; concatfold f a’ xs)</p>
-<h2 id="generating-a-solution">7.4 Generating a solution</h2>
+<h3 id="generating-a-solution">7.4 Generating a solution</h3>
 <p>We turn the code for testing a solution into one that generates a
 correct solution.</p>
 <ul>
@@ -3596,8 +3560,8 @@ class="math inline">\sim</span>w <span class="math inline">\sim</span>h
 (drawhoneycomb <span class="math inline">\sim</span>w <span
 class="math inline">\sim</span>h testtask1 (List.hd ans1))</p>
 <p>(See <code>Lec6.ml</code> for definitions of test cases.)</p>
-<h2 id="optimizations-for-honey-islands">7.5 Optimizations for <em>Honey
-Islands</em></h2>
+<h3 id="optimizations-for-honey-islands">7.5 Optimizations for <em>Honey
+Islands</em></h3>
 <ul>
 <li>Main rule: <strong>fail</strong> (drop solution candidates)
 <strong>as early as possible</strong>.
@@ -3656,7 +3620,7 @@ then [] else findisland neighbor s in chooseeat @ choosekeep) s in</p>
 start searching.</p>
 <p>let cellstoeat = List.length honey - islandsize * numislands in<br />
 findboard (initstate honey cellstoeat)</p>
-<h1 id="constraint-based-puzzles">8 Constraint-based puzzles</h1>
+<h2 id="constraint-based-puzzles">8 Constraint-based puzzles</h2>
 <ul>
 <li>Puzzles can be presented by providing the general form of solutions,
 and additional requirements that the solutions must meet.</li>
@@ -3706,23 +3670,22 @@ singletons.</li>
 <li>The above definition of <em>finite domain constraint solving</em>
 algorithm is sketchy. Questions?</li>
 <li>We will not discuss a complete implementation example, but you can
-exploit ideas from the algorithm in your homework. # Chapter 7
-Functional Programming</li>
+exploit ideas from the algorithm in your homework. # Lecture 7:
+Laziness</li>
 </ul>
-<p>Lecture 7: Laziness</p>
 <p>Lazy evaluation. Stream processing.</p>
 <p>M. Douglas McIlroy <em>‘‘Power Series, Power Serious’’</em></p>
 <p>Oleg Kiselyov, Simon Peyton-Jones, Amr Sabry <em>‘‘Lazy v. Yield:
 Incremental, Linear Pretty-Printing’’</em></p>
 <p>If you see any error on the slides, let me know!</p>
-<h1 id="laziness">1 Laziness</h1>
+<h2 id="laziness">1 Laziness</h2>
 <ul>
 <li>Today’s lecture is about lazy evaluation.</li>
 <li>Thank you for coming, goodbye!</li>
 <li>But perhaps, do you have any questions?</li>
 </ul>
-<h1 id="evaluation-strategies-and-parameter-passing">2 Evaluation
-strategies and parameter passing</h1>
+<h2 id="evaluation-strategies-and-parameter-passing">2 Evaluation
+strategies and parameter passing</h2>
 <ul>
 <li><p><strong>Evaluation strategy</strong> is the order in which
 expressions are computed.</p>
@@ -3776,7 +3739,7 @@ the need to build argument functions).</li>
 <li><p>ML languages have built-in support for lazy evaluation.</p></li>
 <li><p>Haskell has built-in support for eager evaluation.</p></li>
 </ul>
-<h1 id="call-by-name-streams">3 Call-by-name: streams</h1>
+<h2 id="call-by-name-streams">3 Call-by-name: streams</h2>
 <ul>
 <li><p>Call-by-name is useful not only for implementing flow control</p>
 <ul>
@@ -3834,7 +3797,7 @@ interfacing between various sequence-like data types.</p>
 recomputation.</li>
 </ul></li>
 </ul>
-<h1 id="lazy-values">4 Lazy values</h1>
+<h2 id="lazy-values">4 Lazy values</h2>
 <ul>
 <li><p>Lazy evaluation is more general than call-by-need as any value
 can be lazy, not only a function parameter.</p></li>
@@ -3896,8 +3859,8 @@ LCons (f a, lazy (lmap f (Lazy.force ll)))</p></li>
 </table>
 <p>-3.24858-1.02259-3.5449133483265-0.239416589495965-3.290911496229660.0569189046170128-2.40191-1.00142-2.65590686598756-0.281750231512105-2.380738192882660.0145852626008731-1.5129-0.980255-1.70339992062442-0.218249768487895-1.512898531551790.0145852626008731-0.327557-1.02259-0.772059796269348-0.0489152004233364-0.3063897340918110.1839198306654320.878952-1.022590.392115359174494-0.2394165894959650.6037835692551920.0780857256250827-3.56608-0.260583-3.629580632358780.691923534859108-3.33324513824581.03059267098823-2.67707-0.260583-2.69824050800370.734257176875248-2.42307183489881.0517594919963-1.7034-0.21825-1.872734488688980.670756713851039-1.555232173567931.0517594919963-0.77206-0.0489152-0.9413943643339070.903591744939807-0.6238920492128591.094093134012440.392115-0.2394170.2862812541341450.6284230718348990.6249503902632621.0517594919963<em>-2.60922-0.546619</em>-1.66302-0.503353<em>-0.632667-0.5082</em>0.504955-0.500198*-3.48713460768869-0.5100825754830590cm</p></li>
 </ul>
-<h1 id="power-series-and-differential-equations">5 Power series and
-differential equations</h1>
+<h2 id="power-series-and-differential-equations">5 Power series and
+differential equations</h2>
 <ul>
 <li><p>Differential equations idea due to Henning Thielemann.
 <strong>Just an example.</strong></p></li>
@@ -3935,8 +3898,8 @@ else 0. in lazyfoldr upd l 0.</p>
 <p>let invfact = lmap (fun n -&gt; 1. /. floatofint n) lfactlet e =
 lhorner 1. invfact</p></li>
 </ul>
-<h2 id="power-series-polynomial-operations">5.1 Power series /
-polynomial operations</h2>
+<h3 id="power-series-polynomial-operations">5.1 Power series /
+polynomial operations</h3>
 <ul>
 <li>let rec add xs ys = match xs, ys with | LNil, -&gt; ys | , LNil
 -&gt; xs | LCons (x,xs), LCons (y,ys) -&gt; LCons (x +. y, lazy (add
@@ -3964,7 +3927,7 @@ tl) -&gt; tl</li>
 <li>let differentiate xs = lmap (uncurry ( *.)) (lzip (ltail xs,
 posnums))</li>
 </ul>
-<h2 id="differential-equations">5.2 Differential equations</h2>
+<h3 id="differential-equations">5.2 Differential equations</h3>
 <ul>
 <li><p><span class="math inline">\frac{\mathrm{d} \sin x}{\mathrm{d} x}
 = \cos x, \frac{\mathrm{d} \cos x}{\mathrm{d} x} = - \sin x, \sin 0 = 0,
@@ -4002,8 +3965,8 @@ class="math inline">\sim</span>tend = let dt = (tend -. tbeg) /. ofint w
 in Array.init w (fun i -&gt; let y = lhorner (dt <em>. ofint i) f in i,
 to_int (scale </em>. y))</p></li>
 </ul>
-<h1 id="arbitrary-precision-computation">6 Arbitrary precision
-computation</h1>
+<h2 id="arbitrary-precision-computation">6 Arbitrary precision
+computation</h2>
 <ul>
 <li><p>Putting it all together reveals drastic numerical errors for
 large <span class="math inline">x</span>.</p>
@@ -4072,8 +4035,8 @@ class="math inline">\sim</span>lB = let rec nA = LCons (nA0, lazy (integ
 +: lA *:. nA))) in nA, nB</p></li>
 </ul>
 <p><embed src="chain_reaction.eps" /></p>
-<h1 id="circular-data-structures-double-linked-list">7 Circular data
-structures: double-linked list</h1>
+<h2 id="circular-data-structures-double-linked-list">7 Circular data
+structures: double-linked list</h2>
 <ul>
 <li><p>Without delayed computation, the ability to define data
 structures with referential cycles is very limited.</p></li>
@@ -4110,7 +4073,7 @@ cell xs)) in Lazy.force cell in dllist (lazy DLNil) l</p></li>
 <li><p>let rec dlbackwards n l = match l with | DLCons (lazy xs, x, )
 when n&gt;0 -&gt; x::dlbackwards (n-1) xs | -&gt; []</p></li>
 </ul>
-<h1 id="input-output-streams">8 Input-Output streams</h1>
+<h2 id="input-output-streams">8 Input-Output streams</h2>
 <ul>
 <li><p>The stream type used a throwaway argument to make a
 suspension</p>
@@ -4164,7 +4127,7 @@ compose (f x) (g y) in More (z, update)</p>
 <li>Notice how the output stream is ahead of the input stream.</li>
 </ul></li>
 </ul>
-<h2 id="pipes">8.1 Pipes</h2>
+<h3 id="pipes">8.1 Pipes</h3>
 <ul>
 <li><p>We need a more flexible input-output stream definition.</p>
 <ul>
@@ -4210,7 +4173,7 @@ iterate</p>
 <li></li>
 </ol></li>
 </ul>
-<h2 id="example-pretty-printing">8.2 Example: pretty-printing</h2>
+<h3 id="example-pretty-printing">8.2 Example: pretty-printing</h3>
 <ul>
 <li><p>Print hierarchically organized document with a limited line
 width.</p>
@@ -4569,8 +4532,7 @@ class="verbatim">g</tt>.
 </tbody>
 </table>
 <p>-5.769180.217059-4.245171318957530.217059134806191-3.800670.238226-2.44599153327160.746229660007938-3.821830.259393-2.4459915332716-0.2909445693874851.088870.2170593.988722053181640.7250628389998681.046530.1958923.96755523217357-0.3332782114036250cm*
-# Chapter 8 Functional Programming</p>
-<p>Lecture 8: Monads</p>
+# Lecture 8: Monads</p>
 <p>List comprehensions. Basic monads; transformers. Probabilistic
 Programming.Lightweight cooperative threads.</p>
 <p>Some examples from Tomasz Wierzbicki. Jeff Newbern <em>‘‘All About
@@ -4578,7 +4540,7 @@ Monads’‘<em>.M. Erwig, S. Kollmansberger </em>‘‘Probabilistic Functional
 Programming in Haskell’‘<em>.Jerome Vouillon </em>‘‘Lwt: a Cooperative
 Thread Library’’</em>.</p>
 <p>If you see any error on the slides, let me know!</p>
-<h1 id="list-comprehensions">1 List comprehensions</h1>
+<h2 id="list-comprehensions">1 List comprehensions</h2>
 <ul>
 <li><p>Recall the awkward syntax we used in the Countdown Problem
 example:</p>
@@ -4640,8 +4602,8 @@ ys]</p></li>
 xs’]</p></li>
 </ul></li>
 </ul>
-<h1 id="generalized-comprehensions-aka.-do-notation">2 Generalized
-comprehensions aka. <em>do-notation</em></h1>
+<h2 id="generalized-comprehensions-aka.-do-notation">2 Generalized
+comprehensions aka. <em>do-notation</em></h2>
 <ul>
 <li><p>We need to install the syntax extension <code>pa_monad</code></p>
 <ul>
@@ -4678,7 +4640,7 @@ e &lt;– exprs ns’; if eval e = Some n then [e] else []</p></li>
 ns;<br />
 e &lt;– exprs ns’; guard (eval e = Some n); [e]</p></li>
 </ul>
-<h1 id="monads">3 Monads</h1>
+<h2 id="monads">3 Monads</h2>
 <ul>
 <li><p>A polymorphic type <code>'a monad</code> (or
 <code>'a Monad.t</code>, etc.) that supports at least two
@@ -4861,7 +4823,7 @@ and perform.</p></li>
 <li><p>It can be useful to redefine: let failwith = fail
 (<em>why?</em>)</p></li>
 </ul>
-<h2 id="monad-laws">3.1 Monad laws</h2>
+<h3 id="monad-laws">3.1 Monad laws</h3>
 <ul>
 <li><p>A parametric data type is a monad only if its <code>bind</code>
 and <code>return</code> operations meet axioms:</p>
@@ -4878,8 +4840,8 @@ y.c)) \end{matrix} </span></p></li>
 <li><p>Check that the laws hold for our example monad</p>
 <p>let bind a b = concatmap b alet return x = [x]</p></li>
 </ul>
-<h2 id="monoid-laws-and-monad-plus">3.2 Monoid laws and
-<em>monad-plus</em></h2>
+<h3 id="monoid-laws-and-monad-plus">3.2 Monoid laws and
+<em>monad-plus</em></h3>
 <ul>
 <li><p>A monoid is a type with, at least, two operations</p>
 <ul>
@@ -4932,8 +4894,8 @@ return a = [a]</p></li>
 <p>let fail = mzero let failwith = fail let (++) = mplus let (&gt;&gt;=)
 a b = bind a b let guard p = if p then return () else fail</p></li>
 </ul>
-<h2 id="backtracking-computation-with-choice">3.3 Backtracking:
-computation with choice</h2>
+<h3 id="backtracking-computation-with-choice">3.3 Backtracking:
+computation with choice</h3>
 <p>We have seen <code>mzero</code>, i.e. <code>fail</code> in the
 countdown problem. What about <code>mplus</code>?</p>
 <p>let findtoeat n islandsize numislands emptycells = let honey =
@@ -4951,7 +4913,7 @@ choosekeep = if s.beensize &gt;= islandsize then fail else findisland
 neighbor s in mplus chooseeat choosekeep) s in let cellstoeat =
 List.length honey - islandsize </em> numislands in findboard (initstate
 honey cellstoeat)</p>
-<h1 id="monad-flavors">4 Monad “flavors”</h1>
+<h2 id="monad-flavors">4 Monad “flavors”</h2>
 <ul>
 <li>Monads “wrap around” a type, but some monads need an additional type
 parameter.
@@ -5003,7 +4965,7 @@ class="math inline">0 \leqslant p, q \leqslant 1</span>:</p>
 <p>Example: lightweight threads.</p></li>
 </ul></li>
 </ul>
-<h1 id="interlude-the-module-system">5 Interlude: the module system</h1>
+<h2 id="interlude-the-module-system">5 Interlude: the module system</h2>
 <ul>
 <li><p>I provide below much more information about the module system
 than we need, just for completeness. You can use it as reference.</p>
@@ -5101,7 +5063,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb44-1"><a hre
 <span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> test : <span class="dt">int</span> -&gt; <span class="dt">int</span> = &lt;<span class="kw">fun</span>&gt;</span></code></pre></div></li>
 </ul></li>
 </ul>
-<h1 id="the-two-metaphors">6 The two metaphors</h1>
+<h2 id="the-two-metaphors">6 The two metaphors</h2>
 <ul>
 <li>Monads can be seen as <strong>containers</strong>:
 <code>'a monad</code> contains stuff of type <code>'a</code></li>
@@ -5112,7 +5074,7 @@ special way to compute <code>'a</code>.
 monad like parallel computation monad.</li>
 </ul></li>
 </ul>
-<h2 id="monads-as-containers">6.1 Monads as containers</h2>
+<h3 id="monads-as-containers">6.1 Monads as containers</h3>
 <ul>
 <li>A monad is a <em>quarantine container</em>:
 <ul>
@@ -5134,7 +5096,7 @@ elements.</li>
 the container, other monads provide a <code>run</code> operation that
 exposes “what really happened behind the quarantine”.</li>
 </ul>
-<h2 id="monads-as-computation">6.2 Monads as computation</h2>
+<h3 id="monads-as-computation">6.2 Monads as computation</h3>
 <ul>
 <li><p>To compute the result, perform instructions, naming partial
 results.</p></li>
@@ -5207,7 +5169,7 @@ v_{b} .v_{a} v_{b})) &amp; \text{(application)} \end{matrix}
 <li><p>When an expression is spread over a monad, its computation can be
 monitored or affected without modifying the expression.</p></li>
 </ul>
-<h1 id="monad-classes">7 Monad classes</h1>
+<h2 id="monad-classes">7 Monad classes</h2>
 <ul>
 <li><p>To implement a monad we need to provide the implementation type,
 <code>return</code> and <code>bind</code> operations.</p>
@@ -5280,7 +5242,7 @@ put : store -&gt; unit tend</p>
 <p>The purpose of this signature is inclusion in other
 signatures.</p></li>
 </ul>
-<h1 id="monad-instances">8 Monad instances</h1>
+<h2 id="monad-instances">8 Monad instances</h2>
 <ul>
 <li><p>We do not define a class for monads with access since accessing
 means running the monad, not useful while in the monad.</p></li>
@@ -5294,8 +5256,8 @@ lazy (Lazy.force (b (Lazy.force a))) let return a = lazy aend)</p>
 concatmap b a let return a = [a] let mzero = [] let mplus =
 List.appendend)</p></li>
 </ul>
-<h2 id="backtracking-parameterized-by-monad-plus">8.1 Backtracking
-parameterized by monad-plus</h2>
+<h3 id="backtracking-parameterized-by-monad-plus">8.1 Backtracking
+parameterized by monad-plus</h3>
 <p>module Countdown (M : MONADPLUSOPS) = struct open MOpen the module to
 make monad operations visible.</p>
 <p>let rec insert x = functionAll choice-introducing operations | []
@@ -5333,7 +5295,7 @@ operator. msummap (combine lx ly) [Add; Sub; Mul; Div]</p>
 ns;pick numbers and their order, (e,m) &lt;– results ns’;build possible
 expressions, guard (m=n);check if the expression gives target value,
 return (expr2str e)‘‘print’’ the solution.end</p>
-<h2 id="understanding-laziness">8.2 Understanding laziness</h2>
+<h3 id="understanding-laziness">8.2 Understanding laziness</h3>
 <ul>
 <li><p>We will measure execution times:</p>
 <p>#load “unix.cma”;;let time f = let tbeg = Unix.gettimeofday () in let
@@ -5437,7 +5399,7 @@ solutions.</li>
 the overhead of lazy computation.</li>
 </ul></li>
 </ul>
-<h2 id="the-exception-monad">8.3 The exception monad</h2>
+<h3 id="the-exception-monad">8.3 The exception monad</h3>
 <ul>
 <li>Built-in non-functional exceptions in OCaml are more efficient (and
 more flexible).</li>
@@ -5457,7 +5419,7 @@ val throw : excn -&gt; ’a monad val catch : ’a monad -&gt; (excn -&gt;
 OK a let bind m b = match m with | OK a -&gt; b a | Bad e -&gt; Bad e
 end include M include MonadOps(M) let throw e = Bad e let catch m
 handler = match m with | OK -&gt; m | Bad e -&gt; handler eend</p>
-<h2 id="the-state-monad">8.4 The state monad</h2>
+<h3 id="the-state-monad">8.4 The state monad</h3>
 <p>module StateM(Store : sig type t end) : sig type store =
 Store.<code>t</code>Pass the current <code>store</code> value to get the
 next value.type ‘a t = store -&gt; ’a * store include MONADOPS include
@@ -5525,7 +5487,7 @@ stringofint fresh in put (fresh+1, (x, x’)::env); t’ &lt;– aux t;
 (t1, t2)) in run (aux t) (0, [])</li>
 </ul></li>
 </ul>
-<h1 id="monad-transformers">9 Monad transformers</h1>
+<h2 id="monad-transformers">9 Monad transformers</h2>
 <ul>
 <li><p>Based on: <a
 href="http://lambda.jimpryor.net/monad_transformers/">http://lambda.jimpryor.net/monad_transformers/</a></p></li>
@@ -5584,7 +5546,7 @@ M.<code>return</code> (a, s)Rather than returning, M.return</p>
 -&gt; M.bind (u s) (fun (a, s’) -&gt; f a s’)Rather than let-binding,
 M.bind</p></li>
 </ul>
-<h2 id="state-transformer">9.1 State transformer</h2>
+<h3 id="state-transformer">9.1 State transformer</h3>
 <p>module StateT (MP : MONADPLUSOPS) (Store : sig type t end) :
 sigFunctor takes two modules – the second one type store =
 Store.<code>t</code>provides only the storage type.type ‘a t = store
@@ -5603,7 +5565,7 @@ ma mb = fun s -&gt; MP.mplus (ma s) (mb s) end include M include
 MonadPlusOps(M) let get = fun s -&gt; MP.return (s, s)Instead of just
 returning, let put s’ = fun -&gt; MP.return ((), s’)MP.return. let runT
 m s = MP.lift fst (m s)end</p>
-<h2 id="backtracking-with-state">9.2 Backtracking with state</h2>
+<h3 id="backtracking-with-state">9.2 Backtracking with state</h3>
 <p>module HoneyIslands (M : MONADPLUSOPS) = struct type state = {For use
 with list monad or lazy list monad. beensize: int; beenislands:
 int;<br />
@@ -5649,7 +5611,7 @@ chooseeat ++ choosekeep)) () in</p>
 <p>initstate honey cellstoeat |&gt; runT (findboard ())endmodule HoneyL
 = HoneyIslands (ListM)let findtoeat a b c d = ListM.run
 (HoneyL.findtoeat a b c d)</p>
-<h1 id="probabilistic-programming">10 Probabilistic Programming</h1>
+<h2 id="probabilistic-programming">10 Probabilistic Programming</h2>
 <ul>
 <li>Using a random number generator, we can define procedures that
 produce various output. This is <strong>not functional</strong> –
@@ -5670,7 +5632,7 @@ based on continuations, memoisation and reified search trees:<a
 href="http://okmij.org/ftp/kakuritu/index.html">http://okmij.org/ftp/kakuritu/index.html</a></li>
 </ul></li>
 </ul>
-<h2 id="the-probability-monad">10.1 The probability monad</h2>
+<h3 id="the-probability-monad">10.1 The probability monad</h3>
 <ul>
 <li><p>The essential functions for the probability monad class are
 <code>choose</code> and <code>distrib</code> – remaining functions could
@@ -5766,8 +5728,8 @@ S.<code>samples</code>let distrib m = let dist = ref [] in for i = 1 to
 S.samples do dist := (m (), 1.) :: !dist done; normalize
 (<code>merge</code> !dist) let access m = m ()end</p></li>
 </ul>
-<h2 id="example-the-monty-hall-problem">10.2 Example: The Monty Hall
-problem</h2>
+<h3 id="example-the-monty-hall-problem">10.2 Example: The Monty Hall
+problem</h3>
 <ul>
 <li><p><a
 href="http://en.wikipedia.org/wiki/Monty_Hall_problem">http://en.wikipedia.org/wiki/Monty_Hall_problem</a>:
@@ -5795,8 +5757,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb51-1"><a hre
 <span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.313</span>); (<span class="kw">false</span>, <span class="fl">0.687</span>)]# <span class="kw">let</span> t4 = Sampling1000.distrib </span>
 <span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  (MontySimul.montywin <span class="kw">true</span>);;<span class="kw">val</span> t4 : (<span class="dt">bool</span> * <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.655</span>); </span>
 <span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">false</span>, <span class="fl">0.345</span>)]</span></code></pre></div>
-<h2 id="conditional-probabilities">10.3 Conditional
-probabilities</h2></li>
+<h3 id="conditional-probabilities">10.3 Conditional
+probabilities</h3></li>
 <li><p>Wouldn’t it be nice to have a monad-plus rather than a
 monad?</p></li>
 <li><p>We could use <code>guard</code> – conditional probabilities!</p>
@@ -5867,8 +5829,8 @@ S.samples do try dist := (m (), 1.) :: !dist; incr tot<br />
 with Rejected -&gt; () done; normalize (merge !dist) let rec access m =
 try m () with Rejected -&gt; access mend</p></li>
 </ul>
-<h2 id="burglary-example-encoding-a-bayes-net">10.4 Burglary example:
-encoding a Bayes net</h2>
+<h3 id="burglary-example-encoding-a-bayes-net">10.4 Burglary example:
+encoding a Bayes net</h3>
 <ul>
 <li><p>We’re faced with a problem with the following dependency
 structure:</p>
@@ -6059,8 +6021,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb53-1"><a hre
 <span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">true</span>     $\sim$radio:(<span class="dt">Some</span> <span class="kw">true</span>));;    <span class="kw">val</span> t6 : </span>
 <span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
 <span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a>[(BurglarySimul.Burglnearthq, <span class="fl">0.0015</span>); (BurglarySimul.Earthq, <span class="fl">0.9985</span>)]</span></code></pre></div>
-<h1 id="lightweight-cooperative-threads">11 Lightweight cooperative
-threads</h1>
+<h2 id="lightweight-cooperative-threads">11 Lightweight cooperative
+threads</h2>
 <ul>
 <li><p><code>bind</code> is inherently sequential: bind a (fun x -&gt;
 b) computes <code>a</code>, and resumes computing <code>b</code> only
@@ -6193,16 +6155,14 @@ Cooperative.access thread2before we proceed.</li>
 </ul>
 <div class="sourceCode" id="cb54"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test =    Cooperative.killthreads ();    <span class="kw">let</span> thread1 = TT.loop <span class="st">&quot;A&quot;</span> <span class="dv">5</span> <span class="kw">in</span>    <span class="kw">let</span> thread2 = TT.loop <span class="st">&quot;B&quot;</span> <span class="dv">4</span> <span class="kw">in</span>    Cooperative.access thread1;    Cooperative.access thread2;;-- A(<span class="dv">5</span>)-- B(<span class="dv">4</span>)-- A(<span class="dv">4</span>)-- B(<span class="dv">3</span>)-- A(<span class="dv">3</span>)-- B(<span class="dv">2</span>)-- A(<span class="dv">2</span>)-- B(<span class="dv">1</span>)-- A(<span class="dv">1</span>)-- B(<span class="dv">0</span>)-- A(<span class="dv">0</span>)<span class="kw">val</span> test : <span class="dt">unit</span> = ()</span></code></pre></div>
-<h1 id="chapter-9">Chapter 9</h1>
-<p>Functional Programming</p>
-<p>Lecture 9: Compiler</p>
+<h1 id="lecture-9-compiler">Lecture 9: Compiler</h1>
 <p>Compilation. Runtime. Optimization. Parsing.</p>
 <p>Andrew W. Appel <em>‘‘Modern Compiler Implementation in ML’‘<em>E.
 Chailloux, P. Manoury, B. Pagano </em>‘‘Developing Applications with
 OCaml’‘<em>Jon D. Harrop </em>‘‘OCaml for Scientists’’</em>Francois
 Pottier, Yann Regis-Gianas ‘‘<em>Menhir Reference Manual</em>’’</p>
 <p>If you see any error on the slides, let me know!</p>
-<h1 id="ocaml-compilers">1 OCaml Compilers</h1>
+<h2 id="ocaml-compilers">1 OCaml Compilers</h2>
 <ul>
 <li><p>OCaml has two primary compilers: the bytecode compiler
 <code>ocamlc</code> and the native code compiler
@@ -6758,8 +6718,8 @@ class="verbatim">func</tt>/stop tracing</p>
 </tbody>
 </table></li>
 </ul>
-<h2 id="compiling-multiple-file-projects">1.1 Compiling multiple-file
-projects</h2>
+<h3 id="compiling-multiple-file-projects">1.1 Compiling multiple-file
+projects</h3>
 <ul>
 <li><p>Traditionally the file containing a module would have a lowercase
 name, although the module name is always uppercase.</p>
@@ -6814,7 +6774,7 @@ the program) will compile and run the program:</p>
 <p><code>ocamlbuild -libs unix main.native --</code></p></li>
 </ul></li>
 </ul>
-<h2 id="editors">1.2 Editors</h2>
+<h3 id="editors">1.2 Editors</h3>
 <ul>
 <li>Emacs
 <ul>
@@ -6884,8 +6844,8 @@ href="http://camelia.sourceforge.net/">http://camelia.sourceforge.net/</a>
 (even older)</li>
 </ul></li>
 </ul>
-<h1 id="imperative-features-in-ocaml">2 Imperative features in
-OCaml</h1>
+<h2 id="imperative-features-in-ocaml">2 Imperative features in
+OCaml</h2>
 <p>OCaml is <strong>not</strong> a <em>purely functional</em> language,
 it has built-in:</p>
 <ul>
@@ -6926,8 +6886,8 @@ monad</em>).</p></li>
 <p>Using <strong>global</strong> state e.g. reference cells makes code
 <em>non re-entrant</em>: finish one task before starting another – any
 form of concurrency is excluded.</p>
-<h2 id="parsing-command-line-arguments">2.1 Parsing command-line
-arguments</h2>
+<h3 id="parsing-command-line-arguments">2.1 Parsing command-line
+arguments</h3>
 <p>To go beyond Sys.argv array, see Arg module:<a
 href="http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html">http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html</a></p>
 <p>type config = { Example: configuring a <em>Mine Sweeper</em> game.
@@ -6941,8 +6901,8 @@ columns”); (“-lin”, Arg.Int (setnbrows cf), “number of lines”); (“-m
 Arg.Int (setnbmines cf), “number of mines”)] in let usagemsg = “usage :
 minesweep [-col n] [-lin n] [-min n]” in Arg.parse speclist (fun s -&gt;
 ()) usagemsg; !cf</p>
-<h1 id="ocaml-garbage-collection">3 OCaml Garbage Collection</h1>
-<h2 id="representation-of-values">3.1 Representation of values</h2>
+<h2 id="ocaml-garbage-collection">3 OCaml Garbage Collection</h2>
+<h3 id="representation-of-values">3.1 Representation of values</h3>
 <ul>
 <li>Pointers always end with <code>00</code> in binary (addresses are in
 number of bytes).</li>
@@ -6964,8 +6924,8 @@ a variant type (some tag numbers are reserved).</li>
 <li><em>Polymorphic variants</em> are a different story.</li>
 </ul></li>
 </ul>
-<h2 id="generational-garbage-collection">3.2 Generational Garbage
-Collection</h2>
+<h3 id="generational-garbage-collection">3.2 Generational Garbage
+Collection</h3>
 <ul>
 <li>OCaml has two heaps to store blocks: a small, continuous <em>minor
 heap</em> and a growing-as-necessary <em>major heap</em>.</li>
@@ -6988,7 +6948,7 @@ main program (i.e. our application) for too long.</li>
 collection starts – garbage does <strong>not</strong> slow down
 collection.</li>
 </ul>
-<h2 id="stop-copy-gc">3.3 Stop &amp; Copy GC</h2>
+<h3 id="stop-copy-gc">3.3 Stop &amp; Copy GC</h3>
 <ul>
 <li>Minor collection starts from a set of <em>roots</em> – young blocks
 that definitely are not garbage.</li>
@@ -7008,7 +6968,7 @@ find other used blocks.</li>
 <li>At the end of collection, the young pointer is reset so that the
 minor heap is empty again.</li>
 </ul>
-<h2 id="mark-sweep-gc">3.4 Mark &amp; Sweep GC</h2>
+<h3 id="mark-sweep-gc">3.4 Mark &amp; Sweep GC</h3>
 <ul>
 <li>Major collection starts from a separate root set – old blocks that
 definitely are not garbage.</li>
@@ -7036,7 +6996,7 @@ marked;</li>
 <li><img src="book-ora034-GC_Marking_phase.gif" /></li>
 <li><img src="book-ora035-GC_Sweep_phase.gif" /></li>
 </ul>
-<h1 id="stack-frames-and-closures">4 Stack Frames and Closures</h1>
+<h2 id="stack-frames-and-closures">4 Stack Frames and Closures</h2>
 <ul>
 <li>The nesting of procedure calls is reflected in the <em>stack</em> of
 procedure data.</li>
@@ -7093,7 +7053,7 @@ represented by closures that have a link to the closure of
 <code>f</code>.</li>
 </ul></li>
 </ul>
-<h2 id="tail-recursion">4.1 Tail Recursion</h2>
+<h3 id="tail-recursion">4.1 Tail Recursion</h3>
 <ul>
 <li>A function call <code>f x</code> within the body of another function
 <code>g</code> is in <em>tail position</em> if, roughly “calling
@@ -7119,12 +7079,12 @@ fault</em>!</li>
 <li>List<code>.map</code> from the standard distribution is
 <strong>not</strong> tail-recursive.</li>
 </ul>
-<h2 id="generated-assembly">4.2 Generated assembly</h2>
+<h3 id="generated-assembly">4.2 Generated assembly</h3>
 <ul>
 <li>Let us look at examples from <a
 href="http://ocaml.org/tutorials/performance_and_profiling.html">http://ocaml.org/tutorials/performance_and_profiling.html</a></li>
 </ul>
-<h1 id="profiling-and-optimization">5 Profiling and Optimization</h1>
+<h2 id="profiling-and-optimization">5 Profiling and Optimization</h2>
 <ul>
 <li>Steps of optimizing a program:
 <ol type="1">
@@ -7146,7 +7106,7 @@ numerical processing. (OCaml specific.)</li>
 <li><em>Defunctorization</em>.</li>
 </ol></li>
 </ul>
-<h2 id="profiling">5.1 Profiling</h2>
+<h3 id="profiling">5.1 Profiling</h3>
 <ul>
 <li>We cover native code profiling because it is more useful.
 <ul>
@@ -7253,7 +7213,7 @@ included in time for <code>increment</code>:</li>
                 1.12   12.13 306656692/306656692     caml_c_call [1]
 [2]     58.8    1.12   12.13 306656692         caml_compare [2]
                 8.54    3.60 306656692/306656698     compare_val [3]</code></pre>
-<h2 id="algorithmic-optimizations">5.2 Algorithmic optimizations</h2>
+<h3 id="algorithmic-optimizations">5.2 Algorithmic optimizations</h3>
 <ul>
 <li><p>(All times measured with profiling turned on.)</p></li>
 <li><p><code>Optim0.ml</code> asymptotic time complexity: <span
@@ -7289,7 +7249,7 @@ attempt it.</p></li>
 class="math inline">\mathcal{O} (\cdot)</span> notation, but we will not
 pursue complexity analysis in the remainder of the lecture.</p></li>
 </ul>
-<h2 id="low-level-optimizations">5.3 Low-level optimizations</h2>
+<h3 id="low-level-optimizations">5.3 Low-level optimizations</h3>
 <ul>
 <li><p>Optimizations below have been made <em>for educational purposes
 only</em>.</p></li>
@@ -7332,8 +7292,8 @@ applications by hand.</p>
 implemented as records of functions.</li>
 </ul></li>
 </ul>
-<h2 id="comparison-of-data-structure-implementations">5.4 Comparison of
-data structure implementations</h2>
+<h3 id="comparison-of-data-structure-implementations">5.4 Comparison of
+data structure implementations</h3>
 <ul>
 <li>We perform a rough comparison of association lists, tree-based maps
 and hashtables. Sets would give the same results.</li>
@@ -8094,7 +8054,7 @@ hashtable
 efficient maps, the way Scala and Python have built-in syntax for
 them.</li>
 </ul>
-<h1 id="parsing-ocamllex-and-menhir">6 Parsing: ocamllex and Menhir</h1>
+<h2 id="parsing-ocamllex-and-menhir">6 Parsing: ocamllex and Menhir</h2>
 <ul>
 <li><em>Parsing</em> means transforming text, i.e. a string of
 characters, into a data structure that is well fitted for a given task,
@@ -8119,7 +8079,7 @@ expressions</em>.</li>
 <em>Menhir</em> for parsing, a successor of <code>ocamlyacc</code>,
 belonging to the <em>yacc</em>/<em>bison</em> family of parsers.</li>
 </ul>
-<h2 id="lexing-with-ocamllex">6.1 Lexing with <em>ocamllex</em></h2>
+<h3 id="lexing-with-ocamllex">6.1 Lexing with <em>ocamllex</em></h3>
 <ul>
 <li><p>The format of lexer definitions is as follows: file with
 extension <code>.mll</code></p>
@@ -8205,8 +8165,8 @@ normal paterns) – meaning both regexpes match the same substrings.</li>
 <li><p>Unfortunately if the lexer patterns are big we get an error:</p>
 <p><em>transition table overflow, automaton is too big</em></p></li>
 </ul>
-<h3 id="example-finding-email-addresses">6.1.1 Example: Finding email
-addresses</h3>
+<h4 id="example-finding-email-addresses">6.1.1 Example: Finding email
+addresses</h4>
 <ul>
 <li><p>We mine a text file for email addresses, that could have been
 obfuscated to hinder our job…</p></li>
@@ -8258,7 +8218,7 @@ boring character – not looking at an address yet.{ report state lexbuf;
 email Seek lexbuf }{The trailer with OCaml code. let =Open a file and
 start mining for email addresses. let ch = openin Sys.argv.(1) in email
 Seek (Lexing.fromchannel ch); closein chClose the file at the end.}</p>
-<h2 id="parsing-with-menhir">6.2 Parsing with Menhir</h2>
+<h3 id="parsing-with-menhir">6.2 Parsing with Menhir</h3>
 <ul>
 <li><p>The format of parser definitions is as follows: file with
 extension <code>.mly</code></p>
@@ -8374,8 +8334,8 @@ to part of pattern.</p>
 <li>Do not use the Parsing module from OCaml standard library.</li>
 </ul></li>
 </ul>
-<h3 id="example-parsing-arithmetic-expressions">6.2.1 Example: parsing
-arithmetic expressions</h3>
+<h4 id="example-parsing-arithmetic-expressions">6.2.1 Example: parsing
+arithmetic expressions</h4>
 <ul>
 <li><p>Example based on a Menhir demo. Due to difficulties with
 <code>ocamlbuild</code>, we use option <code>--external-tokens</code> to
@@ -8427,8 +8387,8 @@ become the module accessed from OCaml</li>
 defines the <code>token</code> type</li>
 </ul></li>
 </ul>
-<h3 id="example-a-toy-sentence-grammar">6.2.2 Example: a toy sentence
-grammar</h3>
+<h4 id="example-a-toy-sentence-grammar">6.2.2 Example: a toy sentence
+grammar</h4>
 <ul>
 <li>Our lexer is a simple limited <em>part-of-speech tagger</em>. Not
 re-entrant.</li>
@@ -8535,7 +8495,7 @@ done</p>
 <li><p>Build &amp; run command:</p>
 <p><code>ocamlbuild Eng.native -use-menhir -menhir "menhir EngParser.mly --base  EngParser --external-tokens EngLexer" --</code></p></li>
 </ul>
-<h1 id="example-phrase-search">7 Example: Phrase search</h1>
+<h2 id="example-phrase-search">7 Example: Phrase search</h2>
 <ul>
 <li><p>In lecture 6 we performed keyword search, now we turn to
 <em>phrase search</em> i.e. require that given words be consecutive in
@@ -8618,8 +8578,8 @@ ws) | OPEN | CLOSE | SENTENCE | PUNCT | COMMENT -&gt; aux ii<br />
 | WORDS ws -&gt; let ws = List.map (fun (w,p)-&gt;EngMorph.normalize w)
 ws in aux (List.revappend ws words) | OPEN | CLOSE | SENTENCE | PUNCT |
 COMMENT -&gt; aux words | EOF -&gt; List.rev words in aux []</p>
-<h3 id="naive-implementation-of-phrase-search">1 Naive implementation of
-phrase search</h3>
+<h4 id="naive-implementation-of-phrase-search">1 Naive implementation of
+phrase search</h4>
 <ul>
 <li>We need <em>postings lists</em> with positions of words rather than
 just the document or line of document they belong to.</li>
@@ -8660,8 +8620,8 @@ country”]</p></li>
 <code>ocamlbuild InvIndex.native -libs unix --</code></p></li>
 <li><p>Time: 7.3s</p></li>
 </ul>
-<h3 id="replace-association-list-with-hash-table">2 Replace association
-list with hash table</h3>
+<h4 id="replace-association-list-with-hash-table">2 Replace association
+list with hash table</h4>
 <ul>
 <li>I recommend using either <em>OCaml Batteries</em> or <em>OCaml
 Core</em> – replacement for the standard library. <em>Batteries</em> has
@@ -8670,16 +8630,16 @@ efficient Hashtbl.map (our <code>mapv</code>).</li>
 <code>ocamlbuild InvIndex1.native -libs unix --</code></li>
 <li>Time: 6.3s</li>
 </ul>
-<h3 id="replace-naive-merging-with-ordered-merging">3 Replace naive
-merging with ordered merging</h3>
+<h4 id="replace-naive-merging-with-ordered-merging">3 Replace naive
+merging with ordered merging</h4>
 <ul>
 <li>Postings lists are already ordered.</li>
 <li>Invocation:
 <code>ocamlbuild InvIndex2.native -libs unix --</code></li>
 <li>Time: 2.5s</li>
 </ul>
-<h3 id="bruteforce-optimization-biword-indexes">4 Bruteforce
-optimization: biword indexes</h3>
+<h4 id="bruteforce-optimization-biword-indexes">4 Bruteforce
+optimization: biword indexes</h4>
 <ul>
 <li><p>Pairs of words are much less frequent than single words so
 storing them means less work for postings lists merging.</p></li>
@@ -8692,8 +8652,8 @@ documents.</p></li>
 <p><code>ocamlbuild InvIndex3.native -cflag -g -libs unix; export OCAMLRUNPARAM="b";  ./InvIndex3.native</code></p></li>
 <li><p>Time: 2.4s – disappointing.</p></li>
 </ul>
-<h2 id="smart-way-information-retrieval-g.v.-cormack-et-al.">7.1 Smart
-way: <em>Information Retrieval</em> G.V. Cormack et al.</h2>
+<h3 id="smart-way-information-retrieval-g.v.-cormack-et-al.">7.1 Smart
+way: <em>Information Retrieval</em> G.V. Cormack et al.</h3>
 <ul>
 <li>You should classify your problem and search literature for
 state-of-the-art algorithm to solve it.</li>
@@ -8722,8 +8682,8 @@ the overhead due to limitations of Set API.</li>
 search.</li>
 </ul></li>
 </ul>
-<h3 id="the-phrase-search-algorithm">7.1.1 The phrase search
-algorithm</h3>
+<h4 id="the-phrase-search-algorithm">7.1.1 The phrase search
+algorithm</h4>
 <ul>
 <li>During search we maintain <em>current position</em> <code>cp</code>
 of last found word or phrase.</li>
@@ -8746,8 +8706,8 @@ tryFind all occurrences of the phrase. let np, fp = nextphrase ii phrase
 cp in<br />
 np :: aux fp with Notfound -&gt; [] inMoved past last occurrence.<br />
 List.map (findline linebreaks) (aux (-1))</p>
-<h3 id="naive-but-purely-functional-inverted-index">7.1.2 Naive but
-purely functional inverted index</h3>
+<h4 id="naive-but-purely-functional-inverted-index">7.1.2 Naive but
+purely functional inverted index</h4>
 <p>module S = Set.Make(struct type t=int let compare i j = i-j end)let
 update ii (w, p) = (try let ps = Hashtbl.find ii w in Hashtbl.replace ii
 w (S.add p ps) with Notfound -&gt; Hashtbl.add ii w (S.singleton p));
@@ -8762,8 +8722,8 @@ in let , , bigger = S.split cp ps in S.minelt bigger</p>
 <code>ocamlbuild InvIndex4.native -libs unix --</code></li>
 <li>Time: 3.3s – would be better without the overhead of S.split.</li>
 </ul>
-<h3 id="binary-search-based-inverted-index">7.1.3 Binary search based
-inverted index</h3>
+<h4 id="binary-search-based-inverted-index">7.1.3 Binary search based
+inverted index</h4>
 <p>let prev ii w cp = let ps = find w ii in let rec aux b e =We
 implement binary search separately for <code>prev</code> if e-b &lt;= 1
 then ps.(b)to make sure here we return less than <code>cp</code> else
@@ -8777,7 +8737,7 @@ then raise Notfound else aux 0 (l-1)</p>
 <ul>
 <li>File: <code>InvIndex5.ml</code>. Time: 2.4s</li>
 </ul>
-<h3 id="imperative-linear-scan">7.1.4 Imperative, linear scan</h3>
+<h4 id="imperative-linear-scan">7.1.4 Imperative, linear scan</h4>
 <p>let prev ii w cp = let cw,ps = find w ii inFor each word we add a
 cell with last visited occurrence. let l = Array.length ps in if l = 0
 || ps.(0) &gt;= cp then raise Notfound else if ps.(l-1) &lt; cp then cw
@@ -8795,8 +8755,8 @@ then cw := 0; while ps.(!cw) &lt;= cp do incr cw done ); ps.(!cw)</p>
 <li><p>File: <code>InvIndex6.ml</code></p></li>
 <li><p>Time: 2.8s</p></li>
 </ul>
-<h3 id="imperative-galloping-search">7.1.5 Imperative, galloping
-search</h3>
+<h4 id="imperative-galloping-search">7.1.5 Imperative, galloping
+search</h4>
 <p>let next ii w cp = let cw,ps = find w ii in let l = Array.length ps
 in if l = 0 || ps.(l-1) &lt;= cp then raise Notfound; let rec jump (b,e
 as bounds) j =Locate the interval with <code>cp</code> inside. if e &lt;
@@ -8813,9 +8773,7 @@ cw := binse b e ); ps.(!cw)</p>
 <li>File: <code>InvIndex7.ml</code></li>
 <li>Time: 2.4s – minimal speedup in our simple test case.</li>
 </ul>
-<h1 id="chapter-10">Chapter 10</h1>
-<p>Functional Programming</p>
-<p>Lecture 10: FRP</p>
+<h1 id="lecture-10-frp">Lecture 10: FRP</h1>
 <p>Zippers. Functional Reactive Programming. GUIs.</p>
 <p>*‘‘Zipper’‘* in <em>Haskell Wikibook</em> and <em>‘‘The Zipper’’</em>
 by Gerard Huet <em>‘‘How <code>froc</code> works’’</em> by Jacob Donham
@@ -8823,7 +8781,7 @@ by Gerard Huet <em>‘‘How <code>froc</code> works’’</em> by Jacob Donham
 ‘‘<em>Deprecating the Observer Pattern with
 <code>Scala.React</code></em>’’ by Ingo Maier, Martin Odersky</p>
 <p>If you see any error on the slides, let me know!</p>
-<h1 id="zippers">1 Zippers</h1>
+<h2 id="zippers">1 Zippers</h2>
 <ul>
 <li>We would like to keep track of a position in a data structure:
 easily access and modify it at that location, easily move the location
@@ -8906,7 +8864,7 @@ godown loc =Go to the first (i.e. leftmost) subdocument. match loc.sub
 with | Text -&gt; invalidarg “godown: at text” | Line -&gt; invalidarg
 “godown: at line” | Group [] -&gt; invalidarg “godown: at empty” | Group
 (doc::docs) -&gt; {sub=doc; ctx=([], docs)::loc.ctx}</p>
-<h2 id="example-context-rewriting">1.1 Example: Context rewriting</h2>
+<h3 id="example-context-rewriting">1.1 Example: Context rewriting</h3>
 <ul>
 <li>Our friend working on the string theory asked us for help with
 simplifying his equations.</li>
@@ -8979,8 +8937,8 @@ string = “(((x<em>y)</em>(3+y))+(((7<em>y)</em>(3+y))+5))”</p></li>
 <li><p>For best results we can iterate the <code>pull_out</code>
 function until fixpoint.</p></li>
 </ul>
-<h1 id="adaptive-programming-aka.incremental-computing">2 Adaptive
-Programming aka.Incremental Computing</h1>
+<h2 id="adaptive-programming-aka.incremental-computing">2 Adaptive
+Programming aka.Incremental Computing</h2>
 <ul>
 <li>Zippers are somewhat unnatural.</li>
 <li>Once we change the data-structure, it is difficult to propagate the
@@ -9000,8 +8958,8 @@ and propagate the changes.
 type <code>'a Froc_sa.u</code> – the <em>writeables</em>.</li>
 </ul></li>
 </ul>
-<h3 id="dependency-graphs-explained-by-jake-dunham">1 Dependency Graphs
-(explained by Jake Dunham)</h3>
+<h4 id="dependency-graphs-explained-by-jake-dunham">1 Dependency Graphs
+(explained by Jake Dunham)</h4>
 <ul>
 <li><p>The monadic value <code>'a changeable</code> will be the
 <em>dependency graph</em> of the computation of the represented value
@@ -9065,7 +9023,7 @@ don’t need updating.</p>
 range.</li>
 </ul></li>
 </ul>
-<h2 id="example-using-froc">2.1 Example using <em>Froc</em></h2>
+<h3 id="example-using-froc">2.1 Example using <em>Froc</em></h3>
 <ul>
 <li><p>Download <em>Froc</em> from <a
 href="https://github.com/jaked/froc/downloads">https://github.com/jaked/froc/downloads</a></p></li>
@@ -9206,8 +9164,8 @@ Byte code run:</p>
 </tbody>
 </table></li>
 </ul>
-<h1 id="functional-reactive-programming">3 Functional Reactive
-Programming</h1>
+<h2 id="functional-reactive-programming">3 Functional Reactive
+Programming</h2>
 <ul>
 <li><p>FRP is an attempt to declaratively deal with time.</p></li>
 <li><p><em>Behaviors</em> are functions of time.</p>
@@ -9311,8 +9269,8 @@ and then switches to returning the value of the last event in
 But often “signal” is used as our behavior (check terminology when
 looking at a new FRP library).</p></li>
 </ul>
-<h1 id="reactivity-by-stream-processing">4 Reactivity by Stream
-Processing</h1>
+<h2 id="reactivity-by-stream-processing">4 Reactivity by Stream
+Processing</h2>
 <ul>
 <li><p>The stream processing infrastructure should be familiar.</p>
 <p>type ’a stream = ’a stream Lazy.tand ’a stream = Cons of ’a * ’a
@@ -9396,7 +9354,7 @@ mousey : int behavior = step 0 (liftE snd mm)let width : int behavior =
 step 640 (liftE fst screen)let height : int behavior = step 512 (liftE
 snd screen)</p></li>
 </ul>
-<h3 id="the-paddle-game-example">1 The Paddle Game example</h3>
+<h4 id="the-paddle-game-example">1 The Paddle Game example</h4>
 <ul>
 <li><p>A <em>scene graph</em> is a data structure that represents a
 “world” which can be drawn on screen.</p>
@@ -9498,8 +9456,8 @@ ybounce = {memof = ybounce; memor = None} in liftB2 (fun x y -&gt; Color
 <p><code>ocamlbuild Lec10b.native -cflags -I,+threads  -libs  graphics,unix,threads/threads --</code></p></li>
 <li><p><img src="Lec10b.png" /></p></li>
 </ul>
-<h1 id="reactivity-by-incremental-computing">5 Reactivity by Incremental
-Computing</h1>
+<h2 id="reactivity-by-incremental-computing">5 Reactivity by Incremental
+Computing</h2>
 <ul>
 <li>In <em>Froc</em> behaviors and events are both implemented as
 changeables but only behaviors persist, events are “instantaneous”.
@@ -9568,8 +9526,8 @@ stored somewhere). Signals can be referred to by being part of the
 dependency graph, but also by any of the more general ways.</li>
 </ul></li>
 </ul>
-<h3 id="reimplementing-the-paddle-game-example">1 Reimplementing the
-Paddle Game example</h3>
+<h4 id="reimplementing-the-paddle-game-example">1 Reimplementing the
+Paddle Game example</h4>
 <ul>
 <li><p>Rather than following our incremental computing example (a scene
 with changeable parts), we follow our FRP example: a scene
@@ -9643,7 +9601,7 @@ ball]) walls paddle ball</p></li>
 ybounce (fun () -&gt; Printf.printf “ybounce%!”);</p></li>
 <li><p>Invocation:<code>ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs    froc/froc,unix,graphics,threads/threads --</code></p></li>
 </ul>
-<h1 id="direct-control">6 Direct Control</h1>
+<h2 id="direct-control">6 Direct Control</h2>
 <ul>
 <li><p>Real-world behaviors often are <em>state machines</em>, going
 through several stages. We don’t have declarative means for it yet.</p>
@@ -9755,7 +9713,7 @@ class="math inline">\swarrow</span>Start new shape. emit (cld := !opn ::
 [] painterlet () = reactimate painter</p></li>
 <li><p><img src="Lec10d.png" /></p></li>
 </ul>
-<h3 id="flows-and-state">1 Flows and state</h3>
+<h4 id="flows-and-state">1 Flows and state</h4>
 <p>Global state and thread-local state can be used with lightweight
 threads, but pay attention to semantics – which computations are inside
 the monad and which while building the initial monadic value.</p>
@@ -9783,7 +9741,7 @@ d[4]flow: 4Last signal emitted from first turn of the loop –flow: 0and
 first signal of the second turn (but <code>[0]</code> not
 printed).event: a[1]flow: 1event: b[2]flow: 2event: c[3]flow: 3event:
 d[4]flow: 4flow: 0Program ends while flow in third turn of the loop.</p>
-<h1 id="graphical-user-interfaces">7 Graphical User Interfaces</h1>
+<h2 id="graphical-user-interfaces">7 Graphical User Interfaces</h2>
 <ul>
 <li>In-depth discussion of GUIs is beyond the scope of this course. We
 only cover what’s needed for an example reactive program with direct
@@ -9793,7 +9751,7 @@ arguments discussed in lecture 2 exercise 2, and polymorphic variants,
 and <em>LablGtk</em> additionally based on objects. We will learn more
 about objects and polymorphic variants in next lecture.</li>
 </ul>
-<h2 id="calculator-flow">7.1 Calculator Flow</h2>
+<h3 id="calculator-flow">7.1 Calculator Flow</h3>
 <p>let digits, digit = F.makeevent ()We represent the mechanicslet ops,
 op = F.makeevent ()of the calculator directly as a flow.let dots, dot =
 F.makeevent ()let calc =We need two state variables for two arguments of
@@ -9812,7 +9770,7 @@ class="math inline">\sim</span>until:digits;The user can pick a
 different operator. emit (now := d; !now))Reset the state to a new
 number.let calce, cancelcalc = eventflow calcNotifies display
 update.</p>
-<h2 id="tk-labltk">7.2 <em>Tk</em>: <em>LablTk</em></h2>
+<h3 id="tk-labltk">7.2 <em>Tk</em>: <em>LablTk</em></h3>
 <ul>
 <li><p>Widget toolkit <strong><em>Tk</em></strong> known from the
 <em>Tcl</em> language.</p></li>
@@ -9884,7 +9842,7 @@ class="math inline">\sim</span>text:(stringoffloat now) result);
 Tk.mainLoop ()</p></li>
 <li><p><img src="Lec10-Calc_Tk.png" /></p></li>
 </ul>
-<h2 id="gtk-lablgtk">7.3 <em>GTk+</em>: <em>LablGTk</em></h2>
+<h3 id="gtk-lablgtk">7.3 <em>GTk+</em>: <em>LablGTk</em></h3>
 <ul>
 <li><p><strong><em>LablGTk</em></strong> is build as an object-oriented
 layer over a low-level layer of functions interfacing with the
@@ -10032,7 +9990,6 @@ localopt : (’a -&gt; ’b option) -&gt; (’a, ’c) flow -&gt; (’b, ’c)
 flow</p>
 <p><em>Implement an example that uses this compositionality-increasing
 capability.</em></p>
-<h1 id="chapter-11">Chapter 11</h1>
 <p>The Expression Problem</p>
 <p>The Expression Problem</p>
 <p>Code organization, extensibility and reuse</p>

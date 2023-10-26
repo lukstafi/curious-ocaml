@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 7: Laziness
+# Lecture 7: Laziness
 
 Lazy evaluation. Stream processing.
 
@@ -13,13 +9,13 @@ Linear Pretty-Printing''*
 
 If you see any error on the slides, let me know!
 
-# 1 Laziness
+## 1 Laziness
 
 * Today's lecture is about lazy evaluation.
 * Thank you for coming, goodbye!
 * But perhaps, do you have any questions?
 
-# 2 Evaluation strategies and parameter passing
+## 2 Evaluation strategies and parameter passing
 
 * **Evaluation strategy** is the order in which expressions are computed.
   * For the most part: when are arguments computed.
@@ -65,7 +61,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * ML languages have built-in support for lazy evaluation.
 * Haskell has built-in support for eager evaluation.
 
-# 3 Call-by-name: streams
+## 3 Call-by-name: streams
 
 * Call-by-name is useful not only for implementing flow control
   * let ifthenelse cond e1 e2 =  match cond with true -> e1 () | 
@@ -117,7 +113,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   * Streams minimize space consumption at the expense of time for 
     recomputation.
 
-# 4 Lazy values
+## 4 Lazy values
 
 * Lazy evaluation is more general than call-by-need as any value can be lazy, 
   not only a function parameter.
@@ -168,7 +164,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
   </table>-3.24858-1.02259-3.5449133483265-0.239416589495965-3.290911496229660.0569189046170128-2.40191-1.00142-2.65590686598756-0.281750231512105-2.380738192882660.0145852626008731-1.5129-0.980255-1.70339992062442-0.218249768487895-1.512898531551790.0145852626008731-0.327557-1.02259-0.772059796269348-0.0489152004233364-0.3063897340918110.1839198306654320.878952-1.022590.392115359174494-0.2394165894959650.6037835692551920.0780857256250827-3.56608-0.260583-3.629580632358780.691923534859108-3.33324513824581.03059267098823-2.67707-0.260583-2.69824050800370.734257176875248-2.42307183489881.0517594919963-1.7034-0.21825-1.872734488688980.670756713851039-1.555232173567931.0517594919963-0.77206-0.0489152-0.9413943643339070.903591744939807-0.6238920492128591.094093134012440.392115-0.2394170.2862812541341450.6284230718348990.6249503902632621.0517594919963*-2.60922-0.546619*-1.66302-0.503353*-0.632667-0.5082*0.504955-0.500198*-3.48713460768869-0.5100825754830590cm
 
-# 5 Power series and differential equations
+## 5 Power series and differential equations
 
 * Differential equations idea due to Henning Thielemann. **Just an example.**
 * Expression $P (x) = \sum_{i = 0}^n a_{i} x^i$ defines a polynomial for $n 
@@ -202,7 +198,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let invfact = lmap (fun n -> 1. /. floatofint n) lfactlet e = lhorner 1. 
   invfact
 
-## 5.1 Power series / polynomial operations
+### 5.1 Power series / polynomial operations
 
 * let rec add xs ys =  match xs, ys with    | LNil,  -> ys    | , 
   LNil -> xs    | LCons (x,xs), LCons (y,ys) ->      LCons (x +. y, 
@@ -229,7 +225,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   tl) -> tl
 * let differentiate xs =  lmap (uncurry ( *.)) (lzip (ltail xs, posnums))
 
-## 5.2 Differential equations
+### 5.2 Differential equations
 
 * $\frac{\mathrm{d} \sin x}{\mathrm{d} x} = \cos x, \frac{\mathrm{d} \cos 
   x}{\mathrm{d} x} = - \sin x, \sin 0 = 0, \cos 0 = 1$.
@@ -260,7 +256,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   tbeg) /. ofint w in  Array.init w (fun i ->    let y = lhorner (dt *. 
   ofint i) f in    i, to\_int (scale *. y))
 
-# 6 Arbitrary precision computation
+## 6 Arbitrary precision computation
 
 * Putting it all together reveals drastic numerical errors for large $x$.
 
@@ -305,7 +301,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
 ![](chain_reaction.eps)
 
-# 7 Circular data structures: double-linked list
+## 7 Circular data structures: double-linked list
 
 * Without delayed computation, the ability to define data structures with 
   referential cycles is very limited.
@@ -335,7 +331,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * let rec dlbackwards n l =  match l with    | DLCons (lazy xs, x, ) when 
   n>0 ->      x::dlbackwards (n-1) xs    |  -> []
 
-# 8 Input-Output streams
+## 8 Input-Output streams
 
 * The stream type used a throwaway argument to make a suspension
 
@@ -375,7 +371,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
     </table>0.02903822.280180.02903823257044581.41233959518455-0.03446220.459833-0.0344622304537637-0.492674295541738-0.0132954-1.40285-0.0132954094456939-2.228353618203470cm
   * Notice how the output stream is ahead of the input stream.
 
-## 8.1 Pipes
+### 8.1 Pipes
 
 * We need a more flexible input-output stream definition.
   * Consume several inputs to produce a single output.
@@ -416,7 +412,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let rec iterate f : 'a opipe =  Await (fun x -> let () = f x in iterate 
   f)
 
-## 8.2 Example: pretty-printing
+### 8.2 Example: pretty-printing
 
 * Print hierarchically organized document with a limited line width.
 

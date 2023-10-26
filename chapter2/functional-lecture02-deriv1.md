@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 2: Algebra, Fig. 1
+# Lecture 2: Algebra, Fig. 1
 
 Type inference example derivation
 

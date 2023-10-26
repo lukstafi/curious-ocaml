@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 9: Compiler
+# Lecture 9: Compiler
 
 Compilation. Runtime. Optimization. Parsing.
 
@@ -13,7 +9,7 @@ Reference Manual*''
 
 If you see any error on the slides, let me know!
 
-# 1 OCaml Compilers
+## 1 OCaml Compilers
 
 * OCaml has two primary compilers: the bytecode compiler `ocamlc` and the 
   native code compiler `ocamlopt`.
@@ -305,7 +301,7 @@ If you see any error on the slides, let me know!
   </tr></tbody>
 </table>
 
-## 1.1 Compiling multiple-file projects
+### 1.1 Compiling multiple-file projects
 
 * Traditionally the file containing a module would have a lowercase name, 
   although the module name is always uppercase.
@@ -358,7 +354,7 @@ ocamldep -native $(SOURCES) $(INTERFACES)
 
     `ocamlbuild -libs unix main.native --`
 
-## 1.2 Editors
+### 1.2 Editors
 
 * Emacs
   * `ocaml-mode` from the standard distribution
@@ -405,7 +401,7 @@ ocamldep -native $(SOURCES) $(INTERFACES)
   * Camelia [http://camelia.sourceforge.net/](http://camelia.sourceforge.net/) 
     (even older)
 
-# 2 Imperative features in OCaml
+## 2 Imperative features in OCaml
 
 OCaml is **not** a *purely functional* language, it has built-in:
 
@@ -441,7 +437,7 @@ OCaml is **not** a *purely functional* language, it has built-in:
 Using **global** state e.g. reference cells makes code *non re-entrant*: 
 finish one task before starting another – any form of concurrency is excluded.
 
-## 2.1 Parsing command-line arguments
+### 2.1 Parsing command-line arguments
 
 To go beyond Sys.argv array, see Arg 
 module:[http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html](http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html)
@@ -457,9 +453,9 @@ lines");    ("-min", Arg.Int (setnbmines cf), "number of mines")] in  let
 usagemsg =    "usage : minesweep [-col n] [-lin n] [-min n]" in   Arg.parse 
 speclist (fun s -> ()) usagemsg; !cf
 
-# 3 OCaml Garbage Collection
+## 3 OCaml Garbage Collection
 
-## 3.1 Representation of values
+### 3.1 Representation of values
 
 * Pointers always end with `00` in binary (addresses are in number of bytes).
 * Integers are represented by shifting them 1 bit, setting the last bit to 
@@ -477,7 +473,7 @@ speclist (fun s -> ()) usagemsg; !cf
     variant type (some tag numbers are reserved).
   * *Polymorphic variants* are a different story.
 
-## 3.2 Generational Garbage Collection
+### 3.2 Generational Garbage Collection
 
 * OCaml has two heaps to store blocks: a small, continuous *minor heap* and a 
   growing-as-necessary *major heap*.
@@ -494,7 +490,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * Great if most minor heap blocks are already not needed when collection 
   starts – garbage does **not** slow down collection.
 
-## 3.3 Stop & Copy GC
+### 3.3 Stop & Copy GC
 
 * Minor collection starts from a set of *roots* – young blocks that definitely 
   are not garbage.
@@ -510,7 +506,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * At the end of collection, the young pointer is reset so that the minor heap 
   is empty again.
 
-## 3.4 Mark & Sweep GC
+### 3.4 Mark & Sweep GC
 
 * Major collection starts from a separate root set – old blocks that 
   definitely are not garbage.
@@ -533,7 +529,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * ![](book-ora034-GC_Marking_phase.gif)
 * ![](book-ora035-GC_Sweep_phase.gif)
 
-# 4 Stack Frames and Closures
+## 4 Stack Frames and Closures
 
 * The nesting of procedure calls is reflected in the *stack* of procedure 
   data.
@@ -571,7 +567,7 @@ speclist (fun s -> ()) usagemsg; !cf
     latter case, the nested functions must also be represented by closures 
     that have a link to the closure of `f`.
 
-## 4.1 Tail Recursion
+### 4.1 Tail Recursion
 
 * A function call `f x` within the body of another function `g` is in *tail 
   position* if, roughly “calling `f` is the last thing that `g` will do before 
@@ -590,12 +586,12 @@ speclist (fun s -> ()) usagemsg; !cf
   native code will sometimes cause *segmentation fault*!
 * List`.map` from the standard distribution is **not** tail-recursive.
 
-## 4.2 Generated assembly
+### 4.2 Generated assembly
 
 * Let us look at examples from 
   [http://ocaml.org/tutorials/performance\_and\_profiling.html](http://ocaml.org/tutorials/performance_and_profiling.html)
 
-# 5 Profiling and Optimization
+## 5 Profiling and Optimization
 
 * Steps of optimizing a program:
   1. Profile the program to find bottlenecks: where the time is spent.
@@ -612,7 +608,7 @@ speclist (fun s -> ()) usagemsg; !cf
   1. *Deforestation*.
   1. *Defunctorization*.
 
-## 5.1 Profiling
+### 5.1 Profiling
 
 * We cover native code profiling because it is more useful.
   * It relies on the “Unix” profiling program `gprof`.
@@ -703,7 +699,7 @@ index % time    self  children    called     name
                 8.54    3.60 306656692/306656698     compare_val [3]
 ```
 
-## 5.2 Algorithmic optimizations
+### 5.2 Algorithmic optimizations
 
 * (All times measured with profiling turned on.)
 * `Optim0.ml` asymptotic time complexity: $\mathcal{O} (n^2)$, time: 22.53s.
@@ -730,7 +726,7 @@ index % time    self  children    called     name
   complexity** in terms of the $\mathcal{O} (\cdot)$ notation, but we will not 
   pursue complexity analysis in the remainder of the lecture.
 
-## 5.3 Low-level optimizations
+### 5.3 Low-level optimizations
 
 * Optimizations below have been made *for educational purposes only*.
 * Avoid polymorphism in generic comparison function (=).
@@ -763,7 +759,7 @@ index % time    self  children    called     name
   * The slight speedup comes from the fact that functor arguments are 
     implemented as records of functions.
 
-## 5.4 Comparison of data structure implementations
+### 5.4 Comparison of data structure implementations
 
 * We perform a rough comparison of association lists, tree-based maps and 
   hashtables. Sets would give the same results.
@@ -1070,7 +1066,7 @@ index % time    self  children    called     name
 * Unfortunately OCaml and Haskell do not encourage the use of efficient maps, 
   the way Scala and Python have built-in syntax for them.
 
-# 6 Parsing: ocamllex and Menhir
+## 6 Parsing: ocamllex and Menhir
 
 * *Parsing* means transforming text, i.e. a string of characters, into a data 
   structure that is well fitted for a given task, or generally makes 
@@ -1088,7 +1084,7 @@ index % time    self  children    called     name
   parsing, a successor of `ocamlyacc`, belonging to the *yacc*/*bison* family 
   of parsers.
 
-## 6.1 Lexing with *ocamllex*
+### 6.1 Lexing with *ocamllex*
 
 * The format of lexer definitions is as follows: file with extension `.mll`
 
@@ -1156,7 +1152,7 @@ index % time    self  children    called     name
 
   *transition table overflow, automaton is too big*
 
-### 6.1.1 Example: Finding email addresses
+#### 6.1.1 Example: Finding email addresses
 
 * We mine a text file for email addresses, that could have been obfuscated to 
   hinder our job…
@@ -1205,7 +1201,7 @@ OCaml code.  let  =Open a file and start mining for email addresses.    let ch
 = openin Sys.argv.(1) in    email Seek (Lexing.fromchannel ch);    closein 
 chClose the file at the end.}
 
-## 6.2 Parsing with Menhir
+### 6.2 Parsing with Menhir
 
 * The format of parser definitions is as follows: file with extension `.mly`
 
@@ -1304,7 +1300,7 @@ chClose the file at the end.}
   $`endpos`(`x`) where `x` is name given to part of pattern.
   * Do not use the Parsing module from OCaml standard library.
 
-### 6.2.1 Example: parsing arithmetic expressions
+#### 6.2.1 Example: parsing arithmetic expressions
 
 * Example based on a Menhir demo. Due to difficulties with `ocamlbuild`, we 
   use option `--external-tokens` to provide type token directly rather than 
@@ -1360,7 +1356,7 @@ chClose the file at the end.}
   * `--external-tokens` provides the OCaml module which defines the `token` 
     type
 
-### 6.2.2 Example: a toy sentence grammar
+#### 6.2.2 Example: a toy sentence grammar
 
 * Our lexer is a simple limited *part-of-speech tagger*. Not re-entrant.
 * For debugging, we log execution in file `log.txt`.
@@ -1466,7 +1462,7 @@ syntax error.n%!"          (Lexing.lexemestart linebuf)  done
   `ocamlbuild Eng.native -use-menhir -menhir "menhir EngParser.mly --base 
   EngParser --external-tokens EngLexer" --`
 
-# 7 Example: Phrase search
+## 7 Example: Phrase search
 
 * In lecture 6 we performed keyword search, now we turn to *phrase search* 
   i.e. require that given words be consecutive in the document.
@@ -1548,7 +1544,7 @@ ws in      aux (List.revappend ws words)    | OPEN  | CLOSE  | SENTENCE  |
 PUNCT  | COMMENT  ->      aux words    | EOF -> List.rev words in  aux 
 []
 
-### 1 Naive implementation of phrase search
+#### 1 Naive implementation of phrase search
 
 * We need *postings lists* with positions of words rather than just the 
   document or line of document they belong to.
@@ -1586,20 +1582,20 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
 * Invocation: `ocamlbuild InvIndex.native -libs unix --`
 * Time: 7.3s
 
-### 2 Replace association list with hash table
+#### 2 Replace association list with hash table
 
 * I recommend using either *OCaml Batteries* or *OCaml Core* – replacement for 
   the standard library. *Batteries* has efficient Hashtbl.map (our `mapv`).
 * Invocation: `ocamlbuild InvIndex1.native -libs unix --`
 * Time: 6.3s
 
-### 3 Replace naive merging with ordered merging
+#### 3 Replace naive merging with ordered merging
 
 * Postings lists are already ordered.
 * Invocation: `ocamlbuild InvIndex2.native -libs unix --`
 * Time: 2.5s
 
-### 4 Bruteforce optimization: biword indexes
+#### 4 Bruteforce optimization: biword indexes
 
 * Pairs of words are much less frequent than single words so storing them 
   means less work for postings lists merging.
@@ -1611,7 +1607,7 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
   ./InvIndex3.native`
 * Time: 2.4s – disappointing.
 
-## 7.1 Smart way: *Information Retrieval* G.V. Cormack et al.
+### 7.1 Smart way: *Information Retrieval* G.V. Cormack et al.
 
 * You should classify your problem and search literature for state-of-the-art 
   algorithm to solve it.
@@ -1628,7 +1624,7 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
   * Imperative linear search.
   * Imperative *galloping search* optimization of binary search.
 
-### 7.1.1 The phrase search algorithm
+#### 7.1.1 The phrase search algorithm
 
 * During search we maintain *current position* `cp` of last found word or 
   phrase.
@@ -1652,20 +1648,20 @@ occurrences of the phrase.      let np, fp = nextphrase ii phrase cp in
 np :: aux fp    with Notfound -> [] inMoved past last occurrence.  
 List.map (findline linebreaks) (aux (-1))
 
-### 7.1.2 Naive but purely functional inverted index
+#### 7.1.2 Naive but purely functional inverted index
 
 module S = Set.Make(struct type t=int let compare i j = i-j end)let update ii (w, p) =  (try    let ps = Hashtbl.find ii w in    Hashtbl.replace ii w (S.add p ps)  with Notfound -> Hashtbl.add ii w (S.singleton p));  iilet first ii w = S.minelt (find w ii)The functions raise Not\_foundlet last ii w = S.maxelt (find w ii)whenever such position would not exist.let prev ii w cp =  let ps = find w ii inSplit the set into elements  let smaller, ,  = S.split cp ps insmaller and bigger than `cp`.  S.maxelt smallerlet next ii w cp =  let ps = find w ii in  let , , bigger = S.split cp ps in  S.minelt bigger
 
 * Invocation: `ocamlbuild InvIndex4.native -libs unix --`
 * Time: 3.3s – would be better without the overhead of S.split.
 
-### 7.1.3 Binary search based inverted index
+#### 7.1.3 Binary search based inverted index
 
 let prev ii w cp =  let ps = find w ii in  let rec aux b e =We implement binary search separately for `prev`    if e-b <= 1 then ps.(b)to make sure here we return less than `cp`    else let m = (b+e)/2 in         if ps.(m) < cp then `aux m e`else aux b m in  let l = Array.length ps in  if l = 0 || ps.(0) >= cp then raise Notfound  else aux 0 (l-1)let next ii w cp =  let ps = find w ii in  let rec aux b e =    if e-b <= 1 then ps.(e)and here more than `cp`.    else let m = (b+e)/2 in         if ps.(m) <= cp then aux m e         else aux b m in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound  else aux 0 (l-1)
 
 * File: `InvIndex5.ml`. Time: 2.4s
 
-### 7.1.4 Imperative, linear scan
+#### 7.1.4 Imperative, linear scan
 
 let prev ii w cp =  let cw,ps = find w ii inFor each word we add a cell with last visited occurrence.  let l = Array.length ps in  if l = 0 || ps.(0) >= cp then raise Notfound  else if ps.(l-1) < cp then cw := l-1  else (Reset pointer if current position is not ‘‘ahead'' of it.    if !cw < l-1 && ps.(!cw+1) < cp then cw := l-1;Otherwise scan    while ps.(!cw) >= cp do decr cw donestarting from last visited.  );  ps.(!cw)let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound  else if ps.(0) > cp then cw := 0  else (Reset pointer if current position is not ahead of it.    if !cw > 0 && ps.(!cw-1) > cp then cw := 0;    while ps.(!cw) <= cp do incr cw done  );  ps.(!cw)
 
@@ -1677,7 +1673,7 @@ let prev ii w cp =  let cw,ps = find w ii inFor each word we add a cell with las
 
 
 
-### 7.1.5 Imperative, galloping search
+#### 7.1.5 Imperative, galloping search
 
 let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound;  let rec jump (b,e as bounds) j =Locate the interval with `cp` inside.    if e < l-1 && ps.(e) <= cp then jump (e,e+j) (2*j)    else bounds in  let rec binse b e =Binary search over that interval.    if e-b <= 1 then e    else let m = (b+e)/2 in         if ps.(m) <= cp then binse m e         else binse b m in  if ps.(0) > cp then cw := 0  else (    let b =The invariant is that ps.(b) <= `cp`.      if !cw > 0 && ps.(!cw-1) <= cp then !cw-1 else 0 in    let b,e = jump (b,b+1) 2 inLocate interval starting near !`cw`.    let e = if e > l-1 then l-1 else e in    cw := binse b e  );  ps.(!cw)
 

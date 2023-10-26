@@ -1,15 +1,11 @@
-Functional Programming
-
-
-
-Lecture 3: Computation
+# Lecture 3: Computation
 
 ‘‘Using, Understanding and Unraveling the OCaml Language'' Didier Rémy,
 chapter 1
 
 ‘‘The OCaml system'' manual, the tutorial part, chapter 1
 
-# 1 Function Composition
+## 1 Function Composition
 
 * The usual way function composition is defined in math is “backward”:
   * math: $(f \circ g) (x) = f (g (x))$
@@ -60,7 +56,7 @@ let sin''' = (power (derivative 1e-5) 3) sin;;
 sin''' pi;;
 ```
 
-# 2 Evaluation Rules (reduction semantics)
+## 2 Evaluation Rules (reduction semantics)
 
 * Programs consist of **expressions**:
 
@@ -168,7 +164,7 @@ sin''' pi;;
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.
 
-# 3 Symbolic Derivation Example
+## 3 Symbolic Derivation Example
 
 Go through the examples from the `Lec3.ml` file in the toplevel.
 
@@ -202,7 +198,7 @@ eval_1_2 --> 9.
 - : float = 9.
 ```
 
-# 4 Tail Calls (and tail recursion)
+## 4 Tail Calls (and tail recursion)
 
 * Excuse me for not defining what a *function call* is…
 * Computers normally evaluate programs by creating *stack frames* on the stack 
@@ -241,7 +237,7 @@ Stack overflow during evaluation (looping recursion?).
 ```
 * Is it possible to find the depth of a tree using a tail-recursive function?
 
-# 5 First Encounter of Continuation Passing Style
+## 5 First Encounter of Continuation Passing Style
 
 We can postpone doing the actual work till the last moment:
 
@@ -256,7 +252,7 @@ let rec depth tree k = match tree with
 let depth tree = depth tree (fun d -> d)
 ```
 
-# 6 Homework
+## 6 Homework
 
 By “traverse a tree” below we mean: write a function that takes a tree and 
 returns a list of values in the nodes of the tree.

@@ -12,55 +12,22 @@ header-includes:
        onload="renderMathInElement(document.body);"></script>
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
-# Curious OCaml
-# Chapter 1
-Functional Programming
-
-
-
-Lecture 1: Logic
+# Lecture 1: Logic
 
 From logic rules to programming constructs
 
-# 1 In the Beginning there was Logos
+## 1 In the Beginning there was Logos
 
 What logical connectives do you know?
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr><tr>
-    <td style="text-align: center">truth</td>
-    <td>falsehood</td>
-    <td>conjunction</td>
-    <td>disjunction</td>
-    <td>implication</td>
-  </tr><tr>
-    <td>&ldquo;trivial&rdquo;</td>
-    <td>&ldquo;impossible&rdquo;</td>
-    <td> and </td>
-    <td> or </td>
-    <td> gives </td>
-  </tr><tr>
-    <td></td>
-    <td>shouldn't get</td>
-    <td>got both</td>
-    <td>got one</td>
-    <td>given , we get </td>
-  </tr></tbody>
-</table>
+|$\top$ | $\bot$ | $\wedge$ | $\vee$ | $\rightarrow$
+|---|---|---|---|---
+|   |   | $a \wedge b$ | $a \vee b$ | $a \rightarrow b$
+| truth | falsehood | conjunction | disjunction | implication
+| "trivial" | "impossible" | $a$ and $b$ | $a$ or $b$ | $a$ gives $b$
+|   | shouldn't get | got both | got at least one | given $a$, we get $b$
 
-How can we define them?Think in terms of *derivation trees*:
+How can we define them? Think in terms of *derivation trees*:
 
 $$ \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
@@ -341,16 +308,11 @@ Nicholas Monje and Allen Downey.
 
    If you need help, see 
    [http://en.wikipedia.org/wiki/Euclidean\_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).
-# Chapter 2
-Functional Programming
-
-
-
-Lecture 2: Algebra
+# Lecture 2: Algebra
 
 Algebraic Data Types and some curious analogies
 
-# 1 A Glimpse at Type Inference
+## 1 A Glimpse at Type Inference
 
 For a refresher, let's try to use the rules we introduced last time on some 
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
@@ -448,7 +410,7 @@ $$ \begin{matrix}
   \text{{\texttt{int}}}} &
 \end{matrix} $$
 
-## 1.1 Curried form
+### 1.1 Curried form
 
 When there are several arrows “on the same depth” in a function type, it means 
 that the function returns a function: e.g. $\text{{\texttt{(+)}}} : 
@@ -468,7 +430,7 @@ expanded form does `((+) 1)` correspond to exactly (computationally)?
 We will get used to functions returning functions when learning about 
 the *lambda calculus*.
 
-# 2 Algebraic Data Types
+## 2 Algebraic Data Types
 
 * Last time we learned about the `unit` type, variant types like:
 
@@ -512,7 +474,7 @@ type 'elem list = Empty | Cons of 'elem * 'elem list
     * F#:`type choice<'a,'b> = Left of 'a | Right of 'b`
     * Haskell:`data Choice a b = Left a | Right b`
 
-# 3 Syntactic Bread and Sugar
+## 3 Syntactic Bread and Sugar
 
 * Names of variants, called *constructors*, must start with capital letter – 
   so if we wanted to define our own booleans, it would be
@@ -536,7 +498,7 @@ type my_bool = True | False
 
 
 
-# 4 Pattern Matching
+## 4 Pattern Matching
 
 * Recall that we introduced `fst` and `snd` as means to access elements of a 
   pair. But what about bigger tuples? The “basic” way of accessing any tuple 
@@ -611,7 +573,7 @@ match day with
   | _ -> None
 ```
 
-# 5 Interpreting Algebraic DTs as Polynomials
+## 5 Interpreting Algebraic DTs as Polynomials
 
 Let's do a peculiar translation: take a data type and replace | with $+$, * 
 with $\times$, treating record types as tuple types (i.e. erasing field names 
@@ -760,7 +722,7 @@ Take-home lessons:
 * Divide solutions into small steps so that each step can be easily understood 
   and checked.
 
-## 5.1 Differentiating Algebraic Data Types
+### 5.1 Differentiating Algebraic Data Types
 
 Of course, you would say, the pompous title is wrong, we will differentiate 
 the translated polynomials. But what sense does it make?
@@ -844,7 +806,7 @@ let rec btree_integr n =
     Node (m, ltree, btree_integr n rtree)
 ```
 
-# 6 Homework
+## 6 Homework
 
 Write a function `btree_deriv_at` that takes a predicate over integers (i.e. a 
 function `f: int -> bool`), and a `btree`, and builds a `btree_deriv` 
@@ -855,11 +817,7 @@ predicate does not hold for any node.
 *This homework is due for the class **after** the Computation class, i.e. for 
 (before) the Functions class.*
 ## Chapter 2: Derivation example
-Functional Programming
-
-
-
-Lecture 2: Algebra, Fig. 1
+# Lecture 2: Algebra, Fig. 1
 
 Type inference example derivation
 
@@ -947,19 +905,14 @@ $$ \frac{\frac{\begin{array}{ll}
    \text{{\texttt{int}}}} $$
 
 
-# Chapter 3
-Functional Programming
-
-
-
-Lecture 3: Computation
+# Lecture 3: Computation
 
 ‘‘Using, Understanding and Unraveling the OCaml Language'' Didier Rémy,
 chapter 1
 
 ‘‘The OCaml system'' manual, the tutorial part, chapter 1
 
-# 1 Function Composition
+## 1 Function Composition
 
 * The usual way function composition is defined in math is “backward”:
   * math: $(f \circ g) (x) = f (g (x))$
@@ -1010,7 +963,7 @@ let sin''' = (power (derivative 1e-5) 3) sin;;
 sin''' pi;;
 ```
 
-# 2 Evaluation Rules (reduction semantics)
+## 2 Evaluation Rules (reduction semantics)
 
 * Programs consist of **expressions**:
 
@@ -1118,7 +1071,7 @@ sin''' pi;;
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.
 
-# 3 Symbolic Derivation Example
+## 3 Symbolic Derivation Example
 
 Go through the examples from the `Lec3.ml` file in the toplevel.
 
@@ -1152,7 +1105,7 @@ eval_1_2 --> 9.
 - : float = 9.
 ```
 
-# 4 Tail Calls (and tail recursion)
+## 4 Tail Calls (and tail recursion)
 
 * Excuse me for not defining what a *function call* is…
 * Computers normally evaluate programs by creating *stack frames* on the stack 
@@ -1191,7 +1144,7 @@ Stack overflow during evaluation (looping recursion?).
 ```
 * Is it possible to find the depth of a tree using a tail-recursive function?
 
-# 5 First Encounter of Continuation Passing Style
+## 5 First Encounter of Continuation Passing Style
 
 We can postpone doing the actual work till the last moment:
 
@@ -1206,7 +1159,7 @@ let rec depth tree k = match tree with
 let depth tree = depth tree (fun d -> d)
 ```
 
-# 6 Homework
+## 6 Homework
 
 By “traverse a tree” below we mean: write a function that takes a tree and 
 returns a list of values in the nodes of the tree.
@@ -1269,12 +1222,7 @@ quicksort.
    element, sorts the parts, and puts them together.*
 
 
-# Chapter 4
-Functional Programming
-
-
-
-Lecture 4: Functions.
+# Lecture 4: Functions.
 
 Programming in untyped $\lambda$-calculus.
 
@@ -1282,7 +1230,7 @@ Programming in untyped $\lambda$-calculus.
 
 *Lecture Notes on the Lambda Calculus* Peter Selinger
 
-# 1 Review: a “computation by hand” example
+## 1 Review: a “computation by hand” example
 
 Let's compute some larger, recursive program.Recall that we use fix instead of 
 let rec to simplify rules for recursion. Also remember our syntactic 
@@ -1617,7 +1565,7 @@ $$ \begin{matrix}
 
   2
 
-# 2 Language and rules of the untyped $\lambda$-calculus
+## 2 Language and rules of the untyped $\lambda$-calculus
 
 * First, let's forget about types.
 * Next, let's introduce a shortcut:
@@ -1638,7 +1586,7 @@ $$ \begin{matrix}
 
 
 
-# 3 Booleans
+## 3 Booleans
 
 * Alonzo Church introduced $\lambda$-calculus to encode logic.
 * There are multiple ways to encode various sorts of data in 
@@ -1658,7 +1606,7 @@ toplevel.
 
 * Define `c_or` and `c_not` yourself!
 
-# 4 If-then-else and pairs
+## 4 If-then-else and pairs
 
 * We will just use the OCaml syntax from now.
 
@@ -1678,7 +1626,7 @@ let encodepair encfst encsnd (a, b) =  cpair (encfst a) (encsnd b)let decodepair
 
 
 
-# 5 Pair-encoded natural numbers
+## 5 Pair-encoded natural numbers
 
 * Our first encoding of natural numbers is as the depth of nested pairs whose 
   rightmost leaf is $\lambda x.x$ and whose left elements are `c_false`.
@@ -1696,7 +1644,7 @@ then Obj.magic pn0  else pnsucc (Obj.magic (encodepnat (n-1)))Disregarding
 types,let rec decodepnat pn =these functions are straightforward!  if 
 decodebool (pniszero pn) then 0  else 1 + decodepnat (pnpred (Obj.magic pn))
 
-# 6 Church numerals (natural numbers in Ch. enc.)
+## 6 Church numerals (natural numbers in Ch. enc.)
 
 * Do you remember our function `power f n`? We will use its variant for a 
   different representation of numbers:
@@ -1779,7 +1727,7 @@ $$ \Downarrow $$
 
 2
 
-# 7 Recursion: Fixpoint Combinator
+## 7 Recursion: Fixpoint Combinator
 
 * Turing's fixpoint combinator: $\Theta = (\lambda x y.y (x x y))  (\lambda x 
   y.y (x x y))$
@@ -1916,7 +1864,7 @@ $$ \Downarrow $$
   * Compute `fact cn2`.
 * What does `fix (fun x -> cn_succ x)` mean?
 
-# 8 Encoding of Lists and Trees
+## 8 Encoding of Lists and Trees
 
 * A list is either empty, which we often call `Empty` or `Nil`, or it consists 
   of an element followed by another list (called “tail”), the other case often 
@@ -1974,7 +1922,7 @@ nlet node l r = fun x y -> y l rlet addtree t =  fix (fun f t ->    t
   exhaustiveness: $k$th argument corresponds to $k$th branch of pattern 
   matching.
 
-# 9 Looping Recursion
+## 9 Looping Recursion
 
 * Let's come back to numbers defined as lengths lists and define addition:
 
@@ -2005,7 +1953,7 @@ let pnadd m n =  fix (fun f m n ->    (ifthenelse (pniszero m)       (fun
 x -> n) (fun x -> pnsucc (f (pnpred m) n)))      id  ) m n;;decodepnat 
 (pnadd pn3 pn3);;decodepnat (pnadd pn3 pn7);;
 
-# 10 In-class Work and Homework
+## 10 In-class Work and Homework
 
 
    Define (implement) and verify:
@@ -2123,7 +2071,6 @@ of a solution to this exercise.
    done;  !s
 1. let repeatuntil p f s =  let s = ref (f s) in  while not (p !s) do    s := 
    f !s  done;  !s
-# Chapter 5
 Functional Programming
 
 Type Inference
@@ -2276,12 +2223,7 @@ another one using a map into the unit type.
    1. *One of the remaining tests on grandchildren is also unnecessary.
       Rewrite* `*ins*` *so that it never tests the color of nodes not on the
       search path.*
-# Chapter 6
-Functional Programming
-
-
-
-Lecture 6: Folding and Backtracking
+# Lecture 6: Folding and Backtracking
 
 Mapping and folding.Backtracking using lists. Constraint solving.
 
@@ -2295,7 +2237,7 @@ Tomasz Wierzbicki ‘‘*Honey Islands* Puzzle Solver''
 
 If you see any error on the slides, let me know!
 
-# 1 Plan
+## 1 Plan
 
 * `map` and `fold_right`: recursive function examples, abstracting over gets 
   the higher-order functions.
@@ -2322,7 +2264,7 @@ If you see any error on the slides, let me know!
 * Constraint variables, splitting and constraint propagation.
 * Another example with “heavier” constraint propagation.
 
-# 2 Basic generic list operations
+## 2 Basic generic list operations
 
 How to print a comma-separated list of integers? In module `String`:
 
@@ -2339,7 +2281,7 @@ let rec stringslengths = function  | [] -> []  | hd::tl ->
 (String.length hd, hd) :: stringslengths tllet bysize = List.sort compare -| 
 stringslengths
 
-## 2.1 Always extract common patterns
+### 2.1 Always extract common patterns
 
 <table style="display: inline-table; vertical-align: middle">
   <tbody><tr>
@@ -2436,7 +2378,7 @@ l</tt> = <tt class="verbatim">List.fold_right
   </tr></tbody>
 </table>
 
-## 2.2 Can we make `fold` tail-recursive?
+### 2.2 Can we make `fold` tail-recursive?
 
 Let's investigate some tail-recursive functions. (Not hidden as helpers.)
 
@@ -2504,7 +2446,7 @@ class="verbatim"> tl</tt></td>
 
   let listrevmap f l =  List.foldleft (fun t h->f h::t) [] l
 
-# 3 `map` and `fold` for trees and other structures
+## 3 `map` and `fold` for trees and other structures
 
 * Mapping binary trees is straightforward:
 
@@ -2528,7 +2470,7 @@ class="verbatim"> tl</tt></td>
   let sumels = btfold (fun i l r -> i + l + r) 0let depth t = btfold (fun  
   l r -> 1 + max l r) 1 t
 
-## 3.1 `map` and `fold` for more complex structures
+### 3.1 `map` and `fold` for more complex structures
 
 To have a data structure to work with, we recall expressions from lecture 3.
 
@@ -2581,7 +2523,7 @@ Var x in  exprmap {identitymap with mapvar = apply}let vars =  exprfold
 foldvar = (fun x -> List.assoc x env);  foldsum = (+.); folddiff = (-.);  
 foldprod = ( *.); foldquot = (/.);}
 
-# 4 Point-free Programming
+## 4 Point-free Programming
 
 * In 1977/78, John Backus designed **FP**, the first *function-level 
   programming* language. Over the next decade it evolved into the **FL** 
@@ -2636,7 +2578,7 @@ foldprod = ( *.); foldquot = (/.);}
   flip (-|) List.map ((-|) (List.filter f))let func2 f = (((|-) List.map) -| 
   ((-|) -| List.filter)) flet func2 = (|-) List.map -| ((-|) -| List.filter)
 
-# 5 Reductions. More higher-order/list functions
+## 5 Reductions. More higher-order/list functions
 
 Mathematics has notation for sum over an interval: $\sum_{n = a}^b f (n)$.
 
@@ -2666,7 +2608,7 @@ and more efficiently:
 let concatmap f l =  let rec cmapf accu = function    | [] -> accu    | 
 a::l -> cmapf (List.revappend (f a) accu) l in  List.rev (cmapf [] l)
 
-## 5.1 List manipulation: All subsequences of a list
+### 5.1 List manipulation: All subsequences of a list
 
 let rec subseqs l =  match l with    | [] -> [[]]    | x::xs ->      
 let pxs = subseqs xs in      List.map (fun px -> x::px) pxs @ pxs
@@ -2688,7 +2630,7 @@ two non-empty parts.
 
  Find all ways of choosing without repetition from a list.
 
-## 5.2 By key: `group_by` and `map_reduce`
+### 5.2 By key: `group_by` and `map_reduce`
 
 It is often useful to organize values by some property.
 
@@ -2724,7 +2666,7 @@ the operation `map_reduce`:
 let mapreduce mapf redf base l =  List.map mapf l  |> collect  |> 
 List.map (fun (k,vs)->k, List.foldright redf vs base)
 
-### 5.2.1 `map_reduce`/`concat_reduce` examples
+#### 5.2.1 `map_reduce`/`concat_reduce` examples
 
 Sometimes we have multiple sources of information rather than records.
 
@@ -2751,7 +2693,7 @@ let search index words =  match List.map (flip List.assoc index) words with  |
 
 where `intersect` computes intersection of sets represented as lists.
 
-### 5.2.2 Tail-recursive variants
+#### 5.2.2 Tail-recursive variants
 
 let revcollect l =  match List.sort (fun x y -> compare (fst x) (fst y)) l 
 with  | [] -> []  | (k0, v0)::tl ->    let k0, vs, l = List.foldleft   
@@ -2765,7 +2707,7 @@ let trconcatreduce mapf redf base l =  concatmap mapf l  |> revcollect
 let rcons tl hd = hd::tllet invertedindex documents =  let mapf (addr, doc) = 
 … in  trconcatreduce mapf rcons [] documents
 
-### 5.2.3 Helper functions for inverted index demonstration
+#### 5.2.3 Helper functions for inverted index demonstration
 
 let intersect xs ys =Sets as **sorted** lists.  let rec aux acc = function    
 | [],  | , [] -> acc    | (x::xs' as xs), (y::ys' as ys) ->      let c 
@@ -2788,7 +2730,7 @@ List.map (flip List.assoc lines) ans
 let searchbible =  searchengine (readlines "./bible-kjv.txt")let testresult =  
 searchbible ["Abraham"; "sons"; "wife"]
 
-## 5.3 Higher-order functions for the `option` type
+### 5.3 Higher-order functions for the `option` type
 
 Operate on an optional value:
 
@@ -2803,7 +2745,7 @@ let mapsome f l =  let rec mapsf accu = function    | [] -> accu    |
 a::l -> mapsf (match f a with None -> accu      | Some r -> 
 r::accu) l in  List.rev (mapsf [] l)
 
-# 6 The Countdown Problem Puzzle
+## 6 The Countdown Problem Puzzle
 
 * Using a given set of numbers and arithmetic operators +, -, *, /, construct 
   an expression with a given value.
@@ -2850,7 +2792,7 @@ r::accu) l in  List.rev (mapsf [] l)
   let solution e ns n =  listdiff (values e) ns = [] && isunique (values e) && 
    eval e = Some n
 
-## 6.1 Brute force solution
+### 6.1 Brute force solution
 
 * Return a list of all possible ways of splitting a list into two non-empty 
   parts:
@@ -2886,7 +2828,7 @@ r::accu) l in  List.rev (mapsf [] l)
   let solutions ns n =  choices ns |-> (fun ns' ->    exprs ns' 
   |->      guard (fun e -> eval e = Some n))
 
-## 6.2 Fuse the generate phase with the test phase
+### 6.2 Fuse the generate phase with the test phase
 
 * We seek to define a function that fuses together the generation and 
   evaluation of expressions:
@@ -2906,7 +2848,7 @@ r::accu) l in  List.rev (mapsf [] l)
   |>        List.filter (fun (e,m)-> m=n) |>            List.map 
   fst)We discard the memorized values.
 
-## 6.3 Eliminate symmetric cases
+### 6.3 Eliminate symmetric cases
 
 * Strengthening the valid predicate to take account of commutativity and 
   identity properties:
@@ -2921,7 +2863,7 @@ r::accu) l in  List.rev (mapsf [] l)
 
 
 
-# 7 The Honey Islands Puzzle
+## 7 The Honey Islands Puzzle
 
 * Be a bee! Find the cells to eat honey out of, so that the least amount of 
   honey becomes sour, assuming that sourness spreads through contact.
@@ -2933,7 +2875,7 @@ r::accu) l in  List.rev (mapsf [] l)
 
 Task: 3 islands x 3![](honey0.eps)Solution:![](honey1.eps)
 
-## 7.1 Representing the honeycomb
+### 7.1 Representing the honeycomb
 
 type cell = int * intWe address cells using ‘‘cartesian'' coordinatesmodule 
 CellSet =and store them in either lists or sets.  Set.Make (struct type t = 
@@ -2946,13 +2888,13 @@ initially without honey.}
 let cellsetoflist l =List into set, inverse of CellSet.elements  
 List.foldright CellSet.add l CellSet.empty
 
-### 7.1.1 Neighborhood
+#### 7.1.1 Neighborhood
 
 ![](honey_min2.eps)`x,y`-0.902203-0.291672`x+2,y`2.23049-0.376339`x+1,y+1`0.410142.35418`x-1,y+1`-2.637882.33301`x-2,y`-4.20423-0.418673`x-1,y-1`-2.65905-3.08569`x+1,y-1`0.431307-3.191530cm
 
 let neighbors n eaten (x,y) =  List.filter    (insideboard n eaten)    [x-1,y-1; x+1,y-1; x+2,y;     x+1,y+1; x-1,y+1; x-2,y]
 
-### 7.1.2 Building the honeycomb
+#### 7.1.2 Building the honeycomb
 
 ![](honey_demo.eps)0,0-0.373032-0.1543520,2-0.3730323.041840,-2-0.394199-3.541041,10.5159741.496664,03.33116-0.239023,12.505661.496662,21.510813.063-2,0-2.23571-0.1543520cm
 
@@ -2964,7 +2906,7 @@ x + abs y <= 2*n &&  not (CellSet.mem (x,y) eaten)
 let honeycells n eaten =  fromto (-2*n) (2*n)|->(fun x ->    fromto 
 (-n) n |-> (fun y ->     guard (insideboard n eaten)        (x, y)))
 
-### 7.1.3 Drawing honeycombs
+#### 7.1.3 Drawing honeycombs
 
 We separately generate colored polygons:
 
@@ -2977,13 +2919,13 @@ let drawtosvg file $\sim$w $\sim$h ?title ?desc curves =  let f = openout file i
 But we also want to draw on a screen window – we need to link the `Graphics` 
 library. In the interactive toplevel:
 
-#load "graphics.cma";;
+##load "graphics.cma";;
 
 When compiling we just provide `graphics.cma` to the command.
 
 let drawtoscreen $\sim$w $\sim$h curves =  Graphics.opengraph (" "stringofint w"x"stringofint h);  Graphics.setcolor (Graphics.rgb 50 50 0);We draw a brown background.  Graphics.fillrect 0 0 (Graphics.sizex ()) (Graphics.sizey ());  List.iter (fun (points, (r,g,b)) ->    Graphics.setcolor (Graphics.rgb r g b);    Graphics.fillpoly points) curves;  if Graphics.readkey () = `'q'`We wait so that solutions can be seen  then failwith "User interrupted finding solutions.";as they're computed.  Graphics.closegraph ()
 
-## 7.2 Testing correctness of a solution
+### 7.2 Testing correctness of a solution
 
 We walk through each island counting its cells, depth-first: having visited 
 everything possible in one direction, we check whether something remains in 
@@ -3022,7 +2964,7 @@ Initially there are no islands already visited.
 
   checkboard 0 honey emptycells
 
-## 7.3 Interlude: multiple results per step
+### 7.3 Interlude: multiple results per step
 
 When there is only one possible result per step, we work through a list using 
 List.foldright and List.foldleft functions.
@@ -3038,7 +2980,7 @@ We shortened `concat_map` calls using “work |-> (fun a\_result ->
 let rec concatfold f a = function  | [] -> [a]  | x::xs ->     f x a 
 |-> (fun a' -> concatfold f a' xs)
 
-## 7.4 Generating a solution
+### 7.4 Generating a solution
 
 We turn the code for testing a solution into one that generates a correct 
 solution.
@@ -3096,7 +3038,7 @@ let ans1 = findtoeat testtask1.boardsize testtask1.islandsize  testtask1.numisla
 
 (See `Lec6.ml` for definitions of test cases.)
 
-## 7.5 Optimizations for *Honey Islands*
+### 7.5 Optimizations for *Honey Islands*
 
 * Main rule: **fail** (drop solution candidates) **as early as possible**.
   * Is the number of solutions generated by the more brute-force approach 
@@ -3159,7 +3101,7 @@ Finally, we compute the required length of `eaten` and start searching.
   let cellstoeat =    List.length honey - islandsize * numislands in  
 findboard (initstate honey cellstoeat)
 
-# 8 Constraint-based puzzles
+## 8 Constraint-based puzzles
 
 * Puzzles can be presented by providing the general form of solutions, and 
   additional requirements that the solutions must meet.
@@ -3200,12 +3142,7 @@ findboard (initstate honey cellstoeat)
   sketchy. Questions?
 * We will not discuss a complete implementation example, but you can exploit 
   ideas from the algorithm in your homework.
-# Chapter 7
-Functional Programming
-
-
-
-Lecture 7: Laziness
+# Lecture 7: Laziness
 
 Lazy evaluation. Stream processing.
 
@@ -3216,13 +3153,13 @@ Linear Pretty-Printing''*
 
 If you see any error on the slides, let me know!
 
-# 1 Laziness
+## 1 Laziness
 
 * Today's lecture is about lazy evaluation.
 * Thank you for coming, goodbye!
 * But perhaps, do you have any questions?
 
-# 2 Evaluation strategies and parameter passing
+## 2 Evaluation strategies and parameter passing
 
 * **Evaluation strategy** is the order in which expressions are computed.
   * For the most part: when are arguments computed.
@@ -3268,7 +3205,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * ML languages have built-in support for lazy evaluation.
 * Haskell has built-in support for eager evaluation.
 
-# 3 Call-by-name: streams
+## 3 Call-by-name: streams
 
 * Call-by-name is useful not only for implementing flow control
   * let ifthenelse cond e1 e2 =  match cond with true -> e1 () | 
@@ -3320,7 +3257,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   * Streams minimize space consumption at the expense of time for 
     recomputation.
 
-# 4 Lazy values
+## 4 Lazy values
 
 * Lazy evaluation is more general than call-by-need as any value can be lazy, 
   not only a function parameter.
@@ -3371,7 +3308,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
   </table>-3.24858-1.02259-3.5449133483265-0.239416589495965-3.290911496229660.0569189046170128-2.40191-1.00142-2.65590686598756-0.281750231512105-2.380738192882660.0145852626008731-1.5129-0.980255-1.70339992062442-0.218249768487895-1.512898531551790.0145852626008731-0.327557-1.02259-0.772059796269348-0.0489152004233364-0.3063897340918110.1839198306654320.878952-1.022590.392115359174494-0.2394165894959650.6037835692551920.0780857256250827-3.56608-0.260583-3.629580632358780.691923534859108-3.33324513824581.03059267098823-2.67707-0.260583-2.69824050800370.734257176875248-2.42307183489881.0517594919963-1.7034-0.21825-1.872734488688980.670756713851039-1.555232173567931.0517594919963-0.77206-0.0489152-0.9413943643339070.903591744939807-0.6238920492128591.094093134012440.392115-0.2394170.2862812541341450.6284230718348990.6249503902632621.0517594919963*-2.60922-0.546619*-1.66302-0.503353*-0.632667-0.5082*0.504955-0.500198*-3.48713460768869-0.5100825754830590cm
 
-# 5 Power series and differential equations
+## 5 Power series and differential equations
 
 * Differential equations idea due to Henning Thielemann. **Just an example.**
 * Expression $P (x) = \sum_{i = 0}^n a_{i} x^i$ defines a polynomial for $n 
@@ -3405,7 +3342,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let invfact = lmap (fun n -> 1. /. floatofint n) lfactlet e = lhorner 1. 
   invfact
 
-## 5.1 Power series / polynomial operations
+### 5.1 Power series / polynomial operations
 
 * let rec add xs ys =  match xs, ys with    | LNil,  -> ys    | , 
   LNil -> xs    | LCons (x,xs), LCons (y,ys) ->      LCons (x +. y, 
@@ -3432,7 +3369,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   tl) -> tl
 * let differentiate xs =  lmap (uncurry ( *.)) (lzip (ltail xs, posnums))
 
-## 5.2 Differential equations
+### 5.2 Differential equations
 
 * $\frac{\mathrm{d} \sin x}{\mathrm{d} x} = \cos x, \frac{\mathrm{d} \cos 
   x}{\mathrm{d} x} = - \sin x, \sin 0 = 0, \cos 0 = 1$.
@@ -3463,7 +3400,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   tbeg) /. ofint w in  Array.init w (fun i ->    let y = lhorner (dt *. 
   ofint i) f in    i, to\_int (scale *. y))
 
-# 6 Arbitrary precision computation
+## 6 Arbitrary precision computation
 
 * Putting it all together reveals drastic numerical errors for large $x$.
 
@@ -3508,7 +3445,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 
 ![](chain_reaction.eps)
 
-# 7 Circular data structures: double-linked list
+## 7 Circular data structures: double-linked list
 
 * Without delayed computation, the ability to define data structures with 
   referential cycles is very limited.
@@ -3538,7 +3475,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
 * let rec dlbackwards n l =  match l with    | DLCons (lazy xs, x, ) when 
   n>0 ->      x::dlbackwards (n-1) xs    |  -> []
 
-# 8 Input-Output streams
+## 8 Input-Output streams
 
 * The stream type used a throwaway argument to make a suspension
 
@@ -3578,7 +3515,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
     </table>0.02903822.280180.02903823257044581.41233959518455-0.03446220.459833-0.0344622304537637-0.492674295541738-0.0132954-1.40285-0.0132954094456939-2.228353618203470cm
   * Notice how the output stream is ahead of the input stream.
 
-## 8.1 Pipes
+### 8.1 Pipes
 
 * We need a more flexible input-output stream definition.
   * Consume several inputs to produce a single output.
@@ -3619,7 +3556,7 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let rec iterate f : 'a opipe =  Await (fun x -> let () = f x in iterate 
   f)
 
-## 8.2 Example: pretty-printing
+### 8.2 Example: pretty-printing
 
 * Print hierarchically organized document with a limited line width.
 
@@ -3924,12 +3861,7 @@ class="verbatim">g</tt>.</td>
 
 
 </table>-5.769180.217059-4.245171318957530.217059134806191-3.800670.238226-2.44599153327160.746229660007938-3.821830.259393-2.4459915332716-0.2909445693874851.088870.2170593.988722053181640.7250628389998681.046530.1958923.96755523217357-0.3332782114036250cm*
-# Chapter 8
-Functional Programming
-
-
-
-Lecture 8: Monads
+# Lecture 8: Monads
 
 List comprehensions. Basic monads; transformers. Probabilistic
 Programming.Lightweight cooperative threads.
@@ -3940,7 +3872,7 @@ Haskell''*.Jerome Vouillon *‘‘Lwt: a Cooperative Thread Library''*.
 
 If you see any error on the slides, let me know!
 
-# 1 List comprehensions
+## 1 List comprehensions
 
 * Recall the awkward syntax we used in the Countdown Problem example:
   * Brute-force generation:
@@ -4000,7 +3932,7 @@ If you see any error on the slides, let me know!
     [[]]  | xs ->    [x::ys | x,xs' <- select xs; ys <- selperms 
     xs']
 
-# 2 Generalized comprehensions aka. *do-notation*
+## 2 Generalized comprehensions aka. *do-notation*
 
 * We need to install the syntax extension `pa_monad`
   * by copying the `pa_monad.cmo or pa_monad400.cmo` (for OCaml 4.0) file from 
@@ -4033,7 +3965,7 @@ If you see any error on the slides, let me know!
 * let solutions ns n =  perform with (|->) in    ns' <-- choices ns;  
     e <-- exprs ns';    guard (eval e = Some n);    [e]
 
-# 3 Monads
+## 3 Monads
 
 * A polymorphic type `'a monad` (or `'a Monad.t`, etc.) that supports at least 
   two operations:
@@ -4131,7 +4063,7 @@ If you see any error on the slides, let me know!
 </table>
 * It can be useful to redefine: let failwith  = fail (*why?*)
 
-## 3.1 Monad laws
+### 3.1 Monad laws
 
 * A parametric data type is a monad only if its `bind` and `return` operations 
   meet axioms:
@@ -4148,7 +4080,7 @@ If you see any error on the slides, let me know!
 
   let bind a b = concatmap b alet return x = [x]
 
-## 3.2 Monoid laws and *monad-plus*
+### 3.2 Monoid laws and *monad-plus*
 
 * A monoid is a type with, at least, two operations
   * `mzero : 'a monoid`
@@ -4195,7 +4127,7 @@ If you see any error on the slides, let me know!
     let fail = mzero  let failwith  = fail  let (++) = mplus  let 
   (>>=) a b = bind a b  let guard p = if p then return () else fail
 
-## 3.3 Backtracking: computation with choice
+### 3.3 Backtracking: computation with choice
 
 We have seen `mzero`, i.e. `fail` in the countdown problem. What about 
 `mplus`?
@@ -4215,7 +4147,7 @@ then fail              else findisland neighbor s in            mplus
 chooseeat choosekeep)        s in    let cellstoeat =    List.length honey - 
 islandsize * numislands in  findboard (initstate honey cellstoeat)
 
-# 4 Monad “flavors”
+## 4 Monad “flavors”
 
 * Monads “wrap around” a type, but some monads need an additional type 
   parameter.
@@ -4270,7 +4202,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
     Example: lightweight threads.
 
-# 5 Interlude: the module system
+## 5 Interlude: the module system
 
 * I provide below much more information about the module system than we need, 
   just for completeness. You can use it as reference.
@@ -4343,14 +4275,14 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
     val test : int -> int = <fun>
     ```
 
-# 6 The two metaphors
+## 6 The two metaphors
 
 * Monads can be seen as **containers**: `'a monad` contains stuff of type `'a`
 * and as **computation**: `'a monad` is a special way to compute `'a`.
   * A monad fixes the sequence of computing steps – unless it is a fancy monad 
     like parallel computation monad.
 
-## 6.1 Monads as containers
+### 6.1 Monads as containers
 
 * A monad is a *quarantine container*:
   * we can put something into the container with `return`
@@ -4369,7 +4301,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
   container, other monads provide a `run` operation that exposes “what really 
   happened behind the quarantine”.
 
-## 6.2 Monads as computation
+### 6.2 Monads as computation
 
 * To compute the result, perform instructions, naming partial results.
 * Physical metaphor: **assembly line**
@@ -4420,7 +4352,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
 
 
-# 7 Monad classes
+## 7 Monad classes
 
 * To implement a monad we need to provide the implementation type, `return` 
   and `bind` operations.
@@ -4494,7 +4426,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
   The purpose of this signature is inclusion in other signatures.
 
-# 8 Monad instances
+## 8 Monad instances
 
 * We do not define a class for monads with access since accessing means 
   running the monad, not useful while in the monad.
@@ -4510,7 +4442,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
   concatmap b a  let return a = [a]  let mzero = []  let mplus = 
   List.appendend)
 
-## 8.1 Backtracking parameterized by monad-plus 
+### 8.1 Backtracking parameterized by monad-plus 
 
 module Countdown (M : MONADPLUSOPS) = struct  open MOpen the module to make 
 monad operations visible.
@@ -4560,7 +4492,7 @@ ns;pick numbers and their order,      (e,m) <-- results ns';build
 possible expressions,      guard (m=n);check if the expression gives target 
 value,      return (expr2str e)‘‘print'' the solution.end
 
-## 8.2 Understanding laziness
+### 8.2 Understanding laziness
 
 * We will measure execution times:
 
@@ -4656,7 +4588,7 @@ value,      return (expr2str e)‘‘print'' the solution.end
   * But computing all solutions takes nearly twice as long as without the 
     overhead of lazy computation.
 
-## 8.3 The exception monad
+### 8.3 The exception monad
 
 * Built-in non-functional exceptions in OCaml are more efficient (and more 
   flexible).
@@ -4676,7 +4608,7 @@ module M = struct    type 'a t = OK of 'a | Bad of excn    let return a = OK a
 e  end  include M  include MonadOps(M)  let throw e = Bad e  let catch m 
 handler = match m with    | OK  -> m    | Bad e -> handler eend
 
-## 8.4 The state monad
+### 8.4 The state monad
 
 module StateM(Store : sig type t end) : sig  type store = Store.`t`Pass the 
 current `store` value to get the next value.type 'a t = store -> 'a * 
@@ -4732,7 +4664,7 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   (x', t'))    | App (t1, t2) -> perform      t1 <-- aux t1; t2 
   <-- aux t2;      return (App (t1, t2)) in  run (aux t) (0, [])
 
-# 9 Monad transformers
+## 9 Monad transformers
 
 * Based on: 
   [http://lambda.jimpryor.net/monad\_transformers/](http://lambda.jimpryor.net/monad_transformers/)
@@ -4785,7 +4717,7 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   s -> M.bind (u s) (fun (a, s') -> f a s')Rather than let-binding, 
   M.bind
 
-## 9.1 State transformer
+### 9.1 State transformer
 
 module StateT (MP : MONADPLUSOPS) (Store : sig type t end) : sigFunctor takes 
 two modules -- the second one  type store = Store.`t`provides only the storage 
@@ -4804,7 +4736,7 @@ MP.mplus (ma s) (mb s)  end  include M  include MonadPlusOps(M)  let get = fun
 s -> MP.return (s, s)Instead of just returning,  let put s' = fun  -> 
 MP.return ((), s')MP.return.  let runT m s = MP.lift fst (m s)end
 
-## 9.2 Backtracking with state
+### 9.2 Backtracking with state
 
 module HoneyIslands (M : MONADPLUSOPS) = struct  type state = {For use with 
 list monad or lazy list monad.    beensize: int;    beenislands: int;    
@@ -4854,7 +4786,7 @@ initstate honey cellstoeat    |> runT (findboard ())endmodule HoneyL =
 HoneyIslands (ListM)let findtoeat a b c d =  ListM.run (HoneyL.findtoeat a b c 
 d)
 
-# 10 Probabilistic Programming
+## 10 Probabilistic Programming
 
 * Using a random number generator, we can define procedures that produce 
   various output. This is **not functional** – mathematical functions have a 
@@ -4872,7 +4804,7 @@ d)
     continuations, memoisation and reified search 
     trees:[http://okmij.org/ftp/kakuritu/index.html](http://okmij.org/ftp/kakuritu/index.html)
 
-## 10.1 The probability monad
+### 10.1 The probability monad
 
 * The essential functions for the probability monad class are `choose` and 
   `distrib` – remaining functions could be defined in terms of these but are 
@@ -4955,7 +4887,7 @@ d)
   do      dist := (m (), 1.) :: !dist done;    normalize (`merge` !dist)  let 
   access m = m ()end
 
-## 10.2 Example: The Monty Hall problem
+### 10.2 Example: The Monty Hall problem
 
 * 
   [http://en.wikipedia.org/wiki/Monty\_Hall\_problem](http://en.wikipedia.org/wiki/Monty_Hall_problem):
@@ -4983,7 +4915,7 @@ d)
   (MontySimul.montywin true);;val t4 : (bool * float) list = [(true, 0.655); 
   (false, 0.345)]
   ```
-## 10.3 Conditional probabilities
+### 10.3 Conditional probabilities
 
 * Wouldn't it be nice to have a monad-plus rather than a monad?
 * We could use `guard` – conditional probabilities!
@@ -5043,7 +4975,7 @@ d)
     with Rejected -> ()    done;    normalize (merge !dist)  let rec 
   access m =    try m () with Rejected -> access mend
 
-## 10.4 Burglary example: encoding a Bayes net
+### 10.4 Burglary example: encoding a Bayes net
 
 * We're faced with a problem with the following dependency structure:
 
@@ -5169,7 +5101,7 @@ $\sim$marycalled:true     $\sim$radio:(Some true));;    val t6 :
 [(BurglarySimul.Burglnearthq, 0.0015); (BurglarySimul.Earthq, 0.9985)]
 ```
 
-# 11 Lightweight cooperative threads
+## 11 Lightweight cooperative threads
 
 * `bind` is inherently sequential: bind a (fun x -> b) computes `a`, and 
   resumes computing `b` only once the result `x` is known.
@@ -5284,12 +5216,7 @@ assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
 ```ocaml
 # let test =    Cooperative.killthreads ();    let thread1 = TT.loop "A" 5 in    let thread2 = TT.loop "B" 4 in    Cooperative.access thread1;    Cooperative.access thread2;;-- A(5)-- B(4)-- A(4)-- B(3)-- A(3)-- B(2)-- A(2)-- B(1)-- A(1)-- B(0)-- A(0)val test : unit = ()
 ```
-# Chapter 9
-Functional Programming
-
-
-
-Lecture 9: Compiler
+# Lecture 9: Compiler
 
 Compilation. Runtime. Optimization. Parsing.
 
@@ -5300,7 +5227,7 @@ Reference Manual*''
 
 If you see any error on the slides, let me know!
 
-# 1 OCaml Compilers
+## 1 OCaml Compilers
 
 * OCaml has two primary compilers: the bytecode compiler `ocamlc` and the 
   native code compiler `ocamlopt`.
@@ -5592,7 +5519,7 @@ If you see any error on the slides, let me know!
   </tr></tbody>
 </table>
 
-## 1.1 Compiling multiple-file projects
+### 1.1 Compiling multiple-file projects
 
 * Traditionally the file containing a module would have a lowercase name, 
   although the module name is always uppercase.
@@ -5645,7 +5572,7 @@ ocamldep -native $(SOURCES) $(INTERFACES)
 
     `ocamlbuild -libs unix main.native --`
 
-## 1.2 Editors
+### 1.2 Editors
 
 * Emacs
   * `ocaml-mode` from the standard distribution
@@ -5692,7 +5619,7 @@ ocamldep -native $(SOURCES) $(INTERFACES)
   * Camelia [http://camelia.sourceforge.net/](http://camelia.sourceforge.net/) 
     (even older)
 
-# 2 Imperative features in OCaml
+## 2 Imperative features in OCaml
 
 OCaml is **not** a *purely functional* language, it has built-in:
 
@@ -5728,7 +5655,7 @@ OCaml is **not** a *purely functional* language, it has built-in:
 Using **global** state e.g. reference cells makes code *non re-entrant*: 
 finish one task before starting another – any form of concurrency is excluded.
 
-## 2.1 Parsing command-line arguments
+### 2.1 Parsing command-line arguments
 
 To go beyond Sys.argv array, see Arg 
 module:[http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html](http://caml.inria.fr/pub/docs/manual-ocaml/libref/Arg.html)
@@ -5744,9 +5671,9 @@ lines");    ("-min", Arg.Int (setnbmines cf), "number of mines")] in  let
 usagemsg =    "usage : minesweep [-col n] [-lin n] [-min n]" in   Arg.parse 
 speclist (fun s -> ()) usagemsg; !cf
 
-# 3 OCaml Garbage Collection
+## 3 OCaml Garbage Collection
 
-## 3.1 Representation of values
+### 3.1 Representation of values
 
 * Pointers always end with `00` in binary (addresses are in number of bytes).
 * Integers are represented by shifting them 1 bit, setting the last bit to 
@@ -5764,7 +5691,7 @@ speclist (fun s -> ()) usagemsg; !cf
     variant type (some tag numbers are reserved).
   * *Polymorphic variants* are a different story.
 
-## 3.2 Generational Garbage Collection
+### 3.2 Generational Garbage Collection
 
 * OCaml has two heaps to store blocks: a small, continuous *minor heap* and a 
   growing-as-necessary *major heap*.
@@ -5781,7 +5708,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * Great if most minor heap blocks are already not needed when collection 
   starts – garbage does **not** slow down collection.
 
-## 3.3 Stop & Copy GC
+### 3.3 Stop & Copy GC
 
 * Minor collection starts from a set of *roots* – young blocks that definitely 
   are not garbage.
@@ -5797,7 +5724,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * At the end of collection, the young pointer is reset so that the minor heap 
   is empty again.
 
-## 3.4 Mark & Sweep GC
+### 3.4 Mark & Sweep GC
 
 * Major collection starts from a separate root set – old blocks that 
   definitely are not garbage.
@@ -5820,7 +5747,7 @@ speclist (fun s -> ()) usagemsg; !cf
 * ![](book-ora034-GC_Marking_phase.gif)
 * ![](book-ora035-GC_Sweep_phase.gif)
 
-# 4 Stack Frames and Closures
+## 4 Stack Frames and Closures
 
 * The nesting of procedure calls is reflected in the *stack* of procedure 
   data.
@@ -5858,7 +5785,7 @@ speclist (fun s -> ()) usagemsg; !cf
     latter case, the nested functions must also be represented by closures 
     that have a link to the closure of `f`.
 
-## 4.1 Tail Recursion
+### 4.1 Tail Recursion
 
 * A function call `f x` within the body of another function `g` is in *tail 
   position* if, roughly “calling `f` is the last thing that `g` will do before 
@@ -5877,12 +5804,12 @@ speclist (fun s -> ()) usagemsg; !cf
   native code will sometimes cause *segmentation fault*!
 * List`.map` from the standard distribution is **not** tail-recursive.
 
-## 4.2 Generated assembly
+### 4.2 Generated assembly
 
 * Let us look at examples from 
   [http://ocaml.org/tutorials/performance\_and\_profiling.html](http://ocaml.org/tutorials/performance_and_profiling.html)
 
-# 5 Profiling and Optimization
+## 5 Profiling and Optimization
 
 * Steps of optimizing a program:
   1. Profile the program to find bottlenecks: where the time is spent.
@@ -5899,7 +5826,7 @@ speclist (fun s -> ()) usagemsg; !cf
   1. *Deforestation*.
   1. *Defunctorization*.
 
-## 5.1 Profiling
+### 5.1 Profiling
 
 * We cover native code profiling because it is more useful.
   * It relies on the “Unix” profiling program `gprof`.
@@ -5990,7 +5917,7 @@ index % time    self  children    called     name
                 8.54    3.60 306656692/306656698     compare_val [3]
 ```
 
-## 5.2 Algorithmic optimizations
+### 5.2 Algorithmic optimizations
 
 * (All times measured with profiling turned on.)
 * `Optim0.ml` asymptotic time complexity: $\mathcal{O} (n^2)$, time: 22.53s.
@@ -6017,7 +5944,7 @@ index % time    self  children    called     name
   complexity** in terms of the $\mathcal{O} (\cdot)$ notation, but we will not 
   pursue complexity analysis in the remainder of the lecture.
 
-## 5.3 Low-level optimizations
+### 5.3 Low-level optimizations
 
 * Optimizations below have been made *for educational purposes only*.
 * Avoid polymorphism in generic comparison function (=).
@@ -6050,7 +5977,7 @@ index % time    self  children    called     name
   * The slight speedup comes from the fact that functor arguments are 
     implemented as records of functions.
 
-## 5.4 Comparison of data structure implementations
+### 5.4 Comparison of data structure implementations
 
 * We perform a rough comparison of association lists, tree-based maps and 
   hashtables. Sets would give the same results.
@@ -6357,7 +6284,7 @@ index % time    self  children    called     name
 * Unfortunately OCaml and Haskell do not encourage the use of efficient maps, 
   the way Scala and Python have built-in syntax for them.
 
-# 6 Parsing: ocamllex and Menhir
+## 6 Parsing: ocamllex and Menhir
 
 * *Parsing* means transforming text, i.e. a string of characters, into a data 
   structure that is well fitted for a given task, or generally makes 
@@ -6375,7 +6302,7 @@ index % time    self  children    called     name
   parsing, a successor of `ocamlyacc`, belonging to the *yacc*/*bison* family 
   of parsers.
 
-## 6.1 Lexing with *ocamllex*
+### 6.1 Lexing with *ocamllex*
 
 * The format of lexer definitions is as follows: file with extension `.mll`
 
@@ -6443,7 +6370,7 @@ index % time    self  children    called     name
 
   *transition table overflow, automaton is too big*
 
-### 6.1.1 Example: Finding email addresses
+#### 6.1.1 Example: Finding email addresses
 
 * We mine a text file for email addresses, that could have been obfuscated to 
   hinder our job…
@@ -6492,7 +6419,7 @@ OCaml code.  let  =Open a file and start mining for email addresses.    let ch
 = openin Sys.argv.(1) in    email Seek (Lexing.fromchannel ch);    closein 
 chClose the file at the end.}
 
-## 6.2 Parsing with Menhir
+### 6.2 Parsing with Menhir
 
 * The format of parser definitions is as follows: file with extension `.mly`
 
@@ -6591,7 +6518,7 @@ chClose the file at the end.}
   $`endpos`(`x`) where `x` is name given to part of pattern.
   * Do not use the Parsing module from OCaml standard library.
 
-### 6.2.1 Example: parsing arithmetic expressions
+#### 6.2.1 Example: parsing arithmetic expressions
 
 * Example based on a Menhir demo. Due to difficulties with `ocamlbuild`, we 
   use option `--external-tokens` to provide type token directly rather than 
@@ -6647,7 +6574,7 @@ chClose the file at the end.}
   * `--external-tokens` provides the OCaml module which defines the `token` 
     type
 
-### 6.2.2 Example: a toy sentence grammar
+#### 6.2.2 Example: a toy sentence grammar
 
 * Our lexer is a simple limited *part-of-speech tagger*. Not re-entrant.
 * For debugging, we log execution in file `log.txt`.
@@ -6753,7 +6680,7 @@ syntax error.n%!"          (Lexing.lexemestart linebuf)  done
   `ocamlbuild Eng.native -use-menhir -menhir "menhir EngParser.mly --base 
   EngParser --external-tokens EngLexer" --`
 
-# 7 Example: Phrase search
+## 7 Example: Phrase search
 
 * In lecture 6 we performed keyword search, now we turn to *phrase search* 
   i.e. require that given words be consecutive in the document.
@@ -6835,7 +6762,7 @@ ws in      aux (List.revappend ws words)    | OPEN  | CLOSE  | SENTENCE  |
 PUNCT  | COMMENT  ->      aux words    | EOF -> List.rev words in  aux 
 []
 
-### 1 Naive implementation of phrase search
+#### 1 Naive implementation of phrase search
 
 * We need *postings lists* with positions of words rather than just the 
   document or line of document they belong to.
@@ -6873,20 +6800,20 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
 * Invocation: `ocamlbuild InvIndex.native -libs unix --`
 * Time: 7.3s
 
-### 2 Replace association list with hash table
+#### 2 Replace association list with hash table
 
 * I recommend using either *OCaml Batteries* or *OCaml Core* – replacement for 
   the standard library. *Batteries* has efficient Hashtbl.map (our `mapv`).
 * Invocation: `ocamlbuild InvIndex1.native -libs unix --`
 * Time: 6.3s
 
-### 3 Replace naive merging with ordered merging
+#### 3 Replace naive merging with ordered merging
 
 * Postings lists are already ordered.
 * Invocation: `ocamlbuild InvIndex2.native -libs unix --`
 * Time: 2.5s
 
-### 4 Bruteforce optimization: biword indexes
+#### 4 Bruteforce optimization: biword indexes
 
 * Pairs of words are much less frequent than single words so storing them 
   means less work for postings lists merging.
@@ -6898,7 +6825,7 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
   ./InvIndex3.native`
 * Time: 2.4s – disappointing.
 
-## 7.1 Smart way: *Information Retrieval* G.V. Cormack et al.
+### 7.1 Smart way: *Information Retrieval* G.V. Cormack et al.
 
 * You should classify your problem and search literature for state-of-the-art 
   algorithm to solve it.
@@ -6915,7 +6842,7 @@ shakespeare q in  Printf.printf "%s: lines %sn%!" q    (String.concat ", "
   * Imperative linear search.
   * Imperative *galloping search* optimization of binary search.
 
-### 7.1.1 The phrase search algorithm
+#### 7.1.1 The phrase search algorithm
 
 * During search we maintain *current position* `cp` of last found word or 
   phrase.
@@ -6939,20 +6866,20 @@ occurrences of the phrase.      let np, fp = nextphrase ii phrase cp in
 np :: aux fp    with Notfound -> [] inMoved past last occurrence.  
 List.map (findline linebreaks) (aux (-1))
 
-### 7.1.2 Naive but purely functional inverted index
+#### 7.1.2 Naive but purely functional inverted index
 
 module S = Set.Make(struct type t=int let compare i j = i-j end)let update ii (w, p) =  (try    let ps = Hashtbl.find ii w in    Hashtbl.replace ii w (S.add p ps)  with Notfound -> Hashtbl.add ii w (S.singleton p));  iilet first ii w = S.minelt (find w ii)The functions raise Not\_foundlet last ii w = S.maxelt (find w ii)whenever such position would not exist.let prev ii w cp =  let ps = find w ii inSplit the set into elements  let smaller, ,  = S.split cp ps insmaller and bigger than `cp`.  S.maxelt smallerlet next ii w cp =  let ps = find w ii in  let , , bigger = S.split cp ps in  S.minelt bigger
 
 * Invocation: `ocamlbuild InvIndex4.native -libs unix --`
 * Time: 3.3s – would be better without the overhead of S.split.
 
-### 7.1.3 Binary search based inverted index
+#### 7.1.3 Binary search based inverted index
 
 let prev ii w cp =  let ps = find w ii in  let rec aux b e =We implement binary search separately for `prev`    if e-b <= 1 then ps.(b)to make sure here we return less than `cp`    else let m = (b+e)/2 in         if ps.(m) < cp then `aux m e`else aux b m in  let l = Array.length ps in  if l = 0 || ps.(0) >= cp then raise Notfound  else aux 0 (l-1)let next ii w cp =  let ps = find w ii in  let rec aux b e =    if e-b <= 1 then ps.(e)and here more than `cp`.    else let m = (b+e)/2 in         if ps.(m) <= cp then aux m e         else aux b m in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound  else aux 0 (l-1)
 
 * File: `InvIndex5.ml`. Time: 2.4s
 
-### 7.1.4 Imperative, linear scan
+#### 7.1.4 Imperative, linear scan
 
 let prev ii w cp =  let cw,ps = find w ii inFor each word we add a cell with last visited occurrence.  let l = Array.length ps in  if l = 0 || ps.(0) >= cp then raise Notfound  else if ps.(l-1) < cp then cw := l-1  else (Reset pointer if current position is not ‘‘ahead'' of it.    if !cw < l-1 && ps.(!cw+1) < cp then cw := l-1;Otherwise scan    while ps.(!cw) >= cp do decr cw donestarting from last visited.  );  ps.(!cw)let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound  else if ps.(0) > cp then cw := 0  else (Reset pointer if current position is not ahead of it.    if !cw > 0 && ps.(!cw-1) > cp then cw := 0;    while ps.(!cw) <= cp do incr cw done  );  ps.(!cw)
 
@@ -6964,7 +6891,7 @@ let prev ii w cp =  let cw,ps = find w ii inFor each word we add a cell with las
 
 
 
-### 7.1.5 Imperative, galloping search
+#### 7.1.5 Imperative, galloping search
 
 let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l = 0 || ps.(l-1) <= cp then raise Notfound;  let rec jump (b,e as bounds) j =Locate the interval with `cp` inside.    if e < l-1 && ps.(e) <= cp then jump (e,e+j) (2*j)    else bounds in  let rec binse b e =Binary search over that interval.    if e-b <= 1 then e    else let m = (b+e)/2 in         if ps.(m) <= cp then binse m e         else binse b m in  if ps.(0) > cp then cw := 0  else (    let b =The invariant is that ps.(b) <= `cp`.      if !cw > 0 && ps.(!cw-1) <= cp then !cw-1 else 0 in    let b,e = jump (b,b+1) 2 inLocate interval starting near !`cw`.    let e = if e > l-1 then l-1 else e in    cw := binse b e  );  ps.(!cw)
 
@@ -6973,12 +6900,7 @@ let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l =
 * Time: 2.4s – minimal speedup in our simple test case.
 
 
-# Chapter 10
-Functional Programming
-
-
-
-Lecture 10: FRP
+# Lecture 10: FRP
 
 Zippers. Functional Reactive Programming. GUIs.
 
@@ -6989,7 +6911,7 @@ Martin Odersky
 
 If you see any error on the slides, let me know!
 
-# 1 Zippers
+## 1 Zippers
 
 * We would like to keep track of a position in a data structure: easily access 
   and modify it at that location, easily move the location around.
@@ -7070,7 +6992,7 @@ loc =Go to the first (i.e. leftmost) subdocument.  match loc.sub with  | Text
 line"  | Group [] -> invalidarg "godown: at empty"  | Group 
 (doc::docs) -> {sub=doc; ctx=([], docs)::loc.ctx}
 
-## 1.1 Example: Context rewriting
+### 1.1 Example: Context rewriting
 
 * Our friend working on the string theory asked us for help with simplifying 
   his equations.
@@ -7123,7 +7045,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   "(((x*y)*(3+y))+(((7*y)*(3+y))+5))"
 * For best results we can iterate the `pull_out` function until fixpoint.
 
-# 2 Adaptive Programming aka.Incremental Computing
+## 2 Adaptive Programming aka.Incremental Computing
 
 * Zippers are somewhat unnatural.
 * Once we change the data-structure, it is difficult to propagate the changes 
@@ -7139,7 +7061,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
     the ability to modify them is exposed by type `'a Froc_sa.u` – 
     the *writeables*.
 
-### 1 Dependency Graphs (explained by Jake Dunham)
+#### 1 Dependency Graphs (explained by Jake Dunham)
 
 * The monadic value `'a changeable` will be the *dependency graph* of the 
   computation of the represented value `'a`.
@@ -7194,7 +7116,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   updating.
   * Are they up-to-date? Run updating past the node's timestamp range.
 
-## 2.1 Example using *Froc*
+### 2.1 Example using *Froc*
 
 * Download *Froc* from 
   [https://github.com/jaked/froc/downloads](https://github.com/jaked/froc/downloads)
@@ -7266,7 +7188,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   </tr></tbody>
 </table>
 
-# 3 Functional Reactive Programming
+## 3 Functional Reactive Programming
 
 * FRP is an attempt to declaratively deal with time.
 * *Behaviors* are functions of time.
@@ -7351,7 +7273,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   “signal” is used as our behavior (check terminology when looking at a new 
   FRP library).
 
-# 4 Reactivity by Stream Processing
+## 4 Reactivity by Stream Processing
 
 * The stream processing infrastructure should be familiar.
 
@@ -7429,7 +7351,7 @@ let rec pullout loc =  match loc.ctx with  | [] -> `loc`Done.| (Leftarg, op, l) 
   snd mm)let width : int behavior = step 640 (liftE fst screen)let height : 
   int behavior = step 512 (liftE snd screen)
 
-### 1 The Paddle Game example
+#### 1 The Paddle Game example
 
 * A *scene graph* is a data structure that represents a “world” which can be 
   drawn on screen.
@@ -7511,7 +7433,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   graphics,unix,threads/threads --`
 * ![](Lec10b.png)
 
-# 5 Reactivity by Incremental Computing
+## 5 Reactivity by Incremental Computing
 
 * In *Froc* behaviors and events are both implemented as changeables but only 
   behaviors persist, events are “instantaneous”.
@@ -7562,7 +7484,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
     somewhere). Signals can be referred to by being part of the dependency 
     graph, but also by any of the more general ways.
 
-### 1 Reimplementing the Paddle Game example
+#### 1 Reimplementing the Paddle Game example
 
 * Rather than following our incremental computing example (a scene with 
   changeable parts), we follow our FRP example: a scene behavior.
@@ -7644,7 +7566,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
 * Invocation:`ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs 
   froc/froc,unix,graphics,threads/threads --`
 
-# 6 Direct Control
+## 6 Direct Control
 
 * Real-world behaviors often are *state machines*, going through several 
   stages. We don't have declarative means for it yet.
@@ -7740,7 +7662,7 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   behaviorflow [] painterlet () = reactimate painter
 * ![](Lec10d.png)
 
-### 1 Flows and state
+#### 1 Flows and state
 
 Global state and thread-local state can be used with lightweight threads, but 
 pay attention to semantics – which computations are inside the monad and which 
@@ -7764,7 +7686,7 @@ d[4]flow: 4flow: 0Program ends while flow in third turn of the loop.
 
 
 
-# 7 Graphical User Interfaces
+## 7 Graphical User Interfaces
 
 * In-depth discussion of GUIs is beyond the scope of this course. We only 
   cover what's needed for an example reactive program with direct control.
@@ -7773,7 +7695,7 @@ d[4]flow: 4flow: 0Program ends while flow in third turn of the loop.
   based on objects. We will learn more about objects and polymorphic variants 
   in next lecture.
 
-## 7.1 Calculator Flow
+### 7.1 Calculator Flow
 
 let digits, digit = F.makeevent ()We represent the mechanicslet ops, op = 
 F.makeevent ()of the calculator directly as a flow.let dots, dot = F.makeevent 
@@ -7789,7 +7711,7 @@ op <-- await ops; return (f := op !now))        $\sim$until:digits;The
 user can pick a different operator.      emit (now := d; !now))Reset the state 
 to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
 
-## 7.2 *Tk*: *LablTk*
+### 7.2 *Tk*: *LablTk*
 
 * Widget toolkit ***Tk*** known from the *Tcl* language.
 * Invocation:`ocamlbuild Lec10tk.byte -cflags -I,+froc -libs froc/froc  -pkg 
@@ -7835,7 +7757,7 @@ to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
   $\sim$text:(stringoffloat now) result);  Tk.mainLoop ()
 * ![](Lec10-Calc_Tk.png)
 
-## 7.3 *GTk+*: *LablGTk*
+### 7.3 *GTk+*: *LablGTk*
 
 * ***LablGTk*** is build as an object-oriented layer over a low-level layer of 
   functions interfacing with the *GTk+* library, which is written in *C*.
@@ -7949,7 +7871,6 @@ None -> () | Some y -> emit y)val local : ('a -> 'b) -> ('a,
 *Implement an example that uses this compositionality-increasing capability.*
 
 
-# Chapter 11
 The Expression Problem
 
 The Expression Problem

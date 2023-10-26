@@ -1,50 +1,19 @@
-Functional Programming
-
-
-
-Lecture 1: Logic
+# Lecture 1: Logic
 
 From logic rules to programming constructs
 
-# 1 In the Beginning there was Logos
+## 1 In the Beginning there was Logos
 
 What logical connectives do you know?
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-  </tr><tr>
-    <td style="text-align: center">truth</td>
-    <td>falsehood</td>
-    <td>conjunction</td>
-    <td>disjunction</td>
-    <td>implication</td>
-  </tr><tr>
-    <td>&ldquo;trivial&rdquo;</td>
-    <td>&ldquo;impossible&rdquo;</td>
-    <td> and </td>
-    <td> or </td>
-    <td> gives </td>
-  </tr><tr>
-    <td></td>
-    <td>shouldn't get</td>
-    <td>got both</td>
-    <td>got one</td>
-    <td>given , we get </td>
-  </tr></tbody>
-</table>
+|$\top$ | $\bot$ | $\wedge$ | $\vee$ | $\rightarrow$
+|---|---|---|---|---
+|   |   | $a \wedge b$ | $a \vee b$ | $a \rightarrow b$
+| truth | falsehood | conjunction | disjunction | implication
+| "trivial" | "impossible" | $a$ and $b$ | $a$ or $b$ | $a$ gives $b$
+|   | shouldn't get | got both | got at least one | given $a$, we get $b$
 
-How can we define them?Think in terms of *derivation trees*:
+How can we define them? Think in terms of *derivation trees*:
 
 $$ \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}

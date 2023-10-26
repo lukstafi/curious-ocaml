@@ -1,12 +1,8 @@
-Functional Programming
-
-
-
-Lecture 2: Algebra
+# Lecture 2: Algebra
 
 Algebraic Data Types and some curious analogies
 
-# 1 A Glimpse at Type Inference
+## 1 A Glimpse at Type Inference
 
 For a refresher, let's try to use the rules we introduced last time on some 
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
@@ -104,7 +100,7 @@ $$ \begin{matrix}
   \text{{\texttt{int}}}} &
 \end{matrix} $$
 
-## 1.1 Curried form
+### 1.1 Curried form
 
 When there are several arrows “on the same depth” in a function type, it means 
 that the function returns a function: e.g. $\text{{\texttt{(+)}}} : 
@@ -124,7 +120,7 @@ expanded form does `((+) 1)` correspond to exactly (computationally)?
 We will get used to functions returning functions when learning about 
 the *lambda calculus*.
 
-# 2 Algebraic Data Types
+## 2 Algebraic Data Types
 
 * Last time we learned about the `unit` type, variant types like:
 
@@ -168,7 +164,7 @@ type 'elem list = Empty | Cons of 'elem * 'elem list
     * F#:`type choice<'a,'b> = Left of 'a | Right of 'b`
     * Haskell:`data Choice a b = Left a | Right b`
 
-# 3 Syntactic Bread and Sugar
+## 3 Syntactic Bread and Sugar
 
 * Names of variants, called *constructors*, must start with capital letter – 
   so if we wanted to define our own booleans, it would be
@@ -192,7 +188,7 @@ type my_bool = True | False
 
 
 
-# 4 Pattern Matching
+## 4 Pattern Matching
 
 * Recall that we introduced `fst` and `snd` as means to access elements of a 
   pair. But what about bigger tuples? The “basic” way of accessing any tuple 
@@ -267,7 +263,7 @@ match day with
   | _ -> None
 ```
 
-# 5 Interpreting Algebraic DTs as Polynomials
+## 5 Interpreting Algebraic DTs as Polynomials
 
 Let's do a peculiar translation: take a data type and replace | with $+$, * 
 with $\times$, treating record types as tuple types (i.e. erasing field names 
@@ -416,7 +412,7 @@ Take-home lessons:
 * Divide solutions into small steps so that each step can be easily understood 
   and checked.
 
-## 5.1 Differentiating Algebraic Data Types
+### 5.1 Differentiating Algebraic Data Types
 
 Of course, you would say, the pompous title is wrong, we will differentiate 
 the translated polynomials. But what sense does it make?
@@ -500,7 +496,7 @@ let rec btree_integr n =
     Node (m, ltree, btree_integr n rtree)
 ```
 
-# 6 Homework
+## 6 Homework
 
 Write a function `btree_deriv_at` that takes a predicate over integers (i.e. a 
 function `f: int -> bool`), and a `btree`, and builds a `btree_deriv` 

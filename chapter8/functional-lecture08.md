@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 8: Monads
+# Lecture 8: Monads
 
 List comprehensions. Basic monads; transformers. Probabilistic
 Programming.Lightweight cooperative threads.
@@ -13,7 +9,7 @@ Haskell''*.Jerome Vouillon *‘‘Lwt: a Cooperative Thread Library''*.
 
 If you see any error on the slides, let me know!
 
-# 1 List comprehensions
+## 1 List comprehensions
 
 * Recall the awkward syntax we used in the Countdown Problem example:
   * Brute-force generation:
@@ -73,7 +69,7 @@ If you see any error on the slides, let me know!
     [[]]  | xs ->    [x::ys | x,xs' <- select xs; ys <- selperms 
     xs']
 
-# 2 Generalized comprehensions aka. *do-notation*
+## 2 Generalized comprehensions aka. *do-notation*
 
 * We need to install the syntax extension `pa_monad`
   * by copying the `pa_monad.cmo or pa_monad400.cmo` (for OCaml 4.0) file from 
@@ -106,7 +102,7 @@ If you see any error on the slides, let me know!
 * let solutions ns n =  perform with (|->) in    ns' <-- choices ns;  
     e <-- exprs ns';    guard (eval e = Some n);    [e]
 
-# 3 Monads
+## 3 Monads
 
 * A polymorphic type `'a monad` (or `'a Monad.t`, etc.) that supports at least 
   two operations:
@@ -204,7 +200,7 @@ If you see any error on the slides, let me know!
 </table>
 * It can be useful to redefine: let failwith  = fail (*why?*)
 
-## 3.1 Monad laws
+### 3.1 Monad laws
 
 * A parametric data type is a monad only if its `bind` and `return` operations 
   meet axioms:
@@ -221,7 +217,7 @@ If you see any error on the slides, let me know!
 
   let bind a b = concatmap b alet return x = [x]
 
-## 3.2 Monoid laws and *monad-plus*
+### 3.2 Monoid laws and *monad-plus*
 
 * A monoid is a type with, at least, two operations
   * `mzero : 'a monoid`
@@ -268,7 +264,7 @@ If you see any error on the slides, let me know!
     let fail = mzero  let failwith  = fail  let (++) = mplus  let 
   (>>=) a b = bind a b  let guard p = if p then return () else fail
 
-## 3.3 Backtracking: computation with choice
+### 3.3 Backtracking: computation with choice
 
 We have seen `mzero`, i.e. `fail` in the countdown problem. What about 
 `mplus`?
@@ -288,7 +284,7 @@ then fail              else findisland neighbor s in            mplus
 chooseeat choosekeep)        s in    let cellstoeat =    List.length honey - 
 islandsize * numislands in  findboard (initstate honey cellstoeat)
 
-# 4 Monad “flavors”
+## 4 Monad “flavors”
 
 * Monads “wrap around” a type, but some monads need an additional type 
   parameter.
@@ -343,7 +339,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
     Example: lightweight threads.
 
-# 5 Interlude: the module system
+## 5 Interlude: the module system
 
 * I provide below much more information about the module system than we need, 
   just for completeness. You can use it as reference.
@@ -416,14 +412,14 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
     val test : int -> int = <fun>
     ```
 
-# 6 The two metaphors
+## 6 The two metaphors
 
 * Monads can be seen as **containers**: `'a monad` contains stuff of type `'a`
 * and as **computation**: `'a monad` is a special way to compute `'a`.
   * A monad fixes the sequence of computing steps – unless it is a fancy monad 
     like parallel computation monad.
 
-## 6.1 Monads as containers
+### 6.1 Monads as containers
 
 * A monad is a *quarantine container*:
   * we can put something into the container with `return`
@@ -442,7 +438,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
   container, other monads provide a `run` operation that exposes “what really 
   happened behind the quarantine”.
 
-## 6.2 Monads as computation
+### 6.2 Monads as computation
 
 * To compute the result, perform instructions, naming partial results.
 * Physical metaphor: **assembly line**
@@ -493,7 +489,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
 
 
-# 7 Monad classes
+## 7 Monad classes
 
 * To implement a monad we need to provide the implementation type, `return` 
   and `bind` operations.
@@ -567,7 +563,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 
   The purpose of this signature is inclusion in other signatures.
 
-# 8 Monad instances
+## 8 Monad instances
 
 * We do not define a class for monads with access since accessing means 
   running the monad, not useful while in the monad.
@@ -583,7 +579,7 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
   concatmap b a  let return a = [a]  let mzero = []  let mplus = 
   List.appendend)
 
-## 8.1 Backtracking parameterized by monad-plus 
+### 8.1 Backtracking parameterized by monad-plus 
 
 module Countdown (M : MONADPLUSOPS) = struct  open MOpen the module to make 
 monad operations visible.
@@ -633,7 +629,7 @@ ns;pick numbers and their order,      (e,m) <-- results ns';build
 possible expressions,      guard (m=n);check if the expression gives target 
 value,      return (expr2str e)‘‘print'' the solution.end
 
-## 8.2 Understanding laziness
+### 8.2 Understanding laziness
 
 * We will measure execution times:
 
@@ -729,7 +725,7 @@ value,      return (expr2str e)‘‘print'' the solution.end
   * But computing all solutions takes nearly twice as long as without the 
     overhead of lazy computation.
 
-## 8.3 The exception monad
+### 8.3 The exception monad
 
 * Built-in non-functional exceptions in OCaml are more efficient (and more 
   flexible).
@@ -749,7 +745,7 @@ module M = struct    type 'a t = OK of 'a | Bad of excn    let return a = OK a
 e  end  include M  include MonadOps(M)  let throw e = Bad e  let catch m 
 handler = match m with    | OK  -> m    | Bad e -> handler eend
 
-## 8.4 The state monad
+### 8.4 The state monad
 
 module StateM(Store : sig type t end) : sig  type store = Store.`t`Pass the 
 current `store` value to get the next value.type 'a t = store -> 'a * 
@@ -805,7 +801,7 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   (x', t'))    | App (t1, t2) -> perform      t1 <-- aux t1; t2 
   <-- aux t2;      return (App (t1, t2)) in  run (aux t) (0, [])
 
-# 9 Monad transformers
+## 9 Monad transformers
 
 * Based on: 
   [http://lambda.jimpryor.net/monad\_transformers/](http://lambda.jimpryor.net/monad_transformers/)
@@ -858,7 +854,7 @@ s' = fun  -> (), s'Change the value; a throwaway in monad.end
   s -> M.bind (u s) (fun (a, s') -> f a s')Rather than let-binding, 
   M.bind
 
-## 9.1 State transformer
+### 9.1 State transformer
 
 module StateT (MP : MONADPLUSOPS) (Store : sig type t end) : sigFunctor takes 
 two modules -- the second one  type store = Store.`t`provides only the storage 
@@ -877,7 +873,7 @@ MP.mplus (ma s) (mb s)  end  include M  include MonadPlusOps(M)  let get = fun
 s -> MP.return (s, s)Instead of just returning,  let put s' = fun  -> 
 MP.return ((), s')MP.return.  let runT m s = MP.lift fst (m s)end
 
-## 9.2 Backtracking with state
+### 9.2 Backtracking with state
 
 module HoneyIslands (M : MONADPLUSOPS) = struct  type state = {For use with 
 list monad or lazy list monad.    beensize: int;    beenislands: int;    
@@ -927,7 +923,7 @@ initstate honey cellstoeat    |> runT (findboard ())endmodule HoneyL =
 HoneyIslands (ListM)let findtoeat a b c d =  ListM.run (HoneyL.findtoeat a b c 
 d)
 
-# 10 Probabilistic Programming
+## 10 Probabilistic Programming
 
 * Using a random number generator, we can define procedures that produce 
   various output. This is **not functional** – mathematical functions have a 
@@ -945,7 +941,7 @@ d)
     continuations, memoisation and reified search 
     trees:[http://okmij.org/ftp/kakuritu/index.html](http://okmij.org/ftp/kakuritu/index.html)
 
-## 10.1 The probability monad
+### 10.1 The probability monad
 
 * The essential functions for the probability monad class are `choose` and 
   `distrib` – remaining functions could be defined in terms of these but are 
@@ -1028,7 +1024,7 @@ d)
   do      dist := (m (), 1.) :: !dist done;    normalize (`merge` !dist)  let 
   access m = m ()end
 
-## 10.2 Example: The Monty Hall problem
+### 10.2 Example: The Monty Hall problem
 
 * 
   [http://en.wikipedia.org/wiki/Monty\_Hall\_problem](http://en.wikipedia.org/wiki/Monty_Hall_problem):
@@ -1056,7 +1052,7 @@ d)
   (MontySimul.montywin true);;val t4 : (bool * float) list = [(true, 0.655); 
   (false, 0.345)]
   ```
-## 10.3 Conditional probabilities
+### 10.3 Conditional probabilities
 
 * Wouldn't it be nice to have a monad-plus rather than a monad?
 * We could use `guard` – conditional probabilities!
@@ -1116,7 +1112,7 @@ d)
     with Rejected -> ()    done;    normalize (merge !dist)  let rec 
   access m =    try m () with Rejected -> access mend
 
-## 10.4 Burglary example: encoding a Bayes net
+### 10.4 Burglary example: encoding a Bayes net
 
 * We're faced with a problem with the following dependency structure:
 
@@ -1242,7 +1238,7 @@ $\sim$marycalled:true     $\sim$radio:(Some true));;    val t6 :
 [(BurglarySimul.Burglnearthq, 0.0015); (BurglarySimul.Earthq, 0.9985)]
 ```
 
-# 11 Lightweight cooperative threads
+## 11 Lightweight cooperative threads
 
 * `bind` is inherently sequential: bind a (fun x -> b) computes `a`, and 
   resumes computing `b` only once the result `x` is known.

@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 4: Functions.
+# Lecture 4: Functions.
 
 Programming in untyped $\lambda$-calculus.
 
@@ -10,7 +6,7 @@ Programming in untyped $\lambda$-calculus.
 
 *Lecture Notes on the Lambda Calculus* Peter Selinger
 
-# 1 Review: a “computation by hand” example
+## 1 Review: a “computation by hand” example
 
 Let's compute some larger, recursive program.Recall that we use fix instead of 
 let rec to simplify rules for recursion. Also remember our syntactic 
@@ -345,7 +341,7 @@ $$ \begin{matrix}
 
   2
 
-# 2 Language and rules of the untyped $\lambda$-calculus
+## 2 Language and rules of the untyped $\lambda$-calculus
 
 * First, let's forget about types.
 * Next, let's introduce a shortcut:
@@ -366,7 +362,7 @@ $$ \begin{matrix}
 
 
 
-# 3 Booleans
+## 3 Booleans
 
 * Alonzo Church introduced $\lambda$-calculus to encode logic.
 * There are multiple ways to encode various sorts of data in 
@@ -386,7 +382,7 @@ toplevel.
 
 * Define `c_or` and `c_not` yourself!
 
-# 4 If-then-else and pairs
+## 4 If-then-else and pairs
 
 * We will just use the OCaml syntax from now.
 
@@ -406,7 +402,7 @@ let encodepair encfst encsnd (a, b) =  cpair (encfst a) (encsnd b)let decodepair
 
 
 
-# 5 Pair-encoded natural numbers
+## 5 Pair-encoded natural numbers
 
 * Our first encoding of natural numbers is as the depth of nested pairs whose 
   rightmost leaf is $\lambda x.x$ and whose left elements are `c_false`.
@@ -424,7 +420,7 @@ then Obj.magic pn0  else pnsucc (Obj.magic (encodepnat (n-1)))Disregarding
 types,let rec decodepnat pn =these functions are straightforward!  if 
 decodebool (pniszero pn) then 0  else 1 + decodepnat (pnpred (Obj.magic pn))
 
-# 6 Church numerals (natural numbers in Ch. enc.)
+## 6 Church numerals (natural numbers in Ch. enc.)
 
 * Do you remember our function `power f n`? We will use its variant for a 
   different representation of numbers:
@@ -507,7 +503,7 @@ $$ \Downarrow $$
 
 2
 
-# 7 Recursion: Fixpoint Combinator
+## 7 Recursion: Fixpoint Combinator
 
 * Turing's fixpoint combinator: $\Theta = (\lambda x y.y (x x y))  (\lambda x 
   y.y (x x y))$
@@ -644,7 +640,7 @@ $$ \Downarrow $$
   * Compute `fact cn2`.
 * What does `fix (fun x -> cn_succ x)` mean?
 
-# 8 Encoding of Lists and Trees
+## 8 Encoding of Lists and Trees
 
 * A list is either empty, which we often call `Empty` or `Nil`, or it consists 
   of an element followed by another list (called “tail”), the other case often 
@@ -702,7 +698,7 @@ nlet node l r = fun x y -> y l rlet addtree t =  fix (fun f t ->    t
   exhaustiveness: $k$th argument corresponds to $k$th branch of pattern 
   matching.
 
-# 9 Looping Recursion
+## 9 Looping Recursion
 
 * Let's come back to numbers defined as lengths lists and define addition:
 
@@ -733,7 +729,7 @@ let pnadd m n =  fix (fun f m n ->    (ifthenelse (pniszero m)       (fun
 x -> n) (fun x -> pnsucc (f (pnpred m) n)))      id  ) m n;;decodepnat 
 (pnadd pn3 pn3);;decodepnat (pnadd pn3 pn7);;
 
-# 10 In-class Work and Homework
+## 10 In-class Work and Homework
 
 
    Define (implement) and verify:

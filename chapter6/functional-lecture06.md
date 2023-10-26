@@ -1,8 +1,4 @@
-Functional Programming
-
-
-
-Lecture 6: Folding and Backtracking
+# Lecture 6: Folding and Backtracking
 
 Mapping and folding.Backtracking using lists. Constraint solving.
 
@@ -16,7 +12,7 @@ Tomasz Wierzbicki ‘‘*Honey Islands* Puzzle Solver''
 
 If you see any error on the slides, let me know!
 
-# 1 Plan
+## 1 Plan
 
 * `map` and `fold_right`: recursive function examples, abstracting over gets 
   the higher-order functions.
@@ -43,7 +39,7 @@ If you see any error on the slides, let me know!
 * Constraint variables, splitting and constraint propagation.
 * Another example with “heavier” constraint propagation.
 
-# 2 Basic generic list operations
+## 2 Basic generic list operations
 
 How to print a comma-separated list of integers? In module `String`:
 
@@ -60,7 +56,7 @@ let rec stringslengths = function  | [] -> []  | hd::tl ->
 (String.length hd, hd) :: stringslengths tllet bysize = List.sort compare -| 
 stringslengths
 
-## 2.1 Always extract common patterns
+### 2.1 Always extract common patterns
 
 <table style="display: inline-table; vertical-align: middle">
   <tbody><tr>
@@ -157,7 +153,7 @@ l</tt> = <tt class="verbatim">List.fold_right
   </tr></tbody>
 </table>
 
-## 2.2 Can we make `fold` tail-recursive?
+### 2.2 Can we make `fold` tail-recursive?
 
 Let's investigate some tail-recursive functions. (Not hidden as helpers.)
 
@@ -225,7 +221,7 @@ class="verbatim"> tl</tt></td>
 
   let listrevmap f l =  List.foldleft (fun t h->f h::t) [] l
 
-# 3 `map` and `fold` for trees and other structures
+## 3 `map` and `fold` for trees and other structures
 
 * Mapping binary trees is straightforward:
 
@@ -249,7 +245,7 @@ class="verbatim"> tl</tt></td>
   let sumels = btfold (fun i l r -> i + l + r) 0let depth t = btfold (fun  
   l r -> 1 + max l r) 1 t
 
-## 3.1 `map` and `fold` for more complex structures
+### 3.1 `map` and `fold` for more complex structures
 
 To have a data structure to work with, we recall expressions from lecture 3.
 
@@ -302,7 +298,7 @@ Var x in  exprmap {identitymap with mapvar = apply}let vars =  exprfold
 foldvar = (fun x -> List.assoc x env);  foldsum = (+.); folddiff = (-.);  
 foldprod = ( *.); foldquot = (/.);}
 
-# 4 Point-free Programming
+## 4 Point-free Programming
 
 * In 1977/78, John Backus designed **FP**, the first *function-level 
   programming* language. Over the next decade it evolved into the **FL** 
@@ -357,7 +353,7 @@ foldprod = ( *.); foldquot = (/.);}
   flip (-|) List.map ((-|) (List.filter f))let func2 f = (((|-) List.map) -| 
   ((-|) -| List.filter)) flet func2 = (|-) List.map -| ((-|) -| List.filter)
 
-# 5 Reductions. More higher-order/list functions
+## 5 Reductions. More higher-order/list functions
 
 Mathematics has notation for sum over an interval: $\sum_{n = a}^b f (n)$.
 
@@ -387,7 +383,7 @@ and more efficiently:
 let concatmap f l =  let rec cmapf accu = function    | [] -> accu    | 
 a::l -> cmapf (List.revappend (f a) accu) l in  List.rev (cmapf [] l)
 
-## 5.1 List manipulation: All subsequences of a list
+### 5.1 List manipulation: All subsequences of a list
 
 let rec subseqs l =  match l with    | [] -> [[]]    | x::xs ->      
 let pxs = subseqs xs in      List.map (fun px -> x::px) pxs @ pxs
@@ -409,7 +405,7 @@ two non-empty parts.
 
  Find all ways of choosing without repetition from a list.
 
-## 5.2 By key: `group_by` and `map_reduce`
+### 5.2 By key: `group_by` and `map_reduce`
 
 It is often useful to organize values by some property.
 
@@ -445,7 +441,7 @@ the operation `map_reduce`:
 let mapreduce mapf redf base l =  List.map mapf l  |> collect  |> 
 List.map (fun (k,vs)->k, List.foldright redf vs base)
 
-### 5.2.1 `map_reduce`/`concat_reduce` examples
+#### 5.2.1 `map_reduce`/`concat_reduce` examples
 
 Sometimes we have multiple sources of information rather than records.
 
@@ -472,7 +468,7 @@ let search index words =  match List.map (flip List.assoc index) words with  |
 
 where `intersect` computes intersection of sets represented as lists.
 
-### 5.2.2 Tail-recursive variants
+#### 5.2.2 Tail-recursive variants
 
 let revcollect l =  match List.sort (fun x y -> compare (fst x) (fst y)) l 
 with  | [] -> []  | (k0, v0)::tl ->    let k0, vs, l = List.foldleft   
@@ -486,7 +482,7 @@ let trconcatreduce mapf redf base l =  concatmap mapf l  |> revcollect
 let rcons tl hd = hd::tllet invertedindex documents =  let mapf (addr, doc) = 
 … in  trconcatreduce mapf rcons [] documents
 
-### 5.2.3 Helper functions for inverted index demonstration
+#### 5.2.3 Helper functions for inverted index demonstration
 
 let intersect xs ys =Sets as **sorted** lists.  let rec aux acc = function    
 | [],  | , [] -> acc    | (x::xs' as xs), (y::ys' as ys) ->      let c 
@@ -509,7 +505,7 @@ List.map (flip List.assoc lines) ans
 let searchbible =  searchengine (readlines "./bible-kjv.txt")let testresult =  
 searchbible ["Abraham"; "sons"; "wife"]
 
-## 5.3 Higher-order functions for the `option` type
+### 5.3 Higher-order functions for the `option` type
 
 Operate on an optional value:
 
@@ -524,7 +520,7 @@ let mapsome f l =  let rec mapsf accu = function    | [] -> accu    |
 a::l -> mapsf (match f a with None -> accu      | Some r -> 
 r::accu) l in  List.rev (mapsf [] l)
 
-# 6 The Countdown Problem Puzzle
+## 6 The Countdown Problem Puzzle
 
 * Using a given set of numbers and arithmetic operators +, -, *, /, construct 
   an expression with a given value.
@@ -571,7 +567,7 @@ r::accu) l in  List.rev (mapsf [] l)
   let solution e ns n =  listdiff (values e) ns = [] && isunique (values e) && 
    eval e = Some n
 
-## 6.1 Brute force solution
+### 6.1 Brute force solution
 
 * Return a list of all possible ways of splitting a list into two non-empty 
   parts:
@@ -607,7 +603,7 @@ r::accu) l in  List.rev (mapsf [] l)
   let solutions ns n =  choices ns |-> (fun ns' ->    exprs ns' 
   |->      guard (fun e -> eval e = Some n))
 
-## 6.2 Fuse the generate phase with the test phase
+### 6.2 Fuse the generate phase with the test phase
 
 * We seek to define a function that fuses together the generation and 
   evaluation of expressions:
@@ -627,7 +623,7 @@ r::accu) l in  List.rev (mapsf [] l)
   |>        List.filter (fun (e,m)-> m=n) |>            List.map 
   fst)We discard the memorized values.
 
-## 6.3 Eliminate symmetric cases
+### 6.3 Eliminate symmetric cases
 
 * Strengthening the valid predicate to take account of commutativity and 
   identity properties:
@@ -642,7 +638,7 @@ r::accu) l in  List.rev (mapsf [] l)
 
 
 
-# 7 The Honey Islands Puzzle
+## 7 The Honey Islands Puzzle
 
 * Be a bee! Find the cells to eat honey out of, so that the least amount of 
   honey becomes sour, assuming that sourness spreads through contact.
@@ -654,7 +650,7 @@ r::accu) l in  List.rev (mapsf [] l)
 
 Task: 3 islands x 3![](honey0.eps)Solution:![](honey1.eps)
 
-## 7.1 Representing the honeycomb
+### 7.1 Representing the honeycomb
 
 type cell = int * intWe address cells using ‘‘cartesian'' coordinatesmodule 
 CellSet =and store them in either lists or sets.  Set.Make (struct type t = 
@@ -667,13 +663,13 @@ initially without honey.}
 let cellsetoflist l =List into set, inverse of CellSet.elements  
 List.foldright CellSet.add l CellSet.empty
 
-### 7.1.1 Neighborhood
+#### 7.1.1 Neighborhood
 
 ![](honey_min2.eps)`x,y`-0.902203-0.291672`x+2,y`2.23049-0.376339`x+1,y+1`0.410142.35418`x-1,y+1`-2.637882.33301`x-2,y`-4.20423-0.418673`x-1,y-1`-2.65905-3.08569`x+1,y-1`0.431307-3.191530cm
 
 let neighbors n eaten (x,y) =  List.filter    (insideboard n eaten)    [x-1,y-1; x+1,y-1; x+2,y;     x+1,y+1; x-1,y+1; x-2,y]
 
-### 7.1.2 Building the honeycomb
+#### 7.1.2 Building the honeycomb
 
 ![](honey_demo.eps)0,0-0.373032-0.1543520,2-0.3730323.041840,-2-0.394199-3.541041,10.5159741.496664,03.33116-0.239023,12.505661.496662,21.510813.063-2,0-2.23571-0.1543520cm
 
@@ -685,7 +681,7 @@ x + abs y <= 2*n &&  not (CellSet.mem (x,y) eaten)
 let honeycells n eaten =  fromto (-2*n) (2*n)|->(fun x ->    fromto 
 (-n) n |-> (fun y ->     guard (insideboard n eaten)        (x, y)))
 
-### 7.1.3 Drawing honeycombs
+#### 7.1.3 Drawing honeycombs
 
 We separately generate colored polygons:
 
@@ -698,13 +694,13 @@ let drawtosvg file $\sim$w $\sim$h ?title ?desc curves =  let f = openout file i
 But we also want to draw on a screen window – we need to link the `Graphics` 
 library. In the interactive toplevel:
 
-#load "graphics.cma";;
+##load "graphics.cma";;
 
 When compiling we just provide `graphics.cma` to the command.
 
 let drawtoscreen $\sim$w $\sim$h curves =  Graphics.opengraph (" "stringofint w"x"stringofint h);  Graphics.setcolor (Graphics.rgb 50 50 0);We draw a brown background.  Graphics.fillrect 0 0 (Graphics.sizex ()) (Graphics.sizey ());  List.iter (fun (points, (r,g,b)) ->    Graphics.setcolor (Graphics.rgb r g b);    Graphics.fillpoly points) curves;  if Graphics.readkey () = `'q'`We wait so that solutions can be seen  then failwith "User interrupted finding solutions.";as they're computed.  Graphics.closegraph ()
 
-## 7.2 Testing correctness of a solution
+### 7.2 Testing correctness of a solution
 
 We walk through each island counting its cells, depth-first: having visited 
 everything possible in one direction, we check whether something remains in 
@@ -743,7 +739,7 @@ Initially there are no islands already visited.
 
   checkboard 0 honey emptycells
 
-## 7.3 Interlude: multiple results per step
+### 7.3 Interlude: multiple results per step
 
 When there is only one possible result per step, we work through a list using 
 List.foldright and List.foldleft functions.
@@ -759,7 +755,7 @@ We shortened `concat_map` calls using “work |-> (fun a\_result ->
 let rec concatfold f a = function  | [] -> [a]  | x::xs ->     f x a 
 |-> (fun a' -> concatfold f a' xs)
 
-## 7.4 Generating a solution
+### 7.4 Generating a solution
 
 We turn the code for testing a solution into one that generates a correct 
 solution.
@@ -817,7 +813,7 @@ let ans1 = findtoeat testtask1.boardsize testtask1.islandsize  testtask1.numisla
 
 (See `Lec6.ml` for definitions of test cases.)
 
-## 7.5 Optimizations for *Honey Islands*
+### 7.5 Optimizations for *Honey Islands*
 
 * Main rule: **fail** (drop solution candidates) **as early as possible**.
   * Is the number of solutions generated by the more brute-force approach 
@@ -880,7 +876,7 @@ Finally, we compute the required length of `eaten` and start searching.
   let cellstoeat =    List.length honey - islandsize * numislands in  
 findboard (initstate honey cellstoeat)
 
-# 8 Constraint-based puzzles
+## 8 Constraint-based puzzles
 
 * Puzzles can be presented by providing the general form of solutions, and 
   additional requirements that the solutions must meet.

@@ -13,7 +13,7 @@ header-includes:
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Curious OCaml
-# From logic rules to programming constructs
+## From logic rules to programming constructs
 
 What logical connectives do you know?
 
@@ -37,7 +37,7 @@ To define the connectives, we provide rules for using them: for example, a rule 
 matches parts of the tree that have two premises, represented by variables $a$
 and $b$, and have any conclusion, represented by variable $c$.
 
-## Rules for Logical Connectives
+### Rules for Logical Connectives
 
 Introduction rules say how to produce a connective. Elimination rules say how to use it.
 Text in parentheses is comments. Letters are variables: stand for anything.
