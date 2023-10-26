@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Lukasz Stafiniak" />
   <title>Curious OCaml</title>
   <style>
     html {
@@ -152,29 +153,16 @@
     div.column{display: inline-block; vertical-align: top; width: 50%;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
-  <script defer=""
-  src="/usr/share/javascript/katex/katex.min.js"></script>
-  <script>document.addEventListener("DOMContentLoaded", function () {
- var mathElements = document.getElementsByClassName("math");
- var macros = [];
- for (var i = 0; i < mathElements.length; i++) {
-  var texText = mathElements[i].firstChild;
-  if (mathElements[i].tagName == "SPAN") {
-   katex.render(texText.data, mathElements[i], {
-    displayMode: mathElements[i].classList.contains('display'),
-    throwOnError: false,
-    macros: macros,
-    fleqn: false
-   });
-}}});
-  </script>
-  <link rel="stylesheet"
-  href="/usr/share/javascript/katex/katex.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () { var mathElements = document.getElementsByClassName("math"); var macros = []; for (var i = 0; i < mathElements.length; i++) { var texText = mathElements[i].firstChild; if (mathElements[i].tagName == "SPAN") { katex.render(texText.data, mathElements[i], { displayMode:mathElements[i].classList.contains('display'), throwOnError:false, macros:macros, fleqn:false}); }}}); </script>
 </head>
 <body>
 <header id="title-block-header">
 <h1 class="title">Curious OCaml</h1>
+<p class="author">Lukasz Stafiniak</p>
 </header>
 <!-- Do NOT modify this file, it is automatically generated -->
 <h1 id="curious-ocaml">Curious OCaml</h1>
@@ -191,20 +179,20 @@ programming constructs</h1>
 </colgroup>
 <thead>
 <tr class="header">
-<th><span class="math inline">\top</span></th>
-<th><span class="math inline">\bot</span></th>
-<th><span class="math inline">\wedge</span></th>
-<th><span class="math inline">\vee</span></th>
-<th><span class="math inline">\rightarrow</span></th>
+<th><span class="math inline">⊤</span></th>
+<th><span class="math inline">⊥</span></th>
+<th><span class="math inline">∧</span></th>
+<th><span class="math inline">∨</span></th>
+<th><span class="math inline">→</span></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td></td>
 <td></td>
-<td><span class="math inline">a \wedge b</span></td>
-<td><span class="math inline">a \vee b</span></td>
-<td><span class="math inline">a \rightarrow b</span></td>
+<td><span class="math inline"><em>a</em> ∧ <em>b</em></span></td>
+<td><span class="math inline"><em>a</em> ∨ <em>b</em></span></td>
+<td><span class="math inline"><em>a</em> → <em>b</em></span></td>
 </tr>
 <tr class="even">
 <td>truth</td>
@@ -216,39 +204,39 @@ programming constructs</h1>
 <tr class="odd">
 <td>“trivial”</td>
 <td>“impossible”</td>
-<td><span class="math inline">a</span> and <span
-class="math inline">b</span></td>
-<td><span class="math inline">a</span> or <span
-class="math inline">b</span></td>
-<td><span class="math inline">a</span> gives <span
-class="math inline">b</span></td>
+<td><span class="math inline"><em>a</em></span> and <span
+class="math inline"><em>b</em></span></td>
+<td><span class="math inline"><em>a</em></span> or <span
+class="math inline"><em>b</em></span></td>
+<td><span class="math inline"><em>a</em></span> gives <span
+class="math inline"><em>b</em></span></td>
 </tr>
 <tr class="even">
 <td></td>
 <td>shouldn’t get</td>
 <td>got both</td>
 <td>got at least one</td>
-<td>given <span class="math inline">a</span>, we get <span
-class="math inline">b</span></td>
+<td>given <span class="math inline"><em>a</em></span>, we get <span
+class="math inline"><em>b</em></span></td>
 </tr>
 </tbody>
 </table>
 <p>How can we define them? Think in terms of <em>derivation
 trees</em>:</p>
-<p><span class="math display">
+<p><span class="math display">$$
 \frac{
 \frac{\frac{\,}{\text{a premise}} \; \frac{\,}{\text{another
 premise}}}{\frac{\,}{\text{some fact}}} \;
 \frac{\frac{\,}{\text{a premise}} \; \frac{\,}{\text{another
 premise}}}{\frac{\,}{\text{another fact}}}}
 {\text{final conclusion}}
-</span></p>
+$$</span></p>
 <p>To define the connectives, we provide rules for using them: for
-example, a rule <span class="math inline">\frac{a \; b}{c}</span>
+example, a rule <span class="math inline">$\frac{a \; b}{c}$</span>
 matches parts of the tree that have two premises, represented by
-variables <span class="math inline">a</span> and <span
-class="math inline">b</span>, and have any conclusion, represented by
-variable <span class="math inline">c</span>.</p>
+variables <span class="math inline"><em>a</em></span> and <span
+class="math inline"><em>b</em></span>, and have any conclusion,
+represented by variable <span class="math inline"><em>c</em></span>.</p>
 <h2 id="rules-for-logical-connectives">Rules for Logical
 Connectives</h2>
 <p>Introduction rules say how to produce a connective. Elimination rules

@@ -31,7 +31,7 @@
  (target new_book.html)
  (deps README.md)
  (action
-  (system "pandoc -s %{deps} -o %{target} --katex --metadata title='Curious OCaml'")))
+  (system "pandoc -s %{deps} -o %{target}")))
 
 (rule
  (alias old_lectures_as_book)
@@ -40,4 +40,4 @@
  (deps old_lectures_as_book.md)
  (action
   (system
-   "pandoc -s %{deps} -o %{target} --katex --metadata title='Functional Programming Course'")))
+   "pandoc -s %{deps} -o %{target}")))

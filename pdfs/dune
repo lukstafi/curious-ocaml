@@ -25,7 +25,7 @@
  (target new_book.pdf)
  (deps README.md)
  (action
-  (system "pandoc -s %{deps} -o %{target} --metadata title='Curious OCaml'")))
+  (system "pandoc -s %{deps} -o %{target}")))
 
 (rule
  (alias old_lectures_as_book)
@@ -33,4 +33,4 @@
  (target old_lectures_as_book.pdf)
  (deps old_lectures_as_book.md)
  (action
-  (system "pandoc -s %{deps} -o %{target} --metadata title='Functional Programming Course'")))
+  (system "pandoc -s %{deps} -o %{target}")))

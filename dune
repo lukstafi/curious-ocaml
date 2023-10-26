@@ -2,6 +2,7 @@
  (target README.md)
  (mode promote)
  (deps
+  MD_metadata.md
   chapter1/README.md
   chapter2/README.md
   chapter3/README.md
@@ -17,6 +18,7 @@
   (with-stdout-to
    README.md
    (progn
+    (cat MD_metadata.md)
     (echo
      "<!-- Do NOT modify this file, it is automatically generated -->\n")
     (echo "# Curious OCaml\n")
@@ -66,6 +68,7 @@
   (with-stdout-to
    old_lectures_as_book.md
    (progn
+    (cat MD_metadata.md)
     (echo
      "<!-- Do NOT modify this file, it is automatically generated -->\n")
     (echo "# Curious OCaml\n")
