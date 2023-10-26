@@ -215,8 +215,25 @@
     code span.va { color: #19177c; } /* Variable */
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
   </style>
+  <script defer=""
+  src="/usr/share/javascript/katex/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <link rel="stylesheet"
+  href="/usr/share/javascript/katex/katex.min.css" />
 </head>
 <body>
 <header id="title-block-header">
@@ -311,21 +328,20 @@ given , we get
 </table>
 <p>How can we define them?Think in terms of <em>derivation
 trees</em>:</p>
-<p><span class="math display">$$ \frac{\begin{array}{ll}
+<p><span class="math display"> \frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
        \frac{\,}{\text{a premise}} &amp; \frac{\,}{\text{another
 premise}}
      \end{array}}{\text{some fact}} &amp; \frac{\frac{\,}{\text{this we
 have by
      default}}}{\text{another fact}}
-   \end{array}}{\text{final conclusion}} $$</span></p>
+   \end{array}}{\text{final conclusion}} </span></p>
 <p>Define by providing rules for using the connectives: for example, a
-rule <span class="math inline">$\frac{\begin{array}{ll} a &amp; b
-\end{array}}{c}$</span> matches parts of the tree that have two
-premises, represented by variables <span
-class="math inline"><em>a</em></span> and <span
-class="math inline"><em>b</em></span>, and have any conclusion,
-represented by variable <span class="math inline"><em>c</em></span>.</p>
+rule <span class="math inline">\frac{\begin{array}{ll} a &amp; b
+\end{array}}{c}</span> matches parts of the tree that have two premises,
+represented by variables <span class="math inline">a</span> and <span
+class="math inline">b</span>, and have any conclusion, represented by
+variable <span class="math inline">c</span>.</p>
 <p>Try to use only the connective you define in its definition.# 2 Rules
 for Logical Connectives</p>
 <p>Introduction rules say how to produce a connective.</p>
@@ -389,25 +405,24 @@ doesn’t have
 </tbody>
 </table>
 <p>Notations</p>
-<p><span class="math display">$$ {{{\frac{\,}{a} \tiny{x}} \atop
+<p><span class="math display"> {{{\frac{\,}{a} \tiny{x}} \atop
 {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
    {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}}
-$$</span></p>
-<p>match any subtree that derives <span
-class="math inline"><em>b</em></span> (or <span
-class="math inline"><em>c</em></span>) and can use <span
-class="math inline"><em>a</em></span> (by assumption <span
-class="math inline">$\frac{\,}{a} \tiny{x}$</span>) although otherwise
-<span class="math inline"><em>a</em></span> might not be warranted. For
+</span></p>
+<p>match any subtree that derives <span class="math inline">b</span> (or
+<span class="math inline">c</span>) and can use <span
+class="math inline">a</span> (by assumption <span
+class="math inline">\frac{\,}{a} \tiny{x}</span>) although otherwise
+<span class="math inline">a</span> might not be warranted. For
 example:</p>
-<p><span class="math display">$$
+<p><span class="math display">
 \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
    outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow
-   \text{happy}} \small{\text{ using } x} $$</span></p>
+   \text{happy}} \small{\text{ using } x} </span></p>
 <p>Such assumption can only be used in the matched subtree! But it can
 be used several times, e.g. if someone’s mood is more difficult to
 influence:</p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
      outdoor}}}{\text{playing}} &amp; \frac{\begin{array}{ll}
        \frac{\,}{\text{sunny}} \small{x} &amp;
@@ -415,17 +430,17 @@ influence:</p>
        \small{x}}{\text{go outdoor}}
      \end{array}}{\text{nice view}}
    \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
-   \small{\text{ using } x} $$</span>Elimination rule for disjunction
+   \small{\text{ using } x} </span>Elimination rule for disjunction
 represents <strong>reasoning by cases</strong>.</p>
 <p>How can we use the fact that it is sunny<span
-class="math inline">∨</span>cloudy (but not rainy)?</p>
-<p><span class="math display">$$ \frac{\begin{array}{rrl}
+class="math inline">\vee</span>cloudy (but not rainy)?</p>
+<p><span class="math display"> \frac{\begin{array}{rrl}
      \frac{\,}{\text{sunny} \vee \text{cloudy}} \tiny{\text{ forecast}}
 &amp;
      \frac{\frac{\,}{\text{sunny}} \tiny{x}}{\text{no-umbrella}} &amp;
      \frac{\frac{\,}{\text{cloudy}} \tiny{y}}{\text{no-umbrella}}
    \end{array}}{\text{no-umbrella}} \small{\text{ using } x, y}
-$$</span></p>
+</span></p>
 <p>We know that it will be sunny or cloudy, by watching weather
 forecast. If it will be sunny, we won’t need an umbrella. If it will be
 cloudy, we won’t need an umbrella. Therefore, won’t need an umbrella.We
@@ -433,15 +448,15 @@ need one more kind of rules to do serious math: <strong>reasoning by
 induction</strong> (it is somewhat similar to reasoning by cases).
 Example rule for induction on natural numbers:</p>
 <p>$$ x $$</p>
-<p>So we get any <span class="math inline"><em>p</em></span> for any
-natural number <span class="math inline"><em>n</em></span>, provided we
-can get it for <span class="math inline">0</span>, and using it for
-<span class="math inline"><em>x</em></span> we can derive it for the
-successor <span class="math inline"><em>x</em> + 1</span>, where <span
-class="math inline"><em>x</em></span> is a unique variable (we cannot
-substitute for it some particular number, because we write “using <span
-class="math inline"><em>x</em></span>” on the side).# 3 Logos was
-Programmed in OCaml</p>
+<p>So we get any <span class="math inline">p</span> for any natural
+number <span class="math inline">n</span>, provided we can get it for
+<span class="math inline">0</span>, and using it for <span
+class="math inline">x</span> we can derive it for the successor <span
+class="math inline">x + 1</span>, where <span
+class="math inline">x</span> is a unique variable (we cannot substitute
+for it some particular number, because we write “using <span
+class="math inline">x</span>” on the side).# 3 Logos was Programmed in
+OCaml</p>
 <table style="display: inline-table; vertical-align: middle">
 <tbody>
 <tr>
@@ -553,16 +568,16 @@ definitions. <strong>Definitions for types</strong> are written:
 <code>type ty =</code> some type.</p>
 <ul>
 <li><p>Writing <code>A (</code><span
-class="math inline"><em>s</em></span><code>) : A of</code><span
-class="math inline"><em>a</em></span><code>| B of</code><span
-class="math inline"><em>b</em></span><code></code> in the table was
-cheating. Usually we have to define the type and then use it, e.g. using
-<code>int</code> for <span class="math inline"><em>a</em></span> and
-<code>string</code> for <span class="math inline"><em>b</em></span>:</p>
+class="math inline">s</span><code>) : A of</code><span
+class="math inline">a</span><code>| B of</code><span
+class="math inline">b</span><code></code> in the table was cheating.
+Usually we have to define the type and then use it, e.g. using
+<code>int</code> for <span class="math inline">a</span> and
+<code>string</code> for <span class="math inline">b</span>:</p>
 <div class="sourceCode" id="cb1"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> int_string_choice = A <span class="kw">of</span> <span class="dt">int</span> | B <span class="kw">of</span> <span class="dt">string</span></span></code></pre></div>
 <p>allows us to write <code>A (</code><span
-class="math inline"><em>s</em></span><code>) : int_string_choice</code>.</p></li>
+class="math inline">s</span><code>) : int_string_choice</code>.</p></li>
 <li><p>Without the type definition, it is difficult to know what other
 variants there are when one <em>infers</em> (i.e. “guesses”, computes)
 the type!</p></li>
@@ -579,15 +594,15 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb2-1"><a href
 <p>and create its values: <code>{a = 7; b = "Mary"}</code>. * We access
 the <em>fields</em> of records using the dot notation:</p>
 <p><code>{a=7; b="Mary"}.b = "Mary"</code>.Recursive expression <span
-class="math inline">$\text{{\texttt{rec}} } x \text{{\texttt{=}}}
-e$</span> in the table was cheating: <code>rec</code> (usually called
+class="math inline">\text{{\texttt{rec}} } x \text{{\texttt{=}}}
+e</span> in the table was cheating: <code>rec</code> (usually called
 <code>fix</code>) cannot appear alone in OCaml! It must be part of a
 definition.</p>
 <p><strong>Definitions for expressions</strong> are introduced by rules
 a bit more complex than these:</p>
 <p>$$ $$</p>
 <p>(note that this rule is the same as introducing and eliminating <span
-class="math inline">→</span>), and:</p>
+class="math inline">\rightarrow</span>), and:</p>
 <p>$$ $$</p>
 <p>We will cover what is missing in above rules when we will talk about
 <strong>polymorphism.</strong>* Type definitions we have seen above are
@@ -595,20 +610,18 @@ class="math inline">→</span>), and:</p>
 expressions, and they extend from the point they occur till the end of
 the source file or interactive session. *
 <code>let</code>-<code>in</code> definitions for expressions: <span
-class="math inline">$\text{{\texttt{let}} } x  \text{{\texttt{=}}} e_{1}
-\text{ \text{{\texttt{in}}} } e_{2}$</span> are <em>local</em>, <span
-class="math inline"><em>x</em></span> is only visible in <span
-class="math inline"><em>e</em><sub>2</sub></span>. But <code>let</code>
-definitions are global: placing <span
-class="math inline">$\text{{\texttt{let}} } x  \text{{\texttt{=}}}
-e_{1}$</span> at the top-level makes <span
-class="math inline"><em>x</em></span> visible from after <span
-class="math inline"><em>e</em><sub>1</sub></span> till the end of the
-source file or interactive session. * In the interactive session, we
-mark an end of a top-level “sentence” by ;; – it is unnecessary in
-source files. * Operators like +, *, &lt;, =, are names of functions.
-Just like other names, you can use operator names for your own
-functions:</p>
+class="math inline">\text{{\texttt{let}} } x  \text{{\texttt{=}}} e_{1}
+\text{ \text{{\texttt{in}}} } e_{2}</span> are <em>local</em>, <span
+class="math inline">x</span> is only visible in <span
+class="math inline">e_{2}</span>. But <code>let</code> definitions are
+global: placing <span class="math inline">\text{{\texttt{let}} }
+x  \text{{\texttt{=}}} e_{1}</span> at the top-level makes <span
+class="math inline">x</span> visible from after <span
+class="math inline">e_{1}</span> till the end of the source file or
+interactive session. * In the interactive session, we mark an end of a
+top-level “sentence” by ;; – it is unnecessary in source files. *
+Operators like +, *, &lt;, =, are names of functions. Just like other
+names, you can use operator names for your own functions:</p>
 <p>let (+:) a b = String.concat “” [a; b];;Special way of
 defining”Alpha” +: “Beta”;;but normal way of using operators. *
 Operators in OCaml are <strong>not overloaded</strong>. It means, that
@@ -634,9 +647,8 @@ resulting type error.</p>
 <li><p>Practice using the OCaml interpreter as a calculator:</p>
 <ol type="1">
 <li><p>The volume of a sphere with radius <span
-class="math inline"><em>r</em></span> is <span
-class="math inline">$\frac{4}{3} \pi r^3$</span>. What is the volume of
-a sphere with radius 5?</p>
+class="math inline">r</span> is <span class="math inline">\frac{4}{3}
+\pi r^3</span>. What is the volume of a sphere with radius 5?</p>
 <p>Hint: 392.6 is wrong!</p></li>
 <li><p>Suppose the cover price of a book is $24.95, but bookstores get a
 40% discount. Shipping costs $3 for the first copy and 75 cents for each
@@ -649,12 +661,12 @@ easy pace again, what time do I get home for breakfast?</p></li>
 <li><p>You’ve probably heard of the fibonacci numbers before, but in
 case you haven’t, they’re defined by the following recursive
 relationship:</p>
-<p><span class="math display">$$ \left\lbrace\begin{array}{llll}
+<p><span class="math display"> \left\lbrace\begin{array}{llll}
   f (0) &amp; = &amp; 0 &amp;  \\\\\\
   f (1) &amp; = &amp; 1 &amp;  \\\\\\
   f (n + 1) &amp; = &amp; f (n) + f (n - 1) &amp; \text{for } n = 2, 3,
 \ldots
-\end{array}\right. $$</span></p>
+\end{array}\right. </span></p>
 <p>Write a recursive function to calculate these numbers.</p></li>
 <li><p>A palindrome is a word that is spelled the same backward and
 forward, like “noon” and “redivider”. Recursively, a word is a
@@ -673,17 +685,14 @@ What about the empty string, which is written ““?</li>
 and returns true if it is a palindrome and false otherwise.</li>
 </ol></li>
 <li><p>The greatest common divisor (GCD) of <span
-class="math inline"><em>a</em></span> and <span
-class="math inline"><em>b</em></span> is the largest number that divides
-both of them with no remainder.</p>
+class="math inline">a</span> and <span class="math inline">b</span> is
+the largest number that divides both of them with no remainder.</p>
 <p>One way to find the GCD of two numbers is Euclid’s algorithm, which
-is based on the observation that if <span
-class="math inline"><em>r</em></span> is the remainder when <span
-class="math inline"><em>a</em></span> is divided by <span
-class="math inline"><em>b</em></span>, then <span
-class="math inline">gcd (<em>a</em>,<em>b</em>) = gcd (<em>b</em>,<em>r</em>)</span>.
-As a base case, we can consider <span
-class="math inline">gcd (<em>a</em>,0) = <em>a</em></span>.</p>
+is based on the observation that if <span class="math inline">r</span>
+is the remainder when <span class="math inline">a</span> is divided by
+<span class="math inline">b</span>, then <span class="math inline">\gcd
+(a, b) = \gcd (b, r)</span>. As a base case, we can consider <span
+class="math inline">\gcd (a, 0) = a</span>.</p>
 <p>Write a function called gcd that takes parameters a and b and returns
 their greatest common divisor.</p>
 <p>If you need help, see <a
@@ -697,18 +706,35 @@ href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/
 on some simple examples. Starting with <code>fun x -&gt; x</code>. <span
 class="math inline">[?]</span> will mean “dunno yet”.</p>
 $$
+<span class="math display">\begin{matrix}
+  &amp; \frac{[?]}{\text{{\texttt{fun x -&gt; x}}} : [?]} &amp;
+\text{use }
+  \rightarrow \text{ introduction:}\\\\\\
+  &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
+  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : [?] \rightarrow
+[?]}
+  &amp; \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches
+  with }
+  
+{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
+\text{ since } e = \text{{\texttt{x}}}\\\\\\
+  &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
+  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : a \rightarrow a}
+&amp;
+  \text{since } b = a \text{ because } x : a \text{ matched with } e : b
+\end{matrix}</span>
 <p>$$</p>
-<p>Because <span class="math inline"><em>a</em></span> is arbitrary,
-OCaml puts a <em>type variable</em> <code>'a</code> for it:</p>
+<p>Because <span class="math inline">a</span> is arbitrary, OCaml puts a
+<em>type variable</em> <code>'a</code> for it:</p>
 <div class="sourceCode" id="cb3"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">fun</span> x -&gt; x;;</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>- : &#39;a -&gt; &#39;a = &lt;<span class="kw">fun</span>&gt;</span></code></pre></div>
 <p>Let’s try <code>fun x -&gt; x+1</code>, which is the same as
 <code>fun x -&gt; ((+) x)  1</code>(try it with OCaml/F#!). <span
-class="math inline">[?<em>α</em>]</span> will mean “dunno yet, but the
-same as in other places with <span
-class="math inline">[?<em>α</em>]</span>”.</p>
-<p><span class="math display">$$ \begin{matrix}
+class="math inline">[? \alpha]</span> will mean “dunno yet, but the same
+as in other places with <span class="math inline">[?
+\alpha]</span>”.</p>
+<p><span class="math display"> \begin{matrix}
   &amp; \frac{[?]}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]} &amp;
   \text{use } \rightarrow \text{ introduction:}\\\\\\
   &amp; \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
@@ -744,7 +770,7 @@ class="math inline">[?<em>α</em>]</span>”.</p>
   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
 \rightarrow [?
-  \alpha]} &amp; \text{it's our \text{{\texttt{x}}}!}\\\\\\
+  \alpha]} &amp; \text{it&#39;s our \text{{\texttt{x}}}!}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
@@ -775,20 +801,20 @@ class="math inline">[?<em>α</em>]</span>”.</p>
   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
   1}}}} : \text{{\texttt{int}}} \rightarrow
   \text{{\texttt{int}}}} &amp;
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <h2 id="curried-form">1.1 Curried form</h2>
 <p>When there are several arrows “on the same depth” in a function type,
 it means that the function returns a function: e.g. <span
-class="math inline">$\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
+class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
 \rightarrow \text{{\texttt{int}}} \rightarrow
-\text{{\texttt{int}}}$</span> is just a shorthand for <span
-class="math inline">$\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
+\text{{\texttt{int}}}</span> is just a shorthand for <span
+class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
 \rightarrow \left( \text{{\texttt{int}}} \rightarrow
-\text{{\texttt{int}}} \right)$</span>. It is very different from</p>
-<p><span class="math display">$$ \text{{\texttt{fun f -&gt; (f 1) + 1}}}
-: \left(
+\text{{\texttt{int}}} \right)</span>. It is very different from</p>
+<p><span class="math display"> \text{{\texttt{fun f -&gt; (f 1) + 1}}} :
+\left(
    \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-   \right) \rightarrow \text{{\texttt{int}}} $$</span></p>
+   \right) \rightarrow \text{{\texttt{int}}} </span></p>
 <p>For addition, instead of <code>(fun x -&gt; x+1)</code> we can write
 <code>((+) 1)</code>. What expanded form does <code>((+) 1)</code>
 correspond to exactly (computationally)?</p>
@@ -939,9 +965,9 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb16-1"><a hre
 Algebraic DTs as Polynomials</h1>
 <p>Let’s do a peculiar translation: take a data type and replace | with
 <span class="math inline">+</span>, * with <span
-class="math inline">×</span>, treating record types as tuple types
+class="math inline">\times</span>, treating record types as tuple types
 (i.e. erasing field names and translationg ; as <span
-class="math inline">×</span>).</p>
+class="math inline">\times</span>).</p>
 <p>There is a special type for which we cannot build a value:</p>
 <div class="sourceCode" id="cb17"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> void</span></code></pre></div>
@@ -962,28 +988,25 @@ polynomial! (Or “rational function” if it is recursively defined.)</p>
 <p>Let’s have fun with it.</p>
 <div class="sourceCode" id="cb18"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> date = {year: <span class="dt">int</span>; month: <span class="dt">int</span>; day: <span class="dt">int</span>}</span></code></pre></div>
-<p><span
-class="math display"><em>D</em> = <em>x</em><em>x</em><em>x</em> = <em>x</em><sup>3</sup></span></p>
+<p><span class="math display"> D = xxx = x^3 </span></p>
 <div class="sourceCode" id="cb19"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a <span class="dt">option</span> = <span class="dt">None</span> | <span class="dt">Some</span> <span class="kw">of</span> &#39;a   <span class="co">(* built-in type *)</span></span></code></pre></div>
-<p><span class="math display"><em>O</em> = 1 + <em>x</em></span></p>
+<p><span class="math display"> O = 1 + x </span></p>
 <div class="sourceCode" id="cb20"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a my_list = Empty | Cons <span class="kw">of</span> &#39;a * &#39;a my_list</span></code></pre></div>
-<p><span
-class="math display"><em>L</em> = 1 + <em>x</em><em>L</em></span></p>
+<p><span class="math display"> L = 1 + xL </span></p>
 <div class="sourceCode" id="cb21"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
-<p><span
-class="math display"><em>T</em> = 1 + <em>x</em><em>T</em><em>T</em> = 1 + <em>x</em><em>T</em><sup>2</sup></span></p>
+<p><span class="math display"> T = 1 + xTT = 1 + xT^2 </span></p>
 <p>When translations of two types are equal according to laws of
 high-school algebra, the types are <em>isomorphic</em>, that is, there
 exist 1-to-1 functions from one type to the other.</p>
 <p>Let’s play with the type of binary trees:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   T &amp; = &amp; 1 + xT^2 = 1 + xT + x^2 T^3 = 1 + x + x^2 T^2 + x^2
 T^3 =\\\\\\
   &amp; = &amp; 1 + x + x^2 T^2  (1 + T) = 1 + x (1 + xT^2  (1 + T))
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>Now let’s translate the resulting type:</p>
 <div class="sourceCode" id="cb22"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> repr =</span>
@@ -1072,13 +1095,12 @@ partial derivative.</p>
 <p>Take the “date” example:</p>
 <div class="sourceCode" id="cb26"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> date = {year: <span class="dt">int</span>; month: <span class="dt">int</span>; day: <span class="dt">int</span>}</span></code></pre></div>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   D &amp; = &amp; xxx = x^3\\\\\\
   \frac{\partial D}{\partial x} &amp; = &amp; 3 x^2 = xx + xx + xx
-\end{matrix} $$</span></p>
-<p>(we could have left it at <span
-class="math inline">3<em>x</em><em>x</em></span> as well). Now we
-construct the type:</p>
+\end{matrix} </span></p>
+<p>(we could have left it at <span class="math inline">3 xx</span> as
+well). Now we construct the type:</p>
 <div class="sourceCode" id="cb27"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> date_deriv =</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  Year <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span> | Month <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span> | Day <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span></span></code></pre></div>
@@ -1098,16 +1120,16 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb28-1"><a hre
 <p>Let’s do now the more difficult case of binary trees:</p>
 <div class="sourceCode" id="cb29"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   T &amp; = &amp; 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} &amp; = &amp; 0 + T^2 + 2 xT
 \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>(again, we could expand further into <span
-class="math inline">$\frac{\partial T}{\partial x} = TT + xT
+class="math inline">\frac{\partial T}{\partial x} = TT + xT
 \frac{\partial T}{\partial x} + xT \frac{\partial T}{\partial
-x}$</span>).</p>
+x}</span>).</p>
 <p>Instead of translating <span class="math inline">2</span> as
 <code>bool</code>, we will introduce new type for clarity:</p>
 <div class="sourceCode" id="cb30"><pre
@@ -1140,26 +1162,28 @@ Computation class, i.e. for (before) the Functions class.</em> ##
 Chapter 2: Derivation example Functional Programming</p>
 <p>Lecture 2: Algebra, Fig. 1</p>
 <p>Type inference example derivation</p>
-<p><span class="math display">$$ \frac{[?]}{\text{{\texttt{fun x -&gt;
-((+) x) 1}}} : [?]} $$</span></p>
-<p><span class="math display">use  →  introduction:</span></p>
-<p><span class="math display">$$ \frac{\frac{[?]}{\text{{\texttt{((+) x)
+<p><span class="math display"> \frac{[?]}{\text{{\texttt{fun x -&gt;
+((+) x) 1}}} : [?]} </span></p>
+<p><span class="math display"> \text{use } \rightarrow \text{
+introduction:} </span></p>
+<p><span class="math display"> \frac{\frac{[?]}{\text{{\texttt{((+) x)
 1}}} : [?
    \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
 \rightarrow
-   [? \alpha]} $$</span></p>
-<p><span class="math display">use  →  elimination:</span></p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+   [? \alpha]} </span></p>
+<p><span class="math display"> \text{use } \rightarrow \text{
+elimination:} </span></p>
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
      \alpha]} &amp; \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
    \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
    \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
 \rightarrow
-   [? \alpha]} $$</span></p>
-<p><span class="math display">$$ \text{we know that \text{{\texttt{1}}}}
-: \text{{\texttt{int}}}
-$$</span></p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+   [? \alpha]} </span></p>
+<p><span class="math display"> \text{we know that \text{{\texttt{1}}}} :
+\text{{\texttt{int}}}
+</span></p>
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{[?]}{\text{{\texttt{(+) x}}} :
      \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
      \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
@@ -1167,9 +1191,9 @@ $$</span></p>
    \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
    \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
 \rightarrow
-   [? \alpha]} $$</span></p>
-<p><span class="math display">application again:</span></p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+   [? \alpha]} </span></p>
+<p><span class="math display"> \text{application again:} </span></p>
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
        \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
        \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
@@ -1181,10 +1205,10 @@ $$</span></p>
    \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
    \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
 \rightarrow
-   [? \alpha]} $$</span></p>
-<p><span class="math display">$$ \text{it's our \text{{\texttt{x}}}!}
-$$</span></p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+   [? \alpha]} </span></p>
+<p><span class="math display"> \text{it&#39;s our \text{{\texttt{x}}}!}
+</span></p>
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
        \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
        \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
@@ -1196,12 +1220,12 @@ $$</span></p>
      \tiny{\text{(constant)}}
    \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
    \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [? \gamma]
-   \rightarrow [? \alpha]} $$</span></p>
-<p><span class="math display">$$ \text{but \text{{\texttt{(+)}}}} :
+   \rightarrow [? \alpha]} </span></p>
+<p><span class="math display"> \text{but \text{{\texttt{(+)}}}} :
 \text{{\texttt{int}}}
    \rightarrow \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}} $$</span></p>
-<p><span class="math display">$$ \frac{\frac{\begin{array}{ll}
+   \text{{\texttt{int}}} </span></p>
+<p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
        \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
        \rightarrow \text{{\texttt{int}}} \rightarrow
@@ -1216,7 +1240,7 @@ $$</span></p>
    \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+)
 x)
    1}}}} : \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}}} $$</span></p>
+   \text{{\texttt{int}}}} </span></p>
 <h1 id="chapter-3">Chapter 3</h1>
 <p>Functional Programming</p>
 <p>Lecture 3: Computation</p>
@@ -1227,8 +1251,8 @@ Rémy, chapter 1</p>
 <ul>
 <li>The usual way function composition is defined in math is “backward”:
 <ul>
-<li>math: <span
-class="math inline">(<em>f</em>∘<em>g</em>)(<em>x</em>) = <em>f</em>(<em>g</em>(<em>x</em>))</span></li>
+<li>math: <span class="math inline">(f \circ g) (x) = f (g
+(x))</span></li>
 <li>OCaml: <code>let (-|) f g x = f (g x)</code></li>
 <li>F#: <code>let (&lt;&lt;) f g x = f (g x)</code></li>
 <li>Haskell: <code>(.) f g = \x -&gt; f (g x)</code></li>
@@ -1254,10 +1278,9 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb33-1"><a hre
 week: we don’t pass all arguments a function needs, in result we get a
 function that requires the remaining arguments. How is it used
 above?</li>
-<li>Now we define <span
-class="math inline"><em>f</em><sup><em>n</em></sup>(<em>x</em>) := (<em>f</em>∘…∘<em>f</em>)(<em>x</em>)</span>
-(<span class="math inline"><em>f</em></span> appears <span
-class="math inline"><em>n</em></span> times).</li>
+<li>Now we define <span class="math inline">f^n (x) := (f \circ \ldots
+\circ f) (x)</span> (<span class="math inline">f</span> appears <span
+class="math inline">n</span> times).</li>
 </ul>
 <div class="sourceCode" id="cb34"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> power f n =</span>
@@ -1284,7 +1307,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb37-1"><a hre
 (reduction semantics)</h1>
 <ul>
 <li><p>Programs consist of <strong>expressions</strong>:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 a := &amp; x &amp; \text{variables}\\\\\\
 | &amp; \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a &amp;
 \text{(defined) functions}\\\\\\
@@ -1306,42 +1329,39 @@ p := &amp; x &amp; \text{pattern variables}\\\\\\
 | &amp; (p, \ldots, p) &amp; \text{tuple patterns}\\\\\\
 | &amp; C^0 &amp; \text{variant patterns of arity } 0\\\\\\
 | &amp; C^n (p, \ldots, p) &amp; \text{variant patterns of arity } n
-\end{matrix} $$</span></p></li>
+\end{matrix} </span></p></li>
 <li><p><em>Arity</em> means how many arguments something requires; (and
 for tuples, the length of a tuple).</p></li>
 <li><p>To simplify presentation, we will use a primitive
 <code>fix</code> to define a limited form of <code>let rec</code>:</p>
-<p><span class="math display">$$ \text{{\texttt{let rec }}} f
+<p><span class="math display"> \text{{\texttt{let rec }}} f
 \text{{\texttt{ }}} x =
 e_{1} \text{{\texttt{ in }}} e_{2} \equiv
 \text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
 \text{{\texttt{ }}} x \text{{\texttt{-&gt;}}} e_{1}
-\text{{\texttt{) in }}} e_{2} $$</span></p></li>
+\text{{\texttt{) in }}} e_{2} </span></p></li>
 <li><p>Expressions evaluate (i.e. compute) to
 <strong>values</strong>:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 v := &amp; \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
 &amp;
 \text{(defined) functions}\\\\\\
 | &amp; C^n (v_{1}, \ldots, v_{n}) &amp; \text{constructed values}\\\\\\
 | &amp; f^n v_{1} \ldots v_{k} &amp; k &lt; n \text{ partially applied
-primitives} \end{matrix} $$</span></p></li>
-<li><p>To <em>substitute</em> a value <span
-class="math inline"><em>v</em></span> for a variable <span
-class="math inline"><em>x</em></span> in expression <span
-class="math inline"><em>a</em></span> we write <span
-class="math inline"><em>a</em>[<em>x</em>:=<em>v</em>]</span> – it
-behaves as if every occurrence of <span
-class="math inline"><em>x</em></span> in <span
-class="math inline"><em>a</em></span> was <em>rewritten</em> by <span
-class="math inline"><em>v</em></span>.</p>
+primitives} \end{matrix} </span></p></li>
+<li><p>To <em>substitute</em> a value <span class="math inline">v</span>
+for a variable <span class="math inline">x</span> in expression <span
+class="math inline">a</span> we write <span class="math inline">a [x :=
+v]</span> – it behaves as if every occurrence of <span
+class="math inline">x</span> in <span class="math inline">a</span> was
+<em>rewritten</em> by <span class="math inline">v</span>.</p>
 <ul>
-<li>(But actually the value <span class="math inline"><em>v</em></span>
-is not duplicated.)</li>
+<li>(But actually the value <span class="math inline">v</span> is not
+duplicated.)</li>
 </ul></li>
 <li><p>Reduction (i.e. computation) proceeds as follows: first we give
 <em>redexes</em></p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
 \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
 \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &amp;
@@ -1364,52 +1384,47 @@ C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
 C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
 \text{{\texttt{ \textbar }}} \ldots &amp; \rightsquigarrow &amp; a
 [x_{1}
-\:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$</span></p>
-<p>If <span class="math inline"><em>n</em> = 0</span>, <span
-class="math inline"><em>C</em><sub>1</sub><sup><em>n</em></sup>(<em>v</em><sub>1</sub>,…,<em>v</em><sub><em>n</em></sub>)</span>
-stands for <span
-class="math inline"><em>C</em><sub>1</sub><sup>0</sup></span>, etc. By
-<span
-class="math inline"><em>f</em>(<em>v</em><sub>1</sub>,…,<em>v</em><sub><em>n</em></sub>)</span>
-we denote the actual value resulting from computing the primitive. We
-omit the more complex cases of pattern matching.</p></li>
-<li><p>Rule variables: <span class="math inline"><em>x</em></span>
-matches any expression/pattern variable; <span
-class="math inline"><em>a</em>, <em>a</em><sub>1</sub>, …, <em>a</em><sub><em>n</em></sub></span>
-match any expression; <span
-class="math inline"><em>v</em>, <em>v</em><sub>1</sub>, …, <em>v</em><sub><em>n</em></sub></span>
-match any value. Substitute them so that the left-hand-side of a rule is
-your expression, then the right-hand-side is the reduced
-expression.</p></li>
+\:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} </span></p>
+<p>If <span class="math inline">n = 0</span>, <span
+class="math inline">C_{1}^n (v_{1}, \ldots, v_{n})</span> stands for
+<span class="math inline">C^0_{1}</span>, etc. By <span
+class="math inline">f (v_{1}, \ldots, v_{n})</span> we denote the actual
+value resulting from computing the primitive. We omit the more complex
+cases of pattern matching.</p></li>
+<li><p>Rule variables: <span class="math inline">x</span> matches any
+expression/pattern variable; <span class="math inline">a, a_{1}, \ldots,
+a_{n}</span> match any expression; <span class="math inline">v, v_{1},
+\ldots, v_{n}</span> match any value. Substitute them so that the
+left-hand-side of a rule is your expression, then the right-hand-side is
+the reduced expression.</p></li>
 <li><p>The remaining rules evaluate the arguments in arbitrary order,
 but keep the order in which <code>let</code>…<code>in</code> and
 <code>match</code>…<code>with</code> is evaluated.</p>
-<p>If <span
-class="math inline"><em>a</em><sub><em>i</em></sub> ⇝ <em>a</em><sub><em>i</em></sub>′</span>,
-then:</p>
-<p><span class="math display">$$ \begin{matrix}
-a_{1} a_{2} &amp; \rightsquigarrow &amp; a_{1}' a_{2}\\\\\\
-a_{1} a_{2} &amp; \rightsquigarrow &amp; a_{1} a_{2}'\\\\\\
+<p>If <span class="math inline">a_{i} \rightsquigarrow
+a_{i}&#39;</span>, then:</p>
+<p><span class="math display"> \begin{matrix}
+a_{1} a_{2} &amp; \rightsquigarrow &amp; a_{1}&#39; a_{2}\\\\\\
+a_{1} a_{2} &amp; \rightsquigarrow &amp; a_{1} a_{2}&#39;\\\\\\
 C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) &amp; \rightsquigarrow &amp;
 C^n
-(a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
+(a_{1}, \ldots, a_{i}&#39;, \ldots, a_{n})\\\\\\
 \text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
-a_{2} &amp; \rightsquigarrow &amp; \text{{\texttt{let }}} x = a_{1}'
+a_{2} &amp; \rightsquigarrow &amp; \text{{\texttt{let }}} x = a_{1}&#39;
 \text{{\texttt{ in }}} a_{2}\\\\\\
 \text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
 \operatorname{pm} &amp; \rightsquigarrow &amp; \text{{\texttt{match }}}
-a_{1}' \text{{\texttt{ with}} } \operatorname{pm} \end{matrix}
-$$</span></p></li>
+a_{1}&#39; \text{{\texttt{ with}} } \operatorname{pm} \end{matrix}
+</span></p></li>
 <li><p>Finally, we give the rule for the primitive <code>fix</code> – it
 is a binary primitive:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
 \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix}
-$$</span></p>
-<p>Because <code>fix</code> is binary, <span class="math inline">$\left(
-\text{{\texttt{fix}}}^2 v_{1} \right)$</span> is already a value so it
+</span></p>
+<p>Because <code>fix</code> is binary, <span class="math inline">\left(
+\text{{\texttt{fix}}}^2 v_{1} \right)</span> is already a value so it
 will not be further computed until it is applied inside of <span
-class="math inline"><em>v</em><sub>1</sub></span>.</p></li>
+class="math inline">v_{1}</span>.</p></li>
 <li><p>Compute some programs using the rules by hand.</p></li>
 </ul>
 <h1 id="symbolic-derivation-example">3 Symbolic Derivation Example</h1>
@@ -1526,12 +1541,10 @@ would get computing the derivative of <code>exp</code> with respect to
 step of the simplification, and wrap it using a general
 <code>fixpoint</code> function that performs an operation until a
 <em>fixed point</em> is reached: given <span
-class="math inline"><em>f</em></span> and <span
-class="math inline"><em>x</em></span>, it computes <span
-class="math inline"><em>f</em><sup><em>n</em></sup>(<em>x</em>)</span>
-such that <span
-class="math inline"><em>f</em><sup><em>n</em></sup>(<em>x</em>) = <em>f</em><sup><em>n</em> + 1</sup>(<em>x</em>)</span>.
-Functional Programming</li>
+class="math inline">f</span> and <span class="math inline">x</span>, it
+computes <span class="math inline">f^n (x)</span> such that <span
+class="math inline">f^n (x) = f^{n + 1} (x)</span>. Functional
+Programming</li>
 </ul></li>
 </ol>
 <p>Computation</p>
@@ -1563,12 +1576,10 @@ get computing the derivative of <code>exp</code> with respect to
 <p><em>Write a <code>simplify_once</code> function that performs a
 single step of the simplification, and wrap it using a general
 <code>fixpoint</code> function that performs an operation until a
-</em>fixed point* is reached: given <span
-class="math inline"><em>f</em></span> and <span
-class="math inline"><em>x</em></span>, it computes <span
-class="math inline"><em>f</em><sup><em>n</em></sup>(<em>x</em>)</span>
-such that <span
-class="math inline"><em>f</em><sup><em>n</em></sup>(<em>x</em>) = <em>f</em><sup><em>n</em> + 1</sup>(<em>x</em>)</span>.*</p>
+</em>fixed point* is reached: given <span class="math inline">f</span>
+and <span class="math inline">x</span>, it computes <span
+class="math inline">f^n (x)</span> such that <span
+class="math inline">f^n (x) = f^{n + 1} (x)</span>.*</p>
 <p><strong>Exercise 5:</strong> Write two sorting algorithms, working on
 lists: merge sort and quicksort.</p>
 <ol type="1">
@@ -1581,7 +1592,7 @@ first element, sorts the parts, and puts them together.</em></li>
 <p>Functional Programming</p>
 <p>Lecture 4: Functions.</p>
 <p>Programming in untyped <span
-class="math inline"><em>λ</em></span>-calculus.</p>
+class="math inline">\lambda</span>-calculus.</p>
 <p><em>Introduction to Lambda Calculus</em> Henk Barendregt, Erik
 Barendsen</p>
 <p><em>Lecture Notes on the Lambda Calculus</em> Peter Selinger</p>
@@ -1597,54 +1608,54 @@ length = fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))</p>
 <p>let length = fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x,
 xs) -&gt; 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &amp;
   \Downarrow &amp; a [x := v]
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1
 + f xs) (Cons (1, (Cons (2, Nil))))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp;
   \Downarrow &amp; v_{1}  \left(
   \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp;
   \Downarrow &amp; v_{1}  \left(
   \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>(fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f
 xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
 1 + f xs)) (Cons (1, (Cons (2, Nil))))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1}' a_{2}
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1}&#39; a_{2}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1}' a_{2}
-\end{matrix} $$</span></p>
+  a_{1}&#39; a_{2}
+\end{matrix} </span></p>
 <p>(fun l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + (fix
 (fun f l -&gt; match l with | Nil -&gt; 0<br />
 | Cons (x, xs) -&gt; 1 + f xs)) xs) (Cons (1, (Cons (2, Nil))))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \Downarrow &amp; a [x :=
   v]
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \Downarrow &amp; a [x :=
   v]
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>(match Cons (1, (Cons (2, Nil))) with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0<br />
 | Cons (x, xs) -&gt; 1 + f xs)) xs)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
@@ -1652,8 +1663,8 @@ xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
   \Downarrow &amp;
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
   &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
@@ -1661,75 +1672,75 @@ xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
   \Downarrow &amp;
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
   &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>(match Cons (1, (Cons (2, Nil))) with | Cons (x, xs) -&gt; 1 + (fix
 (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f
 xs)) xs)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
   \text{{\texttt{ \textbar }}} \ldots &amp;
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
   \text{{\texttt{ \textbar }}} \ldots &amp;
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs)) (Cons (2, Nil))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
   \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
   \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1
 + f xs)) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs)) (Cons (2, Nil))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (fun l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 +
 (fix (fun f l -&gt; match l with<br />
 | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs))<br />
 (Cons (2, Nil))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (match Cons (2, Nil) with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 +
 (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 +
 f xs)) xs))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
@@ -1738,9 +1749,9 @@ f xs)) xs))</p>
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
   &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
@@ -1749,11 +1760,11 @@ f xs)) xs))</p>
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
   &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (match Cons (2, Nil) with | Cons (x, xs) -&gt; 1 + (fix (fun f l
 -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
@@ -1761,8 +1772,8 @@ f xs)) xs))</p>
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]\\\\\\
   &amp;  &amp;
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
@@ -1770,68 +1781,68 @@ f xs)) xs))</p>
 [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x,
 xs) -&gt; 1 + f xs)) Nil)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
   \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
   \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (1 + (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs) (fix (fun f l -&gt;<br />
 match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) Nil)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (1 + (fun l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
 1 + (fix (fun f l -&gt;<br />
 match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (1 + (match Nil with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + (fix
 (fun f l -&gt; match l with<br />
 | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs))</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
@@ -1839,11 +1850,11 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
 [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
-<p><span class="math display">$$ \begin{matrix}
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
+<p><span class="math display"> \begin{matrix}
   \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
   \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
   C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
@@ -1851,73 +1862,69 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
 [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'\\\\\\
+  a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + (1 + 0)</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   f^n v_{1} \ldots v_{n} &amp; \rightsquigarrow &amp; f (v_{1}, \ldots,
   v_{n})\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
-  a_{1} a_{2}'
-\end{matrix} $$</span></p>
+  a_{1} a_{2}&#39;
+\end{matrix} </span></p>
 <p>1 + 1</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   f^n v_{1} \ldots v_{n} &amp;
   \Downarrow &amp; f (v_{1}, \ldots,
   v_{n})
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <p>2</p>
 <h1 id="language-and-rules-of-the-untyped-lambda-calculus">2 Language
 and rules of the untyped <span
-class="math inline"><em>λ</em></span>-calculus</h1>
+class="math inline">\lambda</span>-calculus</h1>
 <ul>
 <li><p>First, let’s forget about types.</p></li>
 <li><p>Next, let’s introduce a shortcut:</p>
 <ul>
-<li>We write <span
-class="math inline"><em>λ</em><em>x</em>.<em>a</em></span> for
-<code>fun x-&gt;a</code>, <span
-class="math inline"><em>λ</em><em>x</em><em>y</em>.<em>a</em></span> for
-<code>fun x    y-&gt;a</code>, etc.</li>
+<li>We write <span class="math inline">\lambda x.a</span> for
+<code>fun x-&gt;a</code>, <span class="math inline">\lambda x y.a</span>
+for <code>fun x    y-&gt;a</code>, etc.</li>
 </ul></li>
 <li><p>Let’s forget about all other constructions, only fun and
 variables.</p></li>
-<li><p>The real <span class="math inline"><em>λ</em></span>-calculus has
-a more general reduction:</p>
-<p><span class="math display">$$ \begin{matrix}
+<li><p>The real <span class="math inline">\lambda</span>-calculus has a
+more general reduction:</p>
+<p><span class="math display"> \begin{matrix}
 \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}}
 a_{1} \right) a_{2} &amp; \rightsquigarrow &amp; a_{1} [x := a_{2}]
-\end{matrix} $$</span></p>
-<p>(called <em><span
-class="math inline"><em>β</em></span>-reduction</em>) and uses <em>bound
-variable renaming</em> (called <em><span
-class="math inline"><em>α</em></span>-conversion</em>), or some other
-trick, to avoid <em>variable capture</em>. But let’s not over-complicate
+\end{matrix} </span></p>
+<p>(called <em><span class="math inline">\beta</span>-reduction</em>)
+and uses <em>bound variable renaming</em> (called <em><span
+class="math inline">\alpha</span>-conversion</em>), or some other trick,
+to avoid <em>variable capture</em>. But let’s not over-complicate
 things.</p>
 <ul>
 <li>We will look into the <span
-class="math inline"><em>β</em></span>-reduction rule in the
+class="math inline">\beta</span>-reduction rule in the
 <strong>laziness</strong> lecture.</li>
-<li>Why is <span class="math inline"><em>β</em></span>-reduction more
-general than the rule we use?</li>
+<li>Why is <span class="math inline">\beta</span>-reduction more general
+than the rule we use?</li>
 </ul></li>
 </ul>
 <h1 id="booleans">3 Booleans</h1>
 <ul>
 <li>Alonzo Church introduced <span
-class="math inline"><em>λ</em></span>-calculus to encode logic.</li>
+class="math inline">\lambda</span>-calculus to encode logic.</li>
 <li>There are multiple ways to encode various sorts of data in <span
-class="math inline"><em>λ</em></span>-calculus. Not all of them make
-sense in a typed setting, i.e. the straightforward encode/decode
-functions do not type-check for them.</li>
-<li>Define <code>c_true</code>=<span
-class="math inline"><em>λ</em><em>x</em><em>y</em>.<em>x</em></span> and
-<code>c_false</code>=<span
-class="math inline"><em>λ</em><em>x</em><em>y</em>.<em>y</em></span>.</li>
-<li>Define <code>c_and</code>=<span class="math inline">$\lambda x y.x y
-\text{{\texttt{c\_false}}}$</span>. Check that it works!
+class="math inline">\lambda</span>-calculus. Not all of them make sense
+in a typed setting, i.e. the straightforward encode/decode functions do
+not type-check for them.</li>
+<li>Define <code>c_true</code>=<span class="math inline">\lambda x
+y.x</span> and <code>c_false</code>=<span class="math inline">\lambda x
+y.y</span>.</li>
+<li>Define <code>c_and</code>=<span class="math inline">\lambda x y.x y
+\text{{\texttt{c\_false}}}</span>. Check that it works!
 <ul>
 <li>I.e. that <code>c_and c_true c_true</code> =
 <code>c_true</code>,otherwise <code>c_and a b</code> =
@@ -1952,9 +1959,8 @@ decodeboolpair c = decodepair decodebool decodebool c</p>
 numbers</h1>
 <ul>
 <li>Our first encoding of natural numbers is as the depth of nested
-pairs whose rightmost leaf is <span
-class="math inline"><em>λ</em><em>x</em>.<em>x</em></span> and whose
-left elements are <code>c_false</code>.</li>
+pairs whose rightmost leaf is <span class="math inline">\lambda
+x.x</span> and whose left elements are <code>c_false</code>.</li>
 </ul>
 <p>let pn0 = fun x -&gt; xStart with the identity function.let pnsucc n
 = cpair cfalse nStack another pair.let pnpred = fun x -&gt; x
@@ -1992,12 +1998,12 @@ But try to make some progress before you turn to the next slide.
 <p>let rec encodecnat n f = if n <span class="math inline">&lt;</span>=
 0 then (fun x -&gt; x) else f -| encodecnat (n-1) flet decodecnat n = n
 ((+) 1) 0let cn7 f x = encodecnat 7 f xWe need to <em><span
-class="math inline"><em>η</em></span>-expand</em> these definitionslet
-cn13 f x = encodecnat 13 f xfor type-system reasons.(Because OCaml
-allows <em>side-effects</em>.)let cnadd = fun n m f x -&gt; n f (m f
-x)Put <code>n</code> of <code>f</code> in front.let cnmult = fun n m f
--&gt; n (m f)Repeat <code>n</code> timesputting <code>m</code> of
-<code>f</code> in front.let cnprev n =<br />
+class="math inline">\eta</span>-expand</em> these definitionslet cn13 f
+x = encodecnat 13 f xfor type-system reasons.(Because OCaml allows
+<em>side-effects</em>.)let cnadd = fun n m f x -&gt; n f (m f x)Put
+<code>n</code> of <code>f</code> in front.let cnmult = fun n m f -&gt; n
+(m f)Repeat <code>n</code> timesputting <code>m</code> of <code>f</code>
+in front.let cnprev n =<br />
 fun f x -&gt;This is the ‘‘Church numeral signature’‘. nThe only thing
 we have is an <code>n</code>-step loop. (fun g v -&gt; v (g f))We need
 sth that operates on <code>f</code>. (fun z-&gt;x)We need to ignore the
@@ -2006,48 +2012,49 @@ innermost step.<br />
 machine.</p>
 <p><code>cn_is_zero</code> left as an exercise.</p>
 <p>decodecnat (cn_prev cn3)</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>(cn_prev cn3) ((+) 1) 0</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>(fun f x -&gt; cn3 (fun g v -&gt; v (g f)) (fun z-&gt;x)<br />
 (fun z-&gt;z)) ((+) 1) 0</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((fun f x -&gt; f (f (f x))) (fun g v -&gt; v (g ((+) 1))) (fun
 z-&gt;0) (fun z-&gt;z))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((fun g v -&gt; v (g ((+) 1))) ((fun g v -&gt; v (g ((+) 1))) ((fun g
 v -&gt; v (g ((+) 1))) (fun z-&gt;0)))) (fun z-&gt;z))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((fun z-&gt;z) (((fun g v -&gt; v (g ((+) 1))) ((fun g v -&gt; v (g
 ((+) 1))) (fun z-&gt;0)))) ((+) 1)))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>(fun g v -&gt; v (g ((+) 1))) ((fun g v -&gt; v (g ((+) 1))) (fun
 z-&gt;0)) ((+) 1)</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((+) 1) ((fun g v -&gt; v (g ((+) 1))) (fun z-&gt;0) ((+) 1))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((+) 1) (((+) 1) ((fun z-&gt;0) ((+) 1)))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((+) 1) (((+) 1) (0))</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>((+) 1) 1</p>
-<p><span class="math display">⇓</span></p>
+<p><span class="math display"> \Downarrow </span></p>
 <p>2</p>
 <h1 id="recursion-fixpoint-combinator">7 Recursion: Fixpoint
 Combinator</h1>
 <ul>
-<li><p>Turing’s fixpoint combinator: <span
-class="math inline"><em>Θ</em> = (<em>λ</em><em>x</em><em>y</em>.<em>y</em>(<em>x</em><em>x</em><em>y</em>))(<em>λ</em><em>x</em><em>y</em>.<em>y</em>(<em>x</em><em>x</em><em>y</em>))</span></p>
-<p><span class="math display">$$ \begin{matrix}
+<li><p>Turing’s fixpoint combinator: <span class="math inline">\Theta =
+(\lambda x y.y (x x y)) (\lambda x y.y (x x y))</span></p>
+<p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \Theta F\\\\\\
 &amp; = &amp; (\lambda x y.y (x x y))  (\lambda x y.y (x x y)) F\\\\\\
 &amp; =_{\rightarrow \rightarrow} &amp; F ((\lambda x y.y (x x
 y))  (\lambda x y.y
 (x x y)) F)\\\\\\
-&amp; = &amp; F (\Theta F) = F N \end{matrix} $$</span></p></li>
+&amp; = &amp; F (\Theta F) = F N \end{matrix} </span></p></li>
 <li><p>Curry’s fixpoint combinator: <span
-class="math inline"><strong>Y</strong> = <em>λ</em><em>f</em>.(<em>λ</em><em>x</em>.<em>f</em>(<em>x</em><em>x</em>))(<em>λ</em><em>x</em>.<em>f</em>(<em>x</em><em>x</em>))</span></p>
-<p><span class="math display">$$ \begin{matrix}
+class="math inline">\boldsymbol{Y}= \lambda f. (\lambda x.f (x
+x))  (\lambda x.f (x x))</span></p>
+<p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \boldsymbol{Y}F\\\\\\
 &amp; = &amp; (\lambda f. (\lambda x.f (x x))  (\lambda x.f (x x)))
 F\\\\\\
@@ -2058,31 +2065,32 @@ x)))\\\\\\
 &amp; =_{\leftarrow} &amp; F ((\lambda f. (\lambda x.f (x x))  (\lambda
 x.f (x
 x))) F)\\\\\\
-&amp; = &amp; F (\boldsymbol{Y}F) = F N \end{matrix} $$</span></p></li>
+&amp; = &amp; F (\boldsymbol{Y}F) = F N \end{matrix} </span></p></li>
 <li><p>Call-by-value <em>fix</em>point combinator: <span
-class="math inline"><em>λ</em><em>f</em>′.(<em>λ</em><em>f</em><em>x</em>.<em>f</em>′(<em>f</em><em>f</em>)<em>x</em>)(<em>λ</em><em>f</em><em>x</em>.<em>f</em>′(<em>f</em><em>f</em>)<em>x</em>)</span></p>
-<p><span class="math display">$$ \begin{matrix}
+class="math inline">\lambda f&#39; . (\lambda f x.f&#39; (f f)
+x)  (\lambda f x.f&#39; (f f) x)</span></p>
+<p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \operatorname{fix}F\\\\\\
-&amp; = &amp; (\lambda f' . (\lambda f x.f'  (f f) x)  (\lambda f
-x.f'  (f f) x))
+&amp; = &amp; (\lambda f&#39; . (\lambda f x.f&#39;  (f f) x)  (\lambda
+f x.f&#39;  (f f) x))
 F\\\\\\
 &amp; =_{\rightarrow} &amp; (\lambda f x.F (f f) x)  (\lambda f x.F (f
 f) x)\\\\\\
 &amp; =_{\rightarrow} &amp; \lambda x.F ((\lambda f x.F (f f)
 x)  (\lambda f x.F
 (f f) x)) x\\\\\\
-&amp; =_{\leftarrow} &amp; \lambda x.F ((\lambda f' . (\lambda f
-x.f'  (f f) x)
-(\lambda f x.f'  (f f) x)) F) x\\\\\\
+&amp; =_{\leftarrow} &amp; \lambda x.F ((\lambda f&#39; . (\lambda f
+x.f&#39;  (f f) x)
+(\lambda f x.f&#39;  (f f) x)) F) x\\\\\\
 &amp; = &amp; \lambda x.F (\operatorname{fix}F) x = \lambda x.F N
 x\\\\\\
-&amp; =_{\eta} &amp; F N \end{matrix} $$</span></p></li>
-<li><p>The <span class="math inline"><em>λ</em></span>-terms we have
-seen above are <strong>fixpoint combinators</strong> – means inside
-<span class="math inline"><em>λ</em></span>-calculus to perform
+&amp; =_{\eta} &amp; F N \end{matrix} </span></p></li>
+<li><p>The <span class="math inline">\lambda</span>-terms we have seen
+above are <strong>fixpoint combinators</strong> – means inside <span
+class="math inline">\lambda</span>-calculus to perform
 recursion.</p></li>
 <li><p>What is the problem with the first two combinators?</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \Theta F &amp; \rightsquigarrow \rightsquigarrow &amp; F ((\lambda x y.y
 (x x y))
 (\lambda x y.y (x x y)) F)\\\\\\
@@ -2093,46 +2101,45 @@ y))
 x y))
 (\lambda x y.y (x x y)) F)))\\\\\\
 &amp; \rightsquigarrow \rightsquigarrow &amp; \ldots \end{matrix}
-$$</span></p></li>
+</span></p></li>
 <li><p>Recall the distinction between <em>expressions</em> and
 <em>values</em> from the previous lecture <em>Computation</em>.</p></li>
 <li><p>The reduction rule for <span
-class="math inline"><em>λ</em></span>-calculus is just meant to
-determine which expressions are considered “equal” – it is highly
+class="math inline">\lambda</span>-calculus is just meant to determine
+which expressions are considered “equal” – it is highly
 <em>non-deterministic</em>, while on a computer, computation needs to go
 one way or another.</p></li>
 <li><p>Using the general reduction rule of <span
-class="math inline"><em>λ</em></span>-calculus, for a recursive
-definition, it is always possible to find an infinite reduction sequence
-(which means that you couldn’t complain when a nasty <span
-class="math inline"><em>λ</em></span>-calculus compiler generates
-infinite loops for all recursive definitions).</p>
+class="math inline">\lambda</span>-calculus, for a recursive definition,
+it is always possible to find an infinite reduction sequence (which
+means that you couldn’t complain when a nasty <span
+class="math inline">\lambda</span>-calculus compiler generates infinite
+loops for all recursive definitions).</p>
 <ul>
 <li>Why?</li>
 </ul></li>
 <li><p>Therefore, we need more specific rules. For example, most
-languages use <span class="math inline">$\left( \text{{\texttt{fun }}} x
-\text{{\texttt{-&gt;}}} a \right) v \rightsquigarrow a [x := v]$</span>,
+languages use <span class="math inline">\left( \text{{\texttt{fun }}} x
+\text{{\texttt{-&gt;}}} a \right) v \rightsquigarrow a [x := v]</span>,
 which is called <em>call-by-value</em>, or <strong>eager</strong>
 computation (because the program <em>eagerly</em> computes the arguments
 before starting to compute the function). (It’s exactly the rule we
 introduced in <em>Computation</em> lecture.)</p></li>
 <li><p>What happens with call-by-value fixpoint combinator?</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \operatorname{fix}F &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
 x)  (\lambda f
 x.F (f f) x)\\\\\\
 &amp; \rightsquigarrow &amp; \lambda x.F ((\lambda f x.F (f f)
 x)  (\lambda f x.F
-(f f) x)) x \end{matrix} $$</span></p>
-<p>Voila – if we use <span class="math inline">$\left(
-\text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a \right) v
-\rightsquigarrow a [x := v]$</span> as the rulerather than <span
-class="math inline">$\left( \text{{\texttt{fun }}} x
-\text{{\texttt{-&gt;}}} a_{1} \right) a_{2} \rightsquigarrow a_{1} [x :=
-a_{2}]$</span>, the computation stops. Let’s compute the function on
-some input:</p>
-<p><span class="math display">$$ \begin{matrix}
+(f f) x)) x \end{matrix} </span></p>
+<p>Voila – if we use <span class="math inline">\left( \text{{\texttt{fun
+}}} x \text{{\texttt{-&gt;}}} a \right) v \rightsquigarrow a [x :=
+v]</span> as the rulerather than <span class="math inline">\left(
+\text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a_{1} \right) a_{2}
+\rightsquigarrow a_{1} [x := a_{2}]</span>, the computation stops. Let’s
+compute the function on some input:</p>
+<p><span class="math display"> \begin{matrix}
 \operatorname{fix}F v &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
 x)  (\lambda
 f x.F (f f) x) v\\\\\\
@@ -2146,35 +2153,33 @@ v\\\\\\
 x)  (\lambda f
 x.F (f f) x)) x) v\\\\\\
 &amp; \rightsquigarrow &amp; \text{depends on } F \end{matrix}
-$$</span></p></li>
+</span></p></li>
 <li><p>Why the name <em>fixpoint</em>? If you look at our derivations,
 you’ll see that they show what in math can be written as <span
-class="math inline"><em>x</em> = <em>f</em>(<em>x</em>)</span>. Such
-values <span class="math inline"><em>x</em></span> are called fixpoints
-of <span class="math inline"><em>f</em></span>. An arithmetic function
-can have several fixpoints, for example <span
-class="math inline"><em>f</em>(<em>x</em>) = <em>x</em><sup>2</sup></span>
-(which <span class="math inline"><em>x</em></span>es are fixpoints?) or
-no fixpoints, for example <span
-class="math inline"><em>f</em>(<em>x</em>) = <em>x</em> + 1</span>.</p></li>
+class="math inline">x = f (x)</span>. Such values <span
+class="math inline">x</span> are called fixpoints of <span
+class="math inline">f</span>. An arithmetic function can have several
+fixpoints, for example <span class="math inline">f (x) = x^2</span>
+(which <span class="math inline">x</span>es are fixpoints?) or no
+fixpoints, for example <span class="math inline">f (x) = x +
+1</span>.</p></li>
 <li><p>When you define a function (or another object) by recursion, it
 has very similar meaning: there is a name that is on both sides of <span
 class="math inline">=</span>.</p></li>
-<li><p>In <span class="math inline"><em>λ</em></span>-calculus, there
-are functions like <span class="math inline"><em>Θ</em></span> and <span
-class="math inline"><strong>Y</strong></span>, that take <em>any</em>
+<li><p>In <span class="math inline">\lambda</span>-calculus, there are
+functions like <span class="math inline">\Theta</span> and <span
+class="math inline">\boldsymbol{Y}</span>, that take <em>any</em>
 function as an argument, and return its fixpoint.</p></li>
 <li><p>We turn a specification of a recursive object into a definition,
 by solving it with respect to the recurring name: deriving <span
-class="math inline"><em>x</em> = <em>f</em>(<em>x</em>)</span> where
-<span class="math inline"><em>x</em></span> is the recurring name. We
-then have <span
-class="math inline"><em>x</em> = fix (<em>f</em>)</span>.</p></li>
+class="math inline">x = f (x)</span> where <span
+class="math inline">x</span> is the recurring name. We then have <span
+class="math inline">x =\operatorname{fix} (f)</span>.</p></li>
 <li><p>Let’s walk through it for the factorial function (we omit the
 prefix <code>cn_</code> – could be <code>pn_</code> if <code>pn1</code>
 was used instead of <code>cn1</code> – for numeric functions, and we
 shorten <code>if_then_else</code> into <code>if_t_e</code>):</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{fact}}} n &amp; = &amp; \text{{\texttt{if\_t\_e}}}
 \left( \text{{\texttt{is\_zero}}} n \right)
 \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
@@ -2198,7 +2203,7 @@ n.
 \text{{\texttt{is\_zero}}} n \right)
 \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
 \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
-\right) \end{matrix} $$</span></p>
+\right) \end{matrix} </span></p>
 <p>The last specification is a valid definition: we just give a name to
 a (<em>ground</em>, a.k.a. <em>closed</em>) expression.</p></li>
 <li><p>We have seen how fix works already!</p>
@@ -2212,43 +2217,42 @@ a (<em>ground</em>, a.k.a. <em>closed</em>) expression.</p></li>
 <li><p>A list is either empty, which we often call <code>Empty</code> or
 <code>Nil</code>, or it consists of an element followed by another list
 (called “tail”), the other case often called <code>Cons</code>.</p></li>
-<li><p>Define <code>nil</code><span
-class="math inline"> = <em>λ</em><em>x</em><em>y</em>.<em>y</em></span>
-and <code>cons</code><span
-class="math inline"><em>H</em><em>T</em> = <em>λ</em><em>x</em><em>y</em>.<em>x</em><em>H</em><em>T</em></span>.</p></li>
+<li><p>Define <code>nil</code><span class="math inline">= \lambda x
+y.y</span> and <code>cons</code><span class="math inline">H T = \lambda
+x y.x H T</span>.</p></li>
 <li><p>Add numbers stored inside a list:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{addlist}}} l &amp; = &amp; l \left( \lambda h t.
 \text{{\texttt{cn\_add}}} h \left(
 \text{{\texttt{addlist}}} t \right) \right)
-\text{{\texttt{cn0}}} \end{matrix} $$</span></p>
+\text{{\texttt{cn0}}} \end{matrix} </span></p>
 <p>To make a proper definition, we need to apply <span
-class="math inline">fix </span> to the solution of above equation.</p>
-<p><span class="math display">$$ \begin{matrix}
+class="math inline">\operatorname{fix}</span> to the solution of above
+equation.</p>
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{addlist}}} &amp; = &amp; \operatorname{fix} \left(
 \lambda f
 l.l \left( \lambda h t. \text{{\texttt{cn\_add}}} h (f t) \right)
-\text{{\texttt{cn0}}} \right) \end{matrix} $$</span></p></li>
+\text{{\texttt{cn0}}} \right) \end{matrix} </span></p></li>
 <li><p>For trees, let’s use a different form of binary trees than so
 far: instead of keeping elements in inner nodes, we will keep elements
 in leaves.</p></li>
-<li><p>Define <code>leaf</code><span
-class="math inline"><em>n</em> = <em>λ</em><em>x</em><em>y</em>.<em>x</em><em>n</em></span>
-and <code>node</code><span
-class="math inline"><em>L</em><em>R</em> = <em>λ</em><em>x</em><em>y</em>.<em>y</em><em>L</em><em>R</em></span>.</p></li>
+<li><p>Define <code>leaf</code><span class="math inline">n = \lambda x
+y.x n</span> and <code>node</code><span class="math inline">L R =
+\lambda x y.y L R</span>.</p></li>
 <li><p>Add numbers stored inside a tree:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{addtree}}} t &amp; = &amp; t (\lambda n.n)  \left(
 \lambda l
 r. \text{{\texttt{cn\_add}}}  \left(
 \text{{\texttt{addtree}}} l \right)  \left(
-\text{{\texttt{addtree}}} r \right) \right) \end{matrix} $$</span></p>
+\text{{\texttt{addtree}}} r \right) \right) \end{matrix} </span></p>
 <p>and, in solved form:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \text{{\texttt{addtree}}} &amp; = &amp; \operatorname{fix} \left(
 \lambda f
 t.t (\lambda n.n)  \left( \lambda l r. \text{{\texttt{cn\_add}}}
-(f l)  (f r) \right) \right) \end{matrix} $$</span></p></li>
+(f l)  (f r) \right) \right) \end{matrix} </span></p></li>
 </ul>
 <p>let nil = fun x y -&gt; ylet cons h t = fun x y -&gt; x h tlet
 addlist l =<br />
@@ -2261,21 +2265,22 @@ t;;decodecnat (addtree (node (node (leaf cn3) (leaf cn7)) (leaf
 cn1)));;</p>
 <ul>
 <li><p>Observe a regularity: when we encode a variant type with <span
-class="math inline"><em>n</em></span> variants, for each variant we
-define a function that takes <span class="math inline"><em>n</em></span>
+class="math inline">n</span> variants, for each variant we define a
+function that takes <span class="math inline">n</span>
 arguments.</p></li>
-<li><p>If the <span class="math inline"><em>k</em></span>th variant
-<span class="math inline"><em>C</em><sub><em>k</em></sub></span> has
-<span class="math inline"><em>m</em><sub><em>k</em></sub></span>
-parameters, then the function <span
-class="math inline"><em>c</em><sub><em>k</em></sub></span> that encodes
-it will have the form:</p>
-<p><span
-class="math display"><em>C</em><sub><em>k</em></sub>(<em>v</em><sub>1</sub>,…,<em>v</em><sub><em>m</em><sub><em>k</em></sub></sub>) ∼ <em>c</em><sub><em>k</em></sub><em>v</em><sub>1</sub>…<em>v</em><sub><em>m</em><sub><em>k</em></sub></sub> = <em>λ</em><em>x</em><sub>1</sub>…<em>x</em><sub><em>n</em></sub>.<em>x</em><sub><em>k</em></sub><em>v</em><sub>1</sub>…<em>v</em><sub><em>m</em><sub><em>k</em></sub></sub></span></p></li>
+<li><p>If the <span class="math inline">k</span>th variant <span
+class="math inline">C_{k}</span> has <span
+class="math inline">m_{k}</span> parameters, then the function <span
+class="math inline">c_{k}</span> that encodes it will have the form:</p>
+<p><span class="math display"> C_{k} (v_{1}, \ldots, v_{m_{k}}) \sim
+c_{k} v_{1} \ldots
+v_{m_{k}}
+= \lambda x_{1} \ldots x_{n} .x_{k} v_{1} \ldots v_{m_{k}}
+</span></p></li>
 <li><p>The encoded variants serve as a shallow pattern matching with
-guaranteed exhaustiveness: <span class="math inline"><em>k</em></span>th
-argument corresponds to <span class="math inline"><em>k</em></span>th
-branch of pattern matching.</p></li>
+guaranteed exhaustiveness: <span class="math inline">k</span>th argument
+corresponds to <span class="math inline">k</span>th branch of pattern
+matching.</p></li>
 </ul>
 <h1 id="looping-recursion">9 Looping Recursion</h1>
 <ul>
@@ -2288,9 +2293,9 @@ addition:</li>
 <li>Oops… OCaml
 says:<code>Stack overflow during evaluation (looping    recursion?).</code></li>
 <li>What is wrong? Nothing as far as <span
-class="math inline"><em>λ</em></span>-calculus is concerned. But OCaml
-and F# always compute arguments before calling a function. By definition
-of fix, <code>f</code> corresponds to recursively calling
+class="math inline">\lambda</span>-calculus is concerned. But OCaml and
+F# always compute arguments before calling a function. By definition of
+fix, <code>f</code> corresponds to recursively calling
 <code>pn_add</code>. Therefore,(pnsucc (f (pnpred m) n)) will be called
 regardless of what(pniszero m) returns!</li>
 <li>Why <code>addlist</code> and <code>addtree</code> work?</li>
@@ -2309,7 +2314,7 @@ to guard their arguments with fun <code>x</code> -&gt;, where
 <ul>
 <li>In OCaml or F# we would guard by fun () -&gt;, and then apply to (),
 but we do not have datatypes like <code>unit</code> in <span
-class="math inline"><em>λ</em></span>-calculus.</li>
+class="math inline">\lambda</span>-calculus.</li>
 </ul></li>
 </ul>
 <p>let pnadd m n = fix (fun f m n -&gt; (ifthenelse (pniszero m) (fun x
@@ -2320,28 +2325,25 @@ class="math inline"><em>λ</em></span>-calculus.</li>
 <code>c_not</code>; 1. exponentiation for Church numerals; 1. is-zero
 predicate for Church numerals; 1. even-number predicate for Church
 numerals; 1. multiplication for pair-encoded natural numbers; 1.
-factorial <span class="math inline"><em>n</em>!</span> for pair-encoded
-natural numbers. 1. Construct <span
-class="math inline"><em>λ</em></span>-terms <span
-class="math inline"><em>m</em><sub>0</sub>, <em>m</em><sub>1</sub>, …</span>
-such that for all <span class="math inline"><em>n</em></span> one
-has:</p>
-<p><span class="math display">$$ \begin{matrix}
+factorial <span class="math inline">n!</span> for pair-encoded natural
+numbers. 1. Construct <span class="math inline">\lambda</span>-terms
+<span class="math inline">m_{0}, m_{1}, \ldots</span> such that for all
+<span class="math inline">n</span> one has:</p>
+<p><span class="math display"> \begin{matrix}
    m_{0} &amp; = &amp; x \\\\\\
-   m_{n + 1} &amp; = &amp; m_{n + 2} m_{n} \end{matrix} $$</span></p>
+   m_{n + 1} &amp; = &amp; m_{n + 2} m_{n} \end{matrix} </span></p>
 <p>(where equality is after performing <span
-class="math inline"><em>β</em></span>-reductions). 1. Define (implement)
-and verify a function computing: the length of a list (in Church
-numerals); 1. <code>cn_max</code> – maximum of two Church numerals; 1.
-the depth of a tree (in Church numerals). 1. Representing side-effects
-as an explicitly “passed around” state value, write combinators that
-represent the imperative constructs: 1. for…to… 1. for…downto… 1.
-while…do… 1. do…while… 1. repeat…until…</p>
-<p>Rather than writing a <span
-class="math inline"><em>λ</em></span>-term using the encodings that
-we’ve learnt, just implement the functions in OCaml / F#, using built-in
-int and bool types. You can use let rec instead of fix. * For example,
-in exercise (a), write a function let rec
+class="math inline">\beta</span>-reductions). 1. Define (implement) and
+verify a function computing: the length of a list (in Church numerals);
+1. <code>cn_max</code> – maximum of two Church numerals; 1. the depth of
+a tree (in Church numerals). 1. Representing side-effects as an
+explicitly “passed around” state value, write combinators that represent
+the imperative constructs: 1. for…to… 1. for…downto… 1. while…do… 1.
+do…while… 1. repeat…until…</p>
+<p>Rather than writing a <span class="math inline">\lambda</span>-term
+using the encodings that we’ve learnt, just implement the functions in
+OCaml / F#, using built-in int and bool types. You can use let rec
+instead of fix. * For example, in exercise (a), write a function let rec
 <code>for_to f beg_i       end_i s</code> =… where <code>f</code> takes
 arguments <code>i</code> ranging from <code>beg_i</code> to
 <code>end_i</code>, state <code>s</code> at given step, and returns
@@ -2381,8 +2383,8 @@ of examples functions corresponding to / computing:</p>
 <li><em>is-zero predicate for Church numerals;</em></li>
 <li><em>even-number predicate for Church numerals;</em></li>
 <li><em>multiplication for pair-encoded natural numbers;</em></li>
-<li><em>factorial</em> <span class="math inline"><em>n</em>!</span>
-<em>for pair-encoded natural numbers.</em></li>
+<li><em>factorial</em> <span class="math inline">n!</span> <em>for
+pair-encoded natural numbers.</em></li>
 <li><em>the length of a list (in Church numerals);</em></li>
 <li><code>*cn_max*</code> <em>– maximum of two Church
 numerals;</em></li>
@@ -2399,9 +2401,9 @@ that represent the imperative constructs:</p>
 <li>*repeat<strong>…</strong>until**…*</li>
 </ol>
 <p><em>Rather than writing a <span
-class="math inline"><em>λ</em></span>-term using the encodings that
-we’ve learnt, just implement the functions in OCaml / F#, using built-in
-int and bool types. You can use let rec instead of fix.</em></p>
+class="math inline">\lambda</span>-term using the encodings that we’ve
+learnt, just implement the functions in OCaml / F#, using built-in int
+and bool types. You can use let rec instead of fix.</em></p>
 <ul>
 <li><em>For example, in exercise (a), write a function</em> <em>let
 rec</em> <code>*for_to f beg_i   end_i s*</code> =<em>… where</em>
@@ -2444,98 +2446,88 @@ done; !s</li>
 find the type for:</p>
 <p><em>let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr
 (true::false::[])</em></p>
-<p><em>in environment <span class="math inline">$\Gamma = \left\lbrace
+<p><em>in environment <span class="math inline">\Gamma = \left\lbrace
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
 : \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha ;
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}}
 : \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha
-\operatorname{list} \right\rbrace$</span>. You can take “shortcuts” if
-it is too many equations to write down.</em></p>
+\operatorname{list} \right\rbrace</span>. You can take “shortcuts” if it
+is too many equations to write down.</em></p>
 <p><strong>Exercise 2:</strong> <em>Terms</em> <span
-class="math inline"><em>t</em><sub>1</sub>, <em>t</em><sub>2</sub>, … ∈ <em>T</em>(<em>Σ</em>,<em>X</em>)</span>
-are built out of variables <span
-class="math inline"><em>x</em>, <em>y</em>, … ∈ <em>X</em></span> and
-function symbols <span
-class="math inline"><em>f</em>, <em>g</em>, … ∈ <em>Σ</em></span> the
-way you build values out of functions:</p>
+class="math inline">t_{1}, t_{2}, \ldots \in T (\Sigma, X)</span> are
+built out of variables <span class="math inline">x, y, \ldots \in
+X</span> and function symbols <span class="math inline">f, g, \ldots \in
+\Sigma</span> the way you build values out of functions:</p>
 <ul>
-<li><span
-class="math inline"><em>X</em> ⊂ <em>T</em>(<em>Σ</em>,<em>X</em>)</span>
-<em>– variables are terms; usually an infinite set,</em></li>
-<li><em>for terms</em> <span
-class="math inline"><em>t</em><sub>1</sub>, …, <em>t</em><sub><em>n</em></sub> ∈ <em>T</em>(<em>Σ</em>,<em>X</em>)</span>
-<em>and a function symbol</em> <span
-class="math inline"><em>f</em> ∈ <em>Σ</em><sub><em>n</em></sub></span>
-<em>of arity</em> <span class="math inline"><em>n</em></span>,<span
-class="math inline"><em>f</em>(<em>t</em><sub>1</sub>,…,<em>t</em><sub><em>n</em></sub>) ∈ <em>T</em>(<em>Σ</em>,<em>X</em>)</span>
-<em>– bigger terms arise from applying function symbols to smaller
-terms;</em> <span class="math inline">$\Sigma = \dot{\cup}_{n} \Sigma
-_{n}$</span> <em>is called a signature.</em></li>
+<li><span class="math inline">X \subset T (\Sigma, X)</span> <em>–
+variables are terms; usually an infinite set,</em></li>
+<li><em>for terms</em> <span class="math inline">t_{1}, \ldots, t_{n}
+\in T (\Sigma, X)</span> <em>and a function symbol</em> <span
+class="math inline">f \in \Sigma _{n}</span> <em>of arity</em> <span
+class="math inline">n</span>,<span class="math inline">f (t_{1}, \ldots,
+t_{n}) \in T (\Sigma, X)</span> <em>– bigger terms arise from applying
+function symbols to smaller terms;</em> <span class="math inline">\Sigma
+= \dot{\cup}_{n} \Sigma _{n}</span> <em>is called a signature.</em></li>
 </ul>
 <p><em>In OCaml, we can define terms as: type term = V of string | T of
 string </em> term list5mm, where for example V(“x”) is a variable <span
-class="math inline"><em>x</em></span> and T(“f”, [V(“x”); V(“y”)]) is
-the term <span
-class="math inline"><em>f</em>(<em>x</em>,<em>y</em>)</span>.*</p>
-<p><em>By </em>substitutions* <span
-class="math inline"><em>σ</em>, <em>ρ</em>, …</span> we mean finite sets
-of variable, term pairs which we can write as <span
-class="math inline">{<em>x</em><sub>1</sub> ↦ <em>t</em><sub>1</sub>, …, <em>x</em><sub><em>k</em></sub> ↦ <em>t</em><sub><em>k</em></sub>}</span>
-or <span
-class="math inline">[<em>x</em><sub>1</sub>:=<em>t</em><sub>1</sub>;…;<em>x</em><sub><em>k</em></sub>:=<em>t</em><sub><em>k</em></sub>]</span>,
-but also functions from terms to terms <span
-class="math inline"><em>σ</em> : <em>T</em>(<em>Σ</em>,<em>X</em>) → <em>T</em>(<em>Σ</em>,<em>X</em>)</span>
-related to the pairs as follows: if <span
-class="math inline"><em>σ</em> = {<em>x</em><sub>1</sub> ↦ <em>t</em><sub>1</sub>, …, <em>x</em><sub><em>k</em></sub> ↦ <em>t</em><sub><em>k</em></sub>}</span>,
-then*</p>
+class="math inline">x</span> and T(“f”, [V(“x”); V(“y”)]) is the term
+<span class="math inline">f (x, y)</span>.*</p>
+<p><em>By </em>substitutions* <span class="math inline">\sigma, \rho,
+\ldots</span> we mean finite sets of variable, term pairs which we can
+write as <span class="math inline">\lbrace x_{1} \mapsto t_{1}, \ldots,
+x_{k} \mapsto t_{k} \rbrace</span> or <span class="math inline">[x_{1}
+:= t_{1} ; \ldots ; x_{k} := t_{k}]</span>, but also functions from
+terms to terms <span class="math inline">\sigma : T (\Sigma, X)
+\rightarrow T (\Sigma, X)</span> related to the pairs as follows: if
+<span class="math inline">\sigma = \lbrace x_{1} \mapsto t_{1}, \ldots,
+x_{k} \mapsto t_{k} \rbrace</span>, then*</p>
 <ul>
-<li><span
-class="math inline"><em>σ</em>(<em>x</em><sub><em>i</em></sub>) = <em>t</em><sub><em>i</em></sub></span>
-<em>for</em> <span
-class="math inline"><em>x</em><sub><em>i</em></sub> ∈ {<em>x</em><sub>1</sub>, …, <em>x</em><sub><em>k</em></sub>}</span>,</li>
-<li><span class="math inline"><em>σ</em>(<em>x</em>) = <em>x</em></span>
-<em>for</em> <span
-class="math inline"><em>x</em> ∈ <em>X</em> ∖ {<em>x</em><sub>1</sub>, …, <em>x</em><sub><em>k</em></sub>}</span>,</li>
-<li><span
-class="math inline"><em>σ</em>(<em>f</em>(<em>t</em><sub>1</sub>,…,<em>t</em><sub><em>n</em></sub>)) = <em>f</em>(<em>σ</em>(<em>t</em><sub>1</sub>),…,<em>σ</em>(<em>t</em><sub><em>n</em></sub>))</span>.</li>
+<li><span class="math inline">\sigma (x_{i}) = t_{i}</span> <em>for</em>
+<span class="math inline">x_{i} \in \lbrace x_{1}, \ldots, x_{k}
+\rbrace</span>,</li>
+<li><span class="math inline">\sigma (x) = x</span> <em>for</em> <span
+class="math inline">x \in X\backslash \lbrace x_{1}, \ldots, x_{k}
+\rbrace</span>,</li>
+<li><span class="math inline">\sigma (f (t_{1}, \ldots, t_{n})) = f
+(\sigma (t_{1}), \ldots, \sigma (t_{n}))</span>.</li>
 </ul>
 <p><em>In OCaml, we can define substitutions <span
-class="math inline"><em>σ</em></span> as: type subst = (string </em>
-term) list, together with a function apply : subst -&gt; term -&gt; term
-which computes <span class="math inline"><em>σ</em>(⋅)</span>.*</p>
+class="math inline">\sigma</span> as: type subst = (string </em> term)
+list, together with a function apply : subst -&gt; term -&gt; term which
+computes <span class="math inline">\sigma (\cdot)</span>.*</p>
 <p><em>We say that a substitution <span
-class="math inline"><em>σ</em></span> is </em>more general* than all
-substitutions <span class="math inline"><em>ρ</em> ∘ <em>σ</em></span>,
-where <span
-class="math inline">(<em>ρ</em>∘<em>σ</em>)(<em>x</em>) = <em>ρ</em>(<em>σ</em>(<em>x</em>))</span>.
-In type inference, we are interested in most general solutions: the less
-general type judgement <span
-class="math inline">$\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
+class="math inline">\sigma</span> is </em>more general* than all
+substitutions <span class="math inline">\rho \circ \sigma</span>, where
+<span class="math inline">(\rho \circ \sigma) (x) = \rho (\sigma
+(x))</span>. In type inference, we are interested in most general
+solutions: the less general type judgement <span
+class="math inline">\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
 : \operatorname{int}\operatorname{list} \rightarrow
-\operatorname{int}$</span>, although valid, is less useful than <span
-class="math inline">$\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha$</span>
+\operatorname{int}</span>, although valid, is less useful than <span
+class="math inline">\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
+: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha</span>
 because it limits the usage of List.hd.*</p>
 <p><em>A </em>unification problem* is a finite set of equations <span
-class="math inline"><em>S</em> = {<em>s</em><sub>1</sub>=<sup>?</sup><em>t</em><sub>1</sub>, …, <em>s</em><sub><em>n</em></sub>=<sup>?</sup><em>t</em><sub><em>n</em></sub>}</span>
-which we can also write as <span class="math inline">$s_{1} \dot{=}
-t_{1} \wedge \ldots \wedge s_{n} \dot{=} t_{n}$</span>. A solution, or
-<em>unifier</em> of <span class="math inline"><em>S</em></span>, is a
-substitution <span class="math inline"><em>σ</em></span> such that <span
-class="math inline"><em>σ</em>(<em>s</em><sub><em>i</em></sub>) = <em>σ</em>(<em>t</em><sub><em>i</em></sub>)</span>
-for <span class="math inline"><em>i</em> = 1, …, <em>n</em></span>. A
-<em>most general unifier</em>, for short <em>MGU</em>, is a most general
-such substitution.*</p>
+class="math inline">S = \lbrace s_{1} =^? t_{1}, \ldots, s_{n} =^? t_{n}
+\rbrace</span> which we can also write as <span
+class="math inline">s_{1} \dot{=} t_{1} \wedge \ldots \wedge s_{n}
+\dot{=} t_{n}</span>. A solution, or <em>unifier</em> of <span
+class="math inline">S</span>, is a substitution <span
+class="math inline">\sigma</span> such that <span
+class="math inline">\sigma (s_{i}) = \sigma (t_{i})</span> for <span
+class="math inline">i = 1, \ldots, n</span>. A <em>most general
+unifier</em>, for short <em>MGU</em>, is a most general such
+substitution.*</p>
 <p><em>A substitution is </em>idempotent* when <span
-class="math inline"><em>σ</em> = <em>σ</em> ∘ <em>σ</em></span>. If
-<span
-class="math inline"><em>σ</em> = {<em>x</em><sub>1</sub> ↦ <em>t</em><sub>1</sub>, …, <em>x</em><sub><em>k</em></sub> ↦ <em>t</em><sub><em>k</em></sub>}</span>,
-then <span class="math inline"><em>σ</em></span> is idempotent exactly
-when no <span class="math inline"><em>t</em><sub><em>i</em></sub></span>
-contains any of the variables <span
-class="math inline">{<em>x</em><sub>1</sub>, …, <em>x</em><sub><em>n</em></sub>}</span>;
-i.e. <span
-class="math inline">{<em>x</em><sub>1</sub>, …, <em>x</em><sub><em>n</em></sub>} ∩ Vars (<em>t</em><sub>1</sub>,…,<em>t</em><sub><em>n</em></sub>) = ⌀</span>.*</p>
+class="math inline">\sigma = \sigma \circ \sigma</span>. If <span
+class="math inline">\sigma = \lbrace x_{1} \mapsto t_{1}, \ldots, x_{k}
+\mapsto t_{k} \rbrace</span>, then <span
+class="math inline">\sigma</span> is idempotent exactly when no <span
+class="math inline">t_{i}</span> contains any of the variables <span
+class="math inline">\lbrace x_{1}, \ldots, x_{n} \rbrace</span>;
+i.e. <span class="math inline">\lbrace x_{1}, \ldots, x_{n} \rbrace \cap
+\operatorname{Vars} (t_{1}, \ldots, t_{n}) = \varnothing</span>.*</p>
 <ol type="1">
 <li><em>Implement an algorithm that, given a set of equations
 represented as a list of pairs of terms, computes an idempotent most
@@ -2544,9 +2536,9 @@ general unifier of the equations.</em></li>
 All That”**, p. 82.) Modify the implementation of unification to achieve
 linear space complexity by working with what could be called iterated
 substitutions. For example, the solution to* <span
-class="math inline">{<em>x</em>=<sup>?</sup><em>f</em>(<em>y</em>), <em>y</em>=<sup>?</sup><em>g</em>(<em>z</em>), <em>z</em>=<sup>?</sup><em>a</em>}</span>
-<em>should be represented as variable, term pairs</em> <span
-class="math inline">(<em>x</em>,<em>f</em>(<em>y</em>)), (<em>y</em>,<em>g</em>(<em>z</em>)), (<em>z</em>,<em>a</em>)</span><em>.
+class="math inline">\lbrace x =^? f (y), y =^? g (z), z =^? a
+\rbrace</span> <em>should be represented as variable, term pairs</em>
+<span class="math inline">(x, f (y)), (y, g (z)), (z, a)</span><em>.
 (Hint: iterated substitutions should be unfolded lazily, i.e. only so
 far that either a non-variable term or the end of the instantiation
 chain is found.)</em></li>
@@ -2556,9 +2548,9 @@ chain is found.)</em></li>
 <li><em>What does it mean that an implementation has junk (as an
 algebraic structure for a given signature)? Is it bad?</em></li>
 <li><em>Define a monomorphic algebraic specification (other than, but
-similar to,</em> <span
-class="math inline">nat<sub><em>p</em></sub></span> <em>or</em> <span
-class="math inline">string<sub><em>p</em></sub></span><em>, some useful
+similar to,</em> <span class="math inline">\operatorname{nat}_{p}</span>
+<em>or</em> <span
+class="math inline">\operatorname{string}_{p}</span><em>, some useful
 data type).</em></li>
 <li><em>Discuss an example of a (monomorphic) algebraic specification
 where it would be useful to drop some axioms (giving up monomorphicity)
@@ -2581,13 +2573,14 @@ l</em></p></li>
 performs a lot of copying and is not tail-recursive. Optimize it
 (without changing the type definition).</em></p></li>
 <li><p><em>Add (and specify)</em> <span
-class="math inline">isEmpty  : (<em>α</em>,<em>β</em>)map  → bool </span>
-<em>to the example algebraic specification of maps without increasing
-the burden on its implementations (i.e. without affecting
-implementations of other operations). Hint: equational reasoning might
-be not enough; consider an equivalence relation</em> <span
-class="math inline">≈</span> <em>meaning “have the same keys”, defined
-and used just in the axioms of the specification.</em></p></li>
+class="math inline">\operatorname{isEmpty}: (\alpha, \beta)
+\operatorname{map} \rightarrow \operatorname{bool}</span> <em>to the
+example algebraic specification of maps without increasing the burden on
+its implementations (i.e. without affecting implementations of other
+operations). Hint: equational reasoning might be not enough; consider an
+equivalence relation</em> <span class="math inline">\approx</span>
+<em>meaning “have the same keys”, defined and used just in the axioms of
+the specification.</em></p></li>
 </ol>
 <p><strong>Exercise 5:</strong> Design an algebraic specification and
 write a signature for first-in-first-out queues. Provide two
@@ -2608,15 +2601,14 @@ convenient for map-based implementation of sets.</em></li>
 <ol type="1">
 <li><em>(Ex. 2.2 in</em> *Chris Okasaki “Purely Functional Data
 Structures”**) In the worst case,* <code>*member*</code> <em>performs
-approximately</em> <span class="math inline">2<em>d</em></span>
-<em>comparisons, where</em> <span class="math inline"><em>d</em></span>
-<em>is the depth of the tree. Rewrite</em> <code>*member*</code> <em>to
-take no mare than</em> <span class="math inline"><em>d</em> + 1</span>
-<em>comparisons by keeping track of a candidate element that</em>
-<em>might</em> <em>be equal to the query element (say, the last element
-for which</em> <span class="math inline">&lt;</span> <em>returned false)
-and checking for equality only when you hit the bottom of the
-tree.</em></li>
+approximately</em> <span class="math inline">2 d</span> <em>comparisons,
+where</em> <span class="math inline">d</span> <em>is the depth of the
+tree. Rewrite</em> <code>*member*</code> <em>to take no mare than</em>
+<span class="math inline">d + 1</span> <em>comparisons by keeping track
+of a candidate element that</em> <em>might</em> <em>be equal to the
+query element (say, the last element for which</em> <span
+class="math inline">&lt;</span> <em>returned false) and checking for
+equality only when you hit the bottom of the tree.</em></li>
 <li><em>(Ex. 3.10 in</em> *Chris Okasaki “Purely Functional Data
 Structures”**) The<em> <code>*balance*</code> </em>function currently
 performs several unnecessary tests: when e.g.* <code>*ins*</code>
@@ -2656,8 +2648,8 @@ examples, abstracting over gets the higher-order functions.</li>
 structures.</li>
 <li>The point-free programming style. A bit of history: the FP
 language.</li>
-<li>Sum over an interval example: <span class="math inline">$\sum_{n =
-a}^b f (n)$</span>.</li>
+<li>Sum over an interval example: <span class="math inline">\sum_{n =
+a}^b f (n)</span>.</li>
 <li>Combining multiple results: <code>concat_map</code>.</li>
 <li>Interlude: generating all subsets of a set (as list), and as
 exercise: all permutations of a list.</li>
@@ -3142,7 +3134,7 @@ List.map -| ((-|) -| List.filter)</p></li>
 <h1 id="reductions.-more-higher-orderlist-functions">5 Reductions. More
 higher-order/list functions</h1>
 <p>Mathematics has notation for sum over an interval: <span
-class="math inline">$\sum_{n = a}^b f (n)$</span>.</p>
+class="math inline">\sum_{n = a}^b f (n)</span>.</p>
 <p>In OCaml, we do not have a universal addition operator:</p>
 <p>let rec isumfromto f a b = if a &gt; b then 0 else f a + isumfromto f
 (a+1) blet rec fsumfromto f a b = if a &gt; b then 0. else f a +.
@@ -3153,8 +3145,8 @@ floatofint (i*i)) 1 5000</p>
 (opfromto op base f (a+1) b)</p>
 <p>Let’s collect the results of a multifunction (i.e. a set-valued
 function) for a set of arguments, in math notation:</p>
-<p><span
-class="math display"><em>f</em>(<em>A</em>) = ⋃<sub><em>p</em> ∈ <em>A</em></sub><em>f</em>(<em>p</em>)</span></p>
+<p><span class="math display"> f (A) = \bigcup_{p \in A} f (p)
+</span></p>
 <p>It is a useful operation over lists with <code>union</code>
 translated as <code>append</code>:</p>
 <p>let rec concatmap f = function | [] -&gt; [] | a::l -&gt; f a @
@@ -3407,10 +3399,9 @@ src="honey1.eps" /></p>
 <p>type cell = int * intWe address cells using ‘‘cartesian’’
 coordinatesmodule CellSet =and store them in either lists or sets.
 Set.Make (struct type t = cell let compare = compare end)type task =
-{For board ‘‘size’’ <span class="math inline"><em>N</em></span>, the
-honeycomb coordinates boardsize : int;range from <span
-class="math inline">(−2<em>N</em>,−<em>N</em>)</span> to <span
-class="math inline">2<em>N</em>, <em>N</em></span>.<br />
+{For board ‘‘size’’ <span class="math inline">N</span>, the honeycomb
+coordinates boardsize : int;range from <span class="math inline">(- 2 N,
+- N)</span> to <span class="math inline">2 N, N</span>.<br />
 numislands : int;Required number of islands islandsize : int;and
 required number of cells in an island. emptycells : CellSet.t;The cells
 that are initially without honey.}</p>
@@ -3433,15 +3424,15 @@ fromto (-n) n |-&gt; (fun y -&gt; guard (insideboard n eaten) (x,
 y)))</p>
 <h3 id="drawing-honeycombs">7.1.3 Drawing honeycombs</h3>
 <p>We separately generate colored polygons:</p>
-<p>let drawhoneycomb <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h task eaten = let i2f = floatofint in let
-nx = i2f (4 * task.boardsize + 2) in let ny = i2f (2 * task.boardsize +
-2) in let radius = min (i2f w /. nx) (i2f h /. ny) in let x0 = w / 2 in
-let y0 = h / 2 in let dx = (sqrt 3. /. 2.) <em>. radius +. 1. inThe
-distance between let dy = (3. /. 2.) </em>. radius +. 2. in<span
-class="math inline">(<em>x</em>,<em>y</em>)</span> and <span
-class="math inline">(<em>x</em>+1,<em>y</em>+1)</span>. let drawcell
-(x,y) = Array.init 7We draw a closed polygon by placing 6 points (fun i
+<p>let drawhoneycomb <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h task eaten = let i2f = floatofint in
+let nx = i2f (4 * task.boardsize + 2) in let ny = i2f (2 *
+task.boardsize + 2) in let radius = min (i2f w /. nx) (i2f h /. ny) in
+let x0 = w / 2 in let y0 = h / 2 in let dx = (sqrt 3. /. 2.) <em>.
+radius +. 1. inThe distance between let dy = (3. /. 2.) </em>. radius +.
+2. in<span class="math inline">(x, y)</span> and <span
+class="math inline">(x + 1, y + 1)</span>. let drawcell (x,y) =
+Array.init 7We draw a closed polygon by placing 6 points (fun i
 -&gt;evenly spaced on a circumcircle. let phi = floatofint i <em>. pi /.
 3. in x0 + intoffloat (radius </em>. sin phi +. floatofint x <em>. dx),
 y0 + intoffloat (radius </em>. cos phi +. floatofint y *. dy)) in let
@@ -3451,10 +3442,11 @@ honey = honeycells task.boardsize (CellSet.union task.emptycells
 let oldempty = List.map (fun p-&gt;drawcell p, (0, 0, 0))
 (CellSet.elements task.emptycells) in honey @ eaten @ oldempty</p>
 <p>We can draw the polygons to an <em>SVG</em> image:</p>
-let drawtosvg file <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h ?title ?desc curves = let f = openout file
-in Printf.fprintf f “<?xml version="1.0" standalone="no"?>&lt;!DOCTYPE
-svg PUBLIC”-//W3C//DTD SVG 1.1//EN”
+let drawtosvg file <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h ?title ?desc curves = let f = openout
+file in Printf.fprintf f
+“<?xml version="1.0" standalone="no"?>&lt;!DOCTYPE svg
+PUBLIC”-//W3C//DTD SVG 1.1//EN”
 “http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd”&gt;<svg width="%d" height="%d" viewBox="0 0 %d %d"     xmlns="http://www.w3.org/2000/svg" version="1.1">”
 w h w h; (match title with None -&gt; () | Some title -&gt;
 Printf.fprintf f ”
@@ -3473,8 +3465,8 @@ Printf.fprintf f “</svg>%!”</p>
 <p>#load “graphics.cma”;;</p>
 <p>When compiling we just provide <code>graphics.cma</code> to the
 command.</p>
-<p>let drawtoscreen <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h curves = Graphics.opengraph (”
+<p>let drawtoscreen <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h curves = Graphics.opengraph (”
 “stringofint w”x”stringofint h); Graphics.setcolor (Graphics.rgb 50 50
 0);We draw a brown background. Graphics.fillrect 0 0 (Graphics.sizex ())
 (Graphics.sizey ()); List.iter (fun (points, (r,g,b)) -&gt;
@@ -3581,16 +3573,16 @@ in</p>
 <p>We can test it now:</p>
 <p>let w = 800 and h = 800let ans0 = findtoeat testtask0.boardsize
 testtask0.islandsize testtask0.numislands testtask0.emptycellslet =
-drawtoscreen <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h (drawhoneycomb <span
-class="math inline">∼</span>w <span class="math inline">∼</span>h
+drawtoscreen <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h (drawhoneycomb <span
+class="math inline">\sim</span>w <span class="math inline">\sim</span>h
 testtask0 (List.hd ans0))</p>
 <p>But in a more complex case, finding all solutions takes too long:</p>
 <p>let ans1 = findtoeat testtask1.boardsize testtask1.islandsize
 testtask1.numislands testtask1.emptycellslet = drawtoscreen <span
-class="math inline">∼</span>w <span class="math inline">∼</span>h
-(drawhoneycomb <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h testtask1 (List.hd ans1))</p>
+class="math inline">\sim</span>w <span class="math inline">\sim</span>h
+(drawhoneycomb <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h testtask1 (List.hd ans1))</p>
 <p>(See <code>Lec6.ml</code> for definitions of test cases.)</p>
 <h2 id="optimizations-for-honey-islands">7.5 Optimizations for <em>Honey
 Islands</em></h2>
@@ -3599,9 +3591,8 @@ Islands</em></h2>
 <strong>as early as possible</strong>.
 <ul>
 <li>Is the number of solutions generated by the more brute-force
-approach above <span class="math inline">2<sup><em>n</em></sup></span>
-for <span class="math inline"><em>n</em></span> honey cells, or
-smaller?</li>
+approach above <span class="math inline">2^n</span> for <span
+class="math inline">n</span> honey cells, or smaller?</li>
 </ul></li>
 <li>We will guard both choices (eating a cell and keeping it in
 island).</li>
@@ -3663,9 +3654,10 @@ can be decomposed into a fixed number of variables.
 <li>A domain of a variable is a set of possible values the variable can
 have in any solution.</li>
 <li>In the <em>Honey Islands</em> puzzle, the variables correspond to
-cells and the domains are <span
-class="math inline">{Honey , Empty }</span> (either a cell has honey, or
-is empty – without distinguishing “initially empty” and “eaten”).</li>
+cells and the domains are <span class="math inline">\lbrace
+\operatorname{Honey}, \operatorname{Empty} \rbrace</span> (either a cell
+has honey, or is empty – without distinguishing “initially empty” and
+“eaten”).</li>
 <li>In the <em>Honey Islands</em> puzzle, the constraints are: a
 selection of cells that have to be empty, the number and size of
 connected components of cells that are not empty. The neighborhood graph
@@ -3727,7 +3719,7 @@ expressions are computed.</p>
 </ul></li>
 <li><p>Recall our problems with using <em>flow control</em> expressions
 like <code>if_then_else</code> in examples from <span
-class="math inline"><em>λ</em></span>-calculus lecture.</p></li>
+class="math inline">\lambda</span>-calculus lecture.</p></li>
 <li><p>There are many technical terms describing various strategies.
 Wikipedia:</p>
 <p>Strict evaluationArguments are always evaluated completely before
@@ -3897,10 +3889,10 @@ differential equations</h1>
 <ul>
 <li><p>Differential equations idea due to Henning Thielemann.
 <strong>Just an example.</strong></p></li>
-<li><p>Expression <span class="math inline">$P (x) = \sum_{i = 0}^n
-a_{i} x^i$</span> defines a polynomial for <span
-class="math inline"><em>n</em> &lt; ∞</span> and a power series for
-<span class="math inline"><em>n</em> = ∞</span>.</p></li>
+<li><p>Expression <span class="math inline">P (x) = \sum_{i = 0}^n a_{i}
+x^i</span> defines a polynomial for <span class="math inline">n &lt;
+\infty</span> and a power series for <span class="math inline">n =
+\infty</span>.</p></li>
 <li><p>If we define</p>
 <p>let rec lfoldright f l base = match l with | LNil -&gt; base | LCons
 (a, lazy l) -&gt; f a (lfoldright f l base)</p>
@@ -3910,14 +3902,14 @@ class="math inline"><em>n</em> &lt; ∞</span> and a power series for
 <li><p>But it will not work for infinite power series!</p>
 <ul>
 <li>Does it make sense to compute the value at <span
-class="math inline"><em>x</em></span> of a power series?</li>
+class="math inline">x</span> of a power series?</li>
 <li>Does it make sense to fold an infinite list?</li>
 </ul></li>
-<li><p>If the power series converges for <span
-class="math inline"><em>x</em> &gt; 1</span>, then when the elements
-<span class="math inline"><em>a</em><sub><em>n</em></sub></span> get
-small, the remaining sum <span class="math inline">$\sum_{i =
-n}^{\infty} a_{i} x^i$</span> is also small.</p></li>
+<li><p>If the power series converges for <span class="math inline">x
+&gt; 1</span>, then when the elements <span
+class="math inline">a_{n}</span> get small, the remaining sum <span
+class="math inline">\sum_{i = n}^{\infty} a_{i} x^i</span> is also
+small.</p></li>
 <li><p><code>lfold_right</code> falls into an infinite loop on infinite
 lists. We need call-by-name / call-by-need semantics for the argument
 function <code>f</code>.</p>
@@ -3925,7 +3917,7 @@ function <code>f</code>.</p>
 (a, ll) -&gt; f a (lazy (lazyfoldr f (Lazy.force ll) base))</p></li>
 <li><p>We need a stopping condition in the Horner algorithm step:</p>
 <p>let lhorner x l =This is a bit of a hack, let upd c sum =we hope to
-‘‘hit’’ the interval <span class="math inline">(0, <em>ε</em>]</span>.
+‘‘hit’’ the interval <span class="math inline">(0, \varepsilon]</span>.
 if c = 0. || absfloat c &gt; epsilonfloat then c +. x *. Lazy.force sum
 else 0. in lazyfoldr upd l 0.</p>
 <p>let invfact = lmap (fun n -&gt; 1. /. floatofint n) lfactlet e =
@@ -3938,7 +3930,7 @@ polynomial operations</h2>
 -&gt; xs | LCons (x,xs), LCons (y,ys) -&gt; LCons (x +. y, lazy (add
 (Lazy.force xs) (Lazy.force ys)))</li>
 <li>let rec sub xs ys = match xs, ys with | LNil, -&gt; lmap (fun x-&gt;
-<span class="math inline">∼</span>-.x) ys | , LNil -&gt; xs | LCons
+<span class="math inline">\sim</span>-.x) ys | , LNil -&gt; xs | LCons
 (x,xs), LCons (y,ys) -&gt;<br />
 LCons (x-.y, lazy (add (Lazy.force xs) (Lazy.force ys)))</li>
 <li>let scale s = lmap (fun x-&gt;s*.x)</li>
@@ -3962,16 +3954,16 @@ posnums))</li>
 </ul>
 <h2 id="differential-equations">5.2 Differential equations</h2>
 <ul>
-<li><p><span class="math inline">$\frac{\mathrm{d} \sin x}{\mathrm{d} x}
+<li><p><span class="math inline">\frac{\mathrm{d} \sin x}{\mathrm{d} x}
 = \cos x, \frac{\mathrm{d} \cos x}{\mathrm{d} x} = - \sin x, \sin 0 = 0,
-\cos 0 = 1$</span>.</p></li>
+\cos 0 = 1</span>.</p></li>
 <li><p>We will solve the corresponding integral equations.
 <em>Why?</em></p></li>
 <li><p>We cannot define the integral by direct recursion like this:</p>
 <p>let rec sin = integrate (ofint 0) cosUnary op. let (<span
-class="math inline">∼</span>-:) =and cos = integrate (ofint 1) <span
-class="math inline">∼</span>-:sin lmap (fun x-&gt; <span
-class="math inline">∼</span>-.x)</p>
+class="math inline">\sim</span>-:) =and cos = integrate (ofint 1) <span
+class="math inline">\sim</span>-:sin lmap (fun x-&gt; <span
+class="math inline">\sim</span>-.x)</p>
 <p>unfortunately fails:</p>
 <p><code>Error: This kind of expression is not allowed as right-hand side of ‘let  rec'</code></p>
 <ul>
@@ -3983,7 +3975,7 @@ that <code>x</code> and <code>y</code> refer to.</li>
 knows how to start building the recursive structure.</p>
 <p>let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums))let rec sin =
 LCons (ofint 0, lazy (integ cos))and cos = LCons (ofint 1, lazy (integ
-<span class="math inline">∼</span>-:sin))</p></li>
+<span class="math inline">\sim</span>-:sin))</p></li>
 <li><p>The complete example would look much more elegant in
 Haskell.</p></li>
 <li><p>Although this approach is not limited to linear equations,
@@ -3991,29 +3983,31 @@ equations like Lotka-Volterra or Lorentz are not “solvable” – computed
 coefficients quickly grow instead of quickly falling…</p></li>
 <li><p>Drawing functions are like in previous lecture, but with open
 curves.</p></li>
-<li><p>let plot1D f <span class="math inline">∼</span>w <span
-class="math inline">∼</span>scale <span class="math inline">∼</span>tbeg
-<span class="math inline">∼</span>tend = let dt = (tend -. tbeg) /.
-ofint w in Array.init w (fun i -&gt; let y = lhorner (dt <em>. ofint i)
-f in i, to_int (scale </em>. y))</p></li>
+<li><p>let plot1D f <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>scale <span
+class="math inline">\sim</span>tbeg <span
+class="math inline">\sim</span>tend = let dt = (tend -. tbeg) /. ofint w
+in Array.init w (fun i -&gt; let y = lhorner (dt <em>. ofint i) f in i,
+to_int (scale </em>. y))</p></li>
 </ul>
 <h1 id="arbitrary-precision-computation">6 Arbitrary precision
 computation</h1>
 <ul>
 <li><p>Putting it all together reveals drastic numerical errors for
-large <span class="math inline"><em>x</em></span>.</p>
+large <span class="math inline">x</span>.</p>
 <p>let graph = let scale = ofint h /. ofint 8 in [plot1D sin <span
-class="math inline">∼</span>w <span class="math inline">∼</span>h0:(h/2)
-<span class="math inline">∼</span>scale <span
-class="math inline">∼</span>tbeg:(ofint 0) <span
-class="math inline">∼</span>tend:(ofint 15),<br />
-(250,250,0); plot1D cos <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h0:(h/2) <span
-class="math inline">∼</span>scale<br />
-<span class="math inline">∼</span>tbeg:(ofint 0) <span
-class="math inline">∼</span>tend:(ofint 15), (250,0,250)]let () =
-drawtoscreen <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h graph</p>
+class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h0:(h/2) <span
+class="math inline">\sim</span>scale <span
+class="math inline">\sim</span>tbeg:(ofint 0) <span
+class="math inline">\sim</span>tend:(ofint 15),<br />
+(250,250,0); plot1D cos <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h0:(h/2) <span
+class="math inline">\sim</span>scale<br />
+<span class="math inline">\sim</span>tbeg:(ofint 0) <span
+class="math inline">\sim</span>tend:(ofint 15), (250,0,250)]let () =
+drawtoscreen <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h graph</p>
 <ul>
 <li>Floating-point numbers have limited precision.</li>
 <li>We break out of Horner method computations too quickly.</li>
@@ -4025,7 +4019,7 @@ class="math inline">∼</span>h graph</p>
 <li>It does not help – yet.</li>
 </ul></li>
 <li><p>Generate a sequence of approximations to the power series limit
-at <span class="math inline"><em>x</em></span>.</p>
+at <span class="math inline">x</span>.</p>
 <p>let infhorner x l = let upd c sum = LCons (c, lazy (lmap (fun apx
 -&gt; c+.x*.apx) (Lazy.force sum))) in lazyfoldr upd l (LCons (ofint 0,
 lazy LNil))</p></li>
@@ -4037,13 +4031,14 @@ LCons (x0, lazy (LCons (x1, lazy (LCons (x2, ))))) when f x0 = f x1
 &amp;&amp; f x0 = f x2 -&gt; f x0 | LCons (, lazy tl) -&gt; exact f
 tl</p></li>
 <li><p>Draw the pixels of the graph at exact coordinates.</p>
-<p>let plot1D f <span class="math inline">∼</span>w <span
-class="math inline">∼</span>h0 <span class="math inline">∼</span>scale
-<span class="math inline">∼</span>tbeg <span
-class="math inline">∼</span>tend = let dt = (tend -. tbeg) /. ofint w in
-let eval = exact (fun y-&gt; toint (scale <em>. y)) in Array.init w (fun
-i -&gt; let y = infhorner (tbeg +. dt </em>. ofint i) f in i, h0 + eval
-y)</p></li>
+<p>let plot1D f <span class="math inline">\sim</span>w <span
+class="math inline">\sim</span>h0 <span
+class="math inline">\sim</span>scale <span
+class="math inline">\sim</span>tbeg <span
+class="math inline">\sim</span>tend = let dt = (tend -. tbeg) /. ofint w
+in let eval = exact (fun y-&gt; toint (scale <em>. y)) in Array.init w
+(fun i -&gt; let y = infhorner (tbeg +. dt </em>. ofint i) f in i, h0 +
+eval y)</p></li>
 <li><p>Success! If a power series had every third term contributing we
 would have to check three terms in the function <code>exact</code>…</p>
 <ul>
@@ -4056,12 +4051,13 @@ into B decays into C</em></p>
 <li><a
 href="http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes">http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes</a></li>
 </ul>
-<p>let nchain <span class="math inline">∼</span>nA0 <span
-class="math inline">∼</span>nB0 <span class="math inline">∼</span>lA
-<span class="math inline">∼</span>lB = let rec nA = LCons (nA0, lazy
-(integ (<span class="math inline">∼</span>-.lA <em>:. nA))) and nB =
-LCons (nB0, lazy (integ (<span class="math inline">∼</span>-.lB </em>:.
-nB +: lA *:. nA))) in nA, nB</p></li>
+<p>let nchain <span class="math inline">\sim</span>nA0 <span
+class="math inline">\sim</span>nB0 <span
+class="math inline">\sim</span>lA <span
+class="math inline">\sim</span>lB = let rec nA = LCons (nA0, lazy (integ
+(<span class="math inline">\sim</span>-.lA <em>:. nA))) and nB = LCons
+(nB0, lazy (integ (<span class="math inline">\sim</span>-.lB </em>:. nB
++: lA *:. nA))) in nA, nB</p></li>
 </ul>
 <p><embed src="chain_reaction.eps" /></p>
 <h1 id="circular-data-structures-double-linked-list">7 Circular data
@@ -4274,10 +4270,11 @@ group exceeds line limit. GBeg will not store end of group when it is
 irrelevant.</p>
 <p>let rec grends w grstack = let flush tail =When the stack exceeds
 width <code>w</code>, <code>yieldall</code>flush it – yield everything
-in it.(revconcatmap <span class="math inline">∼</span>prep:(GBeg Toofar)
-snd grstack) tail inAbove: concatenate in rev. with <code>prep</code>
-before each part. Await (function | TE (curp, ) | LE curp as e -&gt;
-(match grstack withRemember beginning of groups in the stack.<br />
+in it.(revconcatmap <span class="math inline">\sim</span>prep:(GBeg
+Toofar) snd grstack) tail inAbove: concatenate in rev. with
+<code>prep</code> before each part. Await (function | TE (curp, ) | LE
+curp as e -&gt; (match grstack withRemember beginning of groups in the
+stack.<br />
 | [] -&gt; Yield (e, grends w []) | (begp, ):: when curp-begp &gt; w
 -&gt; flush (Yield (e, grends w [])) | (begp, gr)::grs -&gt; grends w
 ((begp, e::gr)::grs)) | GBeg begp -&gt; grends w ((begp, [])::grstack) |
@@ -4371,7 +4368,8 @@ do not work as intended?</em></p>
 <code>*cycle : 'a list -&gt; 'a llist*</code> <em>that creates a lazy
 list with elements from standard list, and the whole list as the tail
 after the last element from the input list.</em></p>
-<p>*<code>[a1; a2; …; aN]</code><span class="math inline">↦</span></p>
+<p>*<code>[a1; a2; …; aN]</code><span
+class="math inline">\mapsto</span></p>
 <table style="display: inline-table;
 vertical-align: middle">
 <tbody>
@@ -4408,14 +4406,13 @@ class="verbatim">…</tt></p>
 <p><em>Your function <code>cycle</code> can either return
 <code>LNil</code> or fail for an empty list as argument.</em> 1.
 <em>Note that</em> <code>*inv_fact*</code> <em>from the lecture defines
-the power series for the</em> <span class="math inline">exp (⋅)</span>
-<em>function (</em><span
-class="math inline">exp (<em>x</em>) = <em>e</em><sup><em>x</em></sup></span><em>).
-Using</em> <code>*cycle*</code> <em>and</em>
+the power series for the</em> <span class="math inline">\exp
+(\cdot)</span> <em>function (</em><span class="math inline">\exp (x) =
+e^x</span><em>). Using</em> <code>*cycle*</code> <em>and</em>
 <code>*inv_fact*</code><em>, define the power series for</em> <span
-class="math inline">sin (⋅)</span> <em>and</em> <span
-class="math inline">cos (⋅)</span><em>, and draw their graphs using
-helper functions from the lecture script</em>
+class="math inline">\sin (\cdot)</span> <em>and</em> <span
+class="math inline">\cos  (\cdot)</span><em>, and draw their graphs
+using helper functions from the lecture script</em>
 <code>*Lec7.ml*</code>.</p>
 <p><strong>Exercise 3:</strong> * Modify one of the puzzle solving
 programs (either from the previous lecture or from your previous
@@ -4425,12 +4422,12 @@ solution when there are multiple solutions in the result takes shorter
 than computing solutions by the original program.</p>
 <p><strong>Exercise 4:</strong> <em>Hamming’s problem</em>. Generate in
 increasing order the numbers of the form <span
-class="math inline">2<sup><em>a</em><sub>1</sub></sup>3<sup><em>a</em><sub>2</sub></sup>5<sup><em>a</em><sub>3</sub></sup>…<em>p</em><sub><em>k</em></sub><sup><em>a</em><sub><em>k</em></sub></sup></span>,
-that is numbers not divisible by prime numbers greater than the <span
-class="math inline"><em>k</em></span>th prime number.</p>
+class="math inline">2^{a_{1}} 3^{a_{2}} 5^{a_{3}} \ldots
+p_{k}^{a_{k}}</span>, that is numbers not divisible by prime numbers
+greater than the <span class="math inline">k</span>th prime number.</p>
 <ul>
 <li><em>In the original Hamming’s problem posed by Dijkstra,</em> <span
-class="math inline"><em>k</em> = 3</span>*, which is related</li>
+class="math inline">k = 3</span>*, which is related</li>
 </ul>
 <p>to* <em><a
 href="http://en.wikipedia.org/wiki/Regular_number">http://en.wikipedia.org/wiki/Regular_number</a></em>.</p>
@@ -4699,8 +4696,9 @@ e.g. |-&gt;
 <li>as if ; was replaced by &gt;&gt;=</li>
 </ul></li>
 <li>[] |-&gt; … does not produce anything – as needed by guarding</li>
-<li>[()] |-&gt; … <span class="math inline">⇝</span> (fun _ -&gt; …) ()
-<span class="math inline">⇝</span> … i.e. keep without change</li>
+<li>[()] |-&gt; … <span class="math inline">\rightsquigarrow</span> (fun
+_ -&gt; …) () <span class="math inline">\rightsquigarrow</span> …
+i.e. keep without change</li>
 </ul></li>
 <li><p>Throwing away the binding argument is a common practice, with
 infix syntax &gt;&gt; in Haskell, and supported in <em>do-notation</em>
@@ -4855,7 +4853,7 @@ and perform.</p></li>
 <ul>
 <li><p>A parametric data type is a monad only if its <code>bind</code>
 and <code>return</code> operations meet axioms:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \operatorname{bind} (\operatorname{return}a) f &amp; \approx &amp; f
 a\\\\\\
 \operatorname{bind}a (\lambda x.\operatorname{return}x) &amp; \approx
@@ -4864,7 +4862,7 @@ a\\\\\\
 &amp;
 \approx &amp; \operatorname{bind}a (\lambda x.\operatorname{bind}b
 (\lambda
-y.c)) \end{matrix} $$</span></p></li>
+y.c)) \end{matrix} </span></p></li>
 <li><p>Check that the laws hold for our example monad</p>
 <p>let bind a b = concatmap b alet return x = [x]</p></li>
 </ul>
@@ -4877,31 +4875,31 @@ y.c)) \end{matrix} $$</span></p></li>
 <li><code>mplus : 'a monoid -&gt; 'a monoid -&gt; 'a monoid</code></li>
 </ul>
 <p>that meet the laws:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \operatorname{mplus}\operatorname{mzero}a &amp; \approx &amp; a \\\\\\
 \operatorname{mplus}a\operatorname{mzero} &amp; \approx &amp; a \\\\\\
 \operatorname{mplus}a (\operatorname{mplus}b c) &amp; \approx &amp;
 \operatorname{mplus} (\operatorname{mplus}a b) c \end{matrix}
-$$</span></p></li>
+</span></p></li>
 <li><p>We will define <code>fail</code> as synonym for
 <code>mzero</code> and infix ++ for <code>mplus</code>.</p></li>
 <li><p>Fusing monads and monoids gives the most popular general flavor
 of monads which we call <em>monad-plus</em> after Haskell.</p></li>
 <li><p>Monad-plus requires additional axioms that relate its “addition”
 and its “multiplication”.</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 \operatorname{bind}\operatorname{mzero}f &amp; \approx &amp;
 \operatorname{mzero}\\\\\\
 \operatorname{bind}m (\lambda x.\operatorname{mzero}) &amp; \approx
 &amp;
-\operatorname{mzero} \end{matrix} $$</span></p></li>
-<li><p>Using infix notation with <span class="math inline">⊕</span> as
-<code>mplus</code>, <span class="math inline"><strong>0</strong></span>
-as <code>mzero</code>, <span class="math inline">⊳</span> as
-<code>bind</code> and <span
-class="math inline"><strong>1</strong></span> as <code>return</code>, we
-get monad-plus axioms</p>
-<p><span class="math display">$$ \begin{matrix}
+\operatorname{mzero} \end{matrix} </span></p></li>
+<li><p>Using infix notation with <span class="math inline">\oplus</span>
+as <code>mplus</code>, <span class="math inline">\boldsymbol{0}</span>
+as <code>mzero</code>, <span
+class="math inline">\vartriangleright</span> as <code>bind</code> and
+<span class="math inline">\boldsymbol{1}</span> as <code>return</code>,
+we get monad-plus axioms</p>
+<p><span class="math display"> \begin{matrix}
 \boldsymbol{0} \oplus a &amp; \approx &amp; a \\\\\\
 a \oplus \boldsymbol{0} &amp; \approx &amp; a \\\\\\
 a \oplus (b \oplus c) &amp; \approx &amp; (a \oplus b) \oplus c\\\\\\
@@ -4914,7 +4912,7 @@ a \vartriangleright (\lambda x.b \vartriangleright \lambda y.c)\\\\\\
 \boldsymbol{0} \vartriangleright f &amp; \approx &amp;
 \boldsymbol{0}\\\\\\
 a \vartriangleright (\lambda x.\boldsymbol{0}) &amp; \approx &amp;
-\boldsymbol{0} \end{matrix} $$</span></p></li>
+\boldsymbol{0} \end{matrix} </span></p></li>
 <li><p>The list type has a natural monad and monoid structure</p>
 <p>let mzero = [] let mplus = (@) let bind a b = concatmap b a let
 return a = [a]</p></li>
@@ -4977,17 +4975,16 @@ monad) -&gt; ’a monad</p></li>
 <p>We will not cover it.</p></li>
 <li><p>Probabilistic computation:</p>
 <p>choose : float -&gt; ’a monad -&gt; ’a monad -&gt; ’a monad</p>
-<p>satisfying the laws with <span
-class="math inline"><em>a</em>⊕<sub><em>p</em></sub><em>b</em></span>
-for <code>choose p a b</code> and <span
-class="math inline"><em>p</em><em>q</em></span> for <code>p*.q</code>,
-<span class="math inline">0 ≤ <em>p</em>, <em>q</em> ≤ 1</span>:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p>satisfying the laws with <span class="math inline">a \oplus _{p}
+b</span> for <code>choose p a b</code> and <span
+class="math inline">pq</span> for <code>p*.q</code>, <span
+class="math inline">0 \leqslant p, q \leqslant 1</span>:</p>
+<p><span class="math display"> \begin{matrix}
    a \oplus _{0} b &amp; \approx &amp; b \\\\\\
    a \oplus _{p} b &amp; \approx &amp; b \oplus _{1 - p} a\\\\\\
    a \oplus _{p} (b \oplus _{q} c) &amp; \approx &amp; \left( a \oplus
    _{\frac{p}{p + q - pq}} b \right) \oplus _{p + q - pq} c\\\\\\
-   a \oplus _{p} a &amp; \approx &amp; a \end{matrix} $$</span></p></li>
+   a \oplus _{p} a &amp; \approx &amp; a \end{matrix} </span></p></li>
 <li><p>Parallel computation as monad with access and parallel bind:</p>
 <p>parallel :’a monad-&gt; ’b monad-&gt; (’a -&gt; ’b -&gt; ’c monad)
 -&gt; ’c monad</p>
@@ -5178,8 +5175,8 @@ results.</p></li>
 <p>let assemblyLine w = perform c &lt;– makeChopsticks w c’ &lt;–
 polishChopsticks c c’’ &lt;– wrapChopsticks c’ return c’’</p></li>
 <li><p>Any expression can be spread over a monad, e.g. for <span
-class="math inline"><em>λ</em></span>-terms:</p>
-<p><span class="math display">$$ \begin{matrix}
+class="math inline">\lambda</span>-terms:</p>
+<p><span class="math display"> \begin{matrix}
 \llbracket N \rrbracket = &amp; \operatorname{return}N &amp;
 \text{(constant)}\\\\\\
 \llbracket x \rrbracket = &amp; \operatorname{return}x &amp;
@@ -5194,7 +5191,7 @@ x.
 \rrbracket
 (\lambda v_{a} .\operatorname{bind} \llbracket b \rrbracket  (\lambda
 v_{b} .v_{a} v_{b})) &amp; \text{(application)} \end{matrix}
-$$</span></p></li>
+</span></p></li>
 <li><p>When an expression is spread over a monad, its computation can be
 monitored or affected without modifying the expression.</p></li>
 </ul>
@@ -5466,13 +5463,12 @@ fun -&gt; (), s’Change the value; a throwaway in monad.end</p>
 <li><p>The state monad is useful to hide passing-around of a “current”
 value.</p></li>
 <li><p>We will rename variables in <span
-class="math inline"><em>λ</em></span>-terms to get rid of possible name
+class="math inline">\lambda</span>-terms to get rid of possible name
 clashes.</p>
 <ul>
-<li>This does not make a <span
-class="math inline"><em>λ</em></span>-term safe for multiple steps of
-<span class="math inline"><em>β</em></span>-reduction. Find a
-counter-example.</li>
+<li>This does not make a <span class="math inline">\lambda</span>-term
+safe for multiple steps of <span
+class="math inline">\beta</span>-reduction. Find a counter-example.</li>
 </ul></li>
 <li><p>type term =| Var of string| Lam of string * term| App of term *
 term</p></li>
@@ -5672,10 +5668,9 @@ efficiency.</p></li>
 <ul>
 <li><p>choose : float -&gt; ’a monad -&gt; ’a monad -&gt; ’a monad</p>
 <p><code>choose p a b</code> represents an event or distribution which
-is <span class="math inline"><em>a</em></span> with probability <span
-class="math inline"><em>p</em></span> and is <span
-class="math inline"><em>b</em></span> with probability <span
-class="math inline">1 − <em>p</em></span>.</p></li>
+is <span class="math inline">a</span> with probability <span
+class="math inline">p</span> and is <span class="math inline">b</span>
+with probability <span class="math inline">1 - p</span>.</p></li>
 <li><p>val pick : (’a * float) list -&gt; ’a t</p>
 <p>A result from the provided distribution over values. The argument
 must be a probability distribution: positive values summing to
@@ -5729,15 +5724,15 @@ aux (r-.w) tl in aux (Random.float tot) dist</p></li>
 probability distribution – naive implementation. type ’a t = (’a *
 float) list<br />
 let bind a b = <code>merge``x</code> w.p. <span
-class="math inline"><em>p</em></span> and then <code>y</code> w.p. <span
-class="math inline"><em>q</em></span> happens =[y, q*.p | (x,p) &lt;- a;
-(y,q) &lt;- b x]<code>y</code> results w.p. <span
-class="math inline"><em>p</em><em>q</em></span>. let return a = [a,
-1.]Certainly <code>a</code>. end include M include MonadOps (M) let
-choose p a b = List.map (fun (e,w) -&gt; e, p<em>.w) a @ List.map (fun
-(e,w) -&gt; e, (1. -.p)</em>.w) b let pick dist = <code>dist</code> let
-uniform elems = normalize (List.map (fun e-&gt;e,1.) elems)let coin =
-[true, 0.5; false, 0.5] let flip p = [true, p; false, 1. -. p]</p>
+class="math inline">p</span> and then <code>y</code> w.p. <span
+class="math inline">q</span> happens =[y, q*.p | (x,p) &lt;- a; (y,q)
+&lt;- b x]<code>y</code> results w.p. <span class="math inline">p
+q</span>. let return a = [a, 1.]Certainly <code>a</code>. end include M
+include MonadOps (M) let choose p a b = List.map (fun (e,w) -&gt; e,
+p<em>.w) a @ List.map (fun (e,w) -&gt; e, (1. -.p)</em>.w) b let pick
+dist = <code>dist</code> let uniform elems = normalize (List.map (fun
+e-&gt;e,1.) elems)let coin = [true, 0.5; false, 0.5] let flip p = [true,
+p; false, 1. -. p]</p>
 <p>let prob p m = m |&gt; List.filter (fun (e,) -&gt; p e)All cases
 where <code>p</code> holds, |&gt; List.map snd |&gt; List.foldleft (+.)
 0.add up.<br />
@@ -5794,13 +5789,12 @@ probabilities</h2></li>
 monad?</p></li>
 <li><p>We could use <code>guard</code> – conditional probabilities!</p>
 <ul>
-<li><span class="math inline"><em>P</em>(<em>A</em>|<em>B</em>)</span>
+<li><span class="math inline">P (A|B)</span>
 <ul>
-<li>Compute what is needed for both <span
-class="math inline"><em>A</em></span> and <span
-class="math inline"><em>B</em></span>.</li>
-<li>Guard <span class="math inline"><em>B</em></span>.</li>
-<li>Return <span class="math inline"><em>A</em></span>.</li>
+<li>Compute what is needed for both <span class="math inline">A</span>
+and <span class="math inline">B</span>.</li>
+<li>Guard <span class="math inline">B</span>.</li>
+<li>Return <span class="math inline">A</span>.</li>
 </ul></li>
 </ul></li>
 <li><p>For the exact distribution monad it turns out very easy – we just
@@ -5824,10 +5818,10 @@ measures no longer restricted to type ’a t = (’a * float)
 q*.p | (x,p) &lt;- a; (y,q) &lt;- b x] let return a = [a, 1.] let mzero
 = []Measure equal 0 everywhere is OK. let mplus = List.append end
 include MP include MonadPlusOps (MP) let choose p a b =It isn’t
-<code>a</code> w.p. <span class="math inline"><em>p</em></span> &amp;
-<code>b</code> w.p. <span class="math inline">(1−<em>p</em>)</span>
-since <code>a</code> and <code>b</code> List.map (fun (e,w) -&gt; e,
-p<em>.w) a <span class="citation" data-cites="are">@are</span> not
+<code>a</code> w.p. <span class="math inline">p</span> &amp;
+<code>b</code> w.p. <span class="math inline">(1 - p)</span> since
+<code>a</code> and <code>b</code> List.map (fun (e,w) -&gt; e, p<em>.w)
+a <span class="citation" data-cites="are">@are</span> not
 normalized!List.map (fun (e,w) -&gt; e, (1. -.p)</em>.w) b let pick dist
 = <code>dist</code></p>
 <p>let uniform elems = normalize (List.map (fun e-&gt;e,1.) elems) let
@@ -6003,9 +5997,9 @@ miss the news.</li>
 <li><p>module Burglary (P : CONDPROBAB) = struct open P type
 whathappened =<br />
 Safe | Burgl | Earthq | Burglnearthq</p>
-<p>let check <span class="math inline">∼</span>johncalled <span
-class="math inline">∼</span>marycalled <span
-class="math inline">∼</span>radio = perform<br />
+<p>let check <span class="math inline">\sim</span>johncalled <span
+class="math inline">\sim</span>marycalled <span
+class="math inline">\sim</span>radio = perform<br />
 earthquake &lt;– flip 0.002; guard (radio = None || radio = Some
 earthquake); burglary &lt;– flip 0.001; let alarmp = match burglary,
 earthquake with | false, false -&gt; 0.001 | false, true -&gt; 0.29 |
@@ -6079,10 +6073,9 @@ concurrency.</p></li>
 library,
 <code>parallel    \concat{e}{\rsub{a}} \concat{e}{\rsub{b}} c</code> is
 equivalent to</p>
-<p>perform let a = <span
-class="math inline"><em>e</em><sub><em>a</em></sub></span> in let b =
-<span class="math inline"><em>e</em><sub><em>b</em></sub></span> in x
-&lt;– a; y &lt;– b; c x y</p>
+<p>perform let a = <span class="math inline">e_{a}</span> in let b =
+<span class="math inline">e_{b}</span> in x &lt;– a; y &lt;– b; c x
+y</p>
 <ul>
 <li>We will follow this model, with an imperative implementation.</li>
 <li>In any case, do not call <code>run</code> or <code>access</code>
@@ -7252,7 +7245,7 @@ included in time for <code>increment</code>:</li>
 <ul>
 <li><p>(All times measured with profiling turned on.)</p></li>
 <li><p><code>Optim0.ml</code> asymptotic time complexity: <span
-class="math inline">𝒪(<em>n</em><sup>2</sup>)</span>, time: 22.53s.</p>
+class="math inline">\mathcal{O} (n^2)</span>, time: 22.53s.</p>
 <ul>
 <li>Garbage collection takes 6% of time.
 <ul>
@@ -7264,7 +7257,7 @@ class="math inline">𝒪(<em>n</em><sup>2</sup>)</span>, time: 22.53s.</p>
 Hashtbl.find h w in Hashtbl.replace h w (c+1); h with Notfound -&gt;
 Hashtbl.add h w 1; hlet iterate f h = Hashtbl.iter f h</p>
 <p><code>Optim1.ml</code> asymptotic time complexity: <span
-class="math inline">𝒪(<em>n</em>)</span>, time: 0.63s.</p>
+class="math inline">\mathcal{O} (n)</span>, time: 0.63s.</p>
 <ul>
 <li>Garbage collection takes 17% of time.</li>
 </ul></li>
@@ -7273,7 +7266,7 @@ class="math inline">𝒪(<em>n</em>)</span>, time: 0.63s.</p>
 let k,c,h = List.foldleft (fun (k,c,h) w -&gt; if k = w then k, c+1, h
 else w, 1, ((k,c)::h)) (““, 0, []) words in (k,c)::h</p>
 <p><code>Optim2.ml</code> asymptotic time complexity: <span
-class="math inline">𝒪(<em>n</em>log<em>n</em>)</span>, time: 1s.</p>
+class="math inline">\mathcal{O} (n \log n)</span>, time: 1s.</p>
 <ul>
 <li>Garbage collection takes 40% of time.</li>
 </ul></li>
@@ -7281,8 +7274,8 @@ class="math inline">𝒪(<em>n</em>log<em>n</em>)</span>, time: 1s.</p>
 attempt it.</p></li>
 <li><p>With algorithmic optimizations we should be concerned with
 <strong>asymptotic complexity</strong> in terms of the <span
-class="math inline">𝒪(⋅)</span> notation, but we will not pursue
-complexity analysis in the remainder of the lecture.</p></li>
+class="math inline">\mathcal{O} (\cdot)</span> notation, but we will not
+pursue complexity analysis in the remainder of the lecture.</p></li>
 </ul>
 <h2 id="low-level-optimizations">5.3 Low-level optimizations</h2>
 <ul>
@@ -7333,9 +7326,9 @@ data structure implementations</h2>
 <li>We perform a rough comparison of association lists, tree-based maps
 and hashtables. Sets would give the same results.</li>
 <li>We always create hashtables with initial size 511.</li>
-<li><span class="math inline">10<sup>7</sup></span> operations of:
-adding an association (creation), finding a key that is in the map,
-finding a key out of a small number of keys not in the map.</li>
+<li><span class="math inline">10^7</span> operations of: adding an
+association (creation), finding a key that is in the map, finding a key
+out of a small number of keys not in the map.</li>
 <li>First row gives sizes of maps. Time in seconds, to two significant
 digits.</li>
 </ul>
@@ -8237,8 +8230,8 @@ opensymb? ‘.’ closesymb?let addrdom =
 “EDU” | “org” | “ORG” | “com” | “COM”of address.rule
 <code>email  state</code> = parse| <code>newline</code>Check state
 before moving on.{ report state lexbuf; nextline lexbuf; email Seek
-lexbuf }<span class="math inline">↙</span>Detected possible start of
-address.| (addrchar+ as name) atsepsymb (addrchar+ as addr) { email
+lexbuf }<span class="math inline">\swarrow</span>Detected possible start
+of address.| (addrchar+ as name) atsepsymb (addrchar+ as addr) { email
 (Addr (false, name, [addr])) lexbuf }</p>
 <div class="line-block">domsepsymb (addrdom as dom)Detected possible
 finish of address. { let</div>
@@ -8346,21 +8339,21 @@ RPAREN)) { xs }</p></li>
 optimization)</p>
 <p>%token &lt; int &gt; INT%token PLUS TIMES%left PLUS%left
 TIMESMultiplication has higher priority.%%expression:| i = INT { i
-}<span class="math inline">↙</span> Without inlining, would not
+}<span class="math inline">\swarrow</span> Without inlining, would not
 distinguish priorities.| e = expression; o = op; f = expression { o e f
 }%inline op:Inline operator – generate corresponding rules.| PLUS { ( +
 ) }| TIMES { ( * ) }</p></li>
-<li><p>Menhir is an <span class="math inline">LR (1)</span> parser
-generator, i.e. it fails for grammars where looking one token ahead,
-together with precedences, is insufficient to determine whether a rule
-applies.</p>
+<li><p>Menhir is an <span class="math inline">\operatorname{LR}
+(1)</span> parser generator, i.e. it fails for grammars where looking
+one token ahead, together with precedences, is insufficient to determine
+whether a rule applies.</p>
 <ul>
 <li>In particular, only unambiguous grammars.</li>
 </ul></li>
-<li><p>Although <span class="math inline">LR (1)</span> grammars are a
-small subset of <em>context free grammars</em>, the semantic actions can
-depend on context: actions can be functions that take some form of
-context as input.</p></li>
+<li><p>Although <span class="math inline">\operatorname{LR} (1)</span>
+grammars are a small subset of <em>context free grammars</em>, the
+semantic actions can depend on context: actions can be functions that
+take some form of context as input.</p></li>
 <li><p>Positions are available in actions via keywords
 $<code>startpos</code>(<code>x</code>) and
 $<code>endpos</code>(<code>x</code>) where <code>x</code> is name given
@@ -8393,7 +8386,7 @@ precedence <em>/%nonassoc UMINUS /</em> highest precedence
 number val ( + ): number -&gt; number -&gt; number val ( - ): number
 -&gt; number -&gt; number val ( </em> ): number -&gt; number -&gt;
 number val ( / ): number -&gt; number -&gt; number val ( <span
-class="math inline">∼</span>-): number -&gt; numberend&gt;%start
+class="math inline">\sim</span>-): number -&gt; numberend&gt;%start
 &lt;Semantics.number&gt; main%{ open Semantics %}</p>
 <p>%%main:| e = expr EOL { e }expr:| i = INT { inject i }| LPAREN e =
 expr RPAREN { e }| e1 = expr PLUS e2 = expr { e1 + e2 }| e1 = expr MINUS
@@ -8402,8 +8395,8 @@ DIV e2 = expr { e1 / e2 }| MINUS e = expr %prec UMINUS { - e }</p></li>
 <li><p>File <code>calc.ml</code>:</p>
 <p>module FloatSemantics = struct type number = float let inject =
 floatofint let ( + ) = ( +. ) let ( - ) = ( -. ) let ( * ) = ( *. ) let
-( / ) = ( /. ) let (<span class="math inline">∼</span>- ) = (<span
-class="math inline">∼</span>-. )endmodule FloatParser =
+( / ) = ( /. ) let (<span class="math inline">\sim</span>- ) = (<span
+class="math inline">\sim</span>-. )endmodule FloatParser =
 Parser.Make(FloatSemantics)</p>
 <p>let () = let stdinbuf = Lexing.fromchannel stdin in while true do let
 linebuf = Lexing.fromstring (Lexer.line stdinbuf) in try<br />
@@ -8679,10 +8672,10 @@ optimization: biword indexes</h3>
 <li><p>Pairs of words are much less frequent than single words so
 storing them means less work for postings lists merging.</p></li>
 <li><p>Can result in much bigger index size: <span
-class="math inline">min (<em>W</em><sup>2</sup>,<em>N</em>)</span> where
-<span class="math inline"><em>W</em></span> is the number of distinct
-words and <span class="math inline"><em>N</em></span> the total number
-of words in documents.</p></li>
+class="math inline">\min (W^2, N)</span> where <span
+class="math inline">W</span> is the number of distinct words and <span
+class="math inline">N</span> the total number of words in
+documents.</p></li>
 <li><p>Invocation that gives us stack backtraces:</p>
 <p><code>ocamlbuild InvIndex3.native -cflag -g -libs unix; export OCAMLRUNPARAM="b";  ./InvIndex3.native</code></p></li>
 <li><p>Time: 2.4s – disappointing.</p></li>
@@ -8829,12 +8822,12 @@ missing.</li>
 </ul>
 <div class="sourceCode" id="cb60"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
   T &amp; = &amp; 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} &amp; = &amp; 0 + T^2 + 2 xT
 \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
-\end{matrix} $$</span></p>
+\end{matrix} </span></p>
 <div class="sourceCode" id="cb61"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_dir = LeftBranch | RightBranch</span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_deriv =</span>
@@ -8847,7 +8840,7 @@ problem above.</p></li>
 bottom.</p>
 <p>The part closest to the location should be on top.</p></li>
 <li><p>Revisiting equations for trees and lists:</p>
-<p><span class="math display">$$ \begin{matrix}
+<p><span class="math display"> \begin{matrix}
 T &amp; = &amp; 1 + xT^2\\\\\\
 \frac{\partial T}{\partial x} &amp; = &amp; 0 + T^2 + 2 xT
 \frac{\partial
@@ -8856,7 +8849,7 @@ T}{\partial x}\\\\\\
 L (y) &amp; = &amp; 1 + yL (y)\\\\\\
 L (y) &amp; = &amp; \frac{1}{1 - y}\\\\\\
 \frac{\partial T}{\partial x} &amp; = &amp; T^2 L (2 xT) \end{matrix}
-$$</span></p>
+</span></p>
 <p>I.e. the context can be stored as a list with the root as the last
 node.</p>
 <ul>
@@ -8909,15 +8902,14 @@ simplifying his equations.</li>
 as we can, but changing the whole expression as little as possible.</li>
 <li>We can illustrate our algorithm using mathematical notation. Let:
 <ul>
-<li><span class="math inline"><em>x</em></span> be the thing we pull
-out</li>
-<li><span class="math inline"><em>C</em>[<em>e</em>]</span> and <span
-class="math inline"><em>D</em>[<em>e</em>]</span> be big expressions
-with subexpression <span class="math inline"><em>e</em></span></li>
-<li>operator <span class="math inline">∘</span> stand for one of: <span
-class="math inline">*,+</span></li>
+<li><span class="math inline">x</span> be the thing we pull out</li>
+<li><span class="math inline">C [e]</span> and <span
+class="math inline">D [e]</span> be big expressions with subexpression
+<span class="math inline">e</span></li>
+<li>operator <span class="math inline">\circ</span> stand for one of:
+<span class="math inline">\ast, +</span></li>
 </ul>
-<span class="math display">$$ \begin{matrix}
+<span class="math display"> \begin{matrix}
 D [(C [x] \circ e_{1}) \circ e_{2}] &amp; \Rightarrow &amp; D [C [x]
 \circ (e_{1}
 \circ e_{2})]\\\\\\
@@ -8930,7 +8922,7 @@ D [e_{2}  (C [x] + e_{1})] &amp; \Rightarrow &amp; D [C [x] e_{2} +
 e_{1}
 e_{2}]\\\\\\
 D [e \circ C [x]] &amp; \Rightarrow &amp; D [C [x] \circ e] \end{matrix}
-$$</span></li>
+</span></li>
 <li>First the groundwork:</li>
 </ul>
 <p>type op = Add | Multype expr = Val of int | Var of string | App of
@@ -8951,14 +8943,15 @@ ctx) -&gt; Some {sub; ctx=List.rev ctx}</p>
 </ul>
 <p>let rec pullout loc = match loc.ctx with | [] -&gt;
 <code>loc</code>Done.| (Leftarg, op, l) :: upctx -&gt;<span
-class="math inline"><em>D</em>[<em>e</em>∘<em>C</em>[<em>x</em>]] ⇒ <em>D</em>[<em>C</em>[<em>x</em>]∘<em>e</em>]</span>
-pullout {loc with ctx=(Rightarg, op, l) :: upctx} | (Rightarg, op1, e1)
-:: (, op2, e2) :: upctx when op1 = op2 -&gt;<span
-class="math inline"><em>D</em>[(<em>C</em>[<em>x</em>]∘<em>e</em><sub>1</sub>)∘<em>e</em><sub>2</sub>]/<em>D</em>[<em>e</em><sub>2</sub>∘(<em>C</em>[<em>x</em>]∘<em>e</em><sub>1</sub>)] ⇒ <em>D</em>[<em>C</em>[<em>x</em>]∘(<em>e</em><sub>1</sub>∘<em>e</em><sub>2</sub>)]</span>
-pullout {loc with ctx=(Rightarg, op1, App(e1,op1,e2)) :: upctx} |
-(Rightarg, Add, e1) :: (, Mul, e2) :: upctx -&gt; pullout {loc with
-ctx=<span
-class="math inline"><em>D</em>[(<em>C</em>[<em>x</em>]+<em>e</em><sub>1</sub>)<em>e</em><sub>2</sub>]/<em>D</em>[<em>e</em><sub>2</sub>(<em>C</em>[<em>x</em>]+<em>e</em><sub>1</sub>)] ⇒ <em>D</em>[<em>C</em>[<em>x</em>]<em>e</em><sub>2</sub>+<em>e</em><sub>1</sub><em>e</em><sub>2</sub>]</span>
+class="math inline">D [e \circ C [x]] \Rightarrow D [C [x] \circ
+e]</span> pullout {loc with ctx=(Rightarg, op, l) :: upctx} | (Rightarg,
+op1, e1) :: (, op2, e2) :: upctx when op1 = op2 -&gt;<span
+class="math inline">D [(C [x] \circ e_{1}) \circ e_{2}] / D [e_{2} \circ
+(C [x] \circ e_{1})] \Rightarrow D [C [x] \circ (e_{1} \circ
+e_{2})]</span> pullout {loc with ctx=(Rightarg, op1, App(e1,op1,e2)) ::
+upctx} | (Rightarg, Add, e1) :: (, Mul, e2) :: upctx -&gt; pullout {loc
+with ctx=<span class="math inline">D [(C [x] + e_{1}) e_{2}] / D [e_{2}
+(C [x] + e_{1})] \Rightarrow D [C [x] e_{2} + e_{1} e_{2}]</span>
 (Rightarg, Mul, e2) :: (Rightarg, Add, App(e1,Mul,e2)) :: upctx} |
 (Rightarg, op, r)::upctx -&gt;Move up the context. pullout
 {sub=App(loc.sub, op, r); ctx=upctx}</p>
@@ -9083,11 +9076,11 @@ updated. | Leaf (x,</p>
 display x y &gt;&gt;= fun -&gt; r &gt;&gt;= display x y</li>
 </ol></li>
 <li><p>let growat (x, depth, upd) = let xl = x-f2i
-(width<em>.(2.0<strong>(<span class="math inline">∼</span>-.(i2f
+(width<em>.(2.0<strong>(<span class="math inline">\sim</span>-.(i2f
 (depth+1))))) in let l, updl = changeable (Leaf (xl, (depth+1)<em>20))
 in<br />
 let xr = x+f2i (width</em>.(2.0</strong>(<span
-class="math inline">∼</span>-.(i2f (depth+1))))) in let r, updr =
+class="math inline">\sim</span>-.(i2f (depth+1))))) in let r, updr =
 changeable (Leaf (xr, (depth+1)</em>20)) in write upd (Node (x,
 depth*20, l, r));Update the old leaf propagate ();and keep handles to
 make future updates. [xl, depth+1, updl; xr, depth+1, updr]</p></li>
@@ -9252,10 +9245,8 @@ stream</p>
 happens.</p></li>
 <li><p>Turning behaviors and events from functions of time into
 input-output streams is similar to optimizing interesction of ordered
-lists from <span
-class="math inline"><em>O</em>(<em>m</em><em>n</em>)</span> to <span
-class="math inline"><em>O</em>(<em>m</em>+<em>n</em>)</span>
-time.</p></li>
+lists from <span class="math inline">O (mn)</span> to <span
+class="math inline">O (m + n)</span> time.</p></li>
 <li><p>Now we can in turn define events in terms of behaviors:</p>
 <p>type ’a event = ’a option behavior</p>
 <p>although it betrays the discrete character of events (happening at
@@ -9372,8 +9363,8 @@ None -&gt; acc | Some f -&gt; f acc) (ff $ uts))</p></li>
 sampling times.</p>
 <p>let integral fb = let rec loop t0 acc uts bs = let Cons ((,t1), uts)
 = Lazy.force uts in let Cons (b, bs) = Lazy.force bs in let acc = acc +.
-(t1 -. t0) *. b in<span
-class="math inline"><em>b</em> = fb (<em>t</em><sub>1</sub>), acc  ≈ ∫<sub><em>t</em> ≤ <em>t</em><sub>0</sub></sub><em>f</em></span>.
+(t1 -. t0) *. b in<span class="math inline">b =\operatorname{fb}
+(t_{1}), \operatorname{acc} \approx \int_{t \leqslant t_{0}} f</span>.
 Cons (acc, lazy (loop t1 acc uts bs)) in memo1 (fun uts -&gt; lazy ( let
 Cons ((,t), uts’) = Lazy.force uts in Cons (0., lazy (loop t 0. uts’ (fb
 $ uts)))))</p>
@@ -9407,7 +9398,7 @@ aux tx ty = functionAccumulate translations. | Rect (x, y, w, h)
 -&gt;<br />
 fillrect (f2i tx+x) (f2i ty+y) w h | Circle (x, y, r) -&gt; fillcircle
 (f2i tx+x) (f2i ty+y) r | Group scs -&gt; List.iter (aux tx ty)
-<code>scs</code><span class="math inline">↙</span> Set color for
+<code>scs</code><span class="math inline">\swarrow</span> Set color for
 <code>sc</code> objects.| Color (c, sc) -&gt; setcolor c; aux tx ty sc |
 Translate (x, y, sc) -&gt; aux (tx+.x) (ty+.y) sc in<br />
 cleargraph ();‘‘Fast and clean’’ removing of previous picture. aux 0. 0.
@@ -9461,10 +9452,10 @@ walls, which is hard-coded in terms of distance from window borders.</p>
 <li>Unfortunately OCaml, being an eager language, does not let us encode
 recursive behaviors in elegant way. We need to unpack behaviors and
 events as functions of the input stream.</li>
-<li>xbounce -&gt;&gt; (<span class="math inline">∼</span>-.) event is
+<li>xbounce -&gt;&gt; (<span class="math inline">\sim</span>-.) event is
 just the negation function happening at each horizontal bounce.</li>
 <li>stepaccum vel (xbounce -&gt;&gt; (<span
-class="math inline">∼</span>-.)) behavior is <code>vel</code> value
+class="math inline">\sim</span>-.)) behavior is <code>vel</code> value
 changing sign at each horizontal bounce.</li>
 <li>liftB intoffloat (integral xvel) +* width /* !*2 – first integrate
 velocity, then truncate it to integers and offset to the middle of the
@@ -9476,19 +9467,19 @@ walls.</li>
 </ul></li>
 </ul>
 <p>let pbal vel = let rec xvel uts = stepaccum vel (xbounce -&gt;&gt;
-(<span class="math inline">∼</span>-.)) $ uts and xvel = {memof = xvel;
-memor = None} and xpos uts = (liftB intoffloat (integral xvel) +* width
-/* !<em>2) $ uts and xpos = {memof = xpos; memor = None} and xbounce uts
-= whenB ((xpos &gt;</em> width -* !<em>27) ||</em> (xpos &lt;* !<em>27))
-$ uts and xbounce = {memof = xbounce; memor = None} in let rec yvel uts
-= (stepaccum vel (ybounce -&gt;&gt; (<span
-class="math inline">∼</span>-.))) $ uts and yvel = {memof = yvel; memor
-= None} and ypos uts = (liftB intoffloat (integral yvel) +</em> height
-/* !<em>2) $ uts and ypos = {memof = ypos; memor = None} and ybounce uts
-= whenB ( (ypos &gt;</em> height -* !<em>27) ||</em> ((ypos &lt;*
-!<em>17) &amp;&amp;</em> (ypos &gt;* !<em>7) &amp;&amp;</em> (xpos &gt;*
-mousex) &amp;&amp;* (xpos &lt;* mousex +* !*50))) $ uts and ybounce =
-{memof = ybounce; memor = None} in liftB2 (fun x y -&gt; Color
+(<span class="math inline">\sim</span>-.)) $ uts and xvel = {memof =
+xvel; memor = None} and xpos uts = (liftB intoffloat (integral xvel) +*
+width /* !<em>2) $ uts and xpos = {memof = xpos; memor = None} and
+xbounce uts = whenB ((xpos &gt;</em> width -* !<em>27) ||</em> (xpos
+&lt;* !<em>27)) $ uts and xbounce = {memof = xbounce; memor = None} in
+let rec yvel uts = (stepaccum vel (ybounce -&gt;&gt; (<span
+class="math inline">\sim</span>-.))) $ uts and yvel = {memof = yvel;
+memor = None} and ypos uts = (liftB intoffloat (integral yvel) +</em>
+height /* !<em>2) $ uts and ypos = {memof = ypos; memor = None} and
+ybounce uts = whenB ( (ypos &gt;</em> height -* !<em>27) ||</em> ((ypos
+&lt;* !<em>17) &amp;&amp;</em> (ypos &gt;* !<em>7) &amp;&amp;</em> (xpos
+&gt;* mousex) &amp;&amp;* (xpos &lt;* mousex +* !*50))) $ uts and
+ybounce = {memof = ybounce; memor = None} in liftB2 (fun x y -&gt; Color
 (Graphics.red, Circle (x, y, 6))) xpos ypos</p>
 <ul>
 <li><p>Invocation:</p>
@@ -9692,10 +9683,10 @@ iscancelled : cancellable -&gt; bool</p></li>
 <li><p>We follow our (or <em>Lwt</em>) implementation of lightweight
 threads, adapting it to the need of cancelling flows.</p>
 <p>module F = Froctype ’a result =| Return of <code>'a</code><span
-class="math inline">↓</span>Notifications to cancel when cancelled.|
-Sleep of (’a -&gt; unit) list * F.cancel ref list| Cancelled| Link of ’a
-stateand ’a state = {mutable state : ’a result}type cancellable = unit
-state</p></li>
+class="math inline">\downarrow</span>Notifications to cancel when
+cancelled.| Sleep of (’a -&gt; unit) list * F.cancel ref list|
+Cancelled| Link of ’a stateand ’a state = {mutable state : ’a
+result}type cancellable = unit state</p></li>
 <li><p>Functions <code>find</code>, <code>wakeup</code>,
 <code>connect</code> are as in lecture 8 (but connecting to cancelled
 thread cancels the other thread).</p></li>
@@ -9744,12 +9735,12 @@ cld); synchronize ()</p></li>
 (perform<br />
 await mbuttonpressed;Start when button down. let opn = ref [] in<br />
 repeat (perform mpos &lt;– await mousemove;<span
-class="math inline">↙</span>Add next position to line. emit (opn := mpos
-:: !opn; !opn :: !cld))<br />
-<span class="math inline">∼</span>until:mbuttonreleased;<span
-class="math inline">↙</span>Start new shape. emit (cld := !opn :: !cld;
-opn := []; [] :: !cld))let painter, cancelpainter = behaviorflow []
-painterlet () = reactimate painter</p></li>
+class="math inline">\swarrow</span>Add next position to line. emit (opn
+:= mpos :: !opn; !opn :: !cld))<br />
+<span class="math inline">\sim</span>until:mbuttonreleased;<span
+class="math inline">\swarrow</span>Start new shape. emit (cld := !opn ::
+!cld; opn := []; [] :: !cld))let painter, cancelpainter = behaviorflow
+[] painterlet () = reactimate painter</p></li>
 <li><p><img src="Lec10d.png" /></p></li>
 </ul>
 <h3 id="flows-and-state">1 Flows and state</h3>
@@ -9799,14 +9790,15 @@ repeat (performremember the older argument in partial application. op
 &lt;– repeat<br />
 (performEnter the digits of a number (on later turns d &lt;– await
 digits;starting from the second digit) emit (now := 10. *. !now +. d;
-!now)) <span class="math inline">∼</span>until:ops;until operator button
-is pressed.<br />
+!now)) <span class="math inline">\sim</span>until:ops;until operator
+button is pressed.<br />
 emit (now := !f !now; f := op !now; !now); d &lt;–
-<code>repeat</code><span class="math inline">↖</span>Compute the result
-and ‘‘store away’’ the operator.(perform op &lt;– await ops; return (f
-:= op !now)) <span class="math inline">∼</span>until:digits;The user can
-pick a different operator. emit (now := d; !now))Reset the state to a
-new number.let calce, cancelcalc = eventflow calcNotifies display
+<code>repeat</code><span class="math inline">\nwarrow</span>Compute the
+result and ‘‘store away’’ the operator.(perform op &lt;– await ops;
+return (f := op !now)) <span
+class="math inline">\sim</span>until:digits;The user can pick a
+different operator. emit (now := d; !now))Reset the state to a new
+number.let calce, cancelcalc = eventflow calcNotifies display
 update.</p>
 <h2 id="tk-labltk">7.2 <em>Tk</em>: <em>LablTk</em></h2>
 <ul>
@@ -9830,53 +9822,53 @@ located.</p></li>
 <em>edit</em> fields) are for entering info from keyboard.</p>
 <ul>
 <li>Actions are <em>callback</em> functions passed as the <span
-class="math inline">∼</span><code>command</code> argument.</li>
+class="math inline">\sim</span><code>command</code> argument.</li>
 </ul></li>
 <li><p><em>Frames</em> in <em>Tk</em> group widgets.</p></li>
 <li><p>The parent is sent as last argument, after optional labelled
 arguments.</p>
 <p>let top = Tk.openTk ()let btnframe = Frame.create <span
-class="math inline">∼</span>relief:’Groove <span
-class="math inline">∼</span>borderwidth:2 toplet buttons = Array.map
+class="math inline">\sim</span>relief:’Groove <span
+class="math inline">\sim</span>borderwidth:2 toplet buttons = Array.map
 (Array.map (function | text, ’Dot -&gt; Button.create <span
-class="math inline">∼</span>text <span
-class="math inline">∼</span>command:(fun () -&gt; F.send dot ())
+class="math inline">\sim</span>text <span
+class="math inline">\sim</span>command:(fun () -&gt; F.send dot ())
 btnframe | text, ’Di d -&gt; Button.create <span
-class="math inline">∼</span>text <span
-class="math inline">∼</span>command:(fun () -&gt; F.send digit d)
+class="math inline">\sim</span>text <span
+class="math inline">\sim</span>command:(fun () -&gt; F.send digit d)
 btnframe | text, ’O f -&gt; Button.create <span
-class="math inline">∼</span>text <span
-class="math inline">∼</span>command:(fun () -&gt; F.send op f)
+class="math inline">\sim</span>text <span
+class="math inline">\sim</span>command:(fun () -&gt; F.send op f)
 btnframe)) layoutlet result = Label.create <span
-class="math inline">∼</span>text:“0” <span
-class="math inline">∼</span>relief:’Sunken top</p></li>
+class="math inline">\sim</span>text:“0” <span
+class="math inline">\sim</span>relief:’Sunken top</p></li>
 <li><p>GUI toolkits have layout algorithms, so we only need to tell
 which widgets hang together and whether they should fill all available
 space etc. – via <code>pack</code>, or <code>grid</code> for
 “rectangular” organization.</p></li>
-<li><p><span class="math inline">∼</span>fill: the allocated space in
+<li><p><span class="math inline">\sim</span>fill: the allocated space in
 <code>‘X</code>, <code>‘Y</code>, <code>‘Both</code> or
-<code>‘None</code> axes;<span class="math inline">∼</span>expand:
+<code>‘None</code> axes;<span class="math inline">\sim</span>expand:
 maximally how much space is allocated or only as needed.</p></li>
-<li><p><span class="math inline">∼</span>anchor: allows to glue a widget
-in particular direction (<code>‘Center</code>, <code>‘E</code>,
+<li><p><span class="math inline">\sim</span>anchor: allows to glue a
+widget in particular direction (<code>‘Center</code>, <code>‘E</code>,
 <code>‘Ne</code> etc.)</p></li>
 <li><p>The <code>grid</code> packing flexibility: <span
-class="math inline">∼</span>columnspan and <span
-class="math inline">∼</span>rowspan.</p></li>
+class="math inline">\sim</span>columnspan and <span
+class="math inline">\sim</span>rowspan.</p></li>
 <li><p><code>configure</code> functions accept the same arguments as
 <code>create</code> but change existing widgets.</p></li>
 <li><p>let () = Wm.titleset top “Calculator”; Tk.pack [result] <span
-class="math inline">∼</span>side:’Top <span
-class="math inline">∼</span>fill:’X; Tk.pack [btnframe] <span
-class="math inline">∼</span>side:’Bottom <span
-class="math inline">∼</span>expand:true;<br />
+class="math inline">\sim</span>side:’Top <span
+class="math inline">\sim</span>fill:’X; Tk.pack [btnframe] <span
+class="math inline">\sim</span>side:’Bottom <span
+class="math inline">\sim</span>expand:true;<br />
 Array.iteri (fun column -&gt;Array.iteri (fun row button -&gt; Tk.grid
-<span class="math inline">∼</span>column <span
-class="math inline">∼</span>row [button])) buttons; Wm.geometryset top
-“200x200”;<br />
+<span class="math inline">\sim</span>column <span
+class="math inline">\sim</span>row [button])) buttons; Wm.geometryset
+top “200x200”;<br />
 F.notifye calce (fun now -&gt; Label.configure <span
-class="math inline">∼</span>text:(stringoffloat now) result);
+class="math inline">\sim</span>text:(stringoffloat now) result);
 Tk.mainLoop ()</p></li>
 <li><p><img src="Lec10-Calc_Tk.png" /></p></li>
 </ul>
@@ -9892,33 +9884,33 @@ methods are called with # syntax, e.g. window#show ()</p></li>
 <li>Our events are called signals in <em>GTk+</em>.</li>
 <li>Registering a notification is called connecting a signal handler,
 e.g.button#connect#clicked <span
-class="math inline">∼</span>callback:hello which takes <span
-class="math inline">$\sim {\nobreak}$</span>callback:(unit -&gt; unit)
-and returns GtkSignal.id.
+class="math inline">\sim</span>callback:hello which takes <span
+class="math inline">\sim {\nobreak}</span>callback:(unit -&gt; unit) and
+returns GtkSignal.id.
 <ul>
 <li>As with <em>Froc</em> notifications, multiple handlers can be
 attached.</li>
 </ul></li>
 <li><em>GTk+</em> events are a subclass of signals related to more
 specific window events, e.g.window#event#connect#delete <span
-class="math inline">∼</span>callback:deleteevent</li>
+class="math inline">\sim</span>callback:deleteevent</li>
 <li><em>GTk+</em> event callbacks take more info: <span
-class="math inline">∼</span>callback:(event -&gt; unit) for some type
+class="math inline">\sim</span>callback:(event -&gt; unit) for some type
 <code>event</code>.</li>
 </ul></li>
 <li><p>Automatic layout (aka. packing) seems less sophisticated than in
 <em>Tk</em>:</p>
 <ul>
 <li>only horizontal and vertical boxes,</li>
-<li>therefore <span class="math inline">∼</span>fill is binary and <span
-class="math inline">∼</span>anchor is replaced by <span
-class="math inline">∼</span>from <code>‘START</code> or
+<li>therefore <span class="math inline">\sim</span>fill is binary and
+<span class="math inline">\sim</span>anchor is replaced by <span
+class="math inline">\sim</span>from <code>‘START</code> or
 <code>‘END</code>.</li>
 </ul></li>
 <li><p>Automatic grid layout is called <code>table</code>.</p>
 <ul>
-<li><span class="math inline">∼</span>fill and <span
-class="math inline">∼</span>expand take <code>‘X</code>,
+<li><span class="math inline">\sim</span>fill and <span
+class="math inline">\sim</span>expand take <code>‘X</code>,
 <code>‘Y</code>, <code>‘BOTH</code>, <code>‘NONE</code>.</li>
 </ul></li>
 <li><p>The <code>coerce</code> method casts the type of the object (in
@@ -9931,45 +9923,46 @@ a single <code>configure</code> function in <em>Tk</em>).</p></li>
 <li><p>The model part of application doesn’t change.</p></li>
 <li><p>Setup:</p>
 <p>let = GtkMain.Main.init ()let window = GWindow.window <span
-class="math inline">∼</span>width:200 <span
-class="math inline">∼</span>height:200 <span
-class="math inline">∼</span>title:“Calculator” ()let top = GPack.vbox
-<span class="math inline">∼</span>packing:window#add ()let result =
-GMisc.label <span class="math inline">∼</span>text:“0” <span
-class="math inline">∼</span>packing:top#add ()let btnframe = GPack.table
-<span class="math inline">∼</span>rows:(Array.length layout) <span
-class="math inline">∼</span>columns:(Array.length layout.(0)) <span
-class="math inline">∼</span>packing:top#add ()</p></li>
+class="math inline">\sim</span>width:200 <span
+class="math inline">\sim</span>height:200 <span
+class="math inline">\sim</span>title:“Calculator” ()let top = GPack.vbox
+<span class="math inline">\sim</span>packing:window#add ()let result =
+GMisc.label <span class="math inline">\sim</span>text:“0” <span
+class="math inline">\sim</span>packing:top#add ()let btnframe =
+GPack.table <span class="math inline">\sim</span>rows:(Array.length
+layout) <span class="math inline">\sim</span>columns:(Array.length
+layout.(0)) <span class="math inline">\sim</span>packing:top#add
+()</p></li>
 <li><p>Button actions:</p>
 <p>let buttons = Array.map (Array.map (function | label, ’Dot -&gt; let
-b = GButton.button <span class="math inline">∼</span>label () in let =
-b#connect#clicked<br />
-<span class="math inline">∼</span>callback:(fun () -&gt; F.send dot ())
-in b | label, ’Di d -&gt;<br />
-let b = GButton.button <span class="math inline">∼</span>label () in let
+b = GButton.button <span class="math inline">\sim</span>label () in let
 = b#connect#clicked<br />
-<span class="math inline">∼</span>callback:(fun () -&gt; F.send digit d)
-in b | label, ’O f -&gt;<br />
-let b = GButton.button <span class="math inline">∼</span>label () in let
-= b#connect#clicked<br />
-<span class="math inline">∼</span>callback:(fun () -&gt; F.send op f) in
-b)) layout</p></li>
+<span class="math inline">\sim</span>callback:(fun () -&gt; F.send dot
+()) in b | label, ’Di d -&gt;<br />
+let b = GButton.button <span class="math inline">\sim</span>label () in
+let = b#connect#clicked<br />
+<span class="math inline">\sim</span>callback:(fun () -&gt; F.send digit
+d) in b | label, ’O f -&gt;<br />
+let b = GButton.button <span class="math inline">\sim</span>label () in
+let = b#connect#clicked<br />
+<span class="math inline">\sim</span>callback:(fun () -&gt; F.send op f)
+in b)) layout</p></li>
 <li><p>Button layout, result notification, start application:</p>
 <p>let deleteevent = GMain.Main.quit (); falselet () = let =
 window#event#connect#delete <span
-class="math inline">∼</span>callback:deleteevent in Array.iteri (fun
+class="math inline">\sim</span>callback:deleteevent in Array.iteri (fun
 column-&gt;Array.iteri (fun row button -&gt; btnframe#attach <span
-class="math inline">∼</span>left:column <span
-class="math inline">∼</span>top:row <span
-class="math inline">∼</span>fill:’BOTH <span
-class="math inline">∼</span>expand:’BOTH (button#coerce)) ) buttons;
+class="math inline">\sim</span>left:column <span
+class="math inline">\sim</span>top:row <span
+class="math inline">\sim</span>fill:’BOTH <span
+class="math inline">\sim</span>expand:’BOTH (button#coerce)) ) buttons;
 F.notifye calce (fun now -&gt; result#setlabel (stringoffloat now));
 window#show (); GMain.Main.main ()</p></li>
 <li><p><img src="Lec10calc_gtk.png" /> Functional Programming</p></li>
 </ul>
 <p>Zippers, Reactivity, GUIs</p>
 <p><strong>Exercise 1:</strong> Introduce operators <span
-class="math inline">−,/</span> into the context rewriting “pull out
+class="math inline">-, /</span> into the context rewriting “pull out
 subexpression” example. Remember that they are not commutative.</p>
 <p><strong>Exercise 2:</strong> Add to the <em>paddle game</em>
 example:</p>
@@ -10080,7 +10073,7 @@ guarantees.</li>
 with new constructs:</p>
 <ul>
 <li>lambda calculus: variables <code>Var</code>, <span
-class="math inline"><em>λ</em></span>-abstractions <code>Abs</code>,
+class="math inline">\lambda</span>-abstractions <code>Abs</code>,
 function applications <code>App</code>;</li>
 <li>arithmetics: variables <code>Var</code>, constants <code>Num</code>,
 addition <code>Add</code>, multiplication <code>Mult</code>; …</li>
@@ -10120,7 +10113,7 @@ its own.We treat this sub-language slightly differently – no need for a
 dedicated
 variant.let0.5emevalvar0.5emwrap0.5emsub0.5em(s0.5em:0.5emvar)0.5em=0.5em0.5emtry0.5emList.assoc0.5ems0.5emsub0.5emwith0.5emNotfound0.5em-&gt;0.5emwrap0.5emstype0.5em’a0.5emlambda0.5em=Here
 we define the sub-language of <span
-class="math inline"><em>λ</em></span>-expressions.0.5em0.5emVarL0.5emof0.5emvar0.5em|0.5emAbs0.5emof0.5emstring0.5em<em>0.5em’a0.5em|0.5emApp0.5emof0.5em’a0.5em</em>0.5em’aDuring
+class="math inline">\lambda</span>-expressions.0.5em0.5emVarL0.5emof0.5emvar0.5em|0.5emAbs0.5emof0.5emstring0.5em<em>0.5em’a0.5em|0.5emApp0.5emof0.5em’a0.5em</em>0.5em’aDuring
 evaluation, we need to freshen variables to avoid
 capturelet0.5emgensym0.5em=0.5emlet0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5emˆ0.5emstringofint0.5em!n(mistaking
 distinct variables with the same
@@ -10142,10 +10135,10 @@ wrapped.<code>0.5em0.5em0.5em0.5em</code>|0.5em0.5em _
 -&gt;0.5emwrap0.5em(App0.5em(l1’,0.5eml2’)))Wrap into the completed
 language.0.5em0.5em0.5emSome0.5em(Abs0.5em(s,0.5eml1))0.5em-&gt;0.5em0.5em0.5em0.5emlet0.5ems’0.5em=0.5emgensym0.5em()0.5eminRename
 variable to avoid capture (<span
-class="math inline"><em>α</em></span>-equivalence).0.5em0.5em0.5em0.5emwrap0.5em(Abs0.5em(s’,0.5emevalrec0.5em((s,0.5emwrap0.5em(VarL0.5ems’))::subst)0.5eml1))0.5em0.5em0.5emNone0.5em-&gt;0.5emeFalling-through
+class="math inline">\alpha</span>-equivalence).0.5em0.5em0.5em0.5emwrap0.5em(Abs0.5em(s’,0.5emevalrec0.5em((s,0.5emwrap0.5em(VarL0.5ems’))::subst)0.5eml1))0.5em0.5em0.5emNone0.5em-&gt;0.5emeFalling-through
 when not in the current
 sub-language.type0.5emlambdat0.5em=0.5emLambdat0.5emof0.5emlambdat0.5emlambdaDefining
-<span class="math inline"><em>λ</em></span>-expressionsas the completed
+<span class="math inline">\lambda</span>-expressionsas the completed
 language,let0.5emrec0.5emeval10.5emsubst0.5em=and the corresponding
 <code>eval</code>
 function.0.5em0.5emevallambda0.5emeval10.5em0.5em0.5em0.5em(fun0.5eme0.5em-&gt;0.5emLambdat0.5eme)0.5em(fun0.5em(Lambdat0.5eme)0.5em-&gt;0.5emSome0.5eme)0.5emsubsttype0.5em’a0.5emexpr0.5em=The
@@ -10160,7 +10153,7 @@ wrapped.0.5em0.5em0.5emSome0.5em(Mult0.5em(m,0.5emn))0.5em-&gt;0.5em0.5em0.5em0.
 arithmetic expressionsas the completed
 language,let0.5emrec0.5emeval20.5emsubst0.5em=aka. ‘‘tying the recursive
 knot’‘.0.5em0.5emevalexpr0.5emeval20.5em0.5em0.5em0.5em(fun0.5eme0.5em-&gt;0.5emExprt0.5eme)0.5em(fun0.5em(Exprt0.5eme)0.5em-&gt;0.5emSome0.5eme)0.5emsubsttype0.5em’a0.5emlexpr0.5em=The
-language merging <span class="math inline"><em>λ</em></span>-expressions
+language merging <span class="math inline">\lambda</span>-expressions
 and arithmetic
 expressions,0.5em0.5emLambda0.5emof0.5em’a0.5emlambda0.5em0.5emExpr0.5emof0.5em’a0.5emexprcan
 also be used asa sub-language for further
@@ -10175,9 +10168,10 @@ FP non-solution: Extensible Variant Types</p>
 <ul>
 <li>Exceptions have always formed an extensible variant type in OCaml,
 whose pattern matching is done using the try<span
-class="math inline">…</span>with syntax. Since recently, new extensible
-variant types can be defined. This augments the normal function
-extensibility of FP with straightforward data extensibility.</li>
+class="math inline">\ldots</span>with syntax. Since recently, new
+extensible variant types can be defined. This augments the normal
+function extensibility of FP with straightforward data
+extensibility.</li>
 <li>Non-solution penalty points:
 <ul>
 <li>Giving up exhaustivity checking, which is an important aspect of
@@ -10301,12 +10295,12 @@ types-based approach.</li>
 </ul>
 <p>type0.5emvarname0.5em=0.5emstringlet0.5emgensym0.5em=0.5emlet0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5em0.5emstringofint0.5em!nclass0.5emvirtual0.5em[’lang]0.5emevaluable0.5em=The
 abstract class for objects supporting the <code>eval</code>
-method.object0.5emFor <span
-class="math inline"><em>λ</em></span>-calculus, we need helper
+method.object0.5emFor <span class="math inline">\lambda</span>-calculus,
+we need helper
 functions:0.5em0.5emmethod0.5emvirtual0.5emeval0.5em:0.5em(varname0.5em<em>0.5em’lang)0.5emlist0.5em-&gt;0.5em’lang0.5em0.5emmethod0.5emvirtual0.5emrename0.5em:0.5emvarname0.5em-&gt;0.5emvarname0.5em-&gt;0.5em<code>'lang</code>renaming
 of free
 variables,0.5em0.5emmethod0.5emapply0.5em(arg0.5em:0.5em’lang)<span
-class="math inline"><em>β</em></span>-reduction if possible (fallback
+class="math inline">\beta</span>-reduction if possible (fallback
 otherwise).0.5em0.5em0.5em0.5em(fallback0.5em:0.5emunit0.5em-&gt;0.5em’lang)0.5em(subst0.5em:0.5em(varname0.5em</em>0.5em’lang)0.5emlist)0.5em=0.5em0.5em0.5em0.5emfallback0.5em()endclass0.5em[’lang]0.5emvar0.5em(v0.5em:0.5emvarname)0.5em=object0.5em(self)We
 name the current object
 <code>self</code>.0.5em0.5eminherit0.5em[’lang]0.5emevaluable0.5em0.5emval0.5emv0.5em=0.5emv0.5em0.5emmethod0.5emeval0.5emsubst0.5em=0.5em0.5em0.5em0.5emtry0.5emList.assoc0.5emv0.5emsubst0.5emwith0.5emNotfound0.5em-&gt;0.5emself0.5em0.5emmethod0.5emrename0.5emv10.5emv20.5em=Renaming
@@ -10314,7 +10308,7 @@ a
 variable:0.5em0.5em0.5em0.5emif0.5emv0.5em=0.5emv10.5emthen0.5em{&lt;0.5emv0.5em=0.5emv20.5em&gt;}0.5emelse0.5emselfwe
 clone the current object putting the new
 name.endclass0.5em[’lang]0.5emabs0.5em(v0.5em:0.5emvarname)0.5em(body0.5em:0.5em’lang)0.5em=object0.5em(self)0.5em0.5eminherit0.5em[’lang]0.5emevaluable0.5em0.5emval0.5emv0.5em=0.5emv0.5em0.5emval0.5embody0.5em=0.5embody0.5em0.5emmethod0.5emeval0.5emsubst0.5em=We
-do <span class="math inline"><em>α</em></span>-conversion prior to
+do <span class="math inline">\alpha</span>-conversion prior to
 evaluation.0.5em0.5em0.5em0.5emlet0.5emv’0.5em=0.5emgensym0.5em()0.5eminAlternatively,
 we could evaluate
 with0.5em0.5em0.5em0.5em{&lt;0.5emv0.5em=0.5emv’;0.5embody0.5em=0.5em(body#rename0.5emv0.5emv’)#eval0.5emsubst0.5em&gt;}substitution
@@ -10325,7 +10319,7 @@ the free variable <code>v1</code>, so no work if
 <code>v=v1</code>.0.5em0.5em0.5em0.5emelse0.5em{&lt;0.5embody0.5em=0.5embody#rename0.5emv10.5emv20.5em&gt;}0.5em0.5emmethod0.5emapply0.5emargsubst0.5em=0.5em0.5em0.5em0.5embody#eval0.5em((v,0.5emarg)::subst)endclass0.5em[’lang]0.5emapp0.5em(f0.5em:0.5em’lang)0.5em(arg0.5em:0.5em’lang)0.5em=object0.5em(self)0.5em0.5eminherit0.5em[’lang]0.5emevaluable0.5em0.5emval0.5emf0.5em=0.5emf0.5em0.5emval0.5emarg0.5em=0.5emarg0.5em0.5emmethod0.5emeval0.5emsubst0.5em=We
 use <code>apply</code> to differentiate between
 <code>f = abs</code>0.5em0.5em0.5em0.5emlet0.5emarg’0.5em=0.5emarg#eval0.5emsubst0.5emin
-(<span class="math inline"><em>β</em></span>-redexes) and
+(<span class="math inline">\beta</span>-redexes) and
 <code>f ≠ abs</code>.0.5em0.5em0.5em0.5emf#apply0.5emarg’0.5em(fun0.5em()0.5em-&gt;0.5em{&lt;0.5emf0.5em=0.5emf#eval0.5emsubst;0.5emarg0.5em=0.5emarg’0.5em&gt;})0.5emsubst0.5em0.5emmethod0.5emrename0.5emv10.5emv20.5em=Cloning
 the object ensures that it will be a subtype of
 <code>'lang</code>0.5em0.5em0.5em0.5em{&lt;0.5emf0.5em=0.5emf#rename0.5emv10.5emv2;0.5emarg0.5em=0.5emarg#rename0.5emv10.5emv20.5em&gt;}rather
@@ -10337,8 +10331,8 @@ evaluating arithmetic expressions we
 need0.5em0.5emmethod0.5emcompute0.5em:0.5emint0.5emoption0.5em=0.5emNone0.5em0.5ema
 heper method
 <code>compute</code>.endclass0.5em[’lang]0.5emvarc0.5emv0.5em=0.5emobjectTo
-use <span class="math inline"><em>λ</em></span>-expressions together
-with arithmetic
+use <span class="math inline">\lambda</span>-expressions together with
+arithmetic
 expressions0.5em0.5eminherit0.5em[’lang]0.5em<code>var0.5emv</code>we
 need to upgrade them with the helper
 method.0.5em0.5eminherit0.5emcomputemixinendclass0.5em[’lang]0.5emabsc0.5emv0.5embody0.5em=0.5emobject0.5em0.5eminherit0.5em[’lang]0.5emabs0.5emv0.5embody0.5em0.5eminherit0.5emcomputemixinendclass0.5em[’lang]0.5emappc0.5emf0.5emarg0.5em=0.5emobject0.5em0.5eminherit0.5em[’lang]0.5emapp0.5emf0.5emarg0.5em0.5eminherit0.5emcomputemixinendclass0.5em[’lang]0.5emnum0.5em(i0.5em:0.5emint)0.5em=A
@@ -10392,7 +10386,7 @@ the same
 type.class0.5em[’visitor]0.5emabs0.5em(v0.5em:0.5emvarname)0.5em(body0.5em:0.5em’visitor0.5emvisitable)0.5em=object0.5em(self)0.5em0.5emmethod0.5emv0.5em=0.5emv0.5em0.5emmethod0.5embody0.5em=0.5embody0.5em0.5emmethod0.5emaccept0.5em:0.5em’visitor0.5em-&gt;0.5emunit0.5em=0.5em0.5em0.5em0.5emfun0.5emvisitor0.5em-&gt;0.5emvisitor#visitAbs0.5emselfendlet0.5emnewabs0.5emv0.5embody0.5em=0.5em(new0.5emabs0.5emv0.5embody0.5em:&gt;0.5em’a0.5emvisitable)class0.5em[’visitor]0.5emapp0.5em(f0.5em:0.5em’visitor0.5emvisitable)0.5em(arg0.5em:0.5em’visitor0.5emvisitable)0.5em=object0.5em(self)0.5em0.5emmethod0.5emf0.5em=0.5emf0.5em0.5emmethod0.5emarg0.5em=0.5emarg0.5em0.5emmethod0.5emaccept0.5em:0.5em’visitor0.5em-&gt;0.5emunit0.5em=0.5em0.5em0.5em0.5emfun0.5emvisitor0.5em-&gt;0.5emvisitor#visitApp0.5emselfendlet0.5emnewapp0.5emf0.5emarg0.5em=0.5em(new0.5emapp0.5emf0.5emarg0.5em:&gt;0.5em’a0.5emvisitable)class0.5emvirtual0.5em[’visitor]0.5emlambdavisit0.5em=This
 abstract class has two uses:objectit defines the visitors for the
 sub-langauge of <span
-class="math inline"><em>λ</em></span>-expressions,0.5em0.5emmethod0.5emvirtual0.5emvisitVar0.5em:0.5em’visitor0.5emvar0.5em-&gt;0.5emunitand
+class="math inline">\lambda</span>-expressions,0.5em0.5emmethod0.5emvirtual0.5emvisitVar0.5em:0.5em’visitor0.5emvar0.5em-&gt;0.5emunitand
 it will provide an early
 check0.5em0.5emmethod0.5emvirtual0.5emvisitAbs0.5em:0.5em’visitor0.5emabs0.5em-&gt;0.5emunitthat
 the visitor
@@ -10421,7 +10415,7 @@ app#f.0.5em0.5em0.5em0.5em0.5emSome0.5em(v’,0.5embody’)0.5em-&gt;0.5em0.5em0
 use <code>result</code> as an
 accumulator.0.5em0.5eminherit0.5em[’visitor]0.5emlambdavisit0.5em0.5emmethod0.5emvisitVar0.5emvar0.5em=0.5em0.5em0.5em0.5emresult0.5em:=0.5emvar#v0.5em::0.5em!result0.5em0.5emmethod0.5emvisitAbs0.5emabs0.5em=0.5em0.5em0.5em0.5em(abs#body)#accept0.5emself;0.5em0.5em0.5em0.5emresult0.5em:=0.5emList.filter0.5em(fun0.5emv’0.5em-&gt;0.5emv’0.5em&lt;&gt;0.5emabs#v)0.5em!result0.5em0.5emmethod0.5emvisitApp0.5emapp0.5em=0.5em0.5em0.5em0.5emapp#arg#accept0.5emself;0.5emapp#f#accept0.5emselfendtype0.5emlambdavisitt0.5em=0.5emlambdavisitt0.5emlambdavisitVisitor
 for the language of <span
-class="math inline"><em>λ</em></span>-expressions.type0.5emlambdat0.5em=0.5emlambdavisitt0.5emvisitablelet0.5emeval10.5em(e0.5em:0.5emlambdat)0.5emsubst0.5em:0.5emlambdat0.5em=0.5em0.5emlet0.5emresult0.5em=0.5emref0.5em(newvar0.5em”“)0.5eminThis
+class="math inline">\lambda</span>-expressions.type0.5emlambdat0.5em=0.5emlambdavisitt0.5emvisitablelet0.5emeval10.5em(e0.5em:0.5emlambdat)0.5emsubst0.5em:0.5emlambdat0.5em=0.5em0.5emlet0.5emresult0.5em=0.5emref0.5em(newvar0.5em”“)0.5eminThis
 initial value will be
 ignored.0.5em0.5eme#accept0.5em(new0.5emevallambda0.5emsubst0.5emresult0.5em:&gt;0.5emlambdavisitt);0.5em0.5em!resultlet0.5emfreevars10.5em(e0.5em:0.5emlambdat)0.5em=0.5em0.5emlet0.5emresult0.5em=0.5emref0.5em[]0.5eminInitial
 value of the
@@ -10446,7 +10440,7 @@ the ‘‘pattern-matching
 branches’’.object0.5em0.5eminherit0.5em[’visitor]0.5emevalexpr0.5emresult0.5em0.5eminherit0.5em[’visitor]0.5emevallambda0.5emsubst0.5emresultendclass0.5em[’visitor]0.5emfreevarslexpr0.5emresult0.5em=object0.5em0.5eminherit0.5em[’visitor]0.5emfreevarsexpr0.5emresult0.5em0.5eminherit0.5em[’visitor]0.5emfreevarslambda0.5emresultendtype0.5emlexprvisitt0.5em=0.5emlexprvisitt0.5emlexprvisitThe
 language
 combiningtype0.5emlexprt0.5em=0.5emlexprvisitt0.5emvisitable<span
-class="math inline"><em>λ</em></span>-expressions and arithmetic
+class="math inline">\lambda</span>-expressions and arithmetic
 expressions.let0.5emeval30.5em(e0.5em:0.5emlexprt)0.5emsubst0.5em:0.5emlexprt0.5em=0.5em0.5emlet0.5emresult0.5em=0.5emref0.5em(newnum0.5em0)0.5emin0.5em0.5eme#accept0.5em(new0.5emevallexpr0.5emsubst0.5emresult);0.5em0.5em!resultlet0.5emfreevars30.5em(e0.5em:0.5emlexprt)0.5em=0.5em0.5emlet0.5emresult0.5em=0.5emref0.5em[]0.5emin0.5em0.5eme#accept0.5em(new0.5emfreevarslexpr0.5emresult);0.5em0.5em!resultlet0.5emtest30.5em=0.5em0.5em(newadd0.5em(newmult0.5em(newnum0.5em3)0.5em(newvar0.5em”x”))0.5em(newnum0.5em1)0.5em:&gt;0.5emlexprt)let0.5emetest0.5em=0.5emeval30.5emtest30.5em[]let0.5emfvtest0.5em=0.5emfreevars30.5emtest3let0.5emoldetest0.5em=0.5emeval30.5em(test20.5em:&gt;0.5emlexprt)0.5em[]let0.5emoldfvtest0.5em=0.5emeval30.5em(test20.5em:&gt;0.5emlexprt)0.5em[]Polymorphic
 Variant Types: Subtyping</p>
 <ul>
@@ -10479,9 +10473,9 @@ straightforward.</p></li>
 <ul>
 <li>The need to “tie the recursive knot” separately both at the type
 level and the function level. At the function level, an <span
-class="math inline"><em>η</em></span>-expansion is required due to
-<em>value recursion</em> problem. At the type level, the type variable
-can be confusing.</li>
+class="math inline">\eta</span>-expansion is required due to <em>value
+recursion</em> problem. At the type level, the type variable can be
+confusing.</li>
 <li>There can be a slight time cost compared to the visitor
 pattern-based approach: additional dispatch at each level of type
 aggregation (i.e.  merging sub-languages).</li>
@@ -10537,24 +10531,21 @@ Menhir, now we will look at parsers written directly in OCaml.</p></li>
 composing definitions of smaller languages. For example, the combinators
 of the <em>Extended Backus-Naur Form</em> notation are:</p>
 <ul>
-<li>concatenation: <span
-class="math inline"><em>S</em> = <em>A</em>, <em>B</em></span> stands
-for <span
-class="math inline"><em>S</em> = {<em>a</em><em>b</em>|<em>a</em> ∈ <em>A</em>, <em>b</em> ∈ <em>b</em>}</span>,</li>
-<li>alternation: <span
-class="math inline"><em>S</em> = <em>A</em>|<em>B</em></span> stands for
-<span
-class="math inline"><em>S</em> = {<em>a</em>|<em>a</em> ∈ <em>A</em> ∨ <em>a</em> ∈ <em>B</em>}</span>,</li>
-<li>option: <span class="math inline"><em>S</em> = [<em>A</em>]</span>
-stands for <span
-class="math inline"><em>S</em> = {<em>ϵ</em>} ∪ <em>A</em></span>, where
-<span class="math inline"><em>ϵ</em></span> is an empty string,</li>
-<li>repetition: <span
-class="math inline"><em>S</em> = {<em>A</em>}</span> stands for <span
-class="math inline"><em>S</em> = {<em>ϵ</em>} ∪ {<em>a</em><em>s</em>|<em>a</em> ∈ <em>A</em>, <em>s</em> ∈ <em>S</em>}</span>,</li>
-<li>terminal string: <span
-class="math inline"><em>S</em> = ″<em>a</em>″</span> stands for <span
-class="math inline"><em>S</em> = {<em>a</em>}</span>.</li>
+<li>concatenation: <span class="math inline">S = A, B</span> stands for
+<span class="math inline">S = \lbrace a b|a \in A, b \in b
+\rbrace</span>,</li>
+<li>alternation: <span class="math inline">S = A|B</span> stands for
+<span class="math inline">S = \lbrace a|a \in A \vee a \in B
+\rbrace</span>,</li>
+<li>option: <span class="math inline">S = [A]</span> stands for <span
+class="math inline">S = \lbrace \epsilon \rbrace \cup A</span>, where
+<span class="math inline">\epsilon</span> is an empty string,</li>
+<li>repetition: <span class="math inline">S = \lbrace A \rbrace</span>
+stands for <span class="math inline">S = \lbrace \epsilon \rbrace \cup
+\lbrace a s|a \in A, s \in S \rbrace</span>,</li>
+<li>terminal string: <span class="math inline">S =&#39;&#39;
+a&#39;&#39;</span> stands for <span class="math inline">S = \lbrace a
+\rbrace</span>.</li>
 </ul></li>
 <li><p>Parsers implemented directly in a functional programming paradigm
 are functions from character streams to the parsed values.
@@ -10572,13 +10563,13 @@ plus</em> values:</p>
 <li><p>Return: <code>val return : 'a -&gt; 'a parser</code></p>
 <ul>
 <li><code>return x</code> parses an empty string, symbolically <span
-class="math inline"><em>S</em> = {<em>ϵ</em>}</span>, and returns
+class="math inline">S = \lbrace \epsilon \rbrace</span>, and returns
 <code>x</code>.</li>
 </ul></li>
 <li><p>MZero: <code>val fail : 'a parser</code></p>
 <ul>
 <li><code>fail</code> fails to parse anything, symbolically <span
-class="math inline"><em>S</em> = ⌀ = {}</span>.</li>
+class="math inline">S = \varnothing = \lbrace \rbrace</span>.</li>
 </ul></li>
 <li><p>MPlus: either
 <code>val &lt;|&gt; : 'a parser -&gt; 'a parser -&gt; 'a    parser</code>,</p>
@@ -10606,12 +10597,10 @@ allow</strong> <em>left-recursion</em>: if a cycle of calls not
 consuming any character can be entered when a parse failure should
 occur, the cycle will keep repeating.</p>
 <ul>
-<li>For example, if we define numbers <span
-class="math inline"><em>N</em> := <em>D</em>|<em>N</em><em>D</em></span>,
-where <span class="math inline"><em>D</em></span> stands for digits,
-then a stack of uses of the rule <span
-class="math inline"><em>N</em> → <em>N</em><em>D</em></span> will build
-up when the next character is not a digit.</li>
+<li>For example, if we define numbers <span class="math inline">N := D |
+N D</span>, where <span class="math inline">D</span> stands for digits,
+then a stack of uses of the rule <span class="math inline">N \rightarrow
+N D</span> will build up when the next character is not a digit.</li>
 <li>On the other hand, rules can share common prefixes.Parser
 Combinators: Implementation</li>
 </ul></li>
@@ -10698,21 +10687,19 @@ Combinators: Toy Example</p>
 <li>File <code>Plugin1.ml</code>:</li>
 </ul>
 <p>open0.5emPluginBase.ParseMlet0.5emdigitofchar0.5emd0.5em=0.5emintofchar0.5emd0.5em-0.5emintofchar0.5em’0’let0.5emnumber=0.5em0.5emlet0.5emrec0.5emnum0.5em=Numbers:
-<span
-class="math inline"><em>N</em> := <em>D</em><em>N</em>|<em>D</em></span>
-where <span class="math inline"><em>D</em></span> is
+<span class="math inline">N := D N | D</span> where <span
+class="math inline">D</span> is
 digits.0.5em0.5em0.5em0.5emlazy0.5em(0.5em0.5em(perform0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5emd0.5em&lt;–0.5emdigit;0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em(n,0.5emb)0.5em&lt;–0.5emLazy.force0.5emnum;0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5emreturn0.5em(digitofchar0.5emd0.5em<em>0.5emb0.5em+0.5emn,0.5emb0.5em</em>0.5em10))0.5em0.5em0.5em0.5em0.5em0.5em&lt;&gt;0.5emlazy0.5em(digit0.5em&gt;&gt;=0.5em(fun0.5emd0.5em-&gt;0.5emreturn0.5em(digitofchar0.5emd,0.5em10))))0.5emin0.5em0.5emLazy.force0.5emnum0.5em&gt;&gt;0.5emfstlet0.5emaddition0.5emlang0.5em=Addition
-rule: <span
-class="math inline"><em>S</em> → (<em>S</em>+<em>S</em>)</span>.0.5em0.5emperformRequiring
-a parenthesis ( turns the rule into
+rule: <span class="math inline">S \rightarrow (S +
+S)</span>.0.5em0.5emperformRequiring a parenthesis ( turns the rule into
 non-left-recursive.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0.5emliteral0.5em”+“;0.5emn20.5em&lt;–0.5emlang;0.5emliteral0.5em”)“;0.5em0.5em0.5em0.5emreturn0.5em(n10.5em+0.5emn2)let0.5em()0.5em=
 PluginBase.(grammarrules0.5em:=0.5emnumber0.5em::0.5emaddition0.5em::0.5em!grammarrules)</p>
 <ul>
 <li>File <code>Plugin2.ml</code>:</li>
 </ul>
 <p>open0.5emPluginBase.ParseMlet0.5emmultiplication0.5emlang0.5em=0.5em0.5emperformMultiplication
-rule: <span
-class="math inline"><em>S</em> → (<em>S</em>*<em>S</em>)</span>.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0.5emliteral0.5em”<em>“;0.5emn20.5em&lt;–0.5emlang;0.5emliteral0.5em”)“;0.5em0.5em0.5em0.5emreturn0.5em(n10.5em</em>0.5emn2)let0.5em()0.5em=
+rule: <span class="math inline">S \rightarrow (S \ast
+S)</span>.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0.5emliteral0.5em”<em>“;0.5emn20.5em&lt;–0.5emlang;0.5emliteral0.5em”)“;0.5em0.5em0.5em0.5emreturn0.5em(n10.5em</em>0.5emn2)let0.5em()0.5em=
 PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)
 Functional ProgrammingŁukasz Stafiniak</p>
 <p>The Expression Problem</p>
@@ -10774,7 +10761,7 @@ rather than a “divide-and-conquer” design.</em></li>
 </ol>
 <p><strong>Exercise 10:</strong> Streamline the solution
 <code>PolyRecM.ml</code> by extending the language of <span
-class="math inline"><em>λ</em></span>-expressions with arithmetic
+class="math inline">\lambda</span>-expressions with arithmetic
 expressions, rather than defining the sub-languages separately and then
 merging them. See slide on page 15 of Jacques Garrigue <em>Structural
 Types, Recursive Modules, and the Expression Problem</em>.</p>
@@ -10870,35 +10857,31 @@ values (a dictionary) using only functions (without data structures like
 lists or trees).</p>
 <p><strong>Exercise 11:</strong> (Purple.) One way to express
 constraints on a polymorphic function is to write its type in the form:
-<span
-class="math inline">∀<em>α</em><sub>1</sub>…<em>α</em><sub><em>n</em></sub>[<em>C</em>].<em>τ</em></span>,
-where <span class="math inline"><em>τ</em></span> is the type of the
-function, <span
-class="math inline"><em>α</em><sub>1</sub>…<em>α</em><sub><em>n</em></sub></span>
-are the polymorphic type variables, and <span
-class="math inline"><em>C</em></span> are additional constraints that
-the variables <span
-class="math inline"><em>α</em><sub>1</sub>…<em>α</em><sub><em>n</em></sub></span>
-have to meet. Let’s say we allow “local variables” in <span
-class="math inline"><em>C</em></span>: for example <span
-class="math inline">$C = \exists \beta . \alpha _{1} \dot{=}
-\operatorname{list} (\beta)$</span>. Why the general form <span
-class="math inline">∀<em>β</em>[<em>C</em>].<em>β</em></span> is enough
-to express all types of the general form <span
-class="math inline">∀<em>α</em><sub>1</sub>…<em>α</em><sub><em>n</em></sub>[<em>C</em>].<em>τ</em></span>?</p>
+<span class="math inline">\forall \alpha _{1} \ldots \alpha _{n} [C] .
+\tau</span>, where <span class="math inline">\tau</span> is the type of
+the function, <span class="math inline">\alpha _{1} \ldots \alpha
+_{n}</span> are the polymorphic type variables, and <span
+class="math inline">C</span> are additional constraints that the
+variables <span class="math inline">\alpha _{1} \ldots \alpha
+_{n}</span> have to meet. Let’s say we allow “local variables” in <span
+class="math inline">C</span>: for example <span class="math inline">C =
+\exists \beta . \alpha _{1} \dot{=} \operatorname{list} (\beta)</span>.
+Why the general form <span class="math inline">\forall \beta [C] .
+\beta</span> is enough to express all types of the general form <span
+class="math inline">\forall \alpha _{1} \ldots \alpha _{n} [C] .
+\tau</span>?</p>
 <p><strong>Exercise 12:</strong> (Purple.) Define a type that
 corresponds to a set with a googleplex of elements (i.e. <span
-class="math inline">10<sup>10<sup>100</sup></sup></span> elements).</p>
+class="math inline">10^{10^{100}}</span> elements).</p>
 <p><strong>Exercise 13:</strong> (Red.) In a height-balanced binary
 tree, the following property holds for every node: The height of its
 left subtree and the height of its right subtree are almost equal, which
 means their difference is not greater than one. Consider a
 height-balanced binary tree of height <span
-class="math inline"><em>h</em></span>. What is the maximum number of
-nodes it can contain? Clearly, <span
-class="math inline">maxN  = 2<em>h</em> − 1</span>. However, finding the
-minimum number <span class="math inline">minN </span> is more
-difficult.</p>
+class="math inline">h</span>. What is the maximum number of nodes it can
+contain? Clearly, <span class="math inline">\operatorname{maxN}= 2 h -
+1</span>. However, finding the minimum number <span
+class="math inline">\operatorname{minN}</span> is more difficult.</p>
 <p><em>Construct all the height-balanced binary trees with a given nuber
 of nodes. <code>hbal_tree_nodes n</code> returns a list of all
 height-balanced binary tree with <code>n</code> nodes.</em></p>
@@ -10984,12 +10967,10 @@ graph has a cycle.</p>
 <code>fold_left</code> in terms of <code>fold_right</code>. Hint:
 continuation passing style.</p>
 <p><strong>Exercise 11:</strong> (Purple.) Show why for a monomorphic
-specification, if datastructures <span
-class="math inline"><em>d</em><sub>1</sub></span> and <span
-class="math inline"><em>d</em><sub>2</sub></span> have the same behavior
-under all operations, then they have the same representation <span
-class="math inline"><em>d</em><sub>1</sub> = <em>d</em><sub>2</sub></span>
-in all implementations.</p>
+specification, if datastructures <span class="math inline">d_{1}</span>
+and <span class="math inline">d_{2}</span> have the same behavior under
+all operations, then they have the same representation <span
+class="math inline">d_{1} = d_{2}</span> in all implementations.</p>
 <p><strong>Exercise 12:</strong> (Purple.) <code>append</code> for lazy
 lists returns in constant time. Where has its linear-time complexity
 gone? Explain how you would account for this in a time complexity
@@ -11051,18 +11032,16 @@ into disjoint subsets. Represent sets as lists, preserve the order of
 elements. The required sizes of subsets are given as a list of
 numbers.</p>
 <p><strong>Exercise 6:</strong> (Yellow.) A complete binary tree with
-height <span class="math inline"><em>H</em></span> is defined as
-follows: The levels <span
-class="math inline">1, 2, 3, …, <em>H</em> − 1</span> contain the
-maximum number of nodes (i.e <span
-class="math inline">2<sup><em>i</em> − 1</sup></span> at the level <span
-class="math inline"><em>i</em></span>, note that we start counting the
-levels from <span class="math inline">1</span> at the root). In level
-<span class="math inline"><em>H</em></span>, which may contain less than
-the maximum possible number of nodes, all the nodes are “left-adjusted”.
-This means that in a levelorder tree traversal all internal nodes come
-first, the leaves come second, and empty successors (the nil’s which are
-not really nodes!) come last.</p>
+height <span class="math inline">H</span> is defined as follows: The
+levels <span class="math inline">1, 2, 3, \ldots, H - 1</span> contain
+the maximum number of nodes (i.e <span class="math inline">2^{i -
+1}</span> at the level <span class="math inline">i</span>, note that we
+start counting the levels from <span class="math inline">1</span> at the
+root). In level <span class="math inline">H</span>, which may contain
+less than the maximum possible number of nodes, all the nodes are
+“left-adjusted”. This means that in a levelorder tree traversal all
+internal nodes come first, the leaves come second, and empty successors
+(the nil’s which are not really nodes!) come last.</p>
 <p><em>We can assign an address number to each node in a complete binary
 tree by enumerating the nodes in levelorder, starting at the root with
 number 1. In doing so, we realize that for every node X with address A
@@ -11102,11 +11081,9 @@ Unbalanced binary trees are OK.</em></p>
 <p><strong>Exercise 10:</strong> (Orange.) Write a function that
 transposes a rectangular matrix represented as a list of lists.</p>
 <p><strong>Exercise 11:</strong> (Purple.) Find the bijective functions
-between the types corresponding to <span
-class="math inline"><em>a</em>(<em>a</em><sup><em>b</em></sup>+<em>c</em>)</span>
-and <span
-class="math inline"><em>a</em><sup><em>b</em> + 1</sup> + <em>a</em><em>c</em></span>
-(in OCaml).</p>
+between the types corresponding to <span class="math inline">a (a^b +
+c)</span> and <span class="math inline">a^{b + 1} + ac</span> (in
+OCaml).</p>
 <p><strong>Exercise 12:</strong> (Purple.) Show the monad-plus laws for
 <code>OptionM</code> monad.</p>
 <p><strong>Exercise 13:</strong> (Red.) As a preparation for drawing the
@@ -11167,9 +11144,9 @@ binary trees that satisfy the <em>leftist property</em>: the rank of any
 left child is at least as large as the rank of its right sibling. The
 rank of a node is defined to be the length of its <em>right spine</em>,
 i.e. the rightmost path from the node in question to an empty node.
-Implement <span class="math inline"><em>O</em>(log<em>n</em>)</span>
-worst case time complexity Priority Queues based on leftist heaps. Each
-node of the tree should contain its rank.</p>
+Implement <span class="math inline">O (\log n)</span> worst case time
+complexity Priority Queues based on leftist heaps. Each node of the tree
+should contain its rank.</p>
 <p><em>Note that the elements along any path through a heap-ordered tree
 are stored in sorted order. The key insight behind leftist heaps is that
 two heaps can be merged by merging their right spines as you would merge
