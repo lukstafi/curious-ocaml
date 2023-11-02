@@ -1,4 +1,4 @@
-# Lecture 2: Algebra, Fig. 1
+# Lecture 2: Algebra
 
 Type inference example derivation
 

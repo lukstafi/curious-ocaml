@@ -173,8 +173,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
   its own set of operators. For example, +, *, / work for intigers, while +., 
   *., /. work for floating point numbers. **Exception:** comparisons <, 
   =, etc. work for all values other than functions.
-  
-  ## 4 Exercises
+
+
+## 4 Exercises
 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.

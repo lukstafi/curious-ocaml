@@ -45,3 +45,23 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 <details><summary>Try to use only the connective you define in its definition.</summary>
 TODO
 </details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

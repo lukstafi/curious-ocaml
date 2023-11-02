@@ -271,6 +271,11 @@ OCaml</a>
 <ul>
 <li><a href="#definitions" id="toc-definitions">3.1 Definitions</a></li>
 </ul></li>
+<li><a href="#exercises" id="toc-exercises">4 Exercises</a></li>
+</ul></li>
+<li><a href="#lecture-2-algebra" id="toc-lecture-2-algebra">Lecture 2:
+Algebra</a>
+<ul>
 <li><a href="#a-glimpse-at-type-inference"
 id="toc-a-glimpse-at-type-inference">1 A Glimpse at Type Inference</a>
 <ul>
@@ -292,6 +297,15 @@ id="toc-differentiating-algebraic-data-types">5.1 Differentiating
 Algebraic Data Types</a></li>
 </ul></li>
 <li><a href="#homework" id="toc-homework">6 Homework</a></li>
+<li><a href="#chapter-2-derivation-example"
+id="toc-chapter-2-derivation-example">Chapter 2: Derivation
+example</a></li>
+</ul></li>
+<li><a href="#lecture-2-algebra-1" id="toc-lecture-2-algebra-1">Lecture
+2: Algebra</a></li>
+<li><a href="#lecture-3-computation"
+id="toc-lecture-3-computation">Lecture 3: Computation</a>
+<ul>
 <li><a href="#function-composition" id="toc-function-composition">1
 Function Composition</a></li>
 <li><a href="#evaluation-rules-reduction-semantics"
@@ -338,6 +352,11 @@ Recursion</a></li>
 <li><a href="#in-class-work-and-homework"
 id="toc-in-class-work-and-homework">10 In-class Work and
 Homework</a></li>
+</ul></li>
+<li><a href="#lecture-5-polymorphism-adts"
+id="toc-lecture-5-polymorphism-adts">Lecture 5: Polymorphism &amp;
+ADTs</a>
+<ul>
 <li><a href="#type-inference" id="toc-type-inference">1 Type
 Inference</a></li>
 <li><a href="#parametric-types" id="toc-parametric-types">2 Parametric
@@ -380,6 +399,11 @@ id="toc-red-black-trees-without-deletion">10.2 Red-Black trees, without
 deletion</a></li>
 </ul></li>
 <li><a href="#homework-2" id="toc-homework-2">11 Homework</a></li>
+</ul></li>
+<li><a href="#lecture-6-folding-and-backtracking"
+id="toc-lecture-6-folding-and-backtracking">Lecture 6: Folding and
+Backtracking</a>
+<ul>
 <li><a href="#plan" id="toc-plan">1 Plan</a></li>
 <li><a href="#basic-generic-list-operations"
 id="toc-basic-generic-list-operations">2 Basic generic list
@@ -448,6 +472,10 @@ Islands</em></a></li>
 </ul></li>
 <li><a href="#constraint-based-puzzles"
 id="toc-constraint-based-puzzles">8 Constraint-based puzzles</a></li>
+</ul></li>
+<li><a href="#lecture-7-laziness" id="toc-lecture-7-laziness">Lecture 7:
+Laziness</a>
+<ul>
 <li><a href="#laziness" id="toc-laziness">1 Laziness</a></li>
 <li><a href="#evaluation-strategies-and-parameter-passing"
 id="toc-evaluation-strategies-and-parameter-passing">2 Evaluation
@@ -478,6 +506,10 @@ Input-Output streams</a>
 <li><a href="#example-pretty-printing"
 id="toc-example-pretty-printing">8.2 Example: pretty-printing</a></li>
 </ul></li>
+</ul></li>
+<li><a href="#lecture-8-monads" id="toc-lecture-8-monads">Lecture 8:
+Monads</a>
+<ul>
 <li><a href="#list-comprehensions" id="toc-list-comprehensions">1 List
 comprehensions</a></li>
 <li><a href="#generalized-comprehensions-aka.-do-notation"
@@ -544,6 +576,10 @@ encoding a Bayes net</a></li>
 <li><a href="#lightweight-cooperative-threads"
 id="toc-lightweight-cooperative-threads">11 Lightweight cooperative
 threads</a></li>
+</ul></li>
+<li><a href="#lecture-9-compiler" id="toc-lecture-9-compiler">Lecture 9:
+Compiler</a>
+<ul>
 <li><a href="#ocaml-compilers" id="toc-ocaml-compilers">1 OCaml
 Compilers</a>
 <ul>
@@ -608,6 +644,10 @@ Example: Phrase search</a>
 id="toc-smart-way-information-retrieval-g.v.-cormack-et-al.">7.1 Smart
 way: <em>Information Retrieval</em> G.V. Cormack et al.</a></li>
 </ul></li>
+</ul></li>
+<li><a href="#lecture-10-frp" id="toc-lecture-10-frp">Lecture 10:
+FRP</a>
+<ul>
 <li><a href="#zippers" id="toc-zippers">1 Zippers</a>
 <ul>
 <li><a href="#example-context-rewriting"
@@ -647,6 +687,8 @@ Flow</a></li>
 id="toc-exam-exercises-for-review">Exam: Exercises for review</a>
 <ul>
 <li><a href="#exam-set-0" id="toc-exam-set-0">Exam set 0</a></li>
+<li><a href="#exam-set-1" id="toc-exam-set-1">Exam set 1</a></li>
+<li><a href="#exam-set-2" id="toc-exam-set-2">Exam set 2</a></li>
 <li><a href="#exam-set-3" id="toc-exam-set-3">Exam set 3</a></li>
 </ul></li>
 </ul>
@@ -937,7 +979,7 @@ every type needs its own set of operators. For example, +, <em>, / work
 for intigers, while +., </em>., /. work for floating point numbers.
 <strong>Exception:</strong> comparisons &lt;, =, etc. work for all
 values other than functions.</p>
-<p>## 4 Exercises</p>
+<h2 id="exercises">4 Exercises</h2>
 <p>Exercises from <em>Think OCaml. How to Think Like a Computer
 Scientist</em> by Nicholas Monje and Allen Downey.</p>
 <ol type="1">
@@ -1005,9 +1047,9 @@ class="math inline">\gcd (a, 0) = a</span>.</p>
 <p>Write a function called gcd that takes parameters a and b and returns
 their greatest common divisor.</p>
 <p>If you need help, see <a
-href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/wiki/Euclidean_algorithm</a>.
-# Lecture 2: Algebra</p></li>
+href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/wiki/Euclidean_algorithm</a>.</p></li>
 </ol>
+<h1 id="lecture-2-algebra">Lecture 2: Algebra</h1>
 <p>Algebraic Data Types and some curious analogies</p>
 <h2 id="a-glimpse-at-type-inference">1 A Glimpse at Type Inference</h2>
 <p>For a refresher, let’s try to use the rules we introduced last time
@@ -1457,8 +1499,9 @@ is in the first position for which the predicate returns true. It should
 actually return a <code>btree_deriv option</code>, with
 <code>None</code> in case the predicate does not hold for any node.</p>
 <p><em>This homework is due for the class <strong>after</strong> the
-Computation class, i.e. for (before) the Functions class.</em> ##
-Chapter 2: Derivation example # Lecture 2: Algebra, Fig. 1</p>
+Computation class, i.e. for (before) the Functions class.</em></p>
+<h2 id="chapter-2-derivation-example">Chapter 2: Derivation example</h2>
+<h1 id="lecture-2-algebra-1">Lecture 2: Algebra</h1>
 <p>Type inference example derivation</p>
 <p><span class="math display"> \frac{[?]}{{\texttt{fun x -&gt; ((+) x)
 1}} : [?]} </span></p>
@@ -1648,8 +1691,8 @@ is correct. Hint: in computer science, our logarithms are mostly base
 2.</li>
 </ol>
 <p>Further reading: <a
-href="http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html">http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html</a>
-# Lecture 3: Computation</p>
+href="http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html">http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html</a></p>
+<h1 id="lecture-3-computation">Lecture 3: Computation</h1>
 <p>‘‘Using, Understanding and Unraveling the OCaml Language’’ Didier
 Rémy, chapter 1</p>
 <p>‘‘The OCaml system’’ manual, the tutorial part, chapter 1</p>
@@ -1945,10 +1988,10 @@ step of the simplification, and wrap it using a general
 <em>fixed point</em> is reached: given <span
 class="math inline">f</span> and <span class="math inline">x</span>, it
 computes <span class="math inline">f^n (x)</span> such that <span
-class="math inline">f^n (x) = f^{n + 1} (x)</span>. Functional
-Programming</li>
+class="math inline">f^n (x) = f^{n + 1} (x)</span>.</li>
 </ul></li>
 </ol>
+<p>Functional Programming</p>
 <p>Computation</p>
 <p><strong>Exercise 1:</strong> <span id="TravTreeEx"></span>By
 “traverse a tree” below we mean: write a function that takes a tree and
@@ -2763,8 +2806,9 @@ done;<br />
 !s<br />
 done; !s</li>
 <li>let repeatuntil p f s = let s = ref (f s) in while not (p !s) do s
-:= f !s done; !s Functional Programming</li>
+:= f !s done; !s</li>
 </ol>
+<p>Functional Programming</p>
 <p>Functions</p>
 <p><strong>Exercise 1:</strong> Define (implement) and test on a couple
 of examples functions corresponding to / computing:</p>
@@ -2829,8 +2873,10 @@ done;<br />
 !s<br />
 done; !s</li>
 <li>let repeatuntil p f s = let s = ref (f s) in while not (p !s) do s
-:= f !s done; !s # Lecture 5: Polymorphism &amp; ADTs</li>
+:= f !s done; !s</li>
 </ol>
+<h1 id="lecture-5-polymorphism-adts">Lecture 5: Polymorphism &amp;
+ADTs</h1>
 <p>Parametric types. Abstract Data Types.</p>
 <p>Example: maps using red-black trees.</p>
 <p>If you see any error on the slides, let me know!</p>
@@ -3527,9 +3573,9 @@ on the search path.</li>
 </ol></li>
 <li><p>* Implement maps (i.e. write a module for the map signature)
 based on AVL trees. See
-<code>http://en.wikipedia.org/wiki/AVL_tree</code>. Functional
-Programming</p></li>
+<code>http://en.wikipedia.org/wiki/AVL_tree</code>.</p></li>
 </ol>
+<p>Functional Programming</p>
 <p>Type Inference</p>
 <p>Abstract Data Types</p>
 <p><strong>Exercise 1:</strong> Derive the equations and solve them to
@@ -3711,10 +3757,11 @@ test for violations of left resp. right child only. Replace calls
 to</em> <code>*balance*</code> <em>appropriately.</em></li>
 <li><em>One of the remaining tests on grandchildren is also unnecessary.
 Rewrite</em> <code>*ins*</code> <em>so that it never tests the color of
-nodes not on the search path.</em> # Lecture 6: Folding and
-Backtracking</li>
+nodes not on the search path.</em></li>
 </ol></li>
 </ol>
+<h1 id="lecture-6-folding-and-backtracking">Lecture 6: Folding and
+Backtracking</h1>
 <p>Mapping and folding.Backtracking using lists. Constraint solving.</p>
 <p>Martin Odersky ‘‘Functional Programming Fundamentals’’ Lectures 2, 5
 and 6</p>
@@ -4735,10 +4782,11 @@ start searching.</p>
 findboard (initstate honey cellstoeat)</p>
 <h2 id="constraint-based-puzzles">8 Constraint-based puzzles</h2>
 <ul>
-<li>Puzzles can be presented by providing the general form of solutions,
-and additional requirements that the solutions must meet.</li>
-<li>For many puzzles, the general form of solutions for a given problem
-can be decomposed into a fixed number of variables.
+<li><p>Puzzles can be presented by providing the general form of
+solutions, and additional requirements that the solutions must
+meet.</p></li>
+<li><p>For many puzzles, the general form of solutions for a given
+problem can be decomposed into a fixed number of variables.</p>
 <ul>
 <li>A domain of a variable is a set of possible values the variable can
 have in any solution.</li>
@@ -4753,9 +4801,9 @@ connected components of cells that are not empty. The neighborhood graph
 – which cell-variable is connected with which – is part of the
 constraints.</li>
 </ul></li>
-<li>There is a general and often efficient scheme of solving
+<li><p>There is a general and often efficient scheme of solving
 constraint-based problems. <strong>Finite Domain Constraint
-Programming</strong> algorithm:
+Programming</strong> algorithm:</p>
 <ol type="1">
 <li>With each variable, associate a set of values, initially equal to
 the domain of the variable. The singleton containing the association is
@@ -4776,29 +4824,29 @@ variable is associated with either of the two parts.</li>
 <li>The final solutions are built from partial solutions by assigning to
 a variable the single possible value associated with it.</li>
 </ol></li>
-<li>This general algorithm can be simplified. For example, in step
+<li><p>This general algorithm can be simplified. For example, in step
 (2.c), instead of splitting into two equal-sized parts, we can partition
 into a singleton and remainder, or partition “all the way” into several
-singletons.</li>
-<li>The above definition of <em>finite domain constraint solving</em>
-algorithm is sketchy. Questions?</li>
-<li>We will not discuss a complete implementation example, but you can
-exploit ideas from the algorithm in your homework.</li>
-<li>Recall how we generated all subsequences of a list. Find
-(i.e. generate) all:
+singletons.</p></li>
+<li><p>The above definition of <em>finite domain constraint solving</em>
+algorithm is sketchy. Questions?</p></li>
+<li><p>We will not discuss a complete implementation example, but you
+can exploit ideas from the algorithm in your homework.</p></li>
+<li><p>Recall how we generated all subsequences of a list. Find
+(i.e. generate) all:</p>
 <ol type="1">
 <li>permutations of a list;</li>
 <li>ways of choosing without repetition from a list;</li>
 <li>combinations of K distinct objects chosen from the N elements of a
 list.</li>
 </ol></li>
-<li>Using folding for the <code>expression</code> data type, compute the
-degree of the corresponding polynomial. See <a
-href="http://en.wikipedia.org/wiki/Degree_of_a_polynomial">http://en.wikipedia.org/wiki/Degree_of_a_polynomial</a>.</li>
-<li>Implement simplification of expressions using mapping for the
-<code>expression</code> data type.</li>
-<li>Express in terms of <code>fold_left</code> or
-<code>fold_right</code>:
+<li><p>Using folding for the <code>expression</code> data type, compute
+the degree of the corresponding polynomial. See <a
+href="http://en.wikipedia.org/wiki/Degree_of_a_polynomial">http://en.wikipedia.org/wiki/Degree_of_a_polynomial</a>.</p></li>
+<li><p>Implement simplification of expressions using mapping for the
+<code>expression</code> data type.</p></li>
+<li><p>Express in terms of <code>fold_left</code> or
+<code>fold_right</code>:</p>
 <ol type="1">
 <li>indexed : ’a list -&gt; (int * ’a) list, which pairs elements with
 their indices in the list;</li>
@@ -4822,24 +4870,24 @@ computes the difference of sets represented as sorted lists.</li>
 <li><code>is_unique</code> in the provided code takes quadratic time –
 optimize it.</li>
 </ol></li>
-<li>Write functions <code>compose</code> and <code>perform</code> that
-take a list of functions and return their composition, i.e. a function
-<code>compose [f1; …; fn] = x    ↦ f1 (… (fn x)…)</code> and
-<code>perform [f1; …; fn] = x    ↦ fn (… (f1 x)…)</code>.</li>
-<li>Write a solver for the <em>Tents Puzzle</em> <a
-href="http://www.mathsisfun.com/games/tents-puzzle.html">http://www.mathsisfun.com/games/tents-puzzle.html</a>.</li>
-<li>* <strong>Robot Squad</strong>. We are given a map of terrain with
-empty spaces and walls, and lidar readings for multiple robots, 8
+<li><p>Write functions <code>compose</code> and <code>perform</code>
+that take a list of functions and return their composition, i.e. a
+function <code>compose [f1; …; fn] = x    ↦ f1 (… (fn x)…)</code> and
+<code>perform [f1; …; fn] = x    ↦ fn (… (f1 x)…)</code>.</p></li>
+<li><p>Write a solver for the <em>Tents Puzzle</em> <a
+href="http://www.mathsisfun.com/games/tents-puzzle.html">http://www.mathsisfun.com/games/tents-puzzle.html</a>.</p></li>
+<li><p>* <strong>Robot Squad</strong>. We are given a map of terrain
+with empty spaces and walls, and lidar readings for multiple robots, 8
 readings of the distance to wall or another robot, for each robot.
 Robots are equipped with compasses, the lidar readings are in directions
 E, NE, N, NW, W, SW, S, SE. Determine the possible positions of
-robots.</li>
-<li>* Write a solver for the <em>Plinx Puzzle</em> <a
+robots.</p></li>
+<li><p>* Write a solver for the <em>Plinx Puzzle</em> <a
 href="http://www.mathsisfun.com/games/plinx-puzzle.html">http://www.mathsisfun.com/games/plinx-puzzle.html</a>.
 It does not need to always return correct solutions but it should
-correctly solve the initial levels from the game. # Lecture 7:
-Laziness</li>
+correctly solve the initial levels from the game.</p></li>
 </ul>
+<h1 id="lecture-7-laziness">Lecture 7: Laziness</h1>
 <p>Lazy evaluation. Stream processing.</p>
 <p>M. Douglas McIlroy <em>‘‘Power Series, Power Serious’’</em></p>
 <p>Oleg Kiselyov, Simon Peyton-Jones, Amr Sabry <em>‘‘Lazy v. Yield:
@@ -5492,8 +5540,9 @@ gen testdoc &gt;-&gt; docpos &gt;-&gt; grends 30 &gt;-&gt; iterate
 (printedoc printint printpos)let = gen testdoc &gt;-&gt; docpos
 &gt;-&gt; grends 60 &gt;-&gt; iterate (printedoc printint printpos)let =
 prettyprint 20 testdoclet = prettyprint 30 testdoclet = prettyprint 60
-testdoc Functional Programming</p></li>
+testdoc</p></li>
 </ul>
+<p>Functional Programming</p>
 <p>Streams and lazy evaluation</p>
 <p><strong>Exercise 1:</strong> My first impulse was to define lazy list
 functions as here:</p>
@@ -5698,8 +5747,8 @@ class="verbatim">g</tt>.
 </tr>
 </tbody>
 </table>
-<p>-5.769180.217059-4.245171318957530.217059134806191-3.800670.238226-2.44599153327160.746229660007938-3.821830.259393-2.4459915332716-0.2909445693874851.088870.2170593.988722053181640.7250628389998681.046530.1958923.96755523217357-0.3332782114036250cm*
-# Lecture 8: Monads</p>
+<p>-5.769180.217059-4.245171318957530.217059134806191-3.800670.238226-2.44599153327160.746229660007938-3.821830.259393-2.4459915332716-0.2909445693874851.088870.2170593.988722053181640.7250628389998681.046530.1958923.96755523217357-0.3332782114036250cm*</p>
+<h1 id="lecture-8-monads">Lecture 8: Monads</h1>
 <p>List comprehensions. Basic monads; transformers. Probabilistic
 Programming.Lightweight cooperative threads.</p>
 <p>Some examples from Tomasz Wierzbicki. Jeff Newbern <em>‘‘All About
@@ -7480,8 +7529,9 @@ although it could already be started.</li>
 monad, introduce a “dummy” monadic value <code>Suspend</code> (besides
 <code>Return</code> and <code>Sleep</code>), and define
 <code>bind suspend b</code> to do what <code>bind (return ()) b</code>
-would formerly do. # Lecture 9: Compiler</li>
+would formerly do.</li>
 </ul>
+<h1 id="lecture-9-compiler">Lecture 9: Compiler</h1>
 <p>Compilation. Runtime. Optimization. Parsing.</p>
 <p>Andrew W. Appel <em>‘‘Modern Compiler Implementation in ML’‘<em>E.
 Chailloux, P. Manoury, B. Pagano </em>‘‘Developing Applications with
@@ -10171,7 +10221,8 @@ language with <em>OR</em> and <em>NOT</em> connectives, in addition to
 <p>Write an XML parser tailored to the <code>shakespeare.xml</code>
 corpus provided with the phrase search example. Modify the phrase search
 engine to provide detailed information for each found location,
-e.g. which play and who speaks the phrase. # Lecture 10: FRP</p>
+e.g. which play and who speaks the phrase.</p>
+<h1 id="lecture-10-frp">Lecture 10: FRP</h1>
 <p>Zippers. Functional Reactive Programming. GUIs.</p>
 <p>*‘‘Zipper’‘* in <em>Haskell Wikibook</em> and <em>‘‘The Zipper’’</em>
 by Gerard Huet <em>‘‘How <code>froc</code> works’’</em> by Jacob Donham
@@ -11326,8 +11377,9 @@ class="math inline">\sim</span>fill:’BOTH <span
 class="math inline">\sim</span>expand:’BOTH (button#coerce)) ) buttons;
 F.notifye calce (fun now -&gt; result#setlabel (stringoffloat now));
 window#show (); GMain.Main.main ()</p></li>
-<li><p><img src="Lec10calc_gtk.png" /> Functional Programming</p></li>
+<li><p><img src="Lec10calc_gtk.png" /></p></li>
 </ul>
+<p>Functional Programming</p>
 <p>Zippers, Reactivity, GUIs</p>
 <p><strong>Exercise 1:</strong> Introduce operators <span
 class="math inline">-, /</span> into the context rewriting “pull out
@@ -12067,8 +12119,8 @@ PluginBase.(grammarrules0.5em:=0.5emnumber0.5em::0.5emaddition0.5em::0.5em!gramm
 <p>open0.5emPluginBase.ParseMlet0.5emmultiplication0.5emlang0.5em=0.5em0.5emperformMultiplication
 rule: <span class="math inline">S \rightarrow (S \ast
 S)</span>.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0.5emliteral0.5em”<em>“;0.5emn20.5em&lt;–0.5emlang;0.5emliteral0.5em”)“;0.5em0.5em0.5em0.5emreturn0.5em(n10.5em</em>0.5emn2)let0.5em()0.5em=
-PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)
-Functional ProgrammingŁukasz Stafiniak</p>
+PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)</p>
+<p>Functional ProgrammingŁukasz Stafiniak</p>
 <p>The Expression Problem</p>
 <p><strong>Exercise 1:</strong> <span id="ExStringOf"></span>Implement
 the <code>string_of_</code> functions or methods, covering all data
@@ -12198,8 +12250,9 @@ argument. Each function, other than <code>valid_queens</code> that takes
 3 lines, fits on one line.</p>
 <p>Exercise 7.</p>
 <p>Provide an algebraic specification and an implementation for
-first-in-first-out queues (lecture 5 exercise 9). ## Exam set 1
-Functional ProgrammingFebruary 5th 2013</p>
+first-in-first-out queues (lecture 5 exercise 9).</p>
+<h2 id="exam-set-1">Exam set 1</h2>
+<p>Functional ProgrammingFebruary 5th 2013</p>
 <p>Exam set 1</p>
 <p><strong>Exercise 1:</strong> (Blue.) What is the type of the
 subexpression <code>y</code> as part of the expression below assuming
@@ -12332,8 +12385,9 @@ function huffman defined as follows: <code>huffman(fs)</code> returns
 the Huffman code table for the frequency table <code>fs</code>.</em></p>
 <p><strong>Exercise 15:</strong> (Black.) Implement the Gaussian
 Elimination algorithm for solving linear equations and inverting square
-invertible matrices. ## Exam set 2 Functional ProgrammingFebruary 5th
-2013</p>
+invertible matrices.</p>
+<h2 id="exam-set-2">Exam set 2</h2>
+<p>Functional ProgrammingFebruary 5th 2013</p>
 <p>Exam set 2</p>
 <p><strong>Exercise 1:</strong> (Blue.) What is the type of the
 subexpression <code>f</code> as part of the expression below assuming

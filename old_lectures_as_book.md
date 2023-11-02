@@ -187,8 +187,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
   its own set of operators. For example, +, *, / work for intigers, while +., 
   *., /. work for floating point numbers. **Exception:** comparisons <, 
   =, etc. work for all values other than functions.
-  
-  ## 4 Exercises
+
+
+## 4 Exercises
 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.
@@ -253,6 +254,8 @@ Nicholas Monje and Allen Downey.
 
    If you need help, see 
    [http://en.wikipedia.org/wiki/Euclidean\_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).
+
+
 # Lecture 2: Algebra
 
 Algebraic Data Types and some curious analogies
@@ -761,8 +764,10 @@ predicate does not hold for any node.
 
 *This homework is due for the class **after** the Computation class, i.e. for 
 (before) the Functions class.*
+
+
 ## Chapter 2: Derivation example
-# Lecture 2: Algebra, Fig. 1
+# Lecture 2: Algebra
 
 Type inference example derivation
 
@@ -848,6 +853,8 @@ $$ \frac{\frac{\begin{array}{ll}
    {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
    1}}} : {\texttt{int}} \rightarrow
    {\texttt{int}}} $$
+
+
 
 
 Exercise 1.
@@ -973,6 +980,8 @@ the $b^a$ notation is actually used to denote functions in set theory.
 
 Further reading: 
 [http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html](http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html)
+
+
 # Lecture 3: Computation
 
 ‘‘Using, Understanding and Unraveling the OCaml Language'' Didier Rémy,
@@ -1249,6 +1258,8 @@ returns a list of values in the nodes of the tree.
      simplification, and wrap it using a general `fixpoint` function that 
      performs an operation until a *fixed point* is reached: given $f$ and 
      $x$, it computes $f^n (x)$ such that $f^n (x) = f^{n + 1} (x)$.
+
+
 Functional Programming
 
 Computation
@@ -1288,6 +1299,8 @@ quicksort.
    the sorted parts into the sorted result.*
 1. *Quicksort splits the list into elements smaller/greater than the first
    element, sorts the parts, and puts them together.*
+
+
 
 
 # Lecture 4: Functions.
@@ -2080,6 +2093,8 @@ of a solution to the last exercise.
    done;  !s
 1. let repeatuntil p f s =  let s = ref (f s) in  while not (p !s) do    s := 
    f !s  done;  !s
+
+
 Functional Programming
 
 Functions
@@ -2139,6 +2154,8 @@ of a solution to this exercise.
    done;  !s
 1. let repeatuntil p f s =  let s = ref (f s) in  while not (p !s) do    s := 
    f !s  done;  !s
+
+
 # Lecture 5: Polymorphism & ADTs
 
 Parametric types. Abstract Data Types.
@@ -2744,6 +2761,8 @@ else if x>y then balance (color,a,y,ins b)      else s in
       `ins` so that it never tests the color of nodes not on the search path.
 1. \* Implement maps (i.e. write a module for the map signature) based on AVL 
    trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
+
+
 Functional Programming
 
 Type Inference
@@ -2896,6 +2915,8 @@ another one using a map into the unit type.
    1. *One of the remaining tests on grandchildren is also unnecessary.
       Rewrite* `*ins*` *so that it never tests the color of nodes not on the
       search path.*
+
+
 # Lecture 6: Folding and Backtracking
 
 Mapping and folding.Backtracking using lists. Constraint solving.
@@ -3815,6 +3836,8 @@ findboard (initstate honey cellstoeat)
   sketchy. Questions?
 * We will not discuss a complete implementation example, but you can exploit 
   ideas from the algorithm in your homework.
+
+
 * Recall how we generated all subsequences of a list. Find (i.e. generate) 
   all:
   1. permutations of a list;
@@ -3855,6 +3878,8 @@ findboard (initstate honey cellstoeat)
   [http://www.mathsisfun.com/games/plinx-puzzle.html](http://www.mathsisfun.com/games/plinx-puzzle.html). 
   It does not need to always return correct solutions but it should correctly 
   solve the initial levels from the game.
+
+
 # Lecture 7: Laziness
 
 Lazy evaluation. Stream processing.
@@ -4413,6 +4438,8 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   docpos >-> grends 60 >->  iterate (printedoc printint 
   printpos)let  = prettyprint 20 testdoclet  = prettyprint 30 testdoclet  = 
   prettyprint 60 testdoc
+
+
 Functional Programming
 
 Streams and lazy evaluation
@@ -4574,6 +4601,8 @@ class="verbatim">g</tt>.</td>
 
 
 </table>-5.769180.217059-4.245171318957530.217059134806191-3.800670.238226-2.44599153327160.746229660007938-3.821830.259393-2.4459915332716-0.2909445693874851.088870.2170593.988722053181640.7250628389998681.046530.1958923.96755523217357-0.3332782114036250cm*
+
+
 # Lecture 8: Monads
 
 List comprehensions. Basic monads; transformers. Probabilistic
@@ -5929,6 +5958,8 @@ assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
 ```ocaml
 # let test =    Cooperative.killthreads ();    let thread1 = TT.loop "A" 5 in    let thread2 = TT.loop "B" 4 in    Cooperative.access thread1;    Cooperative.access thread2;;-- A(5)-- B(4)-- A(4)-- B(3)-- A(3)-- B(2)-- A(2)-- B(1)-- A(1)-- B(0)-- A(0)val test : unit = ()
 ```
+
+
 Exercise 1.
 
 Puzzle via Oleg Kiselyov.
@@ -6112,6 +6143,8 @@ Implement the coarse-grained concurrency model.
 * One possibility is to introduce `suspend` of type unit monad, introduce a 
   “dummy” monadic value `Suspend` (besides `Return` and `Sleep`), and define 
   `bind suspend b` to do what `bind (return ()) b` would formerly do.
+
+
 # Lecture 9: Compiler
 
 Compilation. Runtime. Optimization. Parsing.
@@ -7796,6 +7829,8 @@ let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l =
 * Time: 2.4s – minimal speedup in our simple test case.
 
 
+
+
 Exercise 1.
 
 (Exercise 6.1 from *“Modern Compiler Implementation in ML”* by Andrew W. 
@@ -7895,6 +7930,8 @@ Write an XML parser tailored to the `shakespeare.xml` corpus provided with the
 phrase search example. Modify the phrase search engine to provide detailed 
 information for each found location, e.g. which play and who speaks the 
 phrase.
+
+
 # Lecture 10: FRP
 
 Zippers. Functional Reactive Programming. GUIs.
@@ -8807,6 +8844,8 @@ to a new number.let calce, cancelcalc = eventflow calcNotifies display update.
   (button#coerce))  ) buttons;  F.notifye calce    (fun now -> 
   result#setlabel (stringoffloat now));  window#show ();  GMain.Main.main ()
 * ![](Lec10calc_gtk.png)
+
+
 Functional Programming
 
 Zippers, Reactivity, GUIs
@@ -8864,6 +8903,8 @@ None -> () | Some y -> emit y)val local : ('a -> 'b) -> ('a,
 'c) flow -> ('b, 'c) flow
 
 *Implement an example that uses this compositionality-increasing capability.*
+
+
 
 
 The Expression Problem
@@ -9311,6 +9352,8 @@ open0.5emPluginBase.ParseMlet0.5emdigitofchar0.5emd0.5em=0.5emintofchar0.5emd0.5
 * File `Plugin2.ml`:
 
 open0.5emPluginBase.ParseMlet0.5emmultiplication0.5emlang0.5em=0.5em0.5emperformMultiplication rule: $S \rightarrow (S \ast S)$.0.5em0.5em0.5em0.5emliteral0.5em"(";0.5emn10.5em<--0.5emlang;0.5emliteral0.5em"*";0.5emn20.5em<--0.5emlang;0.5emliteral0.5em")";0.5em0.5em0.5em0.5emreturn0.5em(n10.5em*0.5emn2)let0.5em()0.5em= PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)
+
+
 Functional ProgrammingŁukasz Stafiniak
 
 The Expression Problem
@@ -9396,6 +9439,8 @@ built on top of *even lazy lists*? To additionally illustrate your answer:
    odd lazy lists.*
 
 
+
+
 # Exam: Exercises for review
 ## Exam set 0
 Exercise 1.
@@ -9466,6 +9511,8 @@ Exercise 7.
 
 Provide an algebraic specification and an implementation for 
 first-in-first-out queues (lecture 5 exercise 9).
+
+
 ## Exam set 1
 Functional ProgrammingFebruary 5th 2013
 
@@ -9594,6 +9641,8 @@ the Huffman code table for the frequency table `fs`.*
 
 **Exercise 15:** (Black.) Implement the Gaussian Elimination algorithm for 
 solving linear equations and inverting square invertible matrices.
+
+
 ## Exam set 2
 Functional ProgrammingFebruary 5th 2013
 
@@ -9682,6 +9731,8 @@ the solution for the larger tree pictured above?*
 function that for a list of keywords returns three best "next keyword" 
 suggestions (in some sense of "best", e.g. occurring in most of documents 
 containing the given words).
+
+
 
 
 ## Exam set 3
