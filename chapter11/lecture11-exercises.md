@@ -1,6 +1,4 @@
-Functional ProgrammingŁukasz Stafiniak
-
-The Expression Problem
+## The Expression Problem -- Exercises
 
 **Exercise 1:** <span id="ExStringOf"></span>Implement the 
 `string_of_` functions or methods, covering all data cases, corresponding to 

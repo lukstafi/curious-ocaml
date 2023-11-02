@@ -1,6 +1,4 @@
-# Lecture 2: Algebra
-
-Type inference example derivation
+## Lecture 2: Type inference example derivation
 
 $$ \frac{[?]}{{\texttt{fun x -> ((+) x) 1}} : [?]} $$
 
