@@ -8,15 +8,15 @@ For a refresher, let's try to use the rules we introduced last time on some
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{{\texttt{fun x -> x}}} : [?]} & \text{use }
+  & \frac{[?]}{{\texttt{fun x -> x}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow [?]}
-  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with }
+  & \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -> x}} : [?] \rightarrow [?]}
+  & \frac{\,}{{\texttt{x}} : a} \tiny{x} \text{ matches with }
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
- \text{ since } e = \text{{\texttt{x}}}\\\\\\
-  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} &
+ \text{ since } e = {\texttt{x}}\\\\\\
+  & \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -> x}} : a \rightarrow a} &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} $$
 
@@ -32,87 +32,87 @@ Let's try `fun x -> x+1`, which is the same as `fun x -> ((+) x)
 in other places with $[? \alpha]$”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?]} &
+  & \frac{[?]}{{\texttt{fun x -> ((+) x) 1}} : [?]} &
   \text{use } \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  & \frac{\frac{[?]}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{use } \rightarrow \text{ elimination:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
-    \alpha]} & \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+    \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
+    \alpha]} & \frac{[?]}{{\texttt{1}} : [? \beta]}
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
-  \alpha]} & \text{we know that \text{{\texttt{1}}}} :
-  \text{{\texttt{int}}}\\\\\\
+  \alpha]} & \text{we know that {\texttt{1}}} :
+  {\texttt{int}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \frac{[?]}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{application again:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-      \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &
+      \frac{[?]}{{\texttt{x}} : [? \gamma]}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
-  \alpha]} & \text{it's our \text{{\texttt{x}}}!}\\\\\\
+  \alpha]} & \text{it's our {\texttt{x}}!}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-      \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &
+      \frac{\,}{{\texttt{x}} : [? \gamma]}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [? \gamma]
-  \rightarrow [? \alpha]} & \text{but \text{{\texttt{(+)}}}} :
-  \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-  \rightarrow \text{{\texttt{int}}}\\\\\\
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [? \gamma]
+  \rightarrow [? \alpha]} & \text{but {\texttt{(+)}}} :
+  {\texttt{int}} \rightarrow {\texttt{int}}
+  \rightarrow {\texttt{int}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-      \rightarrow \text{{\texttt{int}}} \rightarrow
-      \text{{\texttt{int}}}} \tiny{\text{(constant)}} &
-      \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}}
-    & \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
+      \rightarrow {\texttt{int}} \rightarrow
+      {\texttt{int}}} \tiny{\text{(constant)}} &
+      \frac{\,}{{\texttt{x}} : {\texttt{int}}}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow {\texttt{int}}}
+    & \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} :
-  \text{{\texttt{int}}}}}{\text{{\texttt{fun x -> ((+) x)
-  1}}} : \text{{\texttt{int}}} \rightarrow
-  \text{{\texttt{int}}}} &
+  \end{array}}{{\texttt{((+) x) 1}} :
+  {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
+  1}}} : {\texttt{int}} \rightarrow
+  {\texttt{int}}} &
 \end{matrix} $$
 
 ### 1.1 Curried form
 
 When there are several arrows “on the same depth” in a function type, it means 
-that the function returns a function: e.g. $\text{{\texttt{(+)}}} : 
-\text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}} 
-\rightarrow \text{{\texttt{int}}}$ is just a shorthand for 
-$\text{{\texttt{(+)}}} : \text{{\texttt{int}}} \rightarrow 
-\left( \text{{\texttt{int}}} \rightarrow 
-\text{{\texttt{int}}} \right)$. It is very different from
+that the function returns a function: e.g. ${\texttt{(+)}} : 
+{\texttt{int}} \rightarrow {\texttt{int}} 
+\rightarrow {\texttt{int}}$ is just a shorthand for 
+${\texttt{(+)}} : {\texttt{int}} \rightarrow 
+\left( {\texttt{int}} \rightarrow 
+{\texttt{int}} \right)$. It is very different from
 
-$$ \text{{\texttt{fun f -> (f 1) + 1}}} : \left(
-   \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-   \right) \rightarrow \text{{\texttt{int}}} $$
+$$ {\texttt{fun f -> (f 1) + 1}} : \left(
+   {\texttt{int}} \rightarrow {\texttt{int}}
+   \right) \rightarrow {\texttt{int}} $$
 
 For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What 
 expanded form does `((+) 1)` correspond to exactly (computationally)?

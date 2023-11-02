@@ -41,6 +41,7 @@
   ppx_expect
   ppx_minidebug
   conf-texlive
+  ; conf-texlive-latex-recommended
   conf-pandoc)
  (tags
   (ocaml textbook)))

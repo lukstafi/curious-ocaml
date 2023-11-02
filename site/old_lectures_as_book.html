@@ -8,9 +8,6 @@
   <title>Curious OCaml</title>
   <style>
     html {
-      line-height: 1.5;
-      font-family: Georgia, serif;
-      font-size: 20px;
       color: #1a1a1a;
       background-color: #fdfdfd;
     }
@@ -29,13 +26,16 @@
     @media (max-width: 600px) {
       body {
         font-size: 0.9em;
-        padding: 1em;
+        padding: 12px;
       }
       h1 {
         font-size: 1.8em;
       }
     }
     @media print {
+      html {
+        background-color: white;
+      }
       body {
         background-color: transparent;
         color: black;
@@ -85,9 +85,10 @@
       color: #606060;
     }
     code {
-      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
       font-size: 85%;
       margin: 0;
+      hyphens: manual;
     }
     pre {
       margin: 1em 0;
@@ -149,12 +150,18 @@
     }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
-    span.underline{text-decoration: underline;}
-    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
     ul.task-list{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    /* CSS for syntax highlighting */
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span { line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -221,7 +228,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
   <script defer=""
-  src="/usr/share/javascript/katex/katex.min.js"></script>
+  src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -237,7 +244,10 @@
 }}});
   </script>
   <link rel="stylesheet"
-  href="/usr/share/javascript/katex/katex.min.css" />
+  href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <header id="title-block-header">
@@ -318,65 +328,60 @@ rule <span class="math inline">\frac{\begin{array}{ll} a &amp; b
 represented by variables <span class="math inline">a</span> and <span
 class="math inline">b</span>, and have any conclusion, represented by
 variable <span class="math inline">c</span>.</p>
-<p>Try to use only the connective you define in its definition.# 2 Rules
-for Logical Connectives</p>
+<p>Try to use only the connective you define in its definition.</p>
+<h2 id="rules-for-logical-connectives">2 Rules for Logical
+Connectives</h2>
 <p>Introduction rules say how to produce a connective.</p>
 <p>Elimination rules say how to use it.</p>
 <p>Text in parentheses is comments. Letters are variables: stand for
 anything.</p>
-<table style="display: inline-table; vertical-align: middle">
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 40%" />
+<col style="width: 36%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Connective</th>
+<th>Introduction Rules</th>
+<th>Elimination Rules</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td>
-</td>
-<td style="text-align: left">
-Introduction Rules
-</td>
-<td>
-Elimination Rules
-</td>
+<tr class="odd">
+<td><span class="math inline">\top</span></td>
+<td><span class="math inline">\frac{}{\top}</span></td>
+<td>doesn’t have</td>
 </tr>
-<tr>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-<td>
-doesn’t have
-</td>
+<tr class="even">
+<td><span class="math inline">\bot</span></td>
+<td>doesn’t have</td>
+<td><span class="math inline">\frac{\bot}{a}</span> (i.e. anything)</td>
 </tr>
-<tr>
-<td>
-</td>
-<td>
-doesn’t have
-</td>
-<td style="text-align: center">
-</td>
+<tr class="odd">
+<td><span class="math inline">\wedge</span></td>
+<td><span class="math inline">\frac{a \; b}{a \wedge b}</span></td>
+<td><span class="math inline">\frac{a \wedge b}{a}</span> (take first)
+<span class="math inline">\frac{a \wedge b}{b}</span> (take second)</td>
 </tr>
-<tr>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-<td>
-</td>
+<tr class="even">
+<td><span class="math inline">\vee</span></td>
+<td><span class="math inline">\frac{a}{a \vee b}</span> (put first)
+<span class="math inline">\frac{b}{a \vee b}</span> (put second)</td>
+<td><span class="math inline">\frac{{a \vee b} \; {{{\frac{\,}{a}
+\tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \;
+{{{\frac{\,}{c} \tiny{y}} \atop {\text{\textbar}}} \atop {b}}
+(\text{consider }b)}{c}</span> using <span class="math inline">x,
+y</span></td>
 </tr>
-<tr>
-<td>
-</td>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
+<tr class="odd">
+<td><span class="math inline">\rightarrow</span></td>
+<td><span class="math inline">\frac{{{\frac{\,}{a} \tiny{x}} \atop
+{\text{\textbar}}} \atop {b}}{a \rightarrow b}</span> using <span
+class="math inline">x</span></td>
+<td><span class="math inline">\frac{{a \rightarrow b} \;
+a}{b}</span></td>
 </tr>
 </tbody>
 </table>
@@ -435,114 +440,31 @@ class="math inline">x</span> we can derive it for the successor <span
 class="math inline">x + 1</span>, where <span
 class="math inline">x</span> is a unique variable (we cannot substitute
 for it some particular number, because we write “using <span
-class="math inline">x</span>” on the side).# 3 Logos was Programmed in
-OCaml</p>
-<table style="display: inline-table; vertical-align: middle">
+class="math inline">x</span>” on the side).</p>
+<h2 id="logos-was-programmed-in-ocaml">3 Logos was Programmed in
+OCaml</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Logic</th>
+<th>Type</th>
+<th>Expression</th>
+<th>Introduction Rules</th>
+<th>Elimination Rules</th>
+</tr>
+</thead>
 <tbody>
-<tr>
-<td>
-Logic
-</td>
-<td>
-Type
-</td>
-<td>
-Expr.
-</td>
-<td style="text-align: left">
-Introduction Rules
-</td>
-<td>
-Elimination Rules
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-<tt class="verbatim">unit</tt>
-</td>
-<td>
-<tt class="verbatim">()</tt>
-</td>
-<td style="text-align: center">
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-<tt class="verbatim">’a</tt>
-</td>
-<td>
-<tt class="verbatim">raise</tt>
-</td>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-<tt class="verbatim">*</tt>
-</td>
-<td>
-<tt class="verbatim">(,)</tt>
-</td>
-<td style="text-align: center">
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td style="text-align: left">
-<tt class="verbatim">|</tt>
-</td>
-<td>
-<tt class="verbatim">match</tt>
-</td>
-<td>
-</td>
-<td style="text-align: center">
-</td>
-</tr>
-<tr>
-<td>
-</td>
-<td>
-<tt class="verbatim">-&gt;</tt>
-</td>
-<td>
-<tt class="verbatim">fun</tt>
-</td>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
-</tr>
-<tr>
-<td>
-induction
-</td>
-<td>
-</td>
-<td>
-<tt class="verbatim">rec</tt>
-</td>
-<td style="text-align: center">
-</td>
-<td style="text-align: center">
-</td>
+<tr class="odd">
+<td><span class="math inline">\top</span></td>
+<td><code>unit</code></td>
+<td><code>()</code></td>
+<td><span class="math inline">\frac{\;}{\texttt{()} :
+\texttt{unit}}</span></td>
+<td></td>
 </tr>
 </tbody>
 </table>
-<h2 id="definitions">3.1 Definitions</h2>
+<h3 id="definitions">3.1 Definitions</h3>
 <p>Writing out expressions and types repetitively is tedious: we need
 definitions. <strong>Definitions for types</strong> are written:
 <code>type ty =</code> some type.</p>
@@ -574,8 +496,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb2-1"><a href
 <p>and create its values: <code>{a = 7; b = "Mary"}</code>. * We access
 the <em>fields</em> of records using the dot notation:</p>
 <p><code>{a=7; b="Mary"}.b = "Mary"</code>.Recursive expression <span
-class="math inline">\text{{\texttt{rec}} } x \text{{\texttt{=}}}
-e</span> in the table was cheating: <code>rec</code> (usually called
+class="math inline">{\texttt{rec}} \; x \; {\texttt{=}} \; e</span> in
+the table was cheating: <code>rec</code> (usually called
 <code>fix</code>) cannot appear alone in OCaml! It must be part of a
 definition.</p>
 <p><strong>Definitions for expressions</strong> are introduced by rules
@@ -583,29 +505,28 @@ a bit more complex than these:</p>
 <p><span class="math display"> \frac{\begin{array}{ll}
      e_{1} : a &amp;
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
-   e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} </span></p>
+   \end{array}}{{\texttt{let}} \; x \; {\texttt{=}} \;
+   e_{1} \; {\texttt{in}} \; e_{2} : b} </span></p>
 <p>(note that this rule is the same as introducing and eliminating <span
 class="math inline">\rightarrow</span>), and:</p>
 <p><span class="math display"> \frac{\begin{array}{ll}
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}}
 &amp;
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let rec}} } x
-   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
-   \: b} </span></p>
+   \end{array}}{{\texttt{let rec}} \; x \;
+   {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} </span></p>
 <p>We will cover what is missing in above rules when we will talk about
 <strong>polymorphism.</strong>* Type definitions we have seen above are
 <em>global</em>: they need to be at the top-level, not nested in
 expressions, and they extend from the point they occur till the end of
 the source file or interactive session. *
 <code>let</code>-<code>in</code> definitions for expressions: <span
-class="math inline">\text{{\texttt{let}} } x  \text{{\texttt{=}}} e_{1}
-\text{ \text{{\texttt{in}}} } e_{2}</span> are <em>local</em>, <span
+class="math inline">{\texttt{let}} \; x \;  {\texttt{=}} \; e_{1} \;
+{\texttt{in}} \; e_{2}</span> are <em>local</em>, <span
 class="math inline">x</span> is only visible in <span
 class="math inline">e_{2}</span>. But <code>let</code> definitions are
-global: placing <span class="math inline">\text{{\texttt{let}} }
-x  \text{{\texttt{=}}} e_{1}</span> at the top-level makes <span
+global: placing <span class="math inline">{\texttt{let}} \; x
+\;  {\texttt{=}} \; e_{1}</span> at the top-level makes <span
 class="math inline">x</span> visible from after <span
 class="math inline">e_{1}</span> till the end of the source file or
 interactive session. * In the interactive session, we mark an end of a
@@ -618,7 +539,8 @@ Operators in OCaml are <strong>not overloaded</strong>. It means, that
 every type needs its own set of operators. For example, +, <em>, / work
 for intigers, while +., </em>., /. work for floating point numbers.
 <strong>Exception:</strong> comparisons &lt;, =, etc. work for all
-values other than functions.# 4 Exercises</p>
+values other than functions.</p>
+<p>## 4 Exercises</p>
 <p>Exercises from <em>Think OCaml. How to Think Like a Computer
 Scientist</em> by Nicholas Monje and Allen Downey.</p>
 <ol type="1">
@@ -695,17 +617,15 @@ href="http://en.wikipedia.org/wiki/Euclidean_algorithm">http://en.wikipedia.org/
 on some simple examples. Starting with <code>fun x -&gt; x</code>. <span
 class="math inline">[?]</span> will mean “dunno yet”.</p>
 <p><span class="math display"> \begin{matrix}
-  &amp; \frac{[?]}{\text{{\texttt{fun x -&gt; x}}} : [?]} &amp;
-\text{use }
+  &amp; \frac{[?]}{{\texttt{fun x -&gt; x}} : [?]} &amp; \text{use }
   \rightarrow \text{ introduction:}\\\\\\
-  &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : [?] \rightarrow [?]}
-  &amp; \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with
-}
+  &amp; \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -&gt; x}} : [?] \rightarrow [?]}
+  &amp; \frac{\,}{{\texttt{x}} : a} \tiny{x} \text{ matches with }
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
-\text{ since } e = \text{{\texttt{x}}}\\\\\\
-  &amp; \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -&gt; x}}} : a \rightarrow a} &amp;
+\text{ since } e = {\texttt{x}}\\\\\\
+  &amp; \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -&gt; x}} : a \rightarrow a} &amp;
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} </span></p>
 <p>Because <span class="math inline">a</span> is arbitrary, OCaml puts a
@@ -719,86 +639,84 @@ class="math inline">[? \alpha]</span> will mean “dunno yet, but the same
 as in other places with <span class="math inline">[?
 \alpha]</span>”.</p>
 <p><span class="math display"> \begin{matrix}
-  &amp; \frac{[?]}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]} &amp;
+  &amp; \frac{[?]}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]} &amp;
   \text{use } \rightarrow \text{ introduction:}\\\\\\
-  &amp; \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+  &amp; \frac{\frac{[?]}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow [?
   \alpha]} &amp; \text{use } \rightarrow \text{ elimination:}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
-    \alpha]} &amp; \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+    \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
+    \alpha]} &amp; \frac{[?]}{{\texttt{1}} : [? \beta]}
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow [?
-  \alpha]} &amp; \text{we know that \text{{\texttt{1}}}} :
-  \text{{\texttt{int}}}\\\\\\
+  \alpha]} &amp; \text{we know that {\texttt{1}}} :
+  {\texttt{int}}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \frac{[?]}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &amp;
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow [?
   \alpha]} &amp; \text{application again:}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-      \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &amp;
+      \frac{[?]}{{\texttt{x}} : [? \gamma]}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &amp;
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow [?
-  \alpha]} &amp; \text{it&#39;s our \text{{\texttt{x}}}!}\\\\\\
+  \alpha]} &amp; \text{it&#39;s our {\texttt{x}}!}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-      \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &amp;
+      \frac{\,}{{\texttt{x}} : [? \gamma]}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &amp;
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [? \gamma]
-  \rightarrow [? \alpha]} &amp; \text{but \text{{\texttt{(+)}}}} :
-  \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-  \rightarrow \text{{\texttt{int}}}\\\\\\
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [? \gamma]
+  \rightarrow [? \alpha]} &amp; \text{but {\texttt{(+)}}} :
+  {\texttt{int}} \rightarrow {\texttt{int}}
+  \rightarrow {\texttt{int}}\\\\\\
   &amp; \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-      \rightarrow \text{{\texttt{int}}} \rightarrow
-      \text{{\texttt{int}}}} \tiny{\text{(constant)}} &amp;
-      \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}}
-    &amp; \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
+      \rightarrow {\texttt{int}} \rightarrow
+      {\texttt{int}}} \tiny{\text{(constant)}} &amp;
+      \frac{\,}{{\texttt{x}} : {\texttt{int}}}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow {\texttt{int}}}
+    &amp; \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} :
-  \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
-  1}}}} : \text{{\texttt{int}}} \rightarrow
-  \text{{\texttt{int}}}} &amp;
+  \end{array}}{{\texttt{((+) x) 1}} :
+  {\texttt{int}}}}{\text{{\texttt{fun x -&gt; ((+) x)
+  1}}} : {\texttt{int}} \rightarrow
+  {\texttt{int}}} &amp;
 \end{matrix} </span></p>
 <h3 id="curried-form">1.1 Curried form</h3>
 <p>When there are several arrows “on the same depth” in a function type,
 it means that the function returns a function: e.g. <span
-class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-\rightarrow \text{{\texttt{int}}} \rightarrow
-\text{{\texttt{int}}}</span> is just a shorthand for <span
-class="math inline">\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-\rightarrow \left( \text{{\texttt{int}}} \rightarrow
-\text{{\texttt{int}}} \right)</span>. It is very different from</p>
-<p><span class="math display"> \text{{\texttt{fun f -&gt; (f 1) + 1}}} :
-\left(
-   \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-   \right) \rightarrow \text{{\texttt{int}}} </span></p>
+class="math inline">{\texttt{(+)}} : {\texttt{int}} \rightarrow
+{\texttt{int}} \rightarrow {\texttt{int}}</span> is just a shorthand for
+<span class="math inline">{\texttt{(+)}} : {\texttt{int}} \rightarrow
+\left( {\texttt{int}} \rightarrow {\texttt{int}} \right)</span>. It is
+very different from</p>
+<p><span class="math display"> {\texttt{fun f -&gt; (f 1) + 1}} : \left(
+   {\texttt{int}} \rightarrow {\texttt{int}}
+   \right) \rightarrow {\texttt{int}} </span></p>
 <p>For addition, instead of <code>(fun x -&gt; x+1)</code> we can write
 <code>((+) 1)</code>. What expanded form does <code>((+) 1)</code>
 correspond to exactly (computationally)?</p>
@@ -1145,83 +1063,83 @@ actually return a <code>btree_deriv option</code>, with
 Computation class, i.e. for (before) the Functions class.</em> ##
 Chapter 2: Derivation example # Lecture 2: Algebra, Fig. 1</p>
 <p>Type inference example derivation</p>
-<p><span class="math display"> \frac{[?]}{\text{{\texttt{fun x -&gt;
-((+) x) 1}}} : [?]} </span></p>
+<p><span class="math display"> \frac{[?]}{{\texttt{fun x -&gt; ((+) x)
+1}} : [?]} </span></p>
 <p><span class="math display"> \text{use } \rightarrow \text{
 introduction:} </span></p>
-<p><span class="math display"> \frac{\frac{[?]}{\text{{\texttt{((+) x)
-1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+<p><span class="math display"> \frac{\frac{[?]}{{\texttt{((+) x) 1}} :
+[?
+   \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow
    [? \alpha]} </span></p>
 <p><span class="math display"> \text{use } \rightarrow \text{
 elimination:} </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
-     \alpha]} &amp; \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+     \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
+     \alpha]} &amp; \frac{[?]}{{\texttt{1}} : [? \beta]}
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow
    [? \alpha]} </span></p>
-<p><span class="math display"> \text{we know that \text{{\texttt{1}}}} :
-\text{{\texttt{int}}} </span></p>
+<p><span class="math display"> \text{we know that {\texttt{1}}} :
+{\texttt{int}} </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+     \frac{[?]}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &amp;
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow
    [? \alpha]} </span></p>
 <p><span class="math display"> \text{application again:} </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-       \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-       \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+       {\texttt{int}} \rightarrow [? \alpha]} &amp;
+       \frac{[?]}{{\texttt{x}} : [? \gamma]}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &amp;
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [?]
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [?]
 \rightarrow
    [? \alpha]} </span></p>
-<p><span class="math display"> \text{it&#39;s our \text{{\texttt{x}}}!}
+<p><span class="math display"> \text{it&#39;s our {\texttt{x}}!}
 </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-       \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-       \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
-       \text{{\texttt{x}}}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &amp;
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+       {\texttt{int}} \rightarrow [? \alpha]} &amp;
+       \frac{\,}{{\texttt{x}} : [? \gamma]}
+       {\texttt{x}}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &amp;
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -&gt; ((+) x) 1}}} : [? \gamma]
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -&gt; ((+) x) 1}} : [? \gamma]
    \rightarrow [? \alpha]} </span></p>
-<p><span class="math display"> \text{but \text{{\texttt{(+)}}}} :
-\text{{\texttt{int}}}
-   \rightarrow \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}} </span></p>
+<p><span class="math display"> \text{but {\texttt{(+)}}} :
+{\texttt{int}}
+   \rightarrow {\texttt{int}} \rightarrow
+   {\texttt{int}} </span></p>
 <p><span class="math display"> \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-       \rightarrow \text{{\texttt{int}}} \rightarrow
-       \text{{\texttt{int}}}} \tiny{\text{(constant)}} &amp;
-       \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
-       \text{{\texttt{x}}}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow
-     \text{{\texttt{int}}}} &amp; \frac{\,}{\text{{\texttt{1}}} :
-     \text{{\texttt{int}}}} \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} :
-   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -&gt; ((+) x)
-   1}}}} : \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}}} </span></p>
+       \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
+       \rightarrow {\texttt{int}} \rightarrow
+       {\texttt{int}}} \tiny{\text{(constant)}} &amp;
+       \frac{\,}{{\texttt{x}} : {\texttt{int}}}
+       {\texttt{x}}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow
+     {\texttt{int}}} &amp; \frac{\,}{{\texttt{1}} :
+     {\texttt{int}}} \tiny{\text{(constant)}}
+   \end{array}}{{\texttt{((+) x) 1}} :
+   {\texttt{int}}}}{\text{{\texttt{fun x -&gt; ((+) x)
+   1}}} : {\texttt{int}} \rightarrow
+   {\texttt{int}}} </span></p>
 <p>Exercise 1.</p>
 <p>Due to Yaron Minsky.</p>
 <p>Consider a datatype to store internet connection information. The
@@ -1400,21 +1318,21 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb37-1"><a hre
 <li><p>Programs consist of <strong>expressions</strong>:</p>
 <p><span class="math display"> \begin{matrix}
 a := &amp; x &amp; \text{variables}\\\\\\
-| &amp; \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a &amp;
+| &amp; {\texttt{fun }} x {\texttt{-&gt;}} a &amp;
 \text{(defined) functions}\\\\\\
 | &amp; a a &amp; \text{applications}\\\\\\
 | &amp; C^0 &amp; \text{value constructors of arity } 0\\\\\\
 | &amp; C^n (a, \ldots, a) &amp; \text{value constructors of arity } n
 \\\\\\
 | &amp; f^n &amp; \text{built-in values (primitives) of a. } n\\\\\\
-| &amp; \text{{\texttt{let }}} x = a \text{{\texttt{ in }}} a
+| &amp; {\texttt{let }} x = a {\texttt{ in }} a
 &amp; \text{name bindings (local definitions)}\\\\\\
-| &amp; \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
+| &amp; {\texttt{match }} a {\texttt{ with} \ \
 \ \ \ \ \ } &amp;  \\\\\\
-&amp; p \text{{\texttt{-&gt;}}} a \text{\text{{\texttt{ \textbar
-}}}}
-\ldots \text{{\texttt{ \textbar }}} p
-\text{{\texttt{-&gt;}}}
+&amp; p {\texttt{-&gt;}} a \text{{\texttt{ \textbar
+}}}
+\ldots {\texttt{ \textbar }} p
+{\texttt{-&gt;}}
 a &amp; \text{pattern matching}\\\\\\
 p := &amp; x &amp; \text{pattern variables}\\\\\\
 | &amp; (p, \ldots, p) &amp; \text{tuple patterns}\\\\\\
@@ -1425,16 +1343,15 @@ p := &amp; x &amp; \text{pattern variables}\\\\\\
 for tuples, the length of a tuple).</p></li>
 <li><p>To simplify presentation, we will use a primitive
 <code>fix</code> to define a limited form of <code>let rec</code>:</p>
-<p><span class="math display"> \text{{\texttt{let rec }}} f
-\text{{\texttt{ }}} x =
-e_{1} \text{{\texttt{ in }}} e_{2} \equiv
-\text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
-\text{{\texttt{ }}} x \text{{\texttt{-&gt;}}} e_{1}
-\text{{\texttt{) in }}} e_{2} </span></p></li>
+<p><span class="math display"> {\texttt{let rec }} f {\texttt{ }} x =
+e_{1} {\texttt{ in }} e_{2} \equiv
+{\texttt{let }} f = {\texttt{fix (fun }} f
+{\texttt{ }} x {\texttt{-&gt;}} e_{1}
+{\texttt{) in }} e_{2} </span></p></li>
 <li><p>Expressions evaluate (i.e. compute) to
 <strong>values</strong>:</p>
 <p><span class="math display"> \begin{matrix}
-v := &amp; \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+v := &amp; {\texttt{fun }} x {\texttt{-&gt;}} a
 &amp;
 \text{(defined) functions}\\\\\\
 | &amp; C^n (v_{1}, \ldots, v_{n}) &amp; \text{constructed values}\\\\\\
@@ -1453,28 +1370,26 @@ duplicated.)</li>
 <li><p>Reduction (i.e. computation) proceeds as follows: first we give
 <em>redexes</em></p>
 <p><span class="math display"> \begin{matrix}
-\left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+\left( {\texttt{fun }} x {\texttt{-&gt;}} a
 \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
-\text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &amp;
+{\texttt{let }} x = v {\texttt{ in }} a &amp;
 \rightsquigarrow &amp; a [x := v]\\\\\\
 f^n v_{1} \ldots v_{n} &amp; \rightsquigarrow &amp; f (v_{1}, \ldots,
 v_{n})\\\\\\
-\text{{\texttt{match }}} v \text{{\texttt{ with}} } x
-\text{{\texttt{-&gt;}}} a \text{{\texttt{ \textbar }}}
+{\texttt{match }} v {\texttt{ with} } x
+{\texttt{-&gt;}} a {\texttt{ \textbar }}
 \ldots
 &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
-\text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-\text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
-\text{{\texttt{ \textbar }}} \operatorname{pm} &amp; \rightsquigarrow
-&amp;
-\text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-&amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}\\\\\\
-\text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-\text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-\text{{\texttt{ \textbar }}} \ldots &amp; \rightsquigarrow &amp; a
-[x_{1}
+{\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+{\texttt{ with}} &amp;  &amp;  \\\\\\
+C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{-&gt;}} a
+{\texttt{ \textbar }} \operatorname{pm} &amp; \rightsquigarrow &amp;
+{\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+&amp;  &amp; {\texttt{with} } \operatorname{pm}\\\\\\
+{\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+{\texttt{ with}} &amp;  &amp;  \\\\\\
+C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+{\texttt{ \textbar }} \ldots &amp; \rightsquigarrow &amp; a [x_{1}
 \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} </span></p>
 <p>If <span class="math inline">n = 0</span>, <span
 class="math inline">C_{1}^n (v_{1}, \ldots, v_{n})</span> stands for
@@ -1499,22 +1414,21 @@ a_{1} a_{2} &amp; \rightsquigarrow &amp; a_{1} a_{2}&#39;\\\\\\
 C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) &amp; \rightsquigarrow &amp;
 C^n
 (a_{1}, \ldots, a_{i}&#39;, \ldots, a_{n})\\\\\\
-\text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
-a_{2} &amp; \rightsquigarrow &amp; \text{{\texttt{let }}} x = a_{1}&#39;
-\text{{\texttt{ in }}} a_{2}\\\\\\
-\text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
-\operatorname{pm} &amp; \rightsquigarrow &amp; \text{{\texttt{match }}}
-a_{1}&#39; \text{{\texttt{ with}} } \operatorname{pm} \end{matrix}
+{\texttt{let }} x = a_{1} {\texttt{ in }}
+a_{2} &amp; \rightsquigarrow &amp; {\texttt{let }} x = a_{1}&#39;
+{\texttt{ in }} a_{2}\\\\\\
+{\texttt{match }} a_{1} {\texttt{ with} }
+\operatorname{pm} &amp; \rightsquigarrow &amp; {\texttt{match }}
+a_{1}&#39; {\texttt{ with} } \operatorname{pm} \end{matrix}
 </span></p></li>
 <li><p>Finally, we give the rule for the primitive <code>fix</code> – it
 is a binary primitive:</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
-\left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix}
-</span></p>
+{\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
+\left( {\texttt{fix}}^2 v_{1} \right) v_{2} \end{matrix} </span></p>
 <p>Because <code>fix</code> is binary, <span class="math inline">\left(
-\text{{\texttt{fix}}}^2 v_{1} \right)</span> is already a value so it
-will not be further computed until it is applied inside of <span
+{\texttt{fix}}^2 v_{1} \right)</span> is already a value so it will not
+be further computed until it is applied inside of <span
 class="math inline">v_{1}</span>.</p></li>
 <li><p>Compute some programs using the rules by hand.</p></li>
 </ul>
@@ -1698,32 +1612,32 @@ length = fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 <p>let length = fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x,
 xs) -&gt; 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &amp;
+  {\texttt{let }} x = v {\texttt{ in }} a &amp;
   \Downarrow &amp; a [x := v]
 \end{matrix} </span></p>
 <p>fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1
 + f xs) (Cons (1, (Cons (2, Nil))))</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp;
+  {\texttt{fix}}^2 v_{1} v_{2} &amp;
   \Downarrow &amp; v_{1}  \left(
-  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
+  {\texttt{fix}}^2 v_{1} \right) v_{2}
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp;
+  {\texttt{fix}}^2 v_{1} v_{2} &amp;
   \Downarrow &amp; v_{1}  \left(
-  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
+  {\texttt{fix}}^2 v_{1} \right) v_{2}
 \end{matrix} </span></p>
 <p>(fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f
 xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
 1 + f xs)) (Cons (1, (Cons (2, Nil))))</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1}&#39; a_{2}
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1}&#39; a_{2}
@@ -1732,12 +1646,12 @@ xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
 (fun f l -&gt; match l with | Nil -&gt; 0<br />
 | Cons (x, xs) -&gt; 1 + f xs)) xs) (Cons (1, (Cons (2, Nil))))</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \Downarrow &amp; a [x :=
   v]
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \Downarrow &amp; a [x :=
   v]
 \end{matrix} </span></p>
@@ -1745,53 +1659,53 @@ xs) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt;
 -&gt; 1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0<br />
 | Cons (x, xs) -&gt; 1 + f xs)) xs)</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \operatorname{pm} &amp;
   \Downarrow &amp;
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &amp;  &amp; {\texttt{with} } \operatorname{pm}
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \operatorname{pm} &amp;
   \Downarrow &amp;
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &amp;  &amp; {\texttt{with} } \operatorname{pm}
 \end{matrix} </span></p>
 <p>(match Cons (1, (Cons (2, Nil))) with | Cons (x, xs) -&gt; 1 + (fix
 (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f
 xs)) xs)</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp;
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp;
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} </span></p>
 <p>1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs)) (Cons (2, Nil))</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
@@ -1799,13 +1713,13 @@ xs)) xs)</p>
 + f xs)) (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs)
 -&gt; 1 + f xs)) (Cons (2, Nil))</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
@@ -1815,13 +1729,13 @@ xs)) xs)</p>
 | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs))<br />
 (Cons (2, Nil))</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
@@ -1830,44 +1744,41 @@ xs)) xs)</p>
 (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 +
 f xs)) xs))</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &amp; \rightsquigarrow
-&amp;
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \operatorname{pm} &amp; \rightsquigarrow &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &amp;  &amp; {\texttt{with} } \operatorname{pm}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &amp; \rightsquigarrow
-&amp;
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &amp;  &amp; \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \operatorname{pm} &amp; \rightsquigarrow &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &amp;  &amp; {\texttt{with} } \operatorname{pm}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p>1 + (match Cons (2, Nil) with | Cons (x, xs) -&gt; 1 + (fix (fun f l
 -&gt; match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs)</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp;
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp;
   \Downarrow &amp; a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]\\\\\\
   &amp;  &amp;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp; \rightsquigarrow &amp; a
-[x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp; \rightsquigarrow &amp; a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
@@ -1875,16 +1786,16 @@ f xs)) xs))</p>
 <p>1 + (1 + (fix (fun f l -&gt; match l with | Nil -&gt; 0 | Cons (x,
 xs) -&gt; 1 + f xs)) Nil)</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
@@ -1894,7 +1805,7 @@ xs) -&gt; 1 + f xs)) Nil)</p>
 -&gt; 1 + f xs) (fix (fun f l -&gt;<br />
 match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) Nil)</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1902,7 +1813,7 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) Nil)</p>
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1913,7 +1824,7 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) Nil)</p>
 1 + (fix (fun f l -&gt;<br />
 match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1921,7 +1832,7 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a
+  \left( {\texttt{fun }} x {\texttt{-&gt;}} a
   \right) v &amp; \rightsquigarrow &amp; a [x := v]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1932,11 +1843,10 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
 (fun f l -&gt; match l with<br />
 | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs))</p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp; \rightsquigarrow &amp; a
-[x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp; \rightsquigarrow &amp; a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1944,11 +1854,10 @@ match l with | Nil -&gt; 0 | Cons (x, xs) -&gt; 1 + f xs)) xs) Nil)</p>
   a_{1} a_{2}&#39;
 \end{matrix} </span></p>
 <p><span class="math display"> \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &amp;  &amp;  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{-&gt;}}} a
-  \text{{\texttt{ \textbar }}} \ldots &amp; \rightsquigarrow &amp; a
-[x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &amp;  &amp;  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{-&gt;}} a
+  {\texttt{ \textbar }} \ldots &amp; \rightsquigarrow &amp; a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} &amp; \Downarrow &amp;
   a_{1} a_{2}&#39;\\\\\\
@@ -1985,7 +1894,7 @@ variables.</p></li>
 <li><p>The real <span class="math inline">\lambda</span>-calculus has a
 more general reduction:</p>
 <p><span class="math display"> \begin{matrix}
-\left( \text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}}
+\left( {\texttt{fun }} x {\texttt{-&gt;}}
 a_{1} \right) a_{2} &amp; \rightsquigarrow &amp; a_{1} [x := a_{2}]
 \end{matrix} </span></p>
 <p>(called <em><span class="math inline">\beta</span>-reduction</em>)
@@ -2013,7 +1922,7 @@ not type-check for them.</li>
 y.x</span> and <code>c_false</code>=<span class="math inline">\lambda x
 y.y</span>.</li>
 <li>Define <code>c_and</code>=<span class="math inline">\lambda x y.x y
-\text{{\texttt{c\_false}}}</span>. Check that it works!
+{\texttt{c\_false}}</span>. Check that it works!
 <ul>
 <li>I.e. that <code>c_and c_true c_true</code> =
 <code>c_true</code>,otherwise <code>c_and a b</code> =
@@ -2208,12 +2117,12 @@ loops for all recursive definitions).</p>
 <li>Why?</li>
 </ul></li>
 <li><p>Therefore, we need more specific rules. For example, most
-languages use <span class="math inline">\left( \text{{\texttt{fun }}} x
-\text{{\texttt{-&gt;}}} a \right) v \rightsquigarrow a [x := v]</span>,
-which is called <em>call-by-value</em>, or <strong>eager</strong>
-computation (because the program <em>eagerly</em> computes the arguments
-before starting to compute the function). (It’s exactly the rule we
-introduced in <em>Computation</em> lecture.)</p></li>
+languages use <span class="math inline">\left( {\texttt{fun }} x
+{\texttt{-&gt;}} a \right) v \rightsquigarrow a [x := v]</span>, which
+is called <em>call-by-value</em>, or <strong>eager</strong> computation
+(because the program <em>eagerly</em> computes the arguments before
+starting to compute the function). (It’s exactly the rule we introduced
+in <em>Computation</em> lecture.)</p></li>
 <li><p>What happens with call-by-value fixpoint combinator?</p>
 <p><span class="math display"> \begin{matrix}
 \operatorname{fix}F &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
@@ -2222,12 +2131,12 @@ x.F (f f) x)\\\\\\
 &amp; \rightsquigarrow &amp; \lambda x.F ((\lambda f x.F (f f)
 x)  (\lambda f x.F
 (f f) x)) x \end{matrix} </span></p>
-<p>Voila – if we use <span class="math inline">\left( \text{{\texttt{fun
-}}} x \text{{\texttt{-&gt;}}} a \right) v \rightsquigarrow a [x :=
-v]</span> as the rulerather than <span class="math inline">\left(
-\text{{\texttt{fun }}} x \text{{\texttt{-&gt;}}} a_{1} \right) a_{2}
-\rightsquigarrow a_{1} [x := a_{2}]</span>, the computation stops. Let’s
-compute the function on some input:</p>
+<p>Voila – if we use <span class="math inline">\left( {\texttt{fun }} x
+{\texttt{-&gt;}} a \right) v \rightsquigarrow a [x := v]</span> as the
+rulerather than <span class="math inline">\left( {\texttt{fun }} x
+{\texttt{-&gt;}} a_{1} \right) a_{2} \rightsquigarrow a_{1} [x :=
+a_{2}]</span>, the computation stops. Let’s compute the function on some
+input:</p>
 <p><span class="math display"> \begin{matrix}
 \operatorname{fix}F v &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
 x)  (\lambda
@@ -2269,29 +2178,28 @@ prefix <code>cn_</code> – could be <code>pn_</code> if <code>pn1</code>
 was used instead of <code>cn1</code> – for numeric functions, and we
 shorten <code>if_then_else</code> into <code>if_t_e</code>):</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{fact}}} n &amp; = &amp; \text{{\texttt{if\_t\_e}}}
-\left( \text{{\texttt{is\_zero}}} n \right)
-\text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-\left( \text{{\texttt{fact}}}  \left(
-\text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
-\text{{\texttt{fact}}} &amp; = &amp; \lambda n.
-\text{{\texttt{if\_t\_e}}}  \left(
-\text{{\texttt{is\_zero}}} n \right)
-\text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-\left( \text{{\texttt{fact}}}  \left(
-\text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
-\text{{\texttt{fact}}} &amp; = &amp; \left( \lambda f n.
-\text{{\texttt{if\_t\_e}}}  \left(
-\text{{\texttt{is\_zero}}} n \right)
-\text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-\left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
-\right)  \text{{\texttt{fact}}}\\\\\\
-\text{{\texttt{fact}}} &amp; = &amp; \operatorname{fix} \left( \lambda f
-n.
-\text{{\texttt{if\_t\_e}}}  \left(
-\text{{\texttt{is\_zero}}} n \right)
-\text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-\left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
+{\texttt{fact}} n &amp; = &amp; {\texttt{if\_t\_e}}
+\left( {\texttt{is\_zero}} n \right)
+{\texttt{cn1}}  \left( {\texttt{mult}} n
+\left( {\texttt{fact}}  \left(
+{\texttt{pred}} n \right) \right) \right)\\\\\\
+{\texttt{fact}} &amp; = &amp; \lambda n.
+{\texttt{if\_t\_e}}  \left(
+{\texttt{is\_zero}} n \right)
+{\texttt{cn1}}  \left( {\texttt{mult}} n
+\left( {\texttt{fact}}  \left(
+{\texttt{pred}} n \right) \right) \right)\\\\\\
+{\texttt{fact}} &amp; = &amp; \left( \lambda f n.
+{\texttt{if\_t\_e}}  \left(
+{\texttt{is\_zero}} n \right)
+{\texttt{cn1}}  \left( {\texttt{mult}} n
+\left( f \left( {\texttt{pred}} n \right) \right) \right)
+\right)  {\texttt{fact}}\\\\\\
+{\texttt{fact}} &amp; = &amp; \operatorname{fix} \left( \lambda f n.
+{\texttt{if\_t\_e}}  \left(
+{\texttt{is\_zero}} n \right)
+{\texttt{cn1}}  \left( {\texttt{mult}} n
+\left( f \left( {\texttt{pred}} n \right) \right) \right)
 \right) \end{matrix} </span></p>
 <p>The last specification is a valid definition: we just give a name to
 a (<em>ground</em>, a.k.a. <em>closed</em>) expression.</p></li>
@@ -2311,18 +2219,17 @@ y.y</span> and <code>cons</code><span class="math inline">H T = \lambda
 x y.x H T</span>.</p></li>
 <li><p>Add numbers stored inside a list:</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{addlist}}} l &amp; = &amp; l \left( \lambda h t.
-\text{{\texttt{cn\_add}}} h \left(
-\text{{\texttt{addlist}}} t \right) \right)
-\text{{\texttt{cn0}}} \end{matrix} </span></p>
+{\texttt{addlist}} l &amp; = &amp; l \left( \lambda h t.
+{\texttt{cn\_add}} h \left(
+{\texttt{addlist}} t \right) \right)
+{\texttt{cn0}} \end{matrix} </span></p>
 <p>To make a proper definition, we need to apply <span
 class="math inline">\operatorname{fix}</span> to the solution of above
 equation.</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{addlist}}} &amp; = &amp; \operatorname{fix} \left(
-\lambda f
-l.l \left( \lambda h t. \text{{\texttt{cn\_add}}} h (f t) \right)
-\text{{\texttt{cn0}}} \right) \end{matrix} </span></p></li>
+{\texttt{addlist}} &amp; = &amp; \operatorname{fix} \left( \lambda f
+l.l \left( \lambda h t. {\texttt{cn\_add}} h (f t) \right)
+{\texttt{cn0}} \right) \end{matrix} </span></p></li>
 <li><p>For trees, let’s use a different form of binary trees than so
 far: instead of keeping elements in inner nodes, we will keep elements
 in leaves.</p></li>
@@ -2331,16 +2238,14 @@ y.x n</span> and <code>node</code><span class="math inline">L R =
 \lambda x y.y L R</span>.</p></li>
 <li><p>Add numbers stored inside a tree:</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{addtree}}} t &amp; = &amp; t (\lambda n.n)  \left(
-\lambda l
-r. \text{{\texttt{cn\_add}}}  \left(
-\text{{\texttt{addtree}}} l \right)  \left(
-\text{{\texttt{addtree}}} r \right) \right) \end{matrix} </span></p>
+{\texttt{addtree}} t &amp; = &amp; t (\lambda n.n)  \left( \lambda l
+r. {\texttt{cn\_add}}  \left(
+{\texttt{addtree}} l \right)  \left(
+{\texttt{addtree}} r \right) \right) \end{matrix} </span></p>
 <p>and, in solved form:</p>
 <p><span class="math display"> \begin{matrix}
-\text{{\texttt{addtree}}} &amp; = &amp; \operatorname{fix} \left(
-\lambda f
-t.t (\lambda n.n)  \left( \lambda l r. \text{{\texttt{cn\_add}}}
+{\texttt{addtree}} &amp; = &amp; \operatorname{fix} \left( \lambda f
+t.t (\lambda n.n)  \left( \lambda l r. {\texttt{cn\_add}}
 (f l)  (f r) \right) \right) \end{matrix} </span></p></li>
 </ul>
 <p>let nil = fun x y -&gt; ylet cons h t = fun x y -&gt; x h tlet
@@ -2541,15 +2446,17 @@ correct types exist? It solves equations.</p>
 <em>parameters</em>.
 <ul>
 <li><p>Inside:</p>
-<h1 id="let-f-list.hdval-f-a-list---a">let f = List.hd;;val f : ’a list
--&gt; ’a</h1>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> f = <span class="dt">List</span>.hd;;</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : &#39;a <span class="dt">list</span> -&gt; &#39;a</span></code></pre></div>
 <p><code>'a</code> is a parameter: it can become any type.
 Mathematically we write: <span class="math inline">f : \forall \alpha .
 \alpha \operatorname{list} \rightarrow \alpha</span> – the quantified
 type is called a <em>type scheme</em>.</p></li>
 <li><p>Inside:</p>
-<h1 id="let-x-ref-val-x-a-list-ref">let x = ref [];;val x : ’a list
-ref</h1>
+<div class="sourceCode" id="cb42"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> x = <span class="dt">ref</span> [];;</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> x : &#39;a <span class="dt">list</span> <span class="dt">ref</span></span></code></pre></div>
 <p><code>'_a</code> is an unknown. It stands for a particular type like
 float or (int -&gt; int), OCaml just doesn’t yet know the type.</p></li>
 <li><p>OCaml only reports unknowns like <code>'_a</code> in inferred
@@ -2557,10 +2464,11 @@ types for reasons not relevant to functional programming. When unknowns
 appear in inferred type against our expectations, <em><span
 class="math inline">\eta</span>-expansion</em> may help: writing let f x
 = expr x instead of let f = expr – for example:</p>
-<h1 id="let-f-list.append-val-f-a-list---a-list">let f = List.append
-[];;val f : ’a list -&gt; ’a list = <fun></h1>
-<p>let f l = List.append [] l;;val f : ’a list -&gt; ’a list =
-<fun></p></li>
+<div class="sourceCode" id="cb43"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> f = <span class="dt">List</span>.append [];;</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">list</span> = &lt;<span class="kw">fun</span>&gt;</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> f l = <span class="dt">List</span>.append [] l;;</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">list</span> = &lt;<span class="kw">fun</span>&gt;</span></code></pre></div></li>
 </ul></li>
 <li>A <em>type environment</em> specifies what names (corresponding to
 parameters and definitions) are available for an expression, because
@@ -2575,33 +2483,33 @@ for <span class="math inline">f : \tau</span> we introduce <span
 class="math inline">\gamma \operatorname{list} \rightarrow \gamma =
 \tau</span> for some fresh unknown <span
 class="math inline">\gamma</span>.</li>
-<li>For <span class="math inline">e\_{1} e\_{2} : \tau</span> we
-introduce <span class="math inline">\beta = \tau</span> and ask for
-<span class="math inline">e\_{1} : \gamma \rightarrow \beta</span> and
-<span class="math inline">e\_{2} : \gamma</span>, for some fresh
-unknowns <span class="math inline">\beta, \gamma</span>.</li>
+<li>For <span class="math inline">e_{1} e_{2} : \tau</span> we introduce
+<span class="math inline">\beta = \tau</span> and ask for <span
+class="math inline">e_{1} : \gamma \rightarrow \beta</span> and <span
+class="math inline">e_{2} : \gamma</span>, for some fresh unknowns <span
+class="math inline">\beta, \gamma</span>.</li>
 <li>For <span class="math inline">\operatorname{fun}x \rightarrow e :
 \tau</span> we introduce <span class="math inline">\beta \rightarrow
 \gamma = \tau</span> and ask for <span class="math inline">e :
 \gamma</span> in environment <span class="math inline">\lbrace x : \beta
 \rbrace \cup \Gamma</span>, for some fresh unknowns <span
 class="math inline">\beta, \gamma</span>.</li>
-<li>Case <span class="math inline">\operatorname{let}x = e\_{1}
-\operatorname{in}e\_{2} : \tau</span> is different. One approach is to
+<li>Case <span class="math inline">\operatorname{let}x = e_{1}
+\operatorname{in}e_{2} : \tau</span> is different. One approach is to
 <em>first</em> solve the equations that we get by asking for <span
-class="math inline">e\_{1} : \beta</span>, for some fresh unknown <span
+class="math inline">e_{1} : \beta</span>, for some fresh unknown <span
 class="math inline">\beta</span>. Let’s say a solution <span
-class="math inline">\beta = \tau \_{\beta}</span> has been found, <span
-class="math inline">\alpha \_{1} \ldots \alpha \_{n} \beta \_{1} \ldots
-\beta \_{m}</span> are the remaining unknowns in <span
-class="math inline">\tau \_{\beta}</span>, and <span
-class="math inline">\alpha \_{1} \ldots \alpha \_{n}</span> are all that
-do not appear in <span class="math inline">\Gamma</span>. Then we ask
-for <span class="math inline">e\_{2} : \tau</span> in environment <span
-class="math inline">\lbrace x : \forall \alpha \_{1} \ldots \alpha \_{n}
-. \tau \_{\beta} \rbrace \cup \Gamma</span>.</li>
+class="math inline">\beta = \tau_{\beta}</span> has been found, <span
+class="math inline">\alpha_{1} \ldots \alpha_{n} \beta_{1} \ldots
+\beta_{m}</span> are the remaining unknowns in <span
+class="math inline">\tau_{\beta}</span>, and <span
+class="math inline">\alpha_{1} \ldots \alpha_{n}</span> are all that do
+not appear in <span class="math inline">\Gamma</span>. Then we ask for
+<span class="math inline">e_{2} : \tau</span> in environment <span
+class="math inline">\lbrace x : \forall \alpha_{1} \ldots \alpha_{n} .
+\tau_{\beta} \rbrace \cup \Gamma</span>.</li>
 <li>Remember that whenever we establish a solution <span
-class="math inline">\beta = \tau \_{\beta}</span> to an unknown <span
+class="math inline">\beta = \tau_{\beta}</span> to an unknown <span
 class="math inline">\beta</span>, it takes effect everywhere!</li>
 <li>To find a type for <span class="math inline">e</span> (in
 environment <span class="math inline">\Gamma</span>), we pick a fresh
@@ -2625,9 +2533,9 @@ types. In:</p>
 <p>type ’a mylist = Empty | Cons of ’a * ’a mylist</p>
 <p>we define lists that can store elements of any type <code>'a</code>.
 Now:</p>
-<h1 id="let-tail-l-match-l-with-empty---invalidarg-tail-cons">let tail l
-= match l with | Empty -&gt; invalidarg “tail” | Cons</h1>
-<p>(, tl) -&gt; tl;; val tail : ’a mylist -&gt; ’a mylist</p>
+<div class="sourceCode" id="cb44"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> tail l =  <span class="kw">match</span> l <span class="kw">with</span>    | Empty -&gt; invalidarg <span class="st">&quot;tail&quot;</span>    | Cons </span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>(, tl) -&gt; tl;;      <span class="kw">val</span> tail : &#39;a mylist -&gt; &#39;a mylist</span></code></pre></div>
 <p>is a polymorphic function: works for lists with elements of any
 type.</p></li>
 <li><p>A <em>parametric type</em> like ’a mylist <em>is not</em> itself
@@ -2644,9 +2552,11 @@ type name. For example:</p>
 class="math inline">\operatorname{choice} (\alpha, \beta)</span>.</p>
 <ul>
 <li><p>Functions do not have to be polymorphic:</p>
-<h1 id="let-getint-c-match-c-with-left-i---i-right-b---if">let getint c
-= match c with | Left i -&gt; i | Right b -&gt; if</h1>
-<p>b then 1 else 0;; val getint : (int, bool) choice -&gt; int</p></li>
+<div class="sourceCode" id="cb45"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> getint c =  <span class="kw">match</span> c <span class="kw">with</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    | Left i -&gt; i</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    | Right b -&gt; <span class="kw">if</span> b <span class="kw">then</span> <span class="dv">1</span> <span class="kw">else</span> <span class="dv">0</span>;;</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> getint : (<span class="dt">int</span>, <span class="dt">bool</span>) choice -&gt; <span class="dt">int</span></span></code></pre></div></li>
 </ul></li>
 <li><p>In F#, we provide parameters (when more than one) after type
 name:</p>
@@ -2660,8 +2570,8 @@ arguments:</p>
 <ul>
 <li><p>A statement that an expression has a type in an environment is
 called a <em>type judgement</em>. For environment <span
-class="math inline">\Gamma = \lbrace x : \forall \alpha \_{1} \ldots
-\alpha \_{n} . \tau \_{x} ; \ldots \rbrace</span>, expression <span
+class="math inline">\Gamma = \lbrace x : \forall \alpha  _{1} \ldots
+\alpha_{n} . \tau_{x} ; \ldots \rbrace</span>, expression <span
 class="math inline">e</span> and type <span
 class="math inline">\tau</span> we write</p>
 <p>\[ e : \]</p></li>
@@ -2672,124 +2582,112 @@ using existential quantification.</p></li>
 <li><p>For local definitions we require to remember what constraints
 should hold when the definition is used. Therefore we extend <em>type
 schemes</em> in the environment to: <span class="math inline">\Gamma =
-\lbrace x : \forall \beta \_{1} \ldots \beta \_{m} [\exists \alpha \_{1}
-\ldots \alpha \_{n} .D] . \tau \_{x} ; \ldots \rbrace</span> where <span
+\lbrace x : \forall \beta_{1} \ldots \beta_{m} [\exists \alpha_{1}
+\ldots \alpha_{n} .D] . \tau_{x} ; \ldots \rbrace</span> where <span
 class="math inline">D</span> are equations – keeping the variables <span
-class="math inline">\alpha \_{1} \ldots \alpha \_{n}</span> introduced
+class="math inline">\alpha_{1} \ldots \alpha  _{n}</span> introduced
 while deriving <span class="math inline">D</span> in front.</p>
 <ul>
 <li>A simpler form would be enough: <span class="math inline">\Gamma =
-\lbrace x : \forall \beta [\exists \alpha \_{1} \ldots \alpha \_{n} .D]
-. \beta ; \ldots \rbrace</span></li>
+\lbrace x : \forall \beta [\exists \alpha_{1} \ldots \alpha_{n} .D] .
+\beta ; \ldots \rbrace</span></li>
 </ul></li>
 </ul>
-<p><span class="math display">\begin{eqnarray*}
+<p><span class="math display"> \begin{matrix}
   \llbracket \Gamma \vdash x : \tau \rrbracket &amp; = &amp; \exists
 \overline{\beta&#39;}
   \bar{\alpha}&#39; . (D [\bar{\beta} \bar{\alpha} :=
 \overline{\beta&#39;}
-  \bar{\alpha}&#39;] \wedge \tau \_{x} [\bar{\beta} \bar{\alpha} :=
+  \bar{\alpha}&#39;] \wedge \tau_{x} [\bar{\beta} \bar{\alpha} :=
   \overline{\beta&#39;} \bar{\alpha}&#39;] \dot{=} \tau)\\\\\\
   &amp;  &amp; \text{where } \Gamma (x) = \forall \bar{\beta} [\exists
 \bar{\alpha}
-  .D] . \tau \_{x}, \overline{\beta&#39;} \bar{\alpha}&#39;
+  .D] . \tau_{x}, \overline{\beta&#39;} \bar{\alpha}&#39;
 \#\operatorname{FV}
   (\Gamma, \tau)\\\\\\
   &amp;  &amp;  \\\\\\
-  \left\llbracket \Gamma \vdash
-\boldsymbol{\ensuremath{\operatorname{fun}}} x
-  \text{\text{{\ttfamily{-&gt;}}}} e : \tau \right\rrbracket &amp; =
-&amp; \exists
+  \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
+  {\texttt{-&gt;}} e : \tau \rrbracket &amp; = &amp; \exists
 \alpha
-  \_{1} \alpha \_{2} . (\llbracket \Gamma \lbrace x : \alpha \_{1}
-\rbrace
-  \vdash e : \alpha \_{2} \rrbracket \wedge \alpha \_{1} \rightarrow
-\alpha
-  \_{2} \dot{=} \tau),\\\\\\
-  &amp;  &amp; \text{where } \alpha \_{1} \alpha \_{2}
-\#\operatorname{FV} (\Gamma,
+_{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
+  \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha
+_{2} \dot{=} \tau),\\\\\\
+  &amp;  &amp; \text{where } \alpha_{1} \alpha_{2} \#\operatorname{FV}
+(\Gamma,
   \tau)\\\\\\
   &amp;  &amp;  \\\\\\
-  \llbracket \Gamma \vdash e\_{1} e\_{2} : \tau \rrbracket &amp; = &amp;
+  \llbracket \Gamma \vdash e_{1} e_{2} : \tau \rrbracket &amp; = &amp;
 \exists
-  \alpha . (\llbracket \Gamma \vdash e\_{1} : \alpha \rightarrow \tau
-  \rrbracket \wedge \llbracket \Gamma \vdash e\_{2} : \alpha
-\rrbracket),
+  \alpha . (\llbracket \Gamma \vdash e_{1} : \alpha \rightarrow \tau
+  \rrbracket \wedge \llbracket \Gamma \vdash e_{2} : \alpha \rrbracket),
   \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &amp;  &amp;  \\\\\\
-  \llbracket \Gamma \vdash K e\_{1} \ldots e\_{n} : \tau \rrbracket
-&amp; = &amp;
-  \exists \bar{\alpha}&#39; . (\wedge \_{i} \llbracket \Gamma \vdash
-e\_{i} : \tau
-  \_{i} [\bar{\alpha} := \bar{\alpha}&#39;] \rrbracket \wedge
-\varepsilon
+  \llbracket \Gamma \vdash K e_{1} \ldots e_{n} : \tau \rrbracket &amp;
+= &amp;
+  \exists \bar{\alpha}&#39; . (\wedge_{i} \llbracket \Gamma \vdash e_{i}
+: \tau
+_{i} [\bar{\alpha} := \bar{\alpha}&#39;] \rrbracket \wedge \varepsilon
   (\bar{\alpha}&#39;) \dot{=} \tau),\\\\\\
-  &amp;  &amp; \text{w. } K \,:\, \forall \bar{\alpha} . \tau \_{1}
-\times \ldots
-  \times \tau \_{n} \rightarrow \varepsilon (\bar{\alpha}),
+  &amp;  &amp; \text{w. } K \,:\, \forall \bar{\alpha} . \tau_{1} \times
+\ldots
+  \times \tau_{n} \rightarrow \varepsilon (\bar{\alpha}),
 \bar{\alpha}&#39;
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &amp;  &amp;  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; (\exists
 \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{let}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &amp;  &amp;
-\text{where } C =
-  \llbracket \Gamma \vdash e\_{1} : \beta \rrbracket\\\\\\
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{let}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &amp;  &amp; \text{where } C =
+  \llbracket \Gamma \vdash e_{1} : \beta \rrbracket\\\\\\
   &amp;  &amp;  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; (\exists
 \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{letrec}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &amp;  &amp;
-\text{where } C =
-  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e\_{1} : \beta
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{letrec}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &amp;  &amp; \text{where } C =
+  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
   \rrbracket\\\\\\
   &amp;  &amp;  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket &amp; = &amp; \exists
-\alpha \_{v} .
-  \llbracket \Gamma \vdash e\_{v} : \alpha \_{v} \rrbracket \wedge \_{i}
-  \llbracket \Gamma \vdash p\_{i} .e\_{i} : \alpha \_{v} \rightarrow
-\tau
+\alpha_{v} .
+  \llbracket \Gamma \vdash e_{v} : \alpha_{v} \rrbracket \wedge_{i}
+  \llbracket \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
   \rrbracket,\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{match}}} e\_{v}
-  \boldsymbol{\ensuremath{\operatorname{with}}} \bar{c} &amp;  &amp;
-\alpha \_{v}
+  e = \boldsymbol{\operatorname{match}} e_{v}
+  \boldsymbol{\operatorname{with}} \bar{c} &amp;  &amp; \alpha_{v}
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
-  \bar{c} = p\_{1} .e\_{1} | \ldots |p\_{n} .e\_{n} &amp;  &amp;  \\\\\\
+  \bar{c} = p_{1} .e_{1} | \ldots |p_{n} .e_{n} &amp;  &amp;  \\\\\\
   &amp;  &amp;  \\\\\\
-  \llbracket \Gamma, \Sigma \vdash p.e : \tau \_{1} \rightarrow \tau
-\_{2}
-  \rrbracket &amp; = &amp; \llbracket \Sigma \vdash p \downarrow \tau
-\_{1} \rrbracket
+  \llbracket \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
+  \rrbracket &amp; = &amp; \llbracket \Sigma \vdash p \downarrow
+\tau_{1} \rrbracket
   \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma&#39; \vdash e :
-\tau \_{2}
+\tau_{2}
   \rrbracket\\\\\\
   &amp;  &amp; \text{where } \exists \bar{\beta} \Gamma&#39; \text{ is }
 \llbracket
-  \Sigma \vdash p \uparrow \tau \_{1} \rrbracket, \bar{\beta}
-  \#\operatorname{FV} (\Gamma, \tau \_{2})\\\\\\
+  \Sigma \vdash p \uparrow \tau_{1} \rrbracket, \bar{\beta}
+  \#\operatorname{FV} (\Gamma, \tau_{2})\\\\\\
   &amp;  &amp;  \\\\\\
-  \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket
-&amp;  &amp;
+  \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket &amp;  &amp;
   \text{derives constraints on type of matched value}\\\\\\
   &amp;  &amp;  \\\\\\
-  \llbracket \Sigma \vdash p \uparrow \tau \_{1} \rrbracket &amp;  &amp;
+  \llbracket \Sigma \vdash p \uparrow \tau_{1} \rrbracket &amp;  &amp;
 \text{derives
   environment for pattern variables}
-\end{eqnarray*}</span></p>
+\end{matrix} </span></p>
 <ul>
 <li>By <span class="math inline">\bar{\alpha}</span> or <span
-class="math inline">\overline{\alpha \_{i}}</span> we denote a sequence
-of some length: <span class="math inline">\alpha \_{1} \ldots \alpha
-\_{n}</span></li>
-<li>By <span class="math inline">\wedge \_{i} \varphi \_{i}</span> we
-denote a conjunction of <span class="math inline">\overline{\varphi
-\_{i}}</span>: <span class="math inline">\varphi \_{1} \ldots \varphi
-\_{n}</span>.</li>
+class="math inline">\overline{\alpha_{i}}</span> we denote a sequence of
+some length: <span class="math inline">\alpha_{1} \ldots
+\alpha_{n}</span></li>
+<li>By <span class="math inline">\wedge_{i} \varphi_{i}</span> we denote
+a conjunction of <span
+class="math inline">\overline{\varphi_{i}}</span>: <span
+class="math inline">\varphi_{1} \ldots \varphi_{n}</span>.</li>
 </ul>
 <h3 id="polymorphic-recursion">3.1 Polymorphic Recursion</h3>
 <ul>
@@ -2931,19 +2829,18 @@ preserving operations.</li>
 class="math inline">(A, \lbrace f^A, g^A, \ldots \rbrace)</span> to
 <span class="math inline">(B, \lbrace f^B, g^B, \ldots \rbrace)</span>
 is a function <span class="math inline">h : A \rightarrow B</span> such
-that <span class="math inline">h (f^A (a\_{1}, \ldots, a\_{n\_{f}})) =
-f^B (h (a\_{1}), \ldots, h (a\_{n\_{f}}))</span> for all <span
-class="math inline">(a\_{1}, \ldots, a\_{n\_{f}})</span>, <span
-class="math inline">h (g^A (a\_{1}, \ldots, a\_{n\_{g}})) = g^B (h
-(a\_{1}), \ldots, h (a\_{n\_{g}}))</span> for all <span
-class="math inline">(a\_{1}, \ldots, a\_{n\_{g}})</span>, …</li>
+that <span class="math inline">h (f^A (a_{1}, \ldots, a_{n_{f}})) = f^B
+(h (a_{1}), \ldots, h (a_{n_{f}}))</span> for all <span
+class="math inline">(a_{1}, \ldots, a_{n_{f}})</span>, <span
+class="math inline">h (g^A (a_{1}, \ldots, a_{n_{g}})) = g^B (h (a_{1}),
+\ldots, h (a_{n_{g}}))</span> for all <span class="math inline">(a_{1},
+\ldots, a_{n_{g}})</span>, …</li>
 <li>Two algebraic structures are <em>isomorphic</em> if there are
-homomorphisms <span class="math inline">h\_{1} : A \rightarrow B, h\_{2}
-: B \rightarrow A</span> from one to the other and back, that when
+homomorphisms <span class="math inline">h_{1} : A \rightarrow B, h_{2} :
+B \rightarrow A</span> from one to the other and back, that when
 composed in any order form identity: <span class="math inline">\forall
-(b \in B) h\_{1} (h\_{2} (b)) = b</span>, <span
-class="math inline">\forall (a \in A) h\_{2} (h\_{1} (a)) =
-a</span>.</li>
+(b \in B) h_{1} (h_{2} (b)) = b</span>, <span
+class="math inline">\forall (a \in A) h_{2} (h_{1} (a)) = a</span>.</li>
 <li>An algebraic specification whose all implementations without junk
 are isomorphic is called “<em>monomorphic</em>”.
 <ul>
@@ -3008,28 +2905,30 @@ let find = List.assocend</p>
 Association lists</h2>
 <p>Let’s now build an implementation of maps from the ground up. The
 most straightforward implementation… might not be what you expected:</p>
-<p>module TrivialMap : MAP = struct type (’a, ’b) t = | Empty | Add of
-’a * ’b * (’a, ’b) t | Remove of ’a * (’a, ’b) t let empty = Empty let
-rec member k m = match m with | Empty -&gt; false | Add (k2, , ) when k
-= k2 -&gt; true | Remove (k2, ) when k = k2 -&gt; false | Add (, , m2)
--&gt; member k m2 | Remove (, m2) -&gt; member k m2 let add k v m = Add
-(k, v, m) let remove k m = Remove (k, m) let rec find k m = match m with
-| Empty -&gt; raise Notfound | Add (k2, v, ) when k = k2 -&gt; v |
-Remove (k2, ) when k = k2 -&gt; raise Notfound<br />
-| Add (, , m2) -&gt; find k m2 | Remove (, m2) -&gt; find k m2end</p>
+<div class="sourceCode" id="cb46"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> TrivialMap : MAP = <span class="kw">struct</span>  <span class="kw">type</span> (&#39;a, &#39;b) t =    | Empty    | Add <span class="kw">of</span> &#39;a </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>\* &#39;b \* (&#39;a, &#39;b) t    | Remove <span class="kw">of</span> &#39;a \* (&#39;a, &#39;b) t          <span class="kw">let</span> empty = Empty </span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a> <span class="kw">let</span> <span class="kw">rec</span> member k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="kw">false</span>      | Add </span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>(k2, , ) <span class="kw">when</span> k = k2 -&gt; <span class="kw">true</span>      | Remove (k2, ) <span class="kw">when</span> k = k2 -&gt; <span class="kw">false</span> </span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>     | Add (, , m2) -&gt; member k m2      | Remove (, m2) -&gt; member k m2 </span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a> <span class="kw">let</span> add k v m = Add (k, v, m)  <span class="kw">let</span> remove k m = Remove (k, m)  <span class="kw">let</span> <span class="kw">rec</span> find k </span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="dt">raise</span> <span class="dt">Not_found</span>      | Add (k2, v, ) </span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a><span class="kw">when</span> k = k2 -&gt; v      | Remove (k2, ) <span class="kw">when</span> k = k2 -&gt; <span class="dt">raise</span> Notfound    </span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  | Add (, , m2) -&gt; find k m2      | Remove (, m2) -&gt; find k m2 <span class="kw">end</span></span></code></pre></div>
 <p>Here is an implementation based on association lists, i.e. on lists
 of key-value pairs.</p>
-<p>module MyListMap : MAP = struct type (’a, ’b) t = Empty | Add of ’a *
-’b * (’a, ’b) t let empty = Empty let rec member k m = match m with |
-Empty -&gt; false | Add (k2, , ) when k = k2 -&gt; true | Add (, , m2)
--&gt; member k m2 let rec add k v m = match m with | Empty -&gt; Add (k,
-v, Empty) | Add (k2, , m) when k = k2 -&gt; Add (k, v, m) | Add (k2, v2,
-m) -&gt; Add (k2, v2, add k v m)</p>
-<p>let rec remove k m = match m with | Empty -&gt; Empty | Add (k2, , m)
-when k = k2 -&gt; m | Add (k2, v, m) -&gt; Add (k2, v, remove k m) let
-rec find k m = match m with | Empty -&gt; raise Error<br />
-| Add (k2, v, ) when k = k2 -&gt; v | Add (, , m2) -&gt; find k
-m2end</p>
+<div class="sourceCode" id="cb47"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyListMap : MAP = <span class="kw">struct</span>  <span class="kw">type</span> (&#39;a, &#39;b) t = Empty | Add <span class="kw">of</span> &#39;a \* &#39;b \* </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>(&#39;a, &#39;b) t  <span class="kw">let</span> empty = Empty  <span class="kw">let</span> <span class="kw">rec</span> member k m =    <span class="kw">match</span> m <span class="kw">with</span>      | </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>Empty -&gt; <span class="kw">false</span>      | Add (k2, , ) <span class="kw">when</span> k = k2 -&gt; <span class="kw">true</span>      | Add (, , </span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>m2) -&gt; member k m2  <span class="kw">let</span> <span class="kw">rec</span> add k v m =    <span class="kw">match</span> m <span class="kw">with</span>      | </span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>Empty -&gt; Add (k, v, Empty)      | Add (k2, , m) <span class="kw">when</span> k = k2 -&gt; Add (k, </span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>v, m)      | Add (k2, v2, m) -&gt; Add (k2, v2, add k v m)</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> remove k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; Empty      | Add </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>(k2, , m) <span class="kw">when</span> k = k2 -&gt; m      | Add (k2, v, m) -&gt; Add (k2, v, remove </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>k m)  <span class="kw">let</span> <span class="kw">rec</span> find k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="dt">raise</span> Error      </span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>| Add (k2, v, ) <span class="kw">when</span> k = k2 -&gt; v      | Add (, , m2) -&gt; find k m2 <span class="kw">end</span></span></code></pre></div>
 <h2 id="implementing-maps-binary-search-trees">9 Implementing maps:
 Binary search trees</h2>
 <ul>
@@ -3056,31 +2955,35 @@ because of the problem of needing the order of keys; it is just to keep
 things simple.</li>
 </ul></li>
 </ul>
-<p>module BTreeMap : MAP = struct type (‘a, ’b) t = Empty | T of (’a,
-’b) t * ’a * ’b * (’a, ’b) t let empty = Empty let rec member k m
-=‘‘Divide and conquer’’ search through the tree. match m with | Empty
--&gt; false<br />
-| T (, k2, , ) when k = k2 -&gt; true | T (m1, k2, , ) when k &lt; k2
--&gt; member k m1 | T (, , , m2) -&gt; member k m2 let rec add k v m
-=Searches the tree in the same way as <code>member</code> match m
-withbut copies every node along the way. | Empty -&gt; T (Empty, k, v,
-Empty) | T (m1, k2, , m2) when k = k2 -&gt; T (m1, k, v, m2) | T (m1,
-k2, v2, m2) when k &lt; k2 -&gt; T (add k v m1, k2, v2, m2) | T (m1, k2,
-v2, m2) -&gt; T (m1, k2, v2, add k v m2) let rec splitrightmost m =A
-helper function, it does not belong match m withto the ‘‘exported’’
-signature.<br />
-| Empty -&gt; raise Notfound | T (Empty, k, v, Empty) -&gt; k, v,
-EmptyWe remove one element, | T (m1, k, v, m2) -&gt;the one that is on
-the bottom right. let rk, rv, rm = splitrightmost m2 in rk, rv, T (m1,
-k, v, rm)</p>
-<p>let rec remove k m = match m with | Empty -&gt; Empty | T (m1, k2, ,
-Empty) when k = k2 -&gt; m1 | T (Empty, k2, , m2) when k = k2 -&gt; m2 |
-T (m1, k2, , m2) when k = k2 -&gt; let rk, rv, rm = splitrightmost m1 in
-T (rm, rk, rv, m2) | T (m1, k2, v, m2) when k &lt; k2 -&gt; T (remove k
-m1, k2, v, m2) | T (m1, k2, v, m2) -&gt; T (m1, k2, v, remove k m2) let
-rec find k m = match m with | Empty -&gt; raise Notfound | T (, k2, v, )
-when k = k2 -&gt; v | T (m1, k2, , ) when k &lt; k2 -&gt; find k m1 | T
-(, , , m2) -&gt; find k m2end</p>
+<div class="sourceCode" id="cb48"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> BTreeMap : MAP = <span class="kw">struct</span>  <span class="kw">type</span> (&#39;a, &#39;b) t = Empty | T <span class="kw">of</span> (&#39;a, &#39;b) t \* </span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>&#39;a \* &#39;b \* (&#39;a, &#39;b) t  <span class="kw">let</span> empty = Empty  <span class="kw">let</span> <span class="kw">rec</span> member k m =‘‘Divide <span class="kw">and</span> </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>conquer&#39;&#39; search through the tree.    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="kw">false</span>   </span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>   | T (, k2, , ) <span class="kw">when</span> k = k2 -&gt; <span class="kw">true</span>      | T (m1, k2, , ) <span class="kw">when</span> k &lt; </span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>k2 -&gt; member k m1      | T (, , , m2) -&gt; member k m2  <span class="kw">let</span> <span class="kw">rec</span> add k v </span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>m =Searches the tree <span class="kw">in</span> the same way <span class="kw">as</span> `member`    <span class="kw">match</span> m withbut copies </span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>every node along the way.      | Empty -&gt; T (Empty, k, v, Empty)      | T </span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>(m1, k2, , m2) <span class="kw">when</span> k = k2 -&gt; T (m1, k, v, m2)      | T (m1, k2, v2, m2) </span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="kw">when</span> k &lt; k2 -&gt; T (add k v m1, k2, v2, m2)      | T (m1, k2, v2, </span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>m2) -&gt; T (m1, k2, v2, add k v m2)</span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> splitrightmost m = <span class="co">(* A helper </span></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a><span class="co">function, it does not belong *)</span></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>   <span class="kw">match</span> m <span class="kw">with</span> <span class="co">(* to the ‘‘exported&#39;&#39; signature.     *)</span></span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a> | Empty -&gt; <span class="dt">raise</span> Notfound      | T (Empty, k, v, Empty) -&gt; k, v, </span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>EmptyWe remove one element,      | T (m1, k, v, m2) -&gt;the one that is on </span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>the bottom right.        <span class="kw">let</span> rk, rv, rm = splitrightmost m2 <span class="kw">in</span>        rk, rv, </span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>T (m1, k, v, rm)</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> remove k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; Empty      | T (m1, </span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>k2, , Empty) <span class="kw">when</span> k = k2 -&gt; m1      | T (Empty, k2, , m2) <span class="kw">when</span> k = </span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>k2 -&gt; m2      | T (m1, k2, , m2) <span class="kw">when</span> k = k2 -&gt;        <span class="kw">let</span> rk, rv, rm </span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a>= splitrightmost m1 <span class="kw">in</span>        T (rm, rk, rv, m2)      | T (m1, k2, v, m2) <span class="kw">when</span> </span>
+<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>k &lt; k2 -&gt; T (remove k m1, k2, v, m2)      | T (m1, k2, v, m2) -&gt; </span>
+<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a>T (m1, k2, v, remove k m2)  <span class="kw">let</span> <span class="kw">rec</span> find k m =    <span class="kw">match</span> m <span class="kw">with</span>      | </span>
+<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a>Empty -&gt; <span class="dt">raise</span> Notfound      | T (, k2, v, ) <span class="kw">when</span> k = k2 -&gt; v      | T </span>
+<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a>(m1, k2, , ) <span class="kw">when</span> k &lt; k2 -&gt; find k m1      | T (, , , m2) -&gt; find </span>
+<span id="cb48-28"><a href="#cb48-28" aria-hidden="true" tabindex="-1"></a>k m2 <span class="kw">end</span></span></code></pre></div>
 <h2 id="implementing-maps-red-black-trees">10 Implementing maps:
 red-black trees</h2>
 <p>Based on Wikipedia <a
@@ -3136,41 +3039,41 @@ to check locally (around the root of the subtree).</li>
 <li>For understandable implementation of deletion, we need to introduce
 more colors. See Matt Might’s post edited in a separate file.</li>
 </ul>
-<p>type color = R | Btype ’a t = E | T of color * ’a t * ’a * ’a tlet
-empty = Elet rec member x m = match m withLike in unbalanced binary
-search tree. | Empty -&gt; false | T (, , y, ) when x = y -&gt; true | T
-(, a, y, ) when x &lt; y -&gt; member x a | T (, , , b) -&gt; member x
-blet balance = functionRestoring the invariants. | B,T (R,T
-(R,a,x,b),y,c),z,dOn next figure: left, | B,T (R,a,x,T
-(R,b,y,c)),z,dtop, | B,a,x,T (R,T (R,b,y,c),z,d)bottom, | B,a,x,T
-(R,b,y,T (R,c,z,d))right, -&gt; T (R,T (B,a,x,b),y,T (B,c,z,d))center
-tree. | color,a,x,b -&gt; T (color,a,x,b)We allow red-red violation for
-now.</p>
-<p>let insert x s = let rec ins = functionLike in unbalanced binary
-search tree, | E -&gt; T (R,E,x,E)but fix violation above created node.
-| T (color,a,y,b) as s -&gt; if x&lt;y then balance (color,ins
-a,y,b)<br />
-else if x&gt;y then balance (color,a,y,ins b) else s in match ins s
-withWe could still have red-red violation at root, | T (,a,y,b) -&gt; T
-(B,a,y,b)fixed by coloring it black. | E -&gt; failwith “insert:
-impossible”</p>
+<div class="sourceCode" id="cb49"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> color = R | Btype &#39;a t = E | T <span class="kw">of</span> color \* &#39;a t \* &#39;a \* &#39;a tlet empty = </span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>Elet <span class="kw">rec</span> member x m =  <span class="kw">match</span> m withLike <span class="kw">in</span> unbalanced binary search tree.  | </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>Empty -&gt; <span class="kw">false</span>  | T (, , y, ) <span class="kw">when</span> x = y -&gt; <span class="kw">true</span>  | T (, a, y, ) <span class="kw">when</span> </span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a>x &lt; y -&gt; member x a  | T (, , , b) -&gt; member x blet balance = </span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a>functionRestoring the invariants.  | B,T (R,T (R,a,x,b),y,c),z,dOn next </span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a>figure: left,  | B,T (R,a,x,T (R,b,y,c)),z,dtop,  | B,a,x,T (R,T </span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>(R,b,y,c),z,d)bottom,  | B,a,x,T (R,b,y,T (R,c,z,d))right,    -&gt; T (R,T </span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>(B,a,x,b),y,T (B,c,z,d))center tree.  | color,a,x,b -&gt; T (color,a,x,b)We </span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>allow red-red violation <span class="kw">for</span> now.</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> insert x s =  <span class="kw">let</span> <span class="kw">rec</span> ins = functionLike <span class="kw">in</span> unbalanced binary search tree, </span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a>   | E -&gt; T (R,E,x,E)but fix violation above created node.    | T </span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a>(color,a,y,b) <span class="kw">as</span> s -&gt;      <span class="kw">if</span> x&lt;y <span class="kw">then</span> balance (color,ins a,y,b)      </span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a><span class="kw">else</span> <span class="kw">if</span> x&gt;y <span class="kw">then</span> balance (color,a,y,ins b)      <span class="kw">else</span> s <span class="kw">in</span></span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> ins s <span class="kw">with</span> <span class="co">(* We could still have red-red violation at root, *)</span></span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>  | T (,a,y,b) -&gt; T (B,a,y,b) <span class="co">(* fixed by coloring it black. *)</span></span>
+<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>  | E -&gt; <span class="dt">failwith</span> <span class="st">&quot;insert: impossible&quot;</span></span></code></pre></div>
 <h2 id="homework-2">11 Homework</h2>
 <ol type="1">
 <li><p>Derive the equations and solve them to find the type for:</p>
 <p>let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr
 (true::false::[])</p>
 <p>in environ. <span class="math inline">\Gamma = \left\lbrace
-\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha
-\operatorname{list} \rightarrow \alpha ;
-\text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl}}} : \forall \alpha . \alpha
-\operatorname{list} \rightarrow \alpha \operatorname{list}
-\right\rbrace</span>. You can take “shortcuts” if it is too many
-equations to write down.</p></li>
+\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
+: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha ;
+\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}}
+: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha
+\operatorname{list} \right\rbrace</span>. You can take “shortcuts” if it
+is too many equations to write down.</p></li>
 <li><p>What does it mean that an implementation has junk (as an
 algebraic structure for a given signature)? Is it bad?</p></li>
 <li><p>Define a monomorphic algebraic specification (other than, but
-similar to, <span class="math inline">\operatorname{nat}\_{p}</span> or
-<span class="math inline">\operatorname{string}\_{p}</span>, some useful
+similar to, <span class="math inline">\operatorname{nat}_{p}</span> or
+<span class="math inline">\operatorname{string}_{p}</span>, some useful
 data type).</p></li>
 <li><p>Discuss an example of a (monomorphic) algebraic specification
 where it would be useful to drop some axioms (giving up monomorphicity)
@@ -3179,8 +3082,9 @@ to allow more efficient implementations.</p></li>
 specification for maps? Hint: here is the definition of
 List.removeassoc; <code>compare a x</code> equals 0 if and only if
 <code>a</code> = <code>x</code>.</p>
-<p>let rec removeassoc x = function | [] -&gt; [] | (a, b as pair) :: l
--&gt; if compare a x = 0 then l else pair :: removeassoc x l</p></li>
+<div class="sourceCode" id="cb50"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> removeassoc x = <span class="kw">function</span>  | [] -&gt; []  | (a, b <span class="kw">as</span> pair) :: l -&gt;</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> <span class="dt">compare</span> a x = <span class="dv">0</span> <span class="kw">then</span> l <span class="kw">else</span> pair :: removeassoc x l</span></code></pre></div></li>
 <li><p>Trick question: what is the computational complexity of ListMap
 or TrivialMap?</p></li>
 <li><p>* The implementation MyListMap is inefficient: it performs a lot
@@ -5048,13 +4952,13 @@ doc</p></li>
 <li><p>let (++) d1 d2 = Cat (d1, Cat (Line, d2))let (!) s = Text slet
 testdoc =<br />
 Group (!“Document” ++ Group (!“First part” ++ !“Second part”))</p>
-<div class="sourceCode" id="cb41"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">30</span> testdoc);;</span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>DocumentFirst part Second part</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">20</span> testdoc);;</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>DocumentFirst partSecond part</span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">60</span> testdoc);;</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>Document First part Second part</span></code></pre></div></li>
+<div class="sourceCode" id="cb51"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">30</span> testdoc);;</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>DocumentFirst part Second part</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">20</span> testdoc);;</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>DocumentFirst partSecond part</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> () = printendline (pretty <span class="dv">60</span> testdoc);;</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>Document First part Second part</span></code></pre></div></li>
 <li><p>Straightforward solution:</p>
 <p>let pretty w d =Allowed width of line <code>w</code>. let rec width =
 functionTotal length of subdocument. | Text z -&gt; String.length z |
@@ -5918,15 +5822,15 @@ type of Module</p></li>
 <ul>
 <li>(module Module) is an expression</li>
 <li>(val modulev) is a module</li>
-<li><div class="sourceCode" id="cb44"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">module</span> <span class="kw">type</span> T = <span class="kw">sig</span> <span class="kw">val</span> g : <span class="dt">int</span> -&gt; <span class="dt">int</span> endlet f modv x =  <span class="kw">let</span> <span class="kw">module</span> </span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>M = (<span class="kw">val</span> modv : T) <span class="kw">in</span>  M.g x;;</span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : (<span class="kw">module</span> T) -&gt; <span class="dt">int</span> -&gt; <span class="dt">int</span> = &lt;<span class="kw">fun</span>&gt;</span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test = f (<span class="kw">module</span> <span class="kw">struct</span> <span class="kw">let</span> g i = i*i <span class="kw">end</span> : T);;</span>
-<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> test : <span class="dt">int</span> -&gt; <span class="dt">int</span> = &lt;<span class="kw">fun</span>&gt;</span></code></pre></div></li>
+<li><div class="sourceCode" id="cb54"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">module</span> <span class="kw">type</span> T = <span class="kw">sig</span> <span class="kw">val</span> g : <span class="dt">int</span> -&gt; <span class="dt">int</span> endlet f modv x =  <span class="kw">let</span> <span class="kw">module</span> </span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>M = (<span class="kw">val</span> modv : T) <span class="kw">in</span>  M.g x;;</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : (<span class="kw">module</span> T) -&gt; <span class="dt">int</span> -&gt; <span class="dt">int</span> = &lt;<span class="kw">fun</span>&gt;</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test = f (<span class="kw">module</span> <span class="kw">struct</span> <span class="kw">let</span> g i = i*i <span class="kw">end</span> : T);;</span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> test : <span class="dt">int</span> -&gt; <span class="dt">int</span> = &lt;<span class="kw">fun</span>&gt;</span></code></pre></div></li>
 </ul></li>
 </ul>
 <h2 id="the-two-metaphors">6 The two metaphors</h2>
@@ -6188,18 +6092,18 @@ lconcatmap b a let return a = LCons (a, lazy LNil) let mzero = LNil let
 mplus = lappendend)</p></li>
 <li><p>module LListCountdown = Countdown (LListM)let test2 () =
 LListM.run (LListCountdown.solutions [1;3;7;10;25;50] 765)</p></li>
-<li><div class="sourceCode" id="cb45"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t2a, sol2 = time test2;;<span class="kw">val</span> t2a : <span class="dt">float</span> = <span class="fl">2.51197600364685059</span>val </span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>sol2 : <span class="dt">string</span> llist = LCons (<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>, &lt;<span class="kw">lazy</span>&gt;)</span></code></pre></div>
+<li><div class="sourceCode" id="cb55"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t2a, sol2 = time test2;;<span class="kw">val</span> t2a : <span class="dt">float</span> = <span class="fl">2.51197600364685059</span>val </span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>sol2 : <span class="dt">string</span> llist = LCons (<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>, &lt;<span class="kw">lazy</span>&gt;)</span></code></pre></div>
 <p>Not good, almost the same time to even get the lazy list!</p></li>
-<li><div class="sourceCode" id="cb46"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t2b, sol21 = time (<span class="kw">fun</span> () -&gt; ltake <span class="dv">1</span> sol2);;<span class="kw">val</span> t2b : <span class="dt">float</span> </span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>= <span class="fl">2.86102294921875e-06</span>val sol21 : <span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# </span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t2c, sol29 = time (<span class="kw">fun</span> () -&gt; ltake <span class="dv">10</span> sol2);;<span class="kw">val</span> t2c : <span class="dt">float</span> </span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>= <span class="fl">9.059906005859375e-06</span>val sol29 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t2d, sol239 = time (<span class="kw">fun</span> () -&gt; ltake </span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="dv">49</span> sol2);;<span class="kw">val</span> t2d : <span class="dt">float</span> = <span class="fl">4.00543212890625e-05</span>val sol239 : <span class="dt">string</span> <span class="dt">list</span> =  </span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>[<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
+<li><div class="sourceCode" id="cb56"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t2b, sol21 = time (<span class="kw">fun</span> () -&gt; ltake <span class="dv">1</span> sol2);;<span class="kw">val</span> t2b : <span class="dt">float</span> </span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>= <span class="fl">2.86102294921875e-06</span>val sol21 : <span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# </span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t2c, sol29 = time (<span class="kw">fun</span> () -&gt; ltake <span class="dv">10</span> sol2);;<span class="kw">val</span> t2c : <span class="dt">float</span> </span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>= <span class="fl">9.059906005859375e-06</span>val sol29 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t2d, sol239 = time (<span class="kw">fun</span> () -&gt; ltake </span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a><span class="dv">49</span> sol2);;<span class="kw">val</span> t2d : <span class="dt">float</span> = <span class="fl">4.00543212890625e-05</span>val sol239 : <span class="dt">string</span> <span class="dt">list</span> =  </span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>[<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
 <p>Getting elements from the list shows they are almost already
 computed.</p></li>
 <li><p>Wait! Perhaps we should not store all candidates when we are only
@@ -6212,9 +6116,9 @@ let mzero = None let mplus a b = match a with None -&gt; b | Some -&gt;
 aend)</p></li>
 <li><p>module OptCountdown = Countdown (OptionM)let test3 () =
 OptionM.run (OptCountdown.solutions [1;3;7;10;25;50] 765)</p></li>
-<li><div class="sourceCode" id="cb47"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t3, sol3 = time test3;;<span class="kw">val</span> t3 : <span class="dt">float</span> = <span class="fl">5.0067901611328125e-06</span>val </span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  sol3 : <span class="dt">string</span> <span class="dt">option</span> = <span class="dt">None</span></span></code></pre></div>
+<li><div class="sourceCode" id="cb57"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t3, sol3 = time test3;;<span class="kw">val</span> t3 : <span class="dt">float</span> = <span class="fl">5.0067901611328125e-06</span>val </span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  sol3 : <span class="dt">string</span> <span class="dt">option</span> = <span class="dt">None</span></span></code></pre></div>
 <p>It very quickly computes… nothing. Why?</p>
 <ul>
 <li>What is the OptionM monad (<code>Maybe</code> monad in Haskell) good
@@ -6247,16 +6151,16 @@ bind a b = lazconcatmap b a let return a = lazy (LazCons (a, lazy
 LazNil)) let mzero = lazy LazNil let mplus = lazappendend)</p></li>
 <li><p>module LazyCountdown = Countdown (LazyListM)let test4 () =
 LazyListM.run (LazyCountdown.solutions [1;3;7;10;25;50] 765)</p></li>
-<li><div class="sourceCode" id="cb48"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t4a, sol4 = time test4;;<span class="kw">val</span> t4a : <span class="dt">float</span> = <span class="fl">2.86102294921875e-06</span>val </span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  sol4 : <span class="dt">string</span> lazylist = &lt;<span class="kw">lazy</span>&gt;# <span class="kw">let</span> t4b, sol41 = time (<span class="kw">fun</span> </span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  () -&gt; laztake <span class="dv">1</span> sol4);;<span class="kw">val</span> t4b : <span class="dt">float</span> = <span class="fl">0.367874860763549805</span>val sol41 : </span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# <span class="kw">let</span> t4c, sol49 = time (<span class="kw">fun</span> () -&gt; </span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>  laztake <span class="dv">10</span> sol4);;<span class="kw">val</span> t4c : <span class="dt">float</span> = <span class="fl">0.234670877456665039</span>val sol49 : <span class="dt">string</span> </span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t4d, </span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  sol439 = time (<span class="kw">fun</span> () -&gt; laztake <span class="dv">49</span> sol4);;<span class="kw">val</span> t4d : <span class="dt">float</span> </span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  = <span class="fl">4.0594940185546875</span>val sol439 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
+<li><div class="sourceCode" id="cb58"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t4a, sol4 = time test4;;<span class="kw">val</span> t4a : <span class="dt">float</span> = <span class="fl">2.86102294921875e-06</span>val </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  sol4 : <span class="dt">string</span> lazylist = &lt;<span class="kw">lazy</span>&gt;# <span class="kw">let</span> t4b, sol41 = time (<span class="kw">fun</span> </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  () -&gt; laztake <span class="dv">1</span> sol4);;<span class="kw">val</span> t4b : <span class="dt">float</span> = <span class="fl">0.367874860763549805</span>val sol41 : </span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# <span class="kw">let</span> t4c, sol49 = time (<span class="kw">fun</span> () -&gt; </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  laztake <span class="dv">10</span> sol4);;<span class="kw">val</span> t4c : <span class="dt">float</span> = <span class="fl">0.234670877456665039</span>val sol49 : <span class="dt">string</span> </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t4d, </span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  sol439 = time (<span class="kw">fun</span> () -&gt; laztake <span class="dv">49</span> sol4);;<span class="kw">val</span> t4d : <span class="dt">float</span> </span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>  = <span class="fl">4.0594940185546875</span>val sol439 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
 <ul>
 <li>Finally, the first solution in considerably less time than all
 solutions.</li>
@@ -6614,15 +6518,15 @@ prize)end</p></li>
 <li><p>module MontyExact = MontyHall (DistribM)module Sampling1000 =
 SamplingM (struct let samples = 1000 end)module MontySimul = MontyHall
 (Sampling1000)</p></li>
-<li><div class="sourceCode" id="cb51"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t1 = DistribM.distrib (MontyExact.montywin <span class="kw">false</span>);;<span class="kw">val</span> t1 : (<span class="dt">bool</span> * </span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.333333333333333315</span>); (<span class="kw">false</span>, <span class="fl">0.66666666666666663</span>)]# </span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t2 = DistribM.distrib (MontyExact.montywin <span class="kw">true</span>);;<span class="kw">val</span> t2 : (<span class="dt">bool</span> * </span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.66666666666666663</span>); (<span class="kw">false</span>, <span class="fl">0.333333333333333315</span>)]# </span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t3 = Sampling1000.distrib (MontySimul.montywin <span class="kw">false</span>);;<span class="kw">val</span> t3 : (<span class="dt">bool</span> * </span>
-<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.313</span>); (<span class="kw">false</span>, <span class="fl">0.687</span>)]# <span class="kw">let</span> t4 = Sampling1000.distrib </span>
-<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  (MontySimul.montywin <span class="kw">true</span>);;<span class="kw">val</span> t4 : (<span class="dt">bool</span> * <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.655</span>); </span>
-<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">false</span>, <span class="fl">0.345</span>)]</span></code></pre></div>
+<li><div class="sourceCode" id="cb61"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t1 = DistribM.distrib (MontyExact.montywin <span class="kw">false</span>);;<span class="kw">val</span> t1 : (<span class="dt">bool</span> * </span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.333333333333333315</span>); (<span class="kw">false</span>, <span class="fl">0.66666666666666663</span>)]# </span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t2 = DistribM.distrib (MontyExact.montywin <span class="kw">true</span>);;<span class="kw">val</span> t2 : (<span class="dt">bool</span> * </span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.66666666666666663</span>); (<span class="kw">false</span>, <span class="fl">0.333333333333333315</span>)]# </span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t3 = Sampling1000.distrib (MontySimul.montywin <span class="kw">false</span>);;<span class="kw">val</span> t3 : (<span class="dt">bool</span> * </span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.313</span>); (<span class="kw">false</span>, <span class="fl">0.687</span>)]# <span class="kw">let</span> t4 = Sampling1000.distrib </span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>  (MontySimul.montywin <span class="kw">true</span>);;<span class="kw">val</span> t4 : (<span class="dt">bool</span> * <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.655</span>); </span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">false</span>, <span class="fl">0.345</span>)]</span></code></pre></div>
 <h3 id="conditional-probabilities">10.3 Conditional
 probabilities</h3></li>
 <li><p>Wouldn’t it be nice to have a monad-plus rather than a
@@ -6855,38 +6759,38 @@ false -&gt; return Burgl | false, true -&gt; return Earthq | true, true
 SamplingMP (struct let samples = 2000 end)module BurglarySimul =
 Burglary (Sampling2000)</p></li>
 </ul>
-<div class="sourceCode" id="cb53"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t1 = DistribMP.distrib  (BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> </span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">false</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t1 : </span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>[(BurglaryExact.Burglnearthq, <span class="fl">1.03476433660005444e-05</span>);   </span>
-<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.00452829235738691407</span>);   </span>
-<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Burgl, <span class="fl">0.00511951049003530299</span>);   </span>
-<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Safe, <span class="fl">0.99034184950921178</span>)]# <span class="kw">let</span> t2 = DistribMP.distrib  </span>
-<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> $\sim$marycalled:<span class="kw">true</span>     </span>
-<span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>$\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t2 : (BurglaryExact.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
-<span id="cb53-10"><a href="#cb53-10" aria-hidden="true" tabindex="-1"></a>[(BurglaryExact.Burglnearthq, <span class="fl">0.00057437256500405794</span>);   </span>
-<span id="cb53-11"><a href="#cb53-11" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.175492465840075218</span>);   </span>
-<span id="cb53-12"><a href="#cb53-12" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Burgl, <span class="fl">0.283597462799388911</span>);   </span>
-<span id="cb53-13"><a href="#cb53-13" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Safe, <span class="fl">0.540335698795532</span>)]# <span class="kw">let</span> t3 = DistribMP.distrib  </span>
-<span id="cb53-14"><a href="#cb53-14" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> $\sim$marycalled:<span class="kw">true</span>     </span>
-<span id="cb53-15"><a href="#cb53-15" aria-hidden="true" tabindex="-1"></a>$\sim$radio:(<span class="dt">Some</span> <span class="kw">true</span>));;    <span class="kw">val</span> t3 : (BurglaryExact.whathappened * <span class="dt">float</span>) </span>
-<span id="cb53-16"><a href="#cb53-16" aria-hidden="true" tabindex="-1"></a><span class="dt">list</span> =  [(BurglaryExact.Burglnearthq, <span class="fl">0.0032622416021499262</span>);   </span>
-<span id="cb53-17"><a href="#cb53-17" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.99673775839785006</span>)]</span>
-<span id="cb53-18"><a href="#cb53-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb53-19"><a href="#cb53-19" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t4 = Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
-<span id="cb53-20"><a href="#cb53-20" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">false</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t4 : </span>
-<span id="cb53-21"><a href="#cb53-21" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  [(BurglarySimul.Earthq, <span class="fl">0.0035</span>); </span>
-<span id="cb53-22"><a href="#cb53-22" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.Burgl, <span class="fl">0.0035</span>);   (BurglarySimul.Safe, <span class="fl">0.993</span>)]# <span class="kw">let</span> t5 = </span>
-<span id="cb53-23"><a href="#cb53-23" aria-hidden="true" tabindex="-1"></a>Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
-<span id="cb53-24"><a href="#cb53-24" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">true</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t5 : </span>
-<span id="cb53-25"><a href="#cb53-25" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
-<span id="cb53-26"><a href="#cb53-26" aria-hidden="true" tabindex="-1"></a>[(BurglarySimul.Burglnearthq, <span class="fl">0.0005</span>); (BurglarySimul.Earthq, <span class="fl">0.1715</span>);   </span>
-<span id="cb53-27"><a href="#cb53-27" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.Burgl, <span class="fl">0.2875</span>); (BurglarySimul.Safe, <span class="fl">0.5405</span>)]# <span class="kw">let</span> t6 = </span>
-<span id="cb53-28"><a href="#cb53-28" aria-hidden="true" tabindex="-1"></a>Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
-<span id="cb53-29"><a href="#cb53-29" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">true</span>     $\sim$radio:(<span class="dt">Some</span> <span class="kw">true</span>));;    <span class="kw">val</span> t6 : </span>
-<span id="cb53-30"><a href="#cb53-30" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
-<span id="cb53-31"><a href="#cb53-31" aria-hidden="true" tabindex="-1"></a>[(BurglarySimul.Burglnearthq, <span class="fl">0.0015</span>); (BurglarySimul.Earthq, <span class="fl">0.9985</span>)]</span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t1 = DistribMP.distrib  (BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> </span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">false</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t1 : </span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a>[(BurglaryExact.Burglnearthq, <span class="fl">1.03476433660005444e-05</span>);   </span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.00452829235738691407</span>);   </span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Burgl, <span class="fl">0.00511951049003530299</span>);   </span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Safe, <span class="fl">0.99034184950921178</span>)]# <span class="kw">let</span> t2 = DistribMP.distrib  </span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> $\sim$marycalled:<span class="kw">true</span>     </span>
+<span id="cb63-9"><a href="#cb63-9" aria-hidden="true" tabindex="-1"></a>$\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t2 : (BurglaryExact.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
+<span id="cb63-10"><a href="#cb63-10" aria-hidden="true" tabindex="-1"></a>[(BurglaryExact.Burglnearthq, <span class="fl">0.00057437256500405794</span>);   </span>
+<span id="cb63-11"><a href="#cb63-11" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.175492465840075218</span>);   </span>
+<span id="cb63-12"><a href="#cb63-12" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Burgl, <span class="fl">0.283597462799388911</span>);   </span>
+<span id="cb63-13"><a href="#cb63-13" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Safe, <span class="fl">0.540335698795532</span>)]# <span class="kw">let</span> t3 = DistribMP.distrib  </span>
+<span id="cb63-14"><a href="#cb63-14" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.check $\sim$johncalled:<span class="kw">true</span> $\sim$marycalled:<span class="kw">true</span>     </span>
+<span id="cb63-15"><a href="#cb63-15" aria-hidden="true" tabindex="-1"></a>$\sim$radio:(<span class="dt">Some</span> <span class="kw">true</span>));;    <span class="kw">val</span> t3 : (BurglaryExact.whathappened * <span class="dt">float</span>) </span>
+<span id="cb63-16"><a href="#cb63-16" aria-hidden="true" tabindex="-1"></a><span class="dt">list</span> =  [(BurglaryExact.Burglnearthq, <span class="fl">0.0032622416021499262</span>);   </span>
+<span id="cb63-17"><a href="#cb63-17" aria-hidden="true" tabindex="-1"></a>(BurglaryExact.Earthq, <span class="fl">0.99673775839785006</span>)]</span>
+<span id="cb63-18"><a href="#cb63-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-19"><a href="#cb63-19" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t4 = Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
+<span id="cb63-20"><a href="#cb63-20" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">false</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t4 : </span>
+<span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  [(BurglarySimul.Earthq, <span class="fl">0.0035</span>); </span>
+<span id="cb63-22"><a href="#cb63-22" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.Burgl, <span class="fl">0.0035</span>);   (BurglarySimul.Safe, <span class="fl">0.993</span>)]# <span class="kw">let</span> t5 = </span>
+<span id="cb63-23"><a href="#cb63-23" aria-hidden="true" tabindex="-1"></a>Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
+<span id="cb63-24"><a href="#cb63-24" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">true</span>     $\sim$radio:<span class="dt">None</span>);;    <span class="kw">val</span> t5 : </span>
+<span id="cb63-25"><a href="#cb63-25" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
+<span id="cb63-26"><a href="#cb63-26" aria-hidden="true" tabindex="-1"></a>[(BurglarySimul.Burglnearthq, <span class="fl">0.0005</span>); (BurglarySimul.Earthq, <span class="fl">0.1715</span>);   </span>
+<span id="cb63-27"><a href="#cb63-27" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.Burgl, <span class="fl">0.2875</span>); (BurglarySimul.Safe, <span class="fl">0.5405</span>)]# <span class="kw">let</span> t6 = </span>
+<span id="cb63-28"><a href="#cb63-28" aria-hidden="true" tabindex="-1"></a>Sampling2000.distrib  (BurglarySimul.check $\sim$johncalled:<span class="kw">true</span> </span>
+<span id="cb63-29"><a href="#cb63-29" aria-hidden="true" tabindex="-1"></a>$\sim$marycalled:<span class="kw">true</span>     $\sim$radio:(<span class="dt">Some</span> <span class="kw">true</span>));;    <span class="kw">val</span> t6 : </span>
+<span id="cb63-30"><a href="#cb63-30" aria-hidden="true" tabindex="-1"></a>(BurglarySimul.whathappened * <span class="dt">float</span>) <span class="dt">list</span> =  </span>
+<span id="cb63-31"><a href="#cb63-31" aria-hidden="true" tabindex="-1"></a>[(BurglarySimul.Burglnearthq, <span class="fl">0.0015</span>); (BurglarySimul.Earthq, <span class="fl">0.9985</span>)]</span></code></pre></div>
 <h2 id="lightweight-cooperative-threads">11 Lightweight cooperative
 threads</h2>
 <ul>
@@ -7019,8 +6923,8 @@ let thread1 = TT.loop “A” 5 in let thread2 = TT.loop “B” 4 in<br />
 Cooperative.access thread1;We ensure threads finish computing<br />
 Cooperative.access thread2before we proceed.</li>
 </ul>
-<div class="sourceCode" id="cb54"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test =    Cooperative.killthreads ();    <span class="kw">let</span> thread1 = TT.loop <span class="st">&quot;A&quot;</span> <span class="dv">5</span> <span class="kw">in</span>    <span class="kw">let</span> thread2 = TT.loop <span class="st">&quot;B&quot;</span> <span class="dv">4</span> <span class="kw">in</span>    Cooperative.access thread1;    Cooperative.access thread2;;-- A(<span class="dv">5</span>)-- B(<span class="dv">4</span>)-- A(<span class="dv">4</span>)-- B(<span class="dv">3</span>)-- A(<span class="dv">3</span>)-- B(<span class="dv">2</span>)-- A(<span class="dv">2</span>)-- B(<span class="dv">1</span>)-- A(<span class="dv">1</span>)-- B(<span class="dv">0</span>)-- A(<span class="dv">0</span>)<span class="kw">val</span> test : <span class="dt">unit</span> = ()</span></code></pre></div>
+<div class="sourceCode" id="cb64"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test =    Cooperative.killthreads ();    <span class="kw">let</span> thread1 = TT.loop <span class="st">&quot;A&quot;</span> <span class="dv">5</span> <span class="kw">in</span>    <span class="kw">let</span> thread2 = TT.loop <span class="st">&quot;B&quot;</span> <span class="dv">4</span> <span class="kw">in</span>    Cooperative.access thread1;    Cooperative.access thread2;;-- A(<span class="dv">5</span>)-- B(<span class="dv">4</span>)-- A(<span class="dv">4</span>)-- B(<span class="dv">3</span>)-- A(<span class="dv">3</span>)-- B(<span class="dv">2</span>)-- A(<span class="dv">2</span>)-- B(<span class="dv">1</span>)-- A(<span class="dv">1</span>)-- B(<span class="dv">0</span>)-- A(<span class="dv">0</span>)<span class="kw">val</span> test : <span class="dt">unit</span> = ()</span></code></pre></div>
 <p>Exercise 1.</p>
 <p>Puzzle via Oleg Kiselyov.</p>
 <p>“U2” has a concert that starts in 17 minutes and they must all cross
@@ -7760,22 +7664,22 @@ corresponding interfaces.</p></li>
 <p><code>…:…/Lec9$ ocamlopt sub1.mli…:…/Lec9$ ocamlopt  sub2.mli…:…/Lec9$ ocamlopt -c sub1.ml…:…/Lec9$  ocamlopt -c sub2.ml…:…/Lec9$ ocamlopt -c  main.ml…:…/Lec9$ ocamlopt unix.cmxa sub1.cmx sub2.cmx  main.cmx -o prog…:…/Lec9$ ./prog</code></p></li>
 <li><p>Native compilation using <code>make</code>:</p></li>
 </ul>
-<div class="sourceCode" id="cb55"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>PROG := prog</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>LIBS := unix</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>SOURCES := sub1.ml sub2.ml main.ml</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>INTERFACES := $(wildcard *.mli)</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>OBJS := $(patsubst %.ml,%.cmx,$(SOURCES))</span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>LIBS := $(patsubst %,%.cmxa,$(LIBS))</span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>$(PROG): $(OBJS)</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>ocamlopt -o $@ $(LIBS) $(OBJS)</span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>clean: rm -rf $(PROG) *.o *.cmx *.cmi *~</span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>%.cmx: %.ml</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>ocamlopt -c $*.ml</span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a>%.cmi: %.mli</span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>ocamlopt -c $*.mli</span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>depend: $(SOURCES) $(INTERFACES)</span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>ocamldep -native $(SOURCES) $(INTERFACES)</span></code></pre></div>
+<div class="sourceCode" id="cb65"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>PROG := prog</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>LIBS := unix</span>
+<span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>SOURCES := sub1.ml sub2.ml main.ml</span>
+<span id="cb65-4"><a href="#cb65-4" aria-hidden="true" tabindex="-1"></a>INTERFACES := $(wildcard *.mli)</span>
+<span id="cb65-5"><a href="#cb65-5" aria-hidden="true" tabindex="-1"></a>OBJS := $(patsubst %.ml,%.cmx,$(SOURCES))</span>
+<span id="cb65-6"><a href="#cb65-6" aria-hidden="true" tabindex="-1"></a>LIBS := $(patsubst %,%.cmxa,$(LIBS))</span>
+<span id="cb65-7"><a href="#cb65-7" aria-hidden="true" tabindex="-1"></a>$(PROG): $(OBJS)</span>
+<span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>ocamlopt -o $@ $(LIBS) $(OBJS)</span>
+<span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>clean: rm -rf $(PROG) *.o *.cmx *.cmi *~</span>
+<span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a>%.cmx: %.ml</span>
+<span id="cb65-11"><a href="#cb65-11" aria-hidden="true" tabindex="-1"></a>ocamlopt -c $*.ml</span>
+<span id="cb65-12"><a href="#cb65-12" aria-hidden="true" tabindex="-1"></a>%.cmi: %.mli</span>
+<span id="cb65-13"><a href="#cb65-13" aria-hidden="true" tabindex="-1"></a>ocamlopt -c $*.mli</span>
+<span id="cb65-14"><a href="#cb65-14" aria-hidden="true" tabindex="-1"></a>depend: $(SOURCES) $(INTERFACES)</span>
+<span id="cb65-15"><a href="#cb65-15" aria-hidden="true" tabindex="-1"></a>ocamldep -native $(SOURCES) $(INTERFACES)</span></code></pre></div>
 <ul>
 <li>First use command:
 <code>touch .depend; make depend; make</code></li>
@@ -8221,13 +8125,13 @@ starts with an index in brackets.</li>
 below.</li>
 </ul></li>
 </ul>
-<div class="sourceCode" id="cb57"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>index % time    self  children    called     name</span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>-----------------------------------------------</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>                <span class="fl">0.00</span>    <span class="fl">6.47</span>  <span class="dv">273169</span>/<span class="dv">273169</span>  camlList__fold_left_1078 [<span class="dv">7</span>]</span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>[<span class="dv">8</span>]     <span class="fl">28.7</span>    <span class="fl">0.00</span>    <span class="fl">6.47</span>  <span class="dv">273169</span>         camlOptim0__increment_1038 [<span class="dv">8</span>]</span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>                <span class="fl">4.50</span>    <span class="fl">0.00</span>  <span class="dv">273169</span>/<span class="dv">273169</span>  camlList__assoc_1169 [<span class="dv">9</span>]</span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>               <span class="fl">1.97</span>    <span class="fl">0.00</span>  <span class="dv">260756</span>/<span class="dv">260756</span>  camlList__remove_assoc_1189 [<span class="dv">11</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb67"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>index % time    self  children    called     name</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>-----------------------------------------------</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>                <span class="fl">0.00</span>    <span class="fl">6.47</span>  <span class="dv">273169</span>/<span class="dv">273169</span>  camlList__fold_left_1078 [<span class="dv">7</span>]</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>[<span class="dv">8</span>]     <span class="fl">28.7</span>    <span class="fl">0.00</span>    <span class="fl">6.47</span>  <span class="dv">273169</span>         camlOptim0__increment_1038 [<span class="dv">8</span>]</span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a>                <span class="fl">4.50</span>    <span class="fl">0.00</span>  <span class="dv">273169</span>/<span class="dv">273169</span>  camlList__assoc_1169 [<span class="dv">9</span>]</span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>               <span class="fl">1.97</span>    <span class="fl">0.00</span>  <span class="dv">260756</span>/<span class="dv">260756</span>  camlList__remove_assoc_1189 [<span class="dv">11</span>]</span></code></pre></div>
 <ul>
 <li>As expected, <code>increment</code> is only called by
 List.fold_left. But it seems to account for only 29% of time. It is
@@ -9887,19 +9791,19 @@ around.</li>
 types that represent a data structure with one of elements stored in it
 missing.</li>
 </ul>
-<div class="sourceCode" id="cb60"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
 <p><span class="math display"> \begin{matrix}
   T &amp; = &amp; 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} &amp; = &amp; 0 + T^2 + 2 xT
 \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
 \end{matrix} </span></p>
-<div class="sourceCode" id="cb61"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_dir = LeftBranch | RightBranch</span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_deriv =</span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  | Here <span class="kw">of</span> btree * btree</span>
-<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>  | Below <span class="kw">of</span> btree_dir * <span class="dt">int</span> * btree * btree_deriv</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_dir = LeftBranch | RightBranch</span>
+<span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_deriv =</span>
+<span id="cb71-3"><a href="#cb71-3" aria-hidden="true" tabindex="-1"></a>  | Here <span class="kw">of</span> btree * btree</span>
+<span id="cb71-4"><a href="#cb71-4" aria-hidden="true" tabindex="-1"></a>  | Below <span class="kw">of</span> btree_dir * <span class="dt">int</span> * btree * btree_deriv</span></code></pre></div>
 <ul>
 <li><p><strong>Location = context + subtree</strong>! But there’s a
 problem above.</p></li>
@@ -10674,19 +10578,19 @@ opengraph ““; displaymode false; loop 0 0 640 512 false
 (Unix.gettimeofday ()); closegraph ()</p></li>
 <li><p>The simple behaviors as in <code>Lec10b.ml</code>. Pragmatic
 (impure) bouncing:</p>
-<div class="sourceCode" id="cb62"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pbal vel =  <span class="kw">let</span> xbounce, bouncex = makeevent () <span class="kw">in</span>  <span class="kw">let</span> ybounce, bouncey </span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>=</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>makeevent () <span class="kw">in</span>  <span class="kw">let</span> xvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel xbounce</span>
-<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span>  <span class="kw">let</span> yvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel ybounce <span class="kw">in</span>  <span class="kw">let</span> xpos =</span>
-<span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a>integres xvel +* width /* !*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> ypos = integres yvel +* height /*</span>
-<span id="cb62-6"><a href="#cb62-6" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> xbounce = whentrue    ((xpos &gt;* width -* !*<span class="dv">27</span>) ||*</span>
-<span id="cb62-7"><a href="#cb62-7" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* !*<span class="dv">27</span>)) <span class="kw">in</span>  notifye xbounce (send bouncex);  <span class="kw">let</span> ybounce =</span>
-<span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>whentrue (    (ypos &gt;* height -* !*<span class="dv">27</span>) ||*      ((ypos &lt;*</span>
-<span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">17</span>) &amp;&amp;* (ypos &gt;* !*<span class="dv">7</span>) &amp;&amp;*          (xpos &gt;* mousex) &amp;&amp;*</span>
-<span id="cb62-10"><a href="#cb62-10" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* mousex +* !*<span class="dv">50</span>))) <span class="kw">in</span>  notifye ybounce (send bouncey);</span>
-<span id="cb62-11"><a href="#cb62-11" aria-hidden="true" tabindex="-1"></a>lift4 (<span class="kw">fun</span> x y   -&gt; Color (Graphics.red, Circle (x, y, <span class="dv">6</span>)))    xpos ypos</span>
-<span id="cb62-12"><a href="#cb62-12" aria-hidden="true" tabindex="-1"></a>(hold () xbounce) (hold () ybounce)</span></code></pre></div></li>
+<div class="sourceCode" id="cb72"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pbal vel =  <span class="kw">let</span> xbounce, bouncex = makeevent () <span class="kw">in</span>  <span class="kw">let</span> ybounce, bouncey </span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a>=</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a>makeevent () <span class="kw">in</span>  <span class="kw">let</span> xvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel xbounce</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span>  <span class="kw">let</span> yvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel ybounce <span class="kw">in</span>  <span class="kw">let</span> xpos =</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a>integres xvel +* width /* !*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> ypos = integres yvel +* height /*</span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> xbounce = whentrue    ((xpos &gt;* width -* !*<span class="dv">27</span>) ||*</span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* !*<span class="dv">27</span>)) <span class="kw">in</span>  notifye xbounce (send bouncex);  <span class="kw">let</span> ybounce =</span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>whentrue (    (ypos &gt;* height -* !*<span class="dv">27</span>) ||*      ((ypos &lt;*</span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">17</span>) &amp;&amp;* (ypos &gt;* !*<span class="dv">7</span>) &amp;&amp;*          (xpos &gt;* mousex) &amp;&amp;*</span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* mousex +* !*<span class="dv">50</span>))) <span class="kw">in</span>  notifye ybounce (send bouncey);</span>
+<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a>lift4 (<span class="kw">fun</span> x y   -&gt; Color (Graphics.red, Circle (x, y, <span class="dv">6</span>)))    xpos ypos</span>
+<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>(hold () xbounce) (hold () ybounce)</span></code></pre></div></li>
 <li><p>We hold on to xbounce and ybounce above to prevent garbage
 collecting them. We could instead remember them in the “toplevel”:</p>
 <p>let pbal vel = … xbounce, ybounce, lift2 (fun x y -&gt; Color

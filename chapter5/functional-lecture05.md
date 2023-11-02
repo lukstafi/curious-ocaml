@@ -153,7 +153,7 @@ $$ \begin{matrix}
   (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
   \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
-  \text{{\texttt{->}}} e : \tau \rrbracket & = & \exists 
+  {\texttt{->}} e : \tau \rrbracket & = & \exists 
 \alpha
  _{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
   \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha

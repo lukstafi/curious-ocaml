@@ -62,20 +62,20 @@ sin''' pi;;
 
   $$ \begin{matrix}
   a := & x & \text{variables}\\\\\\
-  | & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a &
+  | & {\texttt{fun }} x {\texttt{->}} a &
   \text{(defined) functions}\\\\\\
   | & a a & \text{applications}\\\\\\
   | & C^0 & \text{value constructors of arity } 0\\\\\\
   | & C^n (a, \ldots, a) & \text{value constructors of arity } n \\\\\\
   | & f^n & \text{built-in values (primitives) of a. } n\\\\\\
-  | & \text{{\texttt{let }}} x = a \text{{\texttt{ in }}} a
+  | & {\texttt{let }} x = a {\texttt{ in }} a
   & \text{name bindings (local definitions)}\\\\\\
-  | & \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
+  | & {\texttt{match }} a {\texttt{ with} \ \
   \ \ \ \ \ } &  \\\\\\
-  & p \text{{\texttt{->}}} a \text{{\texttt{ \textbar
+  & p {\texttt{->}} a \text{{\texttt{ \textbar
   }}}
-  \ldots \text{{\texttt{ \textbar }}} p
-  \text{{\texttt{->}}}
+  \ldots {\texttt{ \textbar }} p
+  {\texttt{->}}
   a & \text{pattern matching}\\\\\\
   p := & x & \text{pattern variables}\\\\\\
   | & (p, \ldots, p) & \text{tuple patterns}\\\\\\
@@ -86,15 +86,15 @@ sin''' pi;;
 * To simplify presentation, we will use a primitive `fix` to define a limited 
   form of `let rec`:
 
-  $$ \text{{\texttt{let rec }}} f \text{{\texttt{ }}} x =
-   e_{1} \text{{\texttt{ in }}} e_{2} \equiv
-   \text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
-   \text{{\texttt{ }}} x \text{{\texttt{->}}} e_{1}
-   \text{{\texttt{) in }}} e_{2} $$
+  $$ {\texttt{let rec }} f {\texttt{ }} x =
+   e_{1} {\texttt{ in }} e_{2} \equiv
+   {\texttt{let }} f = {\texttt{fix (fun }} f
+   {\texttt{ }} x {\texttt{->}} e_{1}
+   {\texttt{) in }} e_{2} $$
 * Expressions evaluate (i.e. compute) to **values**:
 
   $$ \begin{matrix}
-  v := & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  v := & {\texttt{fun }} x {\texttt{->}} a
   &
   \text{(defined) functions}\\\\\\
   | & C^n (v_{1}, \ldots, v_{n}) & \text{constructed values}\\\\\\
@@ -107,26 +107,26 @@ sin''' pi;;
 * Reduction (i.e. computation) proceeds as follows: first we give *redexes*
 
   $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
-  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
+  {\texttt{let }} x = v {\texttt{ in }} a &
   \rightsquigarrow & a [x := v]\\\\\\
   f^n v_{1} \ldots v_{n} & \rightsquigarrow & f (v_{1}, \ldots,
   v_{n})\\\\\\
-  \text{{\texttt{match }}} v \text{{\texttt{ with}} } x
-  \text{{\texttt{->}}} a \text{{\texttt{ \textbar }}}
+  {\texttt{match }} v {\texttt{ with} } x
+  {\texttt{->}} a {\texttt{ \textbar }}
   \ldots
   & \rightsquigarrow & a [x := v]\\\\\\
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} & \rightsquigarrow &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$
 
   If $n = 0$, $C_{1}^n (v_{1}, \ldots, v_{n})$ stands for $C^0_{1}$, etc. 
@@ -146,20 +146,20 @@ sin''' pi;;
   a_{1} a_{2} & \rightsquigarrow & a_{1} a_{2}'\\\\\\
   C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) & \rightsquigarrow & C^n
   (a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
-  \text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
-  a_{2} & \rightsquigarrow & \text{{\texttt{let }}} x = a_{1}'
-  \text{{\texttt{ in }}} a_{2}\\\\\\
-  \text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
-  \operatorname{pm} & \rightsquigarrow & \text{{\texttt{match }}}
-  a_{1}' \text{{\texttt{ with}} } \operatorname{pm} \end{matrix} $$
+  {\texttt{let }} x = a_{1} {\texttt{ in }}
+  a_{2} & \rightsquigarrow & {\texttt{let }} x = a_{1}'
+  {\texttt{ in }} a_{2}\\\\\\
+  {\texttt{match }} a_{1} {\texttt{ with} }
+  \operatorname{pm} & \rightsquigarrow & {\texttt{match }}
+  a_{1}' {\texttt{ with} } \operatorname{pm} \end{matrix} $$
 * Finally, we give the rule for the primitive `fix` – it is a binary 
   primitive:
 
   $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix} $$
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2} \end{matrix} $$
 
-  Because `fix` is binary, $\left( \text{{\texttt{fix}}}^2 v_{1} 
+  Because `fix` is binary, $\left( {\texttt{fix}}^2 v_{1} 
   \right)$ is already a value so it will not be further computed until it is 
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.

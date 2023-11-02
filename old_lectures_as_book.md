@@ -41,7 +41,9 @@ $\frac{\begin{array}{ll}   a & b \end{array}}{c}$ matches parts of the tree
 that have two premises, represented by variables $a$ and $b$, and have any 
 conclusion, represented by variable $c$.
 
-Try to use only the connective you define in its definition.# 2 Rules for Logical Connectives
+Try to use only the connective you define in its definition.
+
+## 2 Rules for Logical Connectives
 
 Introduction rules say how to produce a connective.
 
@@ -49,33 +51,13 @@ Elimination rules say how to use it.
 
 Text in parentheses is comments. Letters are variables: stand for anything.
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td></td>
-    <td style="text-align: left">Introduction Rules</td>
-    <td>Elimination Rules</td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td>doesn't have</td>
-  </tr><tr>
-    <td></td>
-    <td>doesn't have</td>
-    <td style="text-align: center"> </td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-  </tr></tbody>
-</table>
+| Connective | Introduction Rules | Elimination Rules
+|------------|--------------------|------------------
+| $\top$ | $\frac{}{\top}$ | doesn't have
+| $\bot$ | doesn't have |  $\frac{\bot}{a}$ (i.e. anything)
+| $\wedge$ | $\frac{a \; b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) $\frac{a \wedge b}{b}$ (take second)
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{c} \tiny{y}} \atop {\text{\textbar}}} \atop {b}} (\text{consider }b)}{c}$ using $x, y$
+| $\rightarrow$ | $\frac{{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}}{a \rightarrow b}$ using $x$ | $\frac{{a \rightarrow b} \; a}{b}$
 
 Notations
 
@@ -126,53 +108,16 @@ $$ \frac{\begin{array}{rr}
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
 and using it for $x$ we can derive it for the successor $x + 1$, where $x$ is 
 a unique variable (we cannot substitute for it some particular number, because 
-we write “using $x$” on the side).# 3 Logos was Programmed in OCaml
+we write “using $x$” on the side).
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td>Logic</td>
-    <td>Type</td>
-    <td>Expr.</td>
-    <td style="text-align: left">Introduction Rules</td>
-    <td>Elimination Rules</td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">unit</tt></td>
-    <td><tt class="verbatim">()</tt></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">'a</tt></td>
-    <td><tt class="verbatim">raise</tt></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">*</tt></td>
-    <td><tt class="verbatim">(,)</tt></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: left"><tt class="verbatim">|</tt></td>
-    <td><tt class="verbatim">match</tt></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">-&gt;</tt></td>
-    <td><tt class="verbatim">fun</tt></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"> </td>
-  </tr><tr>
-    <td>induction</td>
-    <td></td>
-    <td><tt class="verbatim">rec</tt></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-  </tr></tbody>
-</table>## 3.1 Definitions
+## 3 Logos was Programmed in OCaml
+
+| Logic | Type | Expression | Introduction Rules | Elimination Rules
+|-------|------|------------|--------------------|------------------
+| $\top$ | `unit` | `()` | $\frac{\;}{\texttt{()} : \texttt{unit}}$
+
+
+### 3.1 Definitions
 
 Writing out expressions and types repetitively is tedious: we need 
 definitions. **Definitions for types** are written: `type ty =` some type.
@@ -200,8 +145,7 @@ type int_string_record = {a: int; b: string}
   and create its values: `{a = 7; b = "Mary"}`.
 * We access the *fields* of records using the dot notation:
 
-  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{{\texttt{rec}} } x 
-\text{{\texttt{=}}} e$ in the table was cheating: `rec` (usually 
+  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression ${\texttt{rec}} \; x \; {\texttt{=}} \; e$ in the table was cheating: `rec` (usually 
 called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 
 **Definitions for expressions** are introduced by rules a bit more complex 
@@ -210,8 +154,8 @@ than these:
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
-   e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
+   \end{array}}{{\texttt{let}} \; x \; {\texttt{=}} \;
+   e_{1} \; {\texttt{in}} \; e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
@@ -219,19 +163,18 @@ $\rightarrow$), and:
 $$ \frac{\begin{array}{ll}
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let rec}} } x
-   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
-   \: b} $$
+   \end{array}}{{\texttt{let rec}} \; x \;
+   {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 
   top-level, not nested in expressions, and they extend from the point they 
   occur till the end of the source file or interactive session.
-* `let`-`in` definitions for expressions: $\text{{\texttt{let}} } x 
-  \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
+* `let`-`in` definitions for expressions: ${\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1} \; {\texttt{in}} \; e_{2}$ 
   are *local*, $x$ is only visible in $e_{2}$. But `let` definitions are 
-  global: placing $\text{{\texttt{let}} } x 
-  \text{{\texttt{=}}} e_{1}$ at the top-level makes $x$ visible from 
+  global: placing ${\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1}$ at the top-level makes $x$ visible from 
   after $e_{1}$ till the end of the source file or interactive session.
 * In the interactive session, we mark an end of a top-level “sentence” by ;; – 
   it is unnecessary in source files.
@@ -243,7 +186,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
 * Operators in OCaml are **not overloaded**. It means, that every type needs 
   its own set of operators. For example, +, *, / work for intigers, while +., 
   *., /. work for floating point numbers. **Exception:** comparisons <, 
-  =, etc. work for all values other than functions.# 4 Exercises
+  =, etc. work for all values other than functions.
+  
+  ## 4 Exercises
 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.
@@ -318,15 +263,15 @@ For a refresher, let's try to use the rules we introduced last time on some
 simple examples. Starting with `fun x -> x`. $[?]$ will mean “dunno yet”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{{\texttt{fun x -> x}}} : [?]} & \text{use }
+  & \frac{[?]}{{\texttt{fun x -> x}} : [?]} & \text{use }
   \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : [?] \rightarrow [?]}
-  & \frac{\,}{\text{{\texttt{x}}} : a} \tiny{x} \text{ matches with }
+  & \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -> x}} : [?] \rightarrow [?]}
+  & \frac{\,}{{\texttt{x}} : a} \tiny{x} \text{ matches with }
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
- \text{ since } e = \text{{\texttt{x}}}\\\\\\
-  & \frac{\frac{\,}{\text{{\texttt{x}}} : a}
-  \tiny{x}}{\text{{\texttt{fun x -> x}}} : a \rightarrow a} &
+ \text{ since } e = {\texttt{x}}\\\\\\
+  & \frac{\frac{\,}{{\texttt{x}} : a}
+  \tiny{x}}{{\texttt{fun x -> x}} : a \rightarrow a} &
   \text{since } b = a \text{ because } x : a \text{ matched with } e : b
 \end{matrix} $$
 
@@ -342,87 +287,87 @@ Let's try `fun x -> x+1`, which is the same as `fun x -> ((+) x)
 in other places with $[? \alpha]$”.
 
 $$ \begin{matrix}
-  & \frac{[?]}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?]} &
+  & \frac{[?]}{{\texttt{fun x -> ((+) x) 1}} : [?]} &
   \text{use } \rightarrow \text{ introduction:}\\\\\\
-  & \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  & \frac{\frac{[?]}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{use } \rightarrow \text{ elimination:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
-    \alpha]} & \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+    \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
+    \alpha]} & \frac{[?]}{{\texttt{1}} : [? \beta]}
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
-  \alpha]} & \text{we know that \text{{\texttt{1}}}} :
-  \text{{\texttt{int}}}\\\\\\
+  \alpha]} & \text{we know that {\texttt{1}}} :
+  {\texttt{int}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
-    \frac{[?]}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+    \frac{[?]}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{application again:}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-      \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &
+      \frac{[?]}{{\texttt{x}} : [? \gamma]}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
-  \alpha]} & \text{it's our \text{{\texttt{x}}}!}\\\\\\
+  \alpha]} & \text{it's our {\texttt{x}}!}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-      \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-      \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-    \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+      {\texttt{int}} \rightarrow [? \alpha]} &
+      \frac{\,}{{\texttt{x}} : [? \gamma]}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow [? \alpha]} &
+    \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-  \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [? \gamma]
-  \rightarrow [? \alpha]} & \text{but \text{{\texttt{(+)}}}} :
-  \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-  \rightarrow \text{{\texttt{int}}}\\\\\\
+  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [? \gamma]
+  \rightarrow [? \alpha]} & \text{but {\texttt{(+)}}} :
+  {\texttt{int}} \rightarrow {\texttt{int}}
+  \rightarrow {\texttt{int}}\\\\\\
   & \frac{\frac{\begin{array}{ll}
     \frac{\begin{array}{ll}
-      \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-      \rightarrow \text{{\texttt{int}}} \rightarrow
-      \text{{\texttt{int}}}} \tiny{\text{(constant)}} &
-      \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
-      \tiny{\text{{\texttt{x}}}}
-    \end{array}}{\text{{\texttt{(+) x}}} :
-    \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}}
-    & \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+      \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
+      \rightarrow {\texttt{int}} \rightarrow
+      {\texttt{int}}} \tiny{\text{(constant)}} &
+      \frac{\,}{{\texttt{x}} : {\texttt{int}}}
+      \tiny{{\texttt{x}}}
+    \end{array}}{{\texttt{(+) x}} :
+    {\texttt{int}} \rightarrow {\texttt{int}}}
+    & \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{\text{{\texttt{((+) x) 1}}} :
-  \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
-  1}}}} : \text{{\texttt{int}}} \rightarrow
-  \text{{\texttt{int}}}} &
+  \end{array}}{{\texttt{((+) x) 1}} :
+  {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
+  1}}} : {\texttt{int}} \rightarrow
+  {\texttt{int}}} &
 \end{matrix} $$
 
 ### 1.1 Curried form
 
 When there are several arrows “on the same depth” in a function type, it means 
-that the function returns a function: e.g. $\text{{\texttt{(+)}}} : 
-\text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}} 
-\rightarrow \text{{\texttt{int}}}$ is just a shorthand for 
-$\text{{\texttt{(+)}}} : \text{{\texttt{int}}} \rightarrow 
-\left( \text{{\texttt{int}}} \rightarrow 
-\text{{\texttt{int}}} \right)$. It is very different from
+that the function returns a function: e.g. ${\texttt{(+)}} : 
+{\texttt{int}} \rightarrow {\texttt{int}} 
+\rightarrow {\texttt{int}}$ is just a shorthand for 
+${\texttt{(+)}} : {\texttt{int}} \rightarrow 
+\left( {\texttt{int}} \rightarrow 
+{\texttt{int}} \right)$. It is very different from
 
-$$ \text{{\texttt{fun f -> (f 1) + 1}}} : \left(
-   \text{{\texttt{int}}} \rightarrow \text{{\texttt{int}}}
-   \right) \rightarrow \text{{\texttt{int}}} $$
+$$ {\texttt{fun f -> (f 1) + 1}} : \left(
+   {\texttt{int}} \rightarrow {\texttt{int}}
+   \right) \rightarrow {\texttt{int}} $$
 
 For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What 
 expanded form does `((+) 1)` correspond to exactly (computationally)?
@@ -821,34 +766,34 @@ predicate does not hold for any node.
 
 Type inference example derivation
 
-$$ \frac{[?]}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?]} $$
+$$ \frac{[?]}{{\texttt{fun x -> ((+) x) 1}} : [?]} $$
 
 $$ \text{use } \rightarrow \text{ introduction:} $$
 
-$$ \frac{\frac{[?]}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+$$ \frac{\frac{[?]}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
 $$ \text{use } \rightarrow \text{ elimination:} $$
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{{\texttt{(+) x}}} : [? \beta] \rightarrow [?
-     \alpha]} & \frac{[?]}{\text{{\texttt{1}}} : [? \beta]}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+     \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
+     \alpha]} & \frac{[?]}{{\texttt{1}} : [? \beta]}
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
-$$ \text{we know that \text{{\texttt{1}}}} : \text{{\texttt{int}}} $$
+$$ \text{we know that {\texttt{1}}} : {\texttt{int}} $$
 
 $$ \frac{\frac{\begin{array}{ll}
-     \frac{[?]}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+     \frac{[?]}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
@@ -856,53 +801,53 @@ $$ \text{application again:} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-       \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-       \frac{[?]}{\text{{\texttt{x}}} : [? \gamma]}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+       {\texttt{int}} \rightarrow [? \alpha]} &
+       \frac{[?]}{{\texttt{x}} : [? \gamma]}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [?] 
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
-$$ \text{it's our \text{{\texttt{x}}}!} $$
+$$ \text{it's our {\texttt{x}}!} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{[?]}{\text{{\texttt{(+)}}} : [? \gamma] \rightarrow
-       \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-       \frac{\,}{\text{{\texttt{x}}} : [? \gamma]}
-       \text{{\texttt{x}}}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow [? \alpha]} &
-     \frac{\,}{\text{{\texttt{1}}} : \text{{\texttt{int}}}}
+       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
+       {\texttt{int}} \rightarrow [? \alpha]} &
+       \frac{\,}{{\texttt{x}} : [? \gamma]}
+       {\texttt{x}}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow [? \alpha]} &
+     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} : [?
-   \alpha]}}{\text{{\texttt{fun x -> ((+) x) 1}}} : [? \gamma]
+   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [? \gamma]
    \rightarrow [? \alpha]} $$
 
-$$ \text{but \text{{\texttt{(+)}}}} : \text{{\texttt{int}}}
-   \rightarrow \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}} $$
+$$ \text{but {\texttt{(+)}}} : {\texttt{int}}
+   \rightarrow {\texttt{int}} \rightarrow
+   {\texttt{int}} $$
 
 $$ \frac{\frac{\begin{array}{ll}
      \frac{\begin{array}{ll}
-       \frac{\,}{\text{{\texttt{(+)}}} : \text{{\texttt{int}}}
-       \rightarrow \text{{\texttt{int}}} \rightarrow
-       \text{{\texttt{int}}}} \tiny{\text{(constant)}} &
-       \frac{\,}{\text{{\texttt{x}}} : \text{{\texttt{int}}}}
-       \text{{\texttt{x}}}
-     \end{array}}{\text{{\texttt{(+) x}}} :
-     \text{{\texttt{int}}} \rightarrow
-     \text{{\texttt{int}}}} & \frac{\,}{\text{{\texttt{1}}} :
-     \text{{\texttt{int}}}} \tiny{\text{(constant)}}
-   \end{array}}{\text{{\texttt{((+) x) 1}}} :
-   \text{{\texttt{int}}}}}{\text{\text{{\texttt{fun x -> ((+) x)
-   1}}}} : \text{{\texttt{int}}} \rightarrow
-   \text{{\texttt{int}}}} $$
+       \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
+       \rightarrow {\texttt{int}} \rightarrow
+       {\texttt{int}}} \tiny{\text{(constant)}} &
+       \frac{\,}{{\texttt{x}} : {\texttt{int}}}
+       {\texttt{x}}
+     \end{array}}{{\texttt{(+) x}} :
+     {\texttt{int}} \rightarrow
+     {\texttt{int}}} & \frac{\,}{{\texttt{1}} :
+     {\texttt{int}}} \tiny{\text{(constant)}}
+   \end{array}}{{\texttt{((+) x) 1}} :
+   {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
+   1}}} : {\texttt{int}} \rightarrow
+   {\texttt{int}}} $$
 
 
 Exercise 1.
@@ -1092,20 +1037,20 @@ sin''' pi;;
 
   $$ \begin{matrix}
   a := & x & \text{variables}\\\\\\
-  | & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a &
+  | & {\texttt{fun }} x {\texttt{->}} a &
   \text{(defined) functions}\\\\\\
   | & a a & \text{applications}\\\\\\
   | & C^0 & \text{value constructors of arity } 0\\\\\\
   | & C^n (a, \ldots, a) & \text{value constructors of arity } n \\\\\\
   | & f^n & \text{built-in values (primitives) of a. } n\\\\\\
-  | & \text{{\texttt{let }}} x = a \text{{\texttt{ in }}} a
+  | & {\texttt{let }} x = a {\texttt{ in }} a
   & \text{name bindings (local definitions)}\\\\\\
-  | & \text{{\texttt{match }}} a \text{{\texttt{ with}} \ \
+  | & {\texttt{match }} a {\texttt{ with} \ \
   \ \ \ \ \ } &  \\\\\\
-  & p \text{{\texttt{->}}} a \text{\text{{\texttt{ \textbar
-  }}}}
-  \ldots \text{{\texttt{ \textbar }}} p
-  \text{{\texttt{->}}}
+  & p {\texttt{->}} a \text{{\texttt{ \textbar
+  }}}
+  \ldots {\texttt{ \textbar }} p
+  {\texttt{->}}
   a & \text{pattern matching}\\\\\\
   p := & x & \text{pattern variables}\\\\\\
   | & (p, \ldots, p) & \text{tuple patterns}\\\\\\
@@ -1116,15 +1061,15 @@ sin''' pi;;
 * To simplify presentation, we will use a primitive `fix` to define a limited 
   form of `let rec`:
 
-  $$ \text{{\texttt{let rec }}} f \text{{\texttt{ }}} x =
-   e_{1} \text{{\texttt{ in }}} e_{2} \equiv
-   \text{{\texttt{let }}} f = \text{{\texttt{fix (fun }}} f
-   \text{{\texttt{ }}} x \text{{\texttt{->}}} e_{1}
-   \text{{\texttt{) in }}} e_{2} $$
+  $$ {\texttt{let rec }} f {\texttt{ }} x =
+   e_{1} {\texttt{ in }} e_{2} \equiv
+   {\texttt{let }} f = {\texttt{fix (fun }} f
+   {\texttt{ }} x {\texttt{->}} e_{1}
+   {\texttt{) in }} e_{2} $$
 * Expressions evaluate (i.e. compute) to **values**:
 
   $$ \begin{matrix}
-  v := & \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  v := & {\texttt{fun }} x {\texttt{->}} a
   &
   \text{(defined) functions}\\\\\\
   | & C^n (v_{1}, \ldots, v_{n}) & \text{constructed values}\\\\\\
@@ -1137,26 +1082,26 @@ sin''' pi;;
 * Reduction (i.e. computation) proceeds as follows: first we give *redexes*
 
   $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
-  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
+  {\texttt{let }} x = v {\texttt{ in }} a &
   \rightsquigarrow & a [x := v]\\\\\\
   f^n v_{1} \ldots v_{n} & \rightsquigarrow & f (v_{1}, \ldots,
   v_{n})\\\\\\
-  \text{{\texttt{match }}} v \text{{\texttt{ with}} } x
-  \text{{\texttt{->}}} a \text{{\texttt{ \textbar }}}
+  {\texttt{match }} v {\texttt{ with} } x
+  {\texttt{->}} a {\texttt{ \textbar }}
   \ldots
   & \rightsquigarrow & a [x := v]\\\\\\
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} & \rightsquigarrow &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}] \end{matrix} $$
 
   If $n = 0$, $C_{1}^n (v_{1}, \ldots, v_{n})$ stands for $C^0_{1}$, etc. 
@@ -1176,20 +1121,20 @@ sin''' pi;;
   a_{1} a_{2} & \rightsquigarrow & a_{1} a_{2}'\\\\\\
   C^n (a_{1}, \ldots, a_{i}, \ldots, a_{n}) & \rightsquigarrow & C^n
   (a_{1}, \ldots, a_{i}', \ldots, a_{n})\\\\\\
-  \text{{\texttt{let }}} x = a_{1} \text{{\texttt{ in }}}
-  a_{2} & \rightsquigarrow & \text{{\texttt{let }}} x = a_{1}'
-  \text{{\texttt{ in }}} a_{2}\\\\\\
-  \text{{\texttt{match }}} a_{1} \text{{\texttt{ with}} }
-  \operatorname{pm} & \rightsquigarrow & \text{{\texttt{match }}}
-  a_{1}' \text{{\texttt{ with}} } \operatorname{pm} \end{matrix} $$
+  {\texttt{let }} x = a_{1} {\texttt{ in }}
+  a_{2} & \rightsquigarrow & {\texttt{let }} x = a_{1}'
+  {\texttt{ in }} a_{2}\\\\\\
+  {\texttt{match }} a_{1} {\texttt{ with} }
+  \operatorname{pm} & \rightsquigarrow & {\texttt{match }}
+  a_{1}' {\texttt{ with} } \operatorname{pm} \end{matrix} $$
 * Finally, we give the rule for the primitive `fix` – it is a binary 
   primitive:
 
   $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2} \end{matrix} $$
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2} \end{matrix} $$
 
-  Because `fix` is binary, $\left( \text{{\texttt{fix}}}^2 v_{1} 
+  Because `fix` is binary, $\left( {\texttt{fix}}^2 v_{1} 
   \right)$ is already a value so it will not be further computed until it is 
   applied inside of $v_{1}$.
 * Compute some programs using the rules by hand.
@@ -1369,7 +1314,7 @@ let length =  fix (fun f l ->    match l with      | Nil -> 0      |
 Cons (x, xs) -> 1 + f xs) inlength (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{{\texttt{let }}} x = v \text{{\texttt{ in }}} a &
+  {\texttt{let }} x = v {\texttt{ in }} a &
   \Downarrow & a [x := v]
 \end{matrix} $$
 
@@ -1377,15 +1322,15 @@ $$ \begin{matrix}
 xs) -> 1 + f xs) (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
+  {\texttt{fix}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
+  {\texttt{fix}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} &
+  {\texttt{fix}}^2 v_{1} v_{2} &
   \Downarrow & v_{1}  \left(
-  \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}
+  {\texttt{fix}}^2 v_{1} \right) v_{2}
 \end{matrix} $$
 
   (fun f l ->    match l with      | Nil -> 0      | Cons (x, 
@@ -1394,14 +1339,14 @@ Nil -> 0        | Cons (x, xs) -> 1 + f xs))    (Cons (1, (Cons (2,
 Nil))))
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1}' a_{2}
@@ -1412,13 +1357,13 @@ $$ \begin{matrix}
 | Cons (x, xs) -> 1 + f xs)) xs)     (Cons (1, (Cons (2, Nil))))
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \Downarrow & a [x :=
   v]
 \end{matrix} $$
@@ -1428,23 +1373,23 @@ xs) -> 1 + (fix (fun f l ->      match l with        | Nil -> 0
     | Cons (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} &
   \Downarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} &
   \Downarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}
 \end{matrix} $$
 
   (match Cons (1, (Cons (2, Nil))) with    | Cons (x, xs) -> 1 + (fix (fun 
@@ -1452,19 +1397,19 @@ f l ->      match l with        | Nil -> 0        | Cons (x,
 xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]
 \end{matrix} $$
@@ -1473,15 +1418,15 @@ $$ \begin{matrix}
 Cons (x, xs) -> 1 + f xs)) (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -1492,14 +1437,14 @@ with             | Nil -> 0             | Cons (x, xs) -> 1 + f xs))
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1511,14 +1456,14 @@ Cons (x, xs) -> 1 + (fix (fun f l ->            match l with
 (Cons (2, Nil))
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1529,23 +1474,23 @@ xs) -> 1 + (fix (fun f l ->           match l with             |
 Nil -> 0             | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} & \rightsquigarrow &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{2}^n (p_{1}, \ldots, p_{k}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \operatorname{pm} & \rightsquigarrow &
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
-  &  & \text{{\texttt{with}} } \operatorname{pm}\\\\\\
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{2}^n (p_{1}, \ldots, p_{k}) {\texttt{->}} a
+  {\texttt{ \textbar }} \operatorname{pm} & \rightsquigarrow &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})\\\\\\
+  &  & {\texttt{with} } \operatorname{pm}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
 \end{matrix} $$
@@ -1555,20 +1500,20 @@ l ->           match l with             | Nil -> 0             | Cons
 (x, xs) -> 1 + f xs)) xs)
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots &
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots &
   \Downarrow & a [x_{1} := v_{1}
   ; \ldots ; x_{n} := v_{n}]\\\\\\
   &  &
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'
@@ -1578,8 +1523,8 @@ $$ \begin{matrix}
 Nil -> 0               | Cons (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -1587,8 +1532,8 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{fix}}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
-  \left( \text{{\texttt{fix}}}^2 v_{1} \right) v_{2}\\\\\\
+  {\texttt{fix}}^2 v_{1} v_{2} & \rightsquigarrow & v_{1}
+  \left( {\texttt{fix}}^2 v_{1} \right) v_{2}\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
   a_{1} a_{2} & \Downarrow &
@@ -1601,7 +1546,7 @@ $$ \begin{matrix}
 (x, xs) -> 1 + f xs)) Nil)
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1610,7 +1555,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1624,7 +1569,7 @@ match l with                   | Nil -> 0                   | Cons (x,
 xs) -> 1 + f xs)) xs) Nil)
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1633,7 +1578,7 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} a
+  \left( {\texttt{fun }} x {\texttt{->}} a
   \right) v & \rightsquigarrow & a [x := v]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1646,10 +1591,10 @@ $$ \begin{matrix}
         | Nil -> 0                   | Cons (x, xs) -> 1 + f xs)) xs))
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1658,10 +1603,10 @@ $$ \begin{matrix}
 \end{matrix} $$
 
 $$ \begin{matrix}
-  \text{{\texttt{match }}} C_{1}^n (v_{1}, \ldots, v_{n})
-  \text{{\texttt{ with}}} &  &  \\\\\\
-  C_{1}^n (x_{1}, \ldots, x_{n}) \text{{\texttt{->}}} a
-  \text{{\texttt{ \textbar }}} \ldots & \rightsquigarrow & a [x_{1}
+  {\texttt{match }} C_{1}^n (v_{1}, \ldots, v_{n})
+  {\texttt{ with}} &  &  \\\\\\
+  C_{1}^n (x_{1}, \ldots, x_{n}) {\texttt{->}} a
+  {\texttt{ \textbar }} \ldots & \rightsquigarrow & a [x_{1}
   \:= v_{1} ; \ldots ; x_{n} := v_{n}]\\\\\\
   a_{1} a_{2} & \Downarrow &
   a_{1} a_{2}'\\\\\\
@@ -1698,7 +1643,7 @@ $$ \begin{matrix}
 * The real $\lambda$-calculus has a more general reduction:
 
   $$ \begin{matrix}
-  \left( \text{{\texttt{fun }}} x \text{{\texttt{->}}}
+  \left( {\texttt{fun }} x {\texttt{->}}
   a_{1} \right) a_{2} & \rightsquigarrow & a_{1} [x := a_{2}] \end{matrix} $$
 
   (called *$\beta$-reduction*) and uses *bound variable renaming* 
@@ -1716,7 +1661,7 @@ $$ \begin{matrix}
   $\lambda$-calculus. Not all of them make sense in a typed setting, i.e. the 
   straightforward encode/decode functions do not type-check for them.
 * Define `c_true`=$\lambda x y.x$ and `c_false`=$\lambda x y.y$.
-* Define `c_and`=$\lambda x y.x y \text{{\texttt{c\_false}}}$. Check 
+* Define `c_and`=$\lambda x y.x y {\texttt{c\_false}}$. Check 
   that it works!
   * I.e. that `c_and c_true c_true` = `c_true`,otherwise `c_and a b` = 
     `c_false`.
@@ -1909,7 +1854,7 @@ $$ \Downarrow $$
   compiler generates infinite loops for all recursive definitions).
   * Why?
 * Therefore, we need more specific rules. For example, most languages use 
-  $\left( \text{{\texttt{fun }}} x \text{{\texttt{->}}} 
+  $\left( {\texttt{fun }} x {\texttt{->}} 
   a \right) v \rightsquigarrow a [x := v]$, which is called *call-by-value*, 
   or **eager** computation (because the program *eagerly* computes the 
   arguments before starting to compute the function). (It's exactly the rule 
@@ -1922,10 +1867,10 @@ $$ \Downarrow $$
   & \rightsquigarrow & \lambda x.F ((\lambda f x.F (f f) x)  (\lambda f x.F
   (f f) x)) x \end{matrix} $$
 
-  Voila – if we use $\left( \text{{\texttt{fun }}} x 
-  \text{{\texttt{->}}} a \right) v \rightsquigarrow a [x := v]$ 
-  as the rulerather than $\left( \text{{\texttt{fun }}} x 
-  \text{{\texttt{->}}} a_{1} \right) a_{2} \rightsquigarrow 
+  Voila – if we use $\left( {\texttt{fun }} x 
+  {\texttt{->}} a \right) v \rightsquigarrow a [x := v]$ 
+  as the rulerather than $\left( {\texttt{fun }} x 
+  {\texttt{->}} a_{1} \right) a_{2} \rightsquigarrow 
   a_{1} [x := a_{2}]$, the computation stops. Let's compute the function on 
   some input:
 
@@ -1957,28 +1902,28 @@ $$ \Downarrow $$
   and we shorten `if_then_else` into `if_t_e`):
 
   $$ \begin{matrix}
-  \text{{\texttt{fact}}} n & = & \text{{\texttt{if\_t\_e}}}
-  \left( \text{{\texttt{is\_zero}}} n \right)
-  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-  \left( \text{{\texttt{fact}}}  \left(
-  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
-  \text{{\texttt{fact}}} & = & \lambda n.
-  \text{{\texttt{if\_t\_e}}}  \left(
-  \text{{\texttt{is\_zero}}} n \right)
-  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-  \left( \text{{\texttt{fact}}}  \left(
-  \text{{\texttt{pred}}} n \right) \right) \right)\\\\\\
-  \text{{\texttt{fact}}} & = & \left( \lambda f n.
-  \text{{\texttt{if\_t\_e}}}  \left(
-  \text{{\texttt{is\_zero}}} n \right)
-  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
-  \right)  \text{{\texttt{fact}}}\\\\\\
-  \text{{\texttt{fact}}} & = & \operatorname{fix} \left( \lambda f n.
-  \text{{\texttt{if\_t\_e}}}  \left(
-  \text{{\texttt{is\_zero}}} n \right)
-  \text{{\texttt{cn1}}}  \left( \text{{\texttt{mult}}} n
-  \left( f \left( \text{{\texttt{pred}}} n \right) \right) \right)
+  {\texttt{fact}} n & = & {\texttt{if\_t\_e}}
+  \left( {\texttt{is\_zero}} n \right)
+  {\texttt{cn1}}  \left( {\texttt{mult}} n
+  \left( {\texttt{fact}}  \left(
+  {\texttt{pred}} n \right) \right) \right)\\\\\\
+  {\texttt{fact}} & = & \lambda n.
+  {\texttt{if\_t\_e}}  \left(
+  {\texttt{is\_zero}} n \right)
+  {\texttt{cn1}}  \left( {\texttt{mult}} n
+  \left( {\texttt{fact}}  \left(
+  {\texttt{pred}} n \right) \right) \right)\\\\\\
+  {\texttt{fact}} & = & \left( \lambda f n.
+  {\texttt{if\_t\_e}}  \left(
+  {\texttt{is\_zero}} n \right)
+  {\texttt{cn1}}  \left( {\texttt{mult}} n
+  \left( f \left( {\texttt{pred}} n \right) \right) \right)
+  \right)  {\texttt{fact}}\\\\\\
+  {\texttt{fact}} & = & \operatorname{fix} \left( \lambda f n.
+  {\texttt{if\_t\_e}}  \left(
+  {\texttt{is\_zero}} n \right)
+  {\texttt{cn1}}  \left( {\texttt{mult}} n
+  \left( f \left( {\texttt{pred}} n \right) \right) \right)
   \right) \end{matrix} $$
 
   The last specification is a valid definition: we just give a name to a 
@@ -1996,34 +1941,34 @@ $$ \Downarrow $$
 * Add numbers stored inside a list:
 
   $$ \begin{matrix}
-  \text{{\texttt{addlist}}} l & = & l \left( \lambda h t.
-  \text{{\texttt{cn\_add}}} h \left(
-  \text{{\texttt{addlist}}} t \right) \right)
-  \text{{\texttt{cn0}}} \end{matrix} $$
+  {\texttt{addlist}} l & = & l \left( \lambda h t.
+  {\texttt{cn\_add}} h \left(
+  {\texttt{addlist}} t \right) \right)
+  {\texttt{cn0}} \end{matrix} $$
 
   To make a proper definition, we need to apply $\operatorname{fix}$ to the 
   solution of above equation.
 
   $$ \begin{matrix}
-  \text{{\texttt{addlist}}} & = & \operatorname{fix} \left( \lambda f
-  l.l \left( \lambda h t. \text{{\texttt{cn\_add}}} h (f t) \right)
-  \text{{\texttt{cn0}}} \right) \end{matrix} $$
+  {\texttt{addlist}} & = & \operatorname{fix} \left( \lambda f
+  l.l \left( \lambda h t. {\texttt{cn\_add}} h (f t) \right)
+  {\texttt{cn0}} \right) \end{matrix} $$
 * For trees, let's use a different form of binary trees than so far: instead 
   of keeping elements in inner nodes, we will keep elements in leaves.
 * Define `leaf`$n = \lambda x y.x n$ and `node`$L R = \lambda x y.y L R$.
 * Add numbers stored inside a tree:
 
   $$ \begin{matrix}
-  \text{{\texttt{addtree}}} t & = & t (\lambda n.n)  \left( \lambda l
-  r. \text{{\texttt{cn\_add}}}  \left(
-  \text{{\texttt{addtree}}} l \right)  \left(
-  \text{{\texttt{addtree}}} r \right) \right) \end{matrix} $$
+  {\texttt{addtree}} t & = & t (\lambda n.n)  \left( \lambda l
+  r. {\texttt{cn\_add}}  \left(
+  {\texttt{addtree}} l \right)  \left(
+  {\texttt{addtree}} r \right) \right) \end{matrix} $$
 
   and, in solved form:
 
   $$ \begin{matrix}
-  \text{{\texttt{addtree}}} & = & \operatorname{fix} \left( \lambda f
-  t.t (\lambda n.n)  \left( \lambda l r. \text{{\texttt{cn\_add}}}
+  {\texttt{addtree}} & = & \operatorname{fix} \left( \lambda f
+  t.t (\lambda n.n)  \left( \lambda l r. {\texttt{cn\_add}}
   (f l)  (f r) \right) \right) \end{matrix} $$
 
 let nil = fun x y -> ylet cons h t = fun x y -> x h tlet addlist l =  
@@ -2211,14 +2156,20 @@ solves equations.
 * Variables play two roles: of *unknowns* and of *parameters*.
   * Inside:
 
-    # let f = List.hd;;val f : 'a list -> 'a
+    ```ocaml
+    # let f = List.hd;;
+    val f : 'a list -> 'a
+    ```
 
     `'a` is a parameter: it can become any type. Mathematically we write: $f : 
     \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha$ – the 
     quantified type is called a *type scheme*.
   * Inside:
 
-    # let x = ref [];;val x : 'a list ref
+    ```ocaml
+    # let x = ref [];;
+    val x : 'a list ref
+    ```
 
     `'_a` is an unknown. It stands for a particular type like float  or 
     (int -> int), OCaml just doesn't yet know the type.
@@ -2227,9 +2178,13 @@ solves equations.
     against our expectations, *$\eta$-expansion* may help: writing let f x = 
     expr x instead of let f = expr – for example:
 
-    # let f = List.append [];;val f : 'a list -> 'a list = <fun># 
-    let f l = List.append [] l;;val f : 'a list -> 'a list = 
-    <fun>
+    ```ocaml
+    # let f = List.append [];;
+    val f : 'a list -> 'a list = <fun>
+    # let f l = List.append [] l;;
+    val f : 'a list -> 'a list = <fun>
+    ```
+
 * A *type environment* specifies what names (corresponding to parameters and 
   definitions) are available for an expression, because they were introduced 
   above it, and it specifies their types.
@@ -2239,23 +2194,23 @@ solves equations.
     \rightarrow \alpha \in \Gamma$, then for $f : \tau$ we introduce $\gamma 
     \operatorname{list} \rightarrow \gamma = \tau$ for some fresh unknown 
     $\gamma$.
-  * For $e\_{1} e\_{2} : \tau$ we introduce $\beta = \tau$ and ask for 
-    $e\_{1} : \gamma \rightarrow \beta$ and $e\_{2} : \gamma$, for some fresh 
+  * For $e_{1} e_{2} : \tau$ we introduce $\beta = \tau$ and ask for 
+    $e_{1} : \gamma \rightarrow \beta$ and $e_{2} : \gamma$, for some fresh 
     unknowns $\beta, \gamma$.
   * For $\operatorname{fun}x \rightarrow e : \tau$ we introduce $\beta 
     \rightarrow \gamma = \tau$ and ask for $e : \gamma$ in environment 
     $\lbrace x : \beta \rbrace \cup \Gamma$, for some fresh unknowns $\beta, 
     \gamma$.
-  * Case $\operatorname{let}x = e\_{1} \operatorname{in}e\_{2} : \tau$ is 
+  * Case $\operatorname{let}x = e_{1} \operatorname{in}e_{2} : \tau$ is 
     different. One approach is to *first* solve the equations that we get by 
-    asking for $e\_{1} : \beta$, for some fresh unknown $\beta$. Let's say a 
-    solution $\beta = \tau \_{\beta}$ has been found, $\alpha \_{1} \ldots 
-    \alpha \_{n} \beta \_{1} \ldots \beta \_{m}$ are the remaining unknowns in 
-    $\tau \_{\beta}$,  and $\alpha \_{1} \ldots \alpha \_{n}$ are all that do 
-    not appear in $\Gamma$. Then we ask for $e\_{2} : \tau$ in environment 
-    $\lbrace x : \forall \alpha \_{1} \ldots \alpha \_{n} . \tau \_{\beta} 
+    asking for $e_{1} : \beta$, for some fresh unknown $\beta$. Let's say a 
+    solution $\beta = \tau_{\beta}$ has been found, $\alpha_{1} \ldots 
+    \alpha_{n} \beta_{1} \ldots \beta_{m}$ are the remaining unknowns in 
+    $\tau_{\beta}$,  and $\alpha_{1} \ldots \alpha_{n}$ are all that do 
+    not appear in $\Gamma$. Then we ask for $e_{2} : \tau$ in environment 
+    $\lbrace x : \forall \alpha_{1} \ldots \alpha_{n} . \tau_{\beta} 
     \rbrace \cup \Gamma$.
-  * Remember that whenever we establish a solution $\beta = \tau \_{\beta}$ to 
+  * Remember that whenever we establish a solution $\beta = \tau_{\beta}$ to 
     an unknown $\beta$, it takes effect everywhere!
   * To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown 
     $\beta$ and ask for $e : \beta$ (in $\Gamma$).
@@ -2274,8 +2229,10 @@ solves equations.
 
   we define lists that can store elements of any type `'a`. Now:
 
+  ```ocaml
   # let tail l =  match l with    | Empty -> invalidarg "tail"    | Cons 
   (, tl) -> tl;;      val tail : 'a mylist -> 'a mylist
+  ```
 
   is a polymorphic function: works for lists with elements of any type.
 * A *parametric type* like 'a mylist *is not* itself a data type but a family 
@@ -2291,8 +2248,13 @@ solves equations.
   (\alpha, \beta)$.
   * Functions do not have to be polymorphic:
 
-    # let getint c =  match c with    | Left i -> i    | Right b -> if 
-    b then 1 else 0;;      val getint : (int, bool) choice -> int
+    ```ocaml
+    # let getint c =  match c with
+        | Left i -> i
+        | Right b -> if b then 1 else 0;;
+    val getint : (int, bool) choice -> int
+    ```
+
 * In F#, we provide parameters (when more than one) after type name:
 
   type choice<`'a,'`b> = Left of `'a` | `Right of` 'b
@@ -2304,7 +2266,7 @@ solves equations.
 
 * A statement that an expression has a type in an environment is called 
   a *type judgement*. For environment $\Gamma = \lbrace x : \forall \alpha 
-  \_{1} \ldots \alpha \_{n} . \tau \_{x} ; \ldots \rbrace$, expression $e$ and 
+ _{1} \ldots \alpha_{n} . \tau_{x} ; \ldots \rbrace$, expression $e$ and 
   type $\tau$ we write
 
   \\[ \Gamma \vdash e : \tau \\]
@@ -2313,89 +2275,89 @@ solves equations.
   variables, using existential quantification.
 * For local definitions we require to remember what constraints should hold 
   when the definition is used. Therefore we extend *type schemes* in the 
-  environment to: $\Gamma = \lbrace x : \forall \beta \_{1} \ldots \beta \_{m} 
-  [\exists \alpha \_{1} \ldots \alpha \_{n} .D] . \tau \_{x} ; \ldots \rbrace$ 
-  where $D$ are equations – keeping the variables $\alpha \_{1} \ldots \alpha 
-  \_{n}$ introduced while deriving $D$ in front.
+  environment to: $\Gamma = \lbrace x : \forall \beta_{1} \ldots \beta_{m} 
+  [\exists \alpha_{1} \ldots \alpha_{n} .D] . \tau_{x} ; \ldots \rbrace$ 
+  where $D$ are equations – keeping the variables $\alpha_{1} \ldots \alpha 
+ _{n}$ introduced while deriving $D$ in front.
   * A simpler form would be enough: $\Gamma = \lbrace x : \forall \beta 
-    [\exists \alpha \_{1} \ldots \alpha \_{n} .D] . \beta ; \ldots \rbrace$
+    [\exists \alpha_{1} \ldots \alpha_{n} .D] . \beta ; \ldots \rbrace$
 
 
 
-\begin{eqnarray*}
+$$ \begin{matrix}
   \llbracket \Gamma \vdash x : \tau \rrbracket & = & \exists \overline{\beta'}
   \bar{\alpha}' . (D [\bar{\beta} \bar{\alpha} := \overline{\beta'}
-  \bar{\alpha}'] \wedge \tau \_{x} [\bar{\beta} \bar{\alpha} :=
+  \bar{\alpha}'] \wedge \tau_{x} [\bar{\beta} \bar{\alpha} :=
   \overline{\beta'} \bar{\alpha}'] \dot{=} \tau)\\\\\\
   &  & \text{where } \Gamma (x) = \forall \bar{\beta} [\exists \bar{\alpha}
-  .D] . \tau \_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
+  .D] . \tau_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
   (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \left\llbracket \Gamma \vdash \boldsymbol{\ensuremath{\operatorname{fun}}} x
-  \text{\text{{\ttfamily{->}}}} e : \tau \right\rrbracket & = & \exists 
+  \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
+  {\texttt{->}} e : \tau \rrbracket & = & \exists 
 \alpha
-  \_{1} \alpha \_{2} . (\llbracket \Gamma \lbrace x : \alpha \_{1} \rbrace
-  \vdash e : \alpha \_{2} \rrbracket \wedge \alpha \_{1} \rightarrow \alpha
-  \_{2} \dot{=} \tau),\\\\\\
-  &  & \text{where } \alpha \_{1} \alpha \_{2} \#\operatorname{FV} (\Gamma,
+ _{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
+  \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha
+ _{2} \dot{=} \tau),\\\\\\
+  &  & \text{where } \alpha_{1} \alpha_{2} \#\operatorname{FV} (\Gamma,
   \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e\_{1} e\_{2} : \tau \rrbracket & = & \exists
-  \alpha . (\llbracket \Gamma \vdash e\_{1} : \alpha \rightarrow \tau
-  \rrbracket \wedge \llbracket \Gamma \vdash e\_{2} : \alpha \rrbracket),
+  \llbracket \Gamma \vdash e_{1} e_{2} : \tau \rrbracket & = & \exists
+  \alpha . (\llbracket \Gamma \vdash e_{1} : \alpha \rightarrow \tau
+  \rrbracket \wedge \llbracket \Gamma \vdash e_{2} : \alpha \rrbracket),
   \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash K e\_{1} \ldots e\_{n} : \tau \rrbracket & = &
-  \exists \bar{\alpha}' . (\wedge \_{i} \llbracket \Gamma \vdash e\_{i} : \tau
-  \_{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
+  \llbracket \Gamma \vdash K e_{1} \ldots e_{n} : \tau \rrbracket & = &
+  \exists \bar{\alpha}' . (\wedge_{i} \llbracket \Gamma \vdash e_{i} : \tau
+ _{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
   (\bar{\alpha}') \dot{=} \tau),\\\\\\
-  &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau \_{1} \times \ldots
-  \times \tau \_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
+  &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau_{1} \times \ldots
+  \times \tau_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{let}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &  & \text{where } C =
-  \llbracket \Gamma \vdash e\_{1} : \beta \rrbracket\\\\\\
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{let}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
+  \llbracket \Gamma \vdash e_{1} : \beta \rrbracket\\\\\\
   &  &  \\\\\\
   \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
   \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e\_{2} : \tau \rrbracket\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{letrec}}} x = e\_{1}
-  \boldsymbol{\ensuremath{\operatorname{in}}} e\_{2} &  & \text{where } C =
-  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e\_{1} : \beta
+  e_{2} : \tau \rrbracket\\\\\\
+  e = \boldsymbol{\operatorname{letrec}} x = e_{1}
+  \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
+  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
   \rrbracket\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha \_{v} .
-  \llbracket \Gamma \vdash e\_{v} : \alpha \_{v} \rrbracket \wedge \_{i}
-  \llbracket \Gamma \vdash p\_{i} .e\_{i} : \alpha \_{v} \rightarrow \tau
+  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha_{v} .
+  \llbracket \Gamma \vdash e_{v} : \alpha_{v} \rrbracket \wedge_{i}
+  \llbracket \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
   \rrbracket,\\\\\\
-  e = \boldsymbol{\ensuremath{\operatorname{match}}} e\_{v}
-  \boldsymbol{\ensuremath{\operatorname{with}}} \bar{c} &  & \alpha \_{v}
+  e = \boldsymbol{\operatorname{match}} e_{v}
+  \boldsymbol{\operatorname{with}} \bar{c} &  & \alpha_{v}
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
-  \bar{c} = p\_{1} .e\_{1} | \ldots |p\_{n} .e\_{n} &  &  \\\\\\
+  \bar{c} = p_{1} .e_{1} | \ldots |p_{n} .e_{n} &  &  \\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma, \Sigma \vdash p.e : \tau \_{1} \rightarrow \tau \_{2}
-  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket
-  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau \_{2}
+  \llbracket \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
+  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket
+  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_{2}
   \rrbracket\\\\\\
   &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } \llbracket
-  \Sigma \vdash p \uparrow \tau \_{1} \rrbracket, \bar{\beta}
-  \#\operatorname{FV} (\Gamma, \tau \_{2})\\\\\\
+  \Sigma \vdash p \uparrow \tau_{1} \rrbracket, \bar{\beta}
+  \#\operatorname{FV} (\Gamma, \tau_{2})\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \downarrow \tau \_{1} \rrbracket &  &
+  \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket &  &
   \text{derives constraints on type of matched value}\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \uparrow \tau \_{1} \rrbracket &  & \text{derives
+  \llbracket \Sigma \vdash p \uparrow \tau_{1} \rrbracket &  & \text{derives
   environment for pattern variables}
-\end{eqnarray*}
+\end{matrix} $$
 
-* By $\bar{\alpha}$ or $\overline{\alpha \_{i}}$ we denote a sequence of some 
-  length: $\alpha \_{1} \ldots \alpha \_{n}$
-* By $\wedge \_{i} \varphi \_{i}$ we denote a conjunction of 
-  $\overline{\varphi \_{i}}$: $\varphi \_{1} \ldots \varphi \_{n}$.
+* By $\bar{\alpha}$ or $\overline{\alpha_{i}}$ we denote a sequence of some 
+  length: $\alpha_{1} \ldots \alpha_{n}$
+* By $\wedge_{i} \varphi_{i}$ we denote a conjunction of 
+  $\overline{\varphi_{i}}$: $\varphi_{1} \ldots \varphi_{n}$.
 
 ### 3.1 Polymorphic Recursion
 
@@ -2487,14 +2449,14 @@ middle">
   operations.
 * A *homomorphism* from algebraic structure $(A, \lbrace f^A, g^A, \ldots 
   \rbrace)$ to $(B, \lbrace f^B, g^B, \ldots \rbrace)$ is a function $h : A 
-  \rightarrow B$ such that $h (f^A (a\_{1}, \ldots, a\_{n\_{f}})) = f^B (h 
-  (a\_{1}), \ldots, h (a\_{n\_{f}}))$ for all $(a\_{1}, \ldots, a\_{n\_{f}})$, 
-  $h (g^A (a\_{1}, \ldots, a\_{n\_{g}})) = g^B (h (a\_{1}), \ldots, h 
-  (a\_{n\_{g}}))$ for all $(a\_{1}, \ldots, a\_{n\_{g}})$, …
+  \rightarrow B$ such that $h (f^A (a_{1}, \ldots, a_{n_{f}})) = f^B (h 
+  (a_{1}), \ldots, h (a_{n_{f}}))$ for all $(a_{1}, \ldots, a_{n_{f}})$, 
+  $h (g^A (a_{1}, \ldots, a_{n_{g}})) = g^B (h (a_{1}), \ldots, h 
+  (a_{n_{g}}))$ for all $(a_{1}, \ldots, a_{n_{g}})$, …
 * Two algebraic structures are *isomorphic* if there are homomorphisms 
-  $h\_{1} : A \rightarrow B, h\_{2} : B \rightarrow A$ from one to the other 
+  $h_{1} : A \rightarrow B, h_{2} : B \rightarrow A$ from one to the other 
   and back, that when composed in any order form identity: $\forall (b \in B) 
-  h\_{1} (h\_{2} (b)) = b$, $\forall (a \in A) h\_{2} (h\_{1} (a)) = a$.
+  h_{1} (h_{2} (b)) = b$, $\forall (a \in A) h_{2} (h_{1} (a)) = a$.
 * An algebraic specification whose all implementations without junk are 
   isomorphic is called “*monomorphic*”.
   * We usually only add axioms that really matter to us to the specification, 
@@ -2545,19 +2507,22 @@ add k v m = (k, v)::m  let remove = List.removeassoc  let find = List.assocend
 Let's now build an implementation of maps from the ground up. The most 
 straightforward implementation… might not be what you expected:
 
+```ocaml
 module TrivialMap : MAP = struct  type ('a, 'b) t =    | Empty    | Add of 'a 
 \* 'b \* ('a, 'b) t    | Remove of 'a \* ('a, 'b) t          let empty = Empty 
  let rec member k m =    match m with      | Empty -> false      | Add 
 (k2, , ) when k = k2 -> true      | Remove (k2, ) when k = k2 -> false 
      | Add (, , m2) -> member k m2      | Remove (, m2) -> member k m2 
  let add k v m = Add (k, v, m)  let remove k m = Remove (k, m)  let rec find k 
-m =    match m with      | Empty -> raise Notfound      | Add (k2, v, ) 
+m =    match m with      | Empty -> raise Not_found      | Add (k2, v, ) 
 when k = k2 -> v      | Remove (k2, ) when k = k2 -> raise Notfound    
-  | Add (, , m2) -> find k m2      | Remove (, m2) -> find k m2end
+  | Add (, , m2) -> find k m2      | Remove (, m2) -> find k m2 end
+```
 
 Here is an implementation based on association lists, i.e. on lists of 
 key-value pairs.
 
+```ocaml
 module MyListMap : MAP = struct  type ('a, 'b) t = Empty | Add of 'a \* 'b \* 
 ('a, 'b) t  let empty = Empty  let rec member k m =    match m with      | 
 Empty -> false      | Add (k2, , ) when k = k2 -> true      | Add (, , 
@@ -2568,7 +2533,8 @@ v, m)      | Add (k2, v2, m) -> Add (k2, v2, add k v m)
   let rec remove k m =    match m with      | Empty -> Empty      | Add 
 (k2, , m) when k = k2 -> m      | Add (k2, v, m) -> Add (k2, v, remove 
 k m)  let rec find k m =    match m with      | Empty -> raise Error      
-| Add (k2, v, ) when k = k2 -> v      | Add (, , m2) -> find k m2end
+| Add (k2, v, ) when k = k2 -> v      | Add (, , m2) -> find k m2 end
+```
 
 ## 9 Implementing maps: Binary search trees
 
@@ -2590,6 +2556,7 @@ k m)  let rec find k m =    match m with      | Empty -> raise Error
     the problem of needing the order of keys; it is just to keep things 
     simple.
 
+```ocaml
 module BTreeMap : MAP = struct  type ('a, 'b) t = Empty | T of ('a, 'b) t \* 
 'a \* 'b \* ('a, 'b) t  let empty = Empty  let rec member k m =‘‘Divide and 
 conquer'' search through the tree.    match m with      | Empty -> false   
@@ -2599,8 +2566,11 @@ m =Searches the tree in the same way as `member`    match m withbut copies
 every node along the way.      | Empty -> T (Empty, k, v, Empty)      | T 
 (m1, k2, , m2) when k = k2 -> T (m1, k, v, m2)      | T (m1, k2, v2, m2) 
 when k < k2 -> T (add k v m1, k2, v2, m2)      | T (m1, k2, v2, 
-m2) -> T (m1, k2, v2, add k v m2)  let rec splitrightmost m =A helper 
-function, it does not belong    match m withto the ‘‘exported'' signature.     
+m2) -> T (m1, k2, v2, add k v m2)
+
+let rec splitrightmost m = (* A helper 
+function, it does not belong *)
+   match m with (* to the ‘‘exported'' signature.     *)
  | Empty -> raise Notfound      | T (Empty, k, v, Empty) -> k, v, 
 EmptyWe remove one element,      | T (m1, k, v, m2) ->the one that is on 
 the bottom right.        let rk, rv, rm = splitrightmost m2 in        rk, rv, 
@@ -2614,7 +2584,8 @@ k < k2 -> T (remove k m1, k2, v, m2)      | T (m1, k2, v, m2) ->
 T (m1, k2, v, remove k m2)  let rec find k m =    match m with      | 
 Empty -> raise Notfound      | T (, k2, v, ) when k = k2 -> v      | T 
 (m1, k2, , ) when k < k2 -> find k m1      | T (, , , m2) -> find 
-k m2end
+k m2 end
+```
 
 ## 10 Implementing maps: red-black trees
 
@@ -2684,8 +2655,7 @@ Red-black\_tree\_example.png
 * For understandable implementation of deletion, we need to introduce more 
   colors. See Matt Might's post edited in a separate file.
 
-
-
+```ocaml
 type color = R | Btype 'a t = E | T of color \* 'a t \* 'a \* 'a tlet empty = 
 Elet rec member x m =  match m withLike in unbalanced binary search tree.  | 
 Empty -> false  | T (, , y, ) when x = y -> true  | T (, a, y, ) when 
@@ -2699,10 +2669,11 @@ allow red-red violation for now.
 let insert x s =  let rec ins = functionLike in unbalanced binary search tree, 
    | E -> T (R,E,x,E)but fix violation above created node.    | T 
 (color,a,y,b) as s ->      if x<y then balance (color,ins a,y,b)      
-else if x>y then balance (color,a,y,ins b)      else s in  match ins s 
-withWe could still have red-red violation at root,  | T (,a,y,b) -> T 
-(B,a,y,b)fixed by coloring it black.  | E -> failwith "insert: impossible"
-
+else if x>y then balance (color,a,y,ins b)      else s in
+  match ins s with (* We could still have red-red violation at root, *)
+  | T (,a,y,b) -> T (B,a,y,b) (* fixed by coloring it black. *)
+  | E -> failwith "insert: impossible"
+```
 
 
 
@@ -2714,15 +2685,15 @@ withWe could still have red-red violation at root,  | T (,a,y,b) -> T
    let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
 
    in environ. $\Gamma = \left\lbrace 
-   \text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{hd}}} : \forall \alpha . \alpha 
+   \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}} : \forall \alpha . \alpha 
    \operatorname{list} \rightarrow \alpha ; 
-   \text{{\hlkwc{List}}{\hlopt{.}}{\hlstd{tl}}} : \forall \alpha . \alpha 
+   \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}} : \forall \alpha . \alpha 
    \operatorname{list} \rightarrow \alpha \operatorname{list} \right\rbrace$. 
    You can take “shortcuts” if it is too many equations to write down.
 1. What does it mean that an implementation has junk (as an algebraic 
    structure for a given signature)? Is it bad?
 1. Define a monomorphic algebraic specification (other than, but similar to, 
-   $\operatorname{nat}\_{p}$ or $\operatorname{string}\_{p}$, some useful data 
+   $\operatorname{nat}_{p}$ or $\operatorname{string}_{p}$, some useful data 
    type).
 1. Discuss an example of a (monomorphic) algebraic specification where it 
    would be useful to drop some axioms (giving up monomorphicity) to allow 
@@ -2731,8 +2702,11 @@ withWe could still have red-red violation at root,  | T (,a,y,b) -> T
    specification for maps? Hint: here is the definition of List.removeassoc; 
    `compare a x` equals 0 if and only if `a` = `x`.
 
-   let rec removeassoc x = function  | [] -> []  | (a, b as pair) :: 
-   l ->      if compare a x = 0 then l else pair :: removeassoc x l
+   ```ocaml
+   let rec removeassoc x = function  | [] -> []  | (a, b as pair) :: l ->
+         if compare a x = 0 then l else pair :: removeassoc x l
+   ```
+
 1. Trick question: what is the computational complexity of ListMap or 
    TrivialMap?
 1. \* The implementation MyListMap is inefficient: it performs a lot of 

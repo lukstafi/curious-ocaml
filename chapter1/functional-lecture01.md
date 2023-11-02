@@ -131,8 +131,7 @@ type int_string_record = {a: int; b: string}
   and create its values: `{a = 7; b = "Mary"}`.
 * We access the *fields* of records using the dot notation:
 
-  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression $\text{{\texttt{rec}} } x 
-\text{{\texttt{=}}} e$ in the table was cheating: `rec` (usually 
+  `{a=7; b="Mary"}.b = "Mary"`.Recursive expression ${\texttt{rec}} \; x \; {\texttt{=}} \; e$ in the table was cheating: `rec` (usually 
 called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 
 **Definitions for expressions** are introduced by rules a bit more complex 
@@ -150,19 +149,18 @@ $\rightarrow$), and:
 $$ \frac{\begin{array}{ll}
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let rec}} } x
-   \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}
-   \: b} $$
+   \end{array}}{{\texttt{let rec}} \; x \;
+   {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 
   top-level, not nested in expressions, and they extend from the point they 
   occur till the end of the source file or interactive session.
-* `let`-`in` definitions for expressions: $\text{{\texttt{let}} } x 
-  \text{{\texttt{=}}} e_{1} \text{ \text{{\texttt{in}}} } e_{2}$ 
+* `let`-`in` definitions for expressions: ${\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1} \; {\texttt{in}} \; e_{2}$ 
   are *local*, $x$ is only visible in $e_{2}$. But `let` definitions are 
-  global: placing $\text{{\texttt{let}} } x 
-  \text{{\texttt{=}}} e_{1}$ at the top-level makes $x$ visible from 
+  global: placing ${\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1}$ at the top-level makes $x$ visible from 
   after $e_{1}$ till the end of the source file or interactive session.
 * In the interactive session, we mark an end of a top-level “sentence” by ;; – 
   it is unnecessary in source files.
