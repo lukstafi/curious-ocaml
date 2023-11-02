@@ -27,7 +27,9 @@ $\frac{\begin{array}{ll}   a & b \end{array}}{c}$ matches parts of the tree
 that have two premises, represented by variables $a$ and $b$, and have any 
 conclusion, represented by variable $c$.
 
-Try to use only the connective you define in its definition.# 2 Rules for Logical Connectives
+Try to use only the connective you define in its definition.
+
+## 2 Rules for Logical Connectives
 
 Introduction rules say how to produce a connective.
 
@@ -35,33 +37,13 @@ Elimination rules say how to use it.
 
 Text in parentheses is comments. Letters are variables: stand for anything.
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td></td>
-    <td style="text-align: left">Introduction Rules</td>
-    <td>Elimination Rules</td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td>doesn't have</td>
-  </tr><tr>
-    <td></td>
-    <td>doesn't have</td>
-    <td style="text-align: center"> </td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-  </tr></tbody>
-</table>
+| Connective | Introduction Rules | Elimination Rules
+|------------|--------------------|------------------
+| $\top$ | $\frac{}{\top}$ | doesn't have
+| $\bot$ | doesn't have |  $\frac{\bot}{a}$ (i.e. anything)
+| $\wedge$ | $\frac{a \; b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) $\frac{a \wedge b}{b}$ (take second)
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{c} \tiny{y}} \atop {\text{\textbar}}} \atop {b}} (\text{consider }b)}{c}$ using $x, y$
+| $\rightarrow$ | $\frac{{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}}{a \rightarrow b}$ using $x$ | $\frac{{a \rightarrow b} \; a}{b}$
 
 Notations
 
@@ -112,53 +94,16 @@ $$ \frac{\begin{array}{rr}
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
 and using it for $x$ we can derive it for the successor $x + 1$, where $x$ is 
 a unique variable (we cannot substitute for it some particular number, because 
-we write “using $x$” on the side).# 3 Logos was Programmed in OCaml
+we write “using $x$” on the side).
 
-<table style="display: inline-table; vertical-align: middle">
-  <tbody><tr>
-    <td>Logic</td>
-    <td>Type</td>
-    <td>Expr.</td>
-    <td style="text-align: left">Introduction Rules</td>
-    <td>Elimination Rules</td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">unit</tt></td>
-    <td><tt class="verbatim">()</tt></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">'a</tt></td>
-    <td><tt class="verbatim">raise</tt></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">*</tt></td>
-    <td><tt class="verbatim">(,)</tt></td>
-    <td style="text-align: center"></td>
-    <td></td>
-  </tr><tr>
-    <td></td>
-    <td style="text-align: left"><tt class="verbatim">|</tt></td>
-    <td><tt class="verbatim">match</tt></td>
-    <td></td>
-    <td style="text-align: center"></td>
-  </tr><tr>
-    <td></td>
-    <td><tt class="verbatim">-&gt;</tt></td>
-    <td><tt class="verbatim">fun</tt></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"> </td>
-  </tr><tr>
-    <td>induction</td>
-    <td></td>
-    <td><tt class="verbatim">rec</tt></td>
-    <td style="text-align: center"></td>
-    <td style="text-align: center"></td>
-  </tr></tbody>
-</table>## 3.1 Definitions
+## 3 Logos was Programmed in OCaml
+
+| Logic | Type | Expression | Introduction Rules | Elimination Rules
+|-------|------|------------|--------------------|------------------
+| $\top$ | `unit` | `()` | $\frac{\;}{\texttt{()} : \texttt{unit}}$
+
+
+### 3.1 Definitions
 
 Writing out expressions and types repetitively is tedious: we need 
 definitions. **Definitions for types** are written: `type ty =` some type.
@@ -196,8 +141,8 @@ than these:
 $$ \frac{\begin{array}{ll}
      e_{1} : a &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{\text{{\texttt{let}} } x \text{{\texttt{=}}}
-   e_{1} \text{ \text{{\texttt{in}}} } e_{2} : b} $$
+   \end{array}}{{\texttt{let}} \; x \; {\texttt{=}} \;
+   e_{1} \; {\texttt{in}} \; e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
@@ -229,7 +174,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
 * Operators in OCaml are **not overloaded**. It means, that every type needs 
   its own set of operators. For example, +, *, / work for intigers, while +., 
   *., /. work for floating point numbers. **Exception:** comparisons <, 
-  =, etc. work for all values other than functions.# 4 Exercises
+  =, etc. work for all values other than functions.
+  
+  ## 4 Exercises
 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.
