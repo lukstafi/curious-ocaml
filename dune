@@ -96,7 +96,7 @@
     (cat chapter11/lecture11-exercises.md)
     (echo "# Exam: Exercises for review\n")
     (echo "## Exam set 0\n")
-     (cat exam/Exam1.md)
+    (cat exam/Exam1.md)
     (echo "## Exam set 1\n")
     (cat exam/exam-Feb2013-set1.md)
     (echo "## Exam set 2\n")

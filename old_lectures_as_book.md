@@ -56,7 +56,7 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 | $\top$ | $\frac{}{\top}$ | doesn't have
 | $\bot$ | doesn't have |  $\frac{\bot}{a}$ (i.e. anything)
 | $\wedge$ | $\frac{a \; b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) $\frac{a \wedge b}{b}$ (take second)
-| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{c} \tiny{y}} \atop {\text{\textbar}}} \atop {b}} (\text{consider }b)}{c}$ using $x, y$
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{b} \tiny{y}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }b)}{c}$ using $x, y$
 | $\rightarrow$ | $\frac{{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}}{a \rightarrow b}$ using $x$ | $\frac{{a \rightarrow b} \; a}{b}$
 
 Notations

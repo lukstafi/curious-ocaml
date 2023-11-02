@@ -254,6 +254,403 @@
 <h1 class="title">Curious OCaml</h1>
 <p class="author">Lukasz Stafiniak</p>
 </header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#lecture-1-logic" id="toc-lecture-1-logic">Lecture 1:
+Logic</a>
+<ul>
+<li><a href="#in-the-beginning-there-was-logos"
+id="toc-in-the-beginning-there-was-logos">1 In the Beginning there was
+Logos</a></li>
+<li><a href="#rules-for-logical-connectives"
+id="toc-rules-for-logical-connectives">2 Rules for Logical
+Connectives</a></li>
+<li><a href="#logos-was-programmed-in-ocaml"
+id="toc-logos-was-programmed-in-ocaml">3 Logos was Programmed in
+OCaml</a>
+<ul>
+<li><a href="#definitions" id="toc-definitions">3.1 Definitions</a></li>
+</ul></li>
+<li><a href="#a-glimpse-at-type-inference"
+id="toc-a-glimpse-at-type-inference">1 A Glimpse at Type Inference</a>
+<ul>
+<li><a href="#curried-form" id="toc-curried-form">1.1 Curried
+form</a></li>
+</ul></li>
+<li><a href="#algebraic-data-types" id="toc-algebraic-data-types">2
+Algebraic Data Types</a></li>
+<li><a href="#syntactic-bread-and-sugar"
+id="toc-syntactic-bread-and-sugar">3 Syntactic Bread and Sugar</a></li>
+<li><a href="#pattern-matching" id="toc-pattern-matching">4 Pattern
+Matching</a></li>
+<li><a href="#interpreting-algebraic-dts-as-polynomials"
+id="toc-interpreting-algebraic-dts-as-polynomials">5 Interpreting
+Algebraic DTs as Polynomials</a>
+<ul>
+<li><a href="#differentiating-algebraic-data-types"
+id="toc-differentiating-algebraic-data-types">5.1 Differentiating
+Algebraic Data Types</a></li>
+</ul></li>
+<li><a href="#homework" id="toc-homework">6 Homework</a></li>
+<li><a href="#function-composition" id="toc-function-composition">1
+Function Composition</a></li>
+<li><a href="#evaluation-rules-reduction-semantics"
+id="toc-evaluation-rules-reduction-semantics">2 Evaluation Rules
+(reduction semantics)</a></li>
+<li><a href="#symbolic-derivation-example"
+id="toc-symbolic-derivation-example">3 Symbolic Derivation
+Example</a></li>
+<li><a href="#tail-calls-and-tail-recursion"
+id="toc-tail-calls-and-tail-recursion">4 Tail Calls (and tail
+recursion)</a></li>
+<li><a href="#first-encounter-of-continuation-passing-style"
+id="toc-first-encounter-of-continuation-passing-style">5 First Encounter
+of Continuation Passing Style</a></li>
+<li><a href="#homework-1" id="toc-homework-1">6 Homework</a></li>
+</ul></li>
+<li><a href="#lecture-4-functions."
+id="toc-lecture-4-functions.">Lecture 4: Functions.</a>
+<ul>
+<li><a href="#review-a-computation-by-hand-example"
+id="toc-review-a-computation-by-hand-example">1 Review: a “computation
+by hand” example</a></li>
+<li><a href="#language-and-rules-of-the-untyped-lambda-calculus"
+id="toc-language-and-rules-of-the-untyped-lambda-calculus">2 Language
+and rules of the untyped <span
+class="math inline">\lambda</span>-calculus</a></li>
+<li><a href="#booleans" id="toc-booleans">3 Booleans</a></li>
+<li><a href="#if-then-else-and-pairs" id="toc-if-then-else-and-pairs">4
+If-then-else and pairs</a></li>
+<li><a href="#pair-encoded-natural-numbers"
+id="toc-pair-encoded-natural-numbers">5 Pair-encoded natural
+numbers</a></li>
+<li><a href="#church-numerals-natural-numbers-in-ch.-enc."
+id="toc-church-numerals-natural-numbers-in-ch.-enc.">6 Church numerals
+(natural numbers in Ch. enc.)</a></li>
+<li><a href="#recursion-fixpoint-combinator"
+id="toc-recursion-fixpoint-combinator">7 Recursion: Fixpoint
+Combinator</a></li>
+<li><a href="#encoding-of-lists-and-trees"
+id="toc-encoding-of-lists-and-trees">8 Encoding of Lists and
+Trees</a></li>
+<li><a href="#looping-recursion" id="toc-looping-recursion">9 Looping
+Recursion</a></li>
+<li><a href="#in-class-work-and-homework"
+id="toc-in-class-work-and-homework">10 In-class Work and
+Homework</a></li>
+<li><a href="#type-inference" id="toc-type-inference">1 Type
+Inference</a></li>
+<li><a href="#parametric-types" id="toc-parametric-types">2 Parametric
+Types</a></li>
+<li><a href="#type-inference-formally"
+id="toc-type-inference-formally">3 Type Inference, Formally</a>
+<ul>
+<li><a href="#polymorphic-recursion" id="toc-polymorphic-recursion">3.1
+Polymorphic Recursion</a></li>
+</ul></li>
+<li><a href="#algebraic-specification"
+id="toc-algebraic-specification">4 Algebraic Specification</a>
+<ul>
+<li><a href="#algebraic-specifications-examples"
+id="toc-algebraic-specifications-examples">4.1 Algebraic specifications:
+examples</a></li>
+</ul></li>
+<li><a href="#homomorphisms" id="toc-homomorphisms">5
+Homomorphisms</a></li>
+<li><a href="#example-maps" id="toc-example-maps">6 Example:
+Maps</a></li>
+<li><a href="#modules-and-interfaces-signatures-syntax"
+id="toc-modules-and-interfaces-signatures-syntax">7 Modules and
+interfaces (signatures): syntax</a></li>
+<li><a href="#implementing-maps-association-lists"
+id="toc-implementing-maps-association-lists">8 Implementing maps:
+Association lists</a></li>
+<li><a href="#implementing-maps-binary-search-trees"
+id="toc-implementing-maps-binary-search-trees">9 Implementing maps:
+Binary search trees</a></li>
+<li><a href="#implementing-maps-red-black-trees"
+id="toc-implementing-maps-red-black-trees">10 Implementing maps:
+red-black trees</a>
+<ul>
+<li><a href="#b-trees-of-order-4-2-3-4-trees"
+id="toc-b-trees-of-order-4-2-3-4-trees">10.1 B-trees of order 4 (2-3-4
+trees)</a></li>
+<li><a href="#red-black-trees-without-deletion"
+id="toc-red-black-trees-without-deletion">10.2 Red-Black trees, without
+deletion</a></li>
+</ul></li>
+<li><a href="#homework-2" id="toc-homework-2">11 Homework</a></li>
+<li><a href="#plan" id="toc-plan">1 Plan</a></li>
+<li><a href="#basic-generic-list-operations"
+id="toc-basic-generic-list-operations">2 Basic generic list
+operations</a>
+<ul>
+<li><a href="#always-extract-common-patterns"
+id="toc-always-extract-common-patterns">2.1 Always extract common
+patterns</a></li>
+<li><a href="#can-we-make-fold-tail-recursive"
+id="toc-can-we-make-fold-tail-recursive">2.2 Can we make
+<code>fold</code> tail-recursive?</a></li>
+</ul></li>
+<li><a href="#map-and-fold-for-trees-and-other-structures"
+id="toc-map-and-fold-for-trees-and-other-structures">3 <code>map</code>
+and <code>fold</code> for trees and other structures</a>
+<ul>
+<li><a href="#map-and-fold-for-more-complex-structures"
+id="toc-map-and-fold-for-more-complex-structures">3.1 <code>map</code>
+and <code>fold</code> for more complex structures</a></li>
+</ul></li>
+<li><a href="#point-free-programming" id="toc-point-free-programming">4
+Point-free Programming</a></li>
+<li><a href="#reductions.-more-higher-orderlist-functions"
+id="toc-reductions.-more-higher-orderlist-functions">5 Reductions. More
+higher-order/list functions</a>
+<ul>
+<li><a href="#list-manipulation-all-subsequences-of-a-list"
+id="toc-list-manipulation-all-subsequences-of-a-list">5.1 List
+manipulation: All subsequences of a list</a></li>
+<li><a href="#by-key-group_by-and-map_reduce"
+id="toc-by-key-group_by-and-map_reduce">5.2 By key:
+<code>group_by</code> and <code>map_reduce</code></a></li>
+<li><a href="#higher-order-functions-for-the-option-type"
+id="toc-higher-order-functions-for-the-option-type">5.3 Higher-order
+functions for the <code>option</code> type</a></li>
+</ul></li>
+<li><a href="#the-countdown-problem-puzzle"
+id="toc-the-countdown-problem-puzzle">6 The Countdown Problem Puzzle</a>
+<ul>
+<li><a href="#brute-force-solution" id="toc-brute-force-solution">6.1
+Brute force solution</a></li>
+<li><a href="#fuse-the-generate-phase-with-the-test-phase"
+id="toc-fuse-the-generate-phase-with-the-test-phase">6.2 Fuse the
+generate phase with the test phase</a></li>
+<li><a href="#eliminate-symmetric-cases"
+id="toc-eliminate-symmetric-cases">6.3 Eliminate symmetric
+cases</a></li>
+</ul></li>
+<li><a href="#the-honey-islands-puzzle"
+id="toc-the-honey-islands-puzzle">7 The Honey Islands Puzzle</a>
+<ul>
+<li><a href="#representing-the-honeycomb"
+id="toc-representing-the-honeycomb">7.1 Representing the
+honeycomb</a></li>
+<li><a href="#testing-correctness-of-a-solution"
+id="toc-testing-correctness-of-a-solution">7.2 Testing correctness of a
+solution</a></li>
+<li><a href="#interlude-multiple-results-per-step"
+id="toc-interlude-multiple-results-per-step">7.3 Interlude: multiple
+results per step</a></li>
+<li><a href="#generating-a-solution" id="toc-generating-a-solution">7.4
+Generating a solution</a></li>
+<li><a href="#optimizations-for-honey-islands"
+id="toc-optimizations-for-honey-islands">7.5 Optimizations for <em>Honey
+Islands</em></a></li>
+</ul></li>
+<li><a href="#constraint-based-puzzles"
+id="toc-constraint-based-puzzles">8 Constraint-based puzzles</a></li>
+<li><a href="#laziness" id="toc-laziness">1 Laziness</a></li>
+<li><a href="#evaluation-strategies-and-parameter-passing"
+id="toc-evaluation-strategies-and-parameter-passing">2 Evaluation
+strategies and parameter passing</a></li>
+<li><a href="#call-by-name-streams" id="toc-call-by-name-streams">3
+Call-by-name: streams</a></li>
+<li><a href="#lazy-values" id="toc-lazy-values">4 Lazy values</a></li>
+<li><a href="#power-series-and-differential-equations"
+id="toc-power-series-and-differential-equations">5 Power series and
+differential equations</a>
+<ul>
+<li><a href="#power-series-polynomial-operations"
+id="toc-power-series-polynomial-operations">5.1 Power series /
+polynomial operations</a></li>
+<li><a href="#differential-equations"
+id="toc-differential-equations">5.2 Differential equations</a></li>
+</ul></li>
+<li><a href="#arbitrary-precision-computation"
+id="toc-arbitrary-precision-computation">6 Arbitrary precision
+computation</a></li>
+<li><a href="#circular-data-structures-double-linked-list"
+id="toc-circular-data-structures-double-linked-list">7 Circular data
+structures: double-linked list</a></li>
+<li><a href="#input-output-streams" id="toc-input-output-streams">8
+Input-Output streams</a>
+<ul>
+<li><a href="#pipes" id="toc-pipes">8.1 Pipes</a></li>
+<li><a href="#example-pretty-printing"
+id="toc-example-pretty-printing">8.2 Example: pretty-printing</a></li>
+</ul></li>
+<li><a href="#list-comprehensions" id="toc-list-comprehensions">1 List
+comprehensions</a></li>
+<li><a href="#generalized-comprehensions-aka.-do-notation"
+id="toc-generalized-comprehensions-aka.-do-notation">2 Generalized
+comprehensions aka. <em>do-notation</em></a></li>
+<li><a href="#monads" id="toc-monads">3 Monads</a>
+<ul>
+<li><a href="#monad-laws" id="toc-monad-laws">3.1 Monad laws</a></li>
+<li><a href="#monoid-laws-and-monad-plus"
+id="toc-monoid-laws-and-monad-plus">3.2 Monoid laws and
+<em>monad-plus</em></a></li>
+<li><a href="#backtracking-computation-with-choice"
+id="toc-backtracking-computation-with-choice">3.3 Backtracking:
+computation with choice</a></li>
+</ul></li>
+<li><a href="#monad-flavors" id="toc-monad-flavors">4 Monad
+“flavors”</a></li>
+<li><a href="#interlude-the-module-system"
+id="toc-interlude-the-module-system">5 Interlude: the module
+system</a></li>
+<li><a href="#the-two-metaphors" id="toc-the-two-metaphors">6 The two
+metaphors</a>
+<ul>
+<li><a href="#monads-as-containers" id="toc-monads-as-containers">6.1
+Monads as containers</a></li>
+<li><a href="#monads-as-computation" id="toc-monads-as-computation">6.2
+Monads as computation</a></li>
+</ul></li>
+<li><a href="#monad-classes" id="toc-monad-classes">7 Monad
+classes</a></li>
+<li><a href="#monad-instances" id="toc-monad-instances">8 Monad
+instances</a>
+<ul>
+<li><a href="#backtracking-parameterized-by-monad-plus"
+id="toc-backtracking-parameterized-by-monad-plus">8.1 Backtracking
+parameterized by monad-plus</a></li>
+<li><a href="#understanding-laziness"
+id="toc-understanding-laziness">8.2 Understanding laziness</a></li>
+<li><a href="#the-exception-monad" id="toc-the-exception-monad">8.3 The
+exception monad</a></li>
+<li><a href="#the-state-monad" id="toc-the-state-monad">8.4 The state
+monad</a></li>
+</ul></li>
+<li><a href="#monad-transformers" id="toc-monad-transformers">9 Monad
+transformers</a>
+<ul>
+<li><a href="#state-transformer" id="toc-state-transformer">9.1 State
+transformer</a></li>
+<li><a href="#backtracking-with-state"
+id="toc-backtracking-with-state">9.2 Backtracking with state</a></li>
+</ul></li>
+<li><a href="#probabilistic-programming"
+id="toc-probabilistic-programming">10 Probabilistic Programming</a>
+<ul>
+<li><a href="#the-probability-monad" id="toc-the-probability-monad">10.1
+The probability monad</a></li>
+<li><a href="#example-the-monty-hall-problem"
+id="toc-example-the-monty-hall-problem">10.2 Example: The Monty Hall
+problem</a></li>
+<li><a href="#burglary-example-encoding-a-bayes-net"
+id="toc-burglary-example-encoding-a-bayes-net">10.4 Burglary example:
+encoding a Bayes net</a></li>
+</ul></li>
+<li><a href="#lightweight-cooperative-threads"
+id="toc-lightweight-cooperative-threads">11 Lightweight cooperative
+threads</a></li>
+<li><a href="#ocaml-compilers" id="toc-ocaml-compilers">1 OCaml
+Compilers</a>
+<ul>
+<li><a href="#compiling-multiple-file-projects"
+id="toc-compiling-multiple-file-projects">1.1 Compiling multiple-file
+projects</a></li>
+<li><a href="#editors" id="toc-editors">1.2 Editors</a></li>
+</ul></li>
+<li><a href="#imperative-features-in-ocaml"
+id="toc-imperative-features-in-ocaml">2 Imperative features in OCaml</a>
+<ul>
+<li><a href="#parsing-command-line-arguments"
+id="toc-parsing-command-line-arguments">2.1 Parsing command-line
+arguments</a></li>
+</ul></li>
+<li><a href="#ocaml-garbage-collection"
+id="toc-ocaml-garbage-collection">3 OCaml Garbage Collection</a>
+<ul>
+<li><a href="#representation-of-values"
+id="toc-representation-of-values">3.1 Representation of values</a></li>
+<li><a href="#generational-garbage-collection"
+id="toc-generational-garbage-collection">3.2 Generational Garbage
+Collection</a></li>
+<li><a href="#stop-copy-gc" id="toc-stop-copy-gc">3.3 Stop &amp; Copy
+GC</a></li>
+<li><a href="#mark-sweep-gc" id="toc-mark-sweep-gc">3.4 Mark &amp; Sweep
+GC</a></li>
+</ul></li>
+<li><a href="#stack-frames-and-closures"
+id="toc-stack-frames-and-closures">4 Stack Frames and Closures</a>
+<ul>
+<li><a href="#tail-recursion" id="toc-tail-recursion">4.1 Tail
+Recursion</a></li>
+<li><a href="#generated-assembly" id="toc-generated-assembly">4.2
+Generated assembly</a></li>
+</ul></li>
+<li><a href="#profiling-and-optimization"
+id="toc-profiling-and-optimization">5 Profiling and Optimization</a>
+<ul>
+<li><a href="#profiling" id="toc-profiling">5.1 Profiling</a></li>
+<li><a href="#algorithmic-optimizations"
+id="toc-algorithmic-optimizations">5.2 Algorithmic
+optimizations</a></li>
+<li><a href="#low-level-optimizations"
+id="toc-low-level-optimizations">5.3 Low-level optimizations</a></li>
+<li><a href="#comparison-of-data-structure-implementations"
+id="toc-comparison-of-data-structure-implementations">5.4 Comparison of
+data structure implementations</a></li>
+</ul></li>
+<li><a href="#parsing-ocamllex-and-menhir"
+id="toc-parsing-ocamllex-and-menhir">6 Parsing: ocamllex and Menhir</a>
+<ul>
+<li><a href="#lexing-with-ocamllex" id="toc-lexing-with-ocamllex">6.1
+Lexing with <em>ocamllex</em></a></li>
+<li><a href="#parsing-with-menhir" id="toc-parsing-with-menhir">6.2
+Parsing with Menhir</a></li>
+</ul></li>
+<li><a href="#example-phrase-search" id="toc-example-phrase-search">7
+Example: Phrase search</a>
+<ul>
+<li><a href="#smart-way-information-retrieval-g.v.-cormack-et-al."
+id="toc-smart-way-information-retrieval-g.v.-cormack-et-al.">7.1 Smart
+way: <em>Information Retrieval</em> G.V. Cormack et al.</a></li>
+</ul></li>
+<li><a href="#zippers" id="toc-zippers">1 Zippers</a>
+<ul>
+<li><a href="#example-context-rewriting"
+id="toc-example-context-rewriting">1.1 Example: Context
+rewriting</a></li>
+</ul></li>
+<li><a href="#adaptive-programming-aka.incremental-computing"
+id="toc-adaptive-programming-aka.incremental-computing">2 Adaptive
+Programming aka.Incremental Computing</a>
+<ul>
+<li><a href="#example-using-froc" id="toc-example-using-froc">2.1
+Example using <em>Froc</em></a></li>
+</ul></li>
+<li><a href="#functional-reactive-programming"
+id="toc-functional-reactive-programming">3 Functional Reactive
+Programming</a></li>
+<li><a href="#reactivity-by-stream-processing"
+id="toc-reactivity-by-stream-processing">4 Reactivity by Stream
+Processing</a></li>
+<li><a href="#reactivity-by-incremental-computing"
+id="toc-reactivity-by-incremental-computing">5 Reactivity by Incremental
+Computing</a></li>
+<li><a href="#direct-control" id="toc-direct-control">6 Direct
+Control</a></li>
+<li><a href="#graphical-user-interfaces"
+id="toc-graphical-user-interfaces">7 Graphical User Interfaces</a>
+<ul>
+<li><a href="#calculator-flow" id="toc-calculator-flow">7.1 Calculator
+Flow</a></li>
+<li><a href="#tk-labltk" id="toc-tk-labltk">7.2 <em>Tk</em>:
+<em>LablTk</em></a></li>
+<li><a href="#gtk-lablgtk" id="toc-gtk-lablgtk">7.3 <em>GTk+</em>:
+<em>LablGTk</em></a></li>
+</ul></li>
+</ul></li>
+<li><a href="#exam-exercises-for-review"
+id="toc-exam-exercises-for-review">Exam: Exercises for review</a>
+<ul>
+<li><a href="#exam-set-0" id="toc-exam-set-0">Exam set 0</a></li>
+<li><a href="#exam-set-3" id="toc-exam-set-3">Exam set 3</a></li>
+</ul></li>
+</ul>
+</nav>
 <!-- Do NOT modify this file, it is automatically generated -->
 <h1 id="lecture-1-logic">Lecture 1: Logic</h1>
 <p>From logic rules to programming constructs</p>
@@ -371,7 +768,7 @@ anything.</p>
 <span class="math inline">\frac{b}{a \vee b}</span> (put second)</td>
 <td><span class="math inline">\frac{{a \vee b} \; {{{\frac{\,}{a}
 \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \;
-{{{\frac{\,}{c} \tiny{y}} \atop {\text{\textbar}}} \atop {b}}
+{{{\frac{\,}{b} \tiny{y}} \atop {\text{\textbar}}} \atop {c}}
 (\text{consider }b)}{c}</span> using <span class="math inline">x,
 y</span></td>
 </tr>

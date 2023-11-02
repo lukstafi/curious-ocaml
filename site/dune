@@ -31,7 +31,7 @@
  (target new_book.html)
  (deps README.md)
  (action
-  (system "pandoc -s --katex %{deps} -o %{target}")))
+  (system "pandoc -s --toc --katex %{deps} -o %{target}")))
 
 (rule
  (alias old_lectures_as_book)
@@ -40,7 +40,7 @@
  (deps old_lectures_as_book.md)
  (action
   (system
-   "pandoc -s --katex %{deps} -o %{target}")))
+   "pandoc -s --toc --katex %{deps} -o %{target}")))
 
 ; (rule
 ;  (alias old_lectures_as_book)
@@ -49,4 +49,4 @@
 ;  (deps old_lectures_as_book.md)
 ;  (action
 ;   (system
-;    "pandoc -s --katex --to native %{deps} -o %{target}")))
+;    "pandoc -s --toc --katex --to native %{deps} -o %{target}")))
