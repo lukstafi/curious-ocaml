@@ -29,15 +29,15 @@ What logical connectives do you know?
 
 How can we define them? Think in terms of *derivation trees*:
 
-$$ \frac{\begin{array}{ll}
-     \frac{\begin{array}{ll}
+$$ \frac{\begin{matrix}
+     \frac{\begin{matrix}
        \frac{\,}{\text{a premise}} & \frac{\,}{\text{another premise}}
-     \end{array}}{\text{some fact}} & \frac{\frac{\,}{\text{this we have by
+     \end{matrix}}{\text{some fact}} & \frac{\frac{\,}{\text{this we have by
      default}}}{\text{another fact}}
-   \end{array}}{\text{final conclusion}} $$
+   \end{matrix}}{\text{final conclusion}} $$
 
 Define by providing rules for using the connectives: for example, a rule 
-$\frac{\begin{array}{ll}   a & b \end{array}}{c}$ matches parts of the tree 
+$\frac{\begin{matrix}   a & b \end{matrix}}{c}$ matches parts of the tree 
 that have two premises, represented by variables $a$ and $b$, and have any 
 conclusion, represented by variable $c$.
 
@@ -75,24 +75,24 @@ $$ \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
 Such assumption can only be used in the matched subtree! But it can be used 
 several times, e.g. if someone's mood is more difficult to influence:
 
-$$ \frac{\frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
      \frac{\frac{\frac{\,}{\text{sunny}} \small{x}}{\text{go
-     outdoor}}}{\text{playing}} & \frac{\begin{array}{ll}
+     outdoor}}}{\text{playing}} & \frac{\begin{matrix}
        \frac{\,}{\text{sunny}} \small{x} & \frac{\frac{\,}{\text{sunny}}
        \small{x}}{\text{go outdoor}}
-     \end{array}}{\text{nice view}}
-   \end{array}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
+     \end{matrix}}{\text{nice view}}
+   \end{matrix}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}}
    \small{\text{ using } x} $$
 
 Elimination rule for disjunction represents **reasoning by cases**.
 
 How can we use the fact that it is sunny$\vee$cloudy (but not rainy)?
 
-$$ \frac{\begin{array}{rrl}
+$$ \frac{\begin{matrix}
      \frac{\,}{\text{sunny} \vee \text{cloudy}} \tiny{\text{ forecast}} &
      \frac{\frac{\,}{\text{sunny}} \tiny{x}}{\text{no-umbrella}} &
      \frac{\frac{\,}{\text{cloudy}} \tiny{y}}{\text{no-umbrella}}
-   \end{array}}{\text{no-umbrella}} \small{\text{ using } x, y} $$
+   \end{matrix}}{\text{no-umbrella}} \small{\text{ using } x, y} $$
 
 We know that it will be sunny or cloudy, by watching weather forecast. If it 
 will be sunny, we won't need an umbrella. If it will be cloudy, we won't need 
@@ -100,10 +100,10 @@ an umbrella. Therefore, won't need an umbrella.We need one more kind of rules to
 (it is somewhat similar to reasoning by cases). Example rule for induction on 
 natural numbers:
 
-$$ \frac{\begin{array}{rr}
+$$ \frac{\begin{matrix}
      p (0) &
 {{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
-   \end{array}}{p (n)} \text{ by induction, using } x $$
+   \end{matrix}}{p (n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
 and using it for $x$ we can derive it for the successor $x + 1$, where $x$ is 
@@ -151,19 +151,19 @@ called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 **Definitions for expressions** are introduced by rules a bit more complex 
 than these:
 
-$$ \frac{\begin{array}{ll}
+$$ \frac{\begin{matrix}
      e_{1} : a &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{{\texttt{let}} \; x \; {\texttt{=}} \;
+   \end{matrix}}{{\texttt{let}} \; x \; {\texttt{=}} \;
    e_{1} \; {\texttt{in}} \; e_{2} : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
 
-$$ \frac{\begin{array}{ll}
+$$ \frac{\begin{matrix}
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
 {{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{array}}{{\texttt{let rec}} \; x \;
+   \end{matrix}}{{\texttt{let rec}} \; x \;
    {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} $$
 
 We will cover what is missing in above rules when we will talk 
@@ -219,11 +219,11 @@ Nicholas Monje and Allen Downey.
 1. You've probably heard of the fibonacci numbers before, but in case you 
    haven't, they're defined by the following recursive relationship:
 
-   $$ \left\lbrace\begin{array}{llll}
+   $$ \left\lbrace\begin{matrix}
      f (0) & = & 0 &  \\\\\\
      f (1) & = & 1 &  \\\\\\
      f (n + 1) & = & f (n) + f (n - 1) & \text{for } n = 2, 3, \ldots
-   \end{array}\right. $$
+   \end{matrix}\right. $$
 
    Write a recursive function to calculate these numbers.
 1. A palindrome is a word that is spelled the same backward and forward, like 
@@ -296,63 +296,63 @@ $$ \begin{matrix}
   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{use } \rightarrow \text{ elimination:}\\\\\\
-  & \frac{\frac{\begin{array}{ll}
+  & \frac{\frac{\begin{matrix}
     \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
     \alpha]} & \frac{[?]}{{\texttt{1}} : [? \beta]}
-  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \end{matrix}}{{\texttt{((+) x) 1}} : [?
   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{we know that {\texttt{1}}} :
   {\texttt{int}}\\\\\\
-  & \frac{\frac{\begin{array}{ll}
+  & \frac{\frac{\begin{matrix}
     \frac{[?]}{{\texttt{(+) x}} :
     {\texttt{int}} \rightarrow [? \alpha]} &
     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \end{matrix}}{{\texttt{((+) x) 1}} : [?
   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{application again:}\\\\\\
-  & \frac{\frac{\begin{array}{ll}
-    \frac{\begin{array}{ll}
+  & \frac{\frac{\begin{matrix}
+    \frac{\begin{matrix}
       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
       {\texttt{int}} \rightarrow [? \alpha]} &
       \frac{[?]}{{\texttt{x}} : [? \gamma]}
-    \end{array}}{{\texttt{(+) x}} :
+    \end{matrix}}{{\texttt{(+) x}} :
     {\texttt{int}} \rightarrow [? \alpha]} &
     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \end{matrix}}{{\texttt{((+) x) 1}} : [?
   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow [?
   \alpha]} & \text{it's our {\texttt{x}}!}\\\\\\
-  & \frac{\frac{\begin{array}{ll}
-    \frac{\begin{array}{ll}
+  & \frac{\frac{\begin{matrix}
+    \frac{\begin{matrix}
       \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
       {\texttt{int}} \rightarrow [? \alpha]} &
       \frac{\,}{{\texttt{x}} : [? \gamma]}
       \tiny{{\texttt{x}}}
-    \end{array}}{{\texttt{(+) x}} :
+    \end{matrix}}{{\texttt{(+) x}} :
     {\texttt{int}} \rightarrow [? \alpha]} &
     \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{{\texttt{((+) x) 1}} : [?
+  \end{matrix}}{{\texttt{((+) x) 1}} : [?
   \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [? \gamma]
   \rightarrow [? \alpha]} & \text{but {\texttt{(+)}}} :
   {\texttt{int}} \rightarrow {\texttt{int}}
   \rightarrow {\texttt{int}}\\\\\\
-  & \frac{\frac{\begin{array}{ll}
-    \frac{\begin{array}{ll}
+  & \frac{\frac{\begin{matrix}
+    \frac{\begin{matrix}
       \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
       \rightarrow {\texttt{int}} \rightarrow
       {\texttt{int}}} \tiny{\text{(constant)}} &
       \frac{\,}{{\texttt{x}} : {\texttt{int}}}
       \tiny{{\texttt{x}}}
-    \end{array}}{{\texttt{(+) x}} :
+    \end{matrix}}{{\texttt{(+) x}} :
     {\texttt{int}} \rightarrow {\texttt{int}}}
     & \frac{\,}{{\texttt{1}} : {\texttt{int}}}
     \tiny{\text{(constant)}}
-  \end{array}}{{\texttt{((+) x) 1}} :
+  \end{matrix}}{{\texttt{((+) x) 1}} :
   {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
   1}}} : {\texttt{int}} \rightarrow
   {\texttt{int}}} &
@@ -782,55 +782,55 @@ $$ \frac{\frac{[?]}{{\texttt{((+) x) 1}} : [?
 
 $$ \text{use } \rightarrow \text{ elimination:} $$
 
-$$ \frac{\frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
      \frac{[?]}{{\texttt{(+) x}} : [? \beta] \rightarrow [?
      \alpha]} & \frac{[?]}{{\texttt{1}} : [? \beta]}
-   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \end{matrix}}{{\texttt{((+) x) 1}} : [?
    \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
 $$ \text{we know that {\texttt{1}}} : {\texttt{int}} $$
 
-$$ \frac{\frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
      \frac{[?]}{{\texttt{(+) x}} :
      {\texttt{int}} \rightarrow [? \alpha]} &
      \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \end{matrix}}{{\texttt{((+) x) 1}} : [?
    \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
 $$ \text{application again:} $$
 
-$$ \frac{\frac{\begin{array}{ll}
-     \frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
+     \frac{\begin{matrix}
        \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
        {\texttt{int}} \rightarrow [? \alpha]} &
        \frac{[?]}{{\texttt{x}} : [? \gamma]}
-     \end{array}}{{\texttt{(+) x}} :
+     \end{matrix}}{{\texttt{(+) x}} :
      {\texttt{int}} \rightarrow [? \alpha]} &
      \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \end{matrix}}{{\texttt{((+) x) 1}} : [?
    \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [?] 
 \rightarrow
    [? \alpha]} $$
 
 $$ \text{it's our {\texttt{x}}!} $$
 
-$$ \frac{\frac{\begin{array}{ll}
-     \frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
+     \frac{\begin{matrix}
        \frac{[?]}{{\texttt{(+)}} : [? \gamma] \rightarrow
        {\texttt{int}} \rightarrow [? \alpha]} &
        \frac{\,}{{\texttt{x}} : [? \gamma]}
        {\texttt{x}}
-     \end{array}}{{\texttt{(+) x}} :
+     \end{matrix}}{{\texttt{(+) x}} :
      {\texttt{int}} \rightarrow [? \alpha]} &
      \frac{\,}{{\texttt{1}} : {\texttt{int}}}
      \tiny{\text{(constant)}}
-   \end{array}}{{\texttt{((+) x) 1}} : [?
+   \end{matrix}}{{\texttt{((+) x) 1}} : [?
    \alpha]}}{{\texttt{fun x -> ((+) x) 1}} : [? \gamma]
    \rightarrow [? \alpha]} $$
 
@@ -838,18 +838,18 @@ $$ \text{but {\texttt{(+)}}} : {\texttt{int}}
    \rightarrow {\texttt{int}} \rightarrow
    {\texttt{int}} $$
 
-$$ \frac{\frac{\begin{array}{ll}
-     \frac{\begin{array}{ll}
+$$ \frac{\frac{\begin{matrix}
+     \frac{\begin{matrix}
        \frac{\,}{{\texttt{(+)}} : {\texttt{int}}
        \rightarrow {\texttt{int}} \rightarrow
        {\texttt{int}}} \tiny{\text{(constant)}} &
        \frac{\,}{{\texttt{x}} : {\texttt{int}}}
        {\texttt{x}}
-     \end{array}}{{\texttt{(+) x}} :
+     \end{matrix}}{{\texttt{(+) x}} :
      {\texttt{int}} \rightarrow
      {\texttt{int}}} & \frac{\,}{{\texttt{1}} :
      {\texttt{int}}} \tiny{\text{(constant)}}
-   \end{array}}{{\texttt{((+) x) 1}} :
+   \end{matrix}}{{\texttt{((+) x) 1}} :
    {\texttt{int}}}}{\text{{\texttt{fun x -> ((+) x)
    1}}} : {\texttt{int}} \rightarrow
    {\texttt{int}}} $$
