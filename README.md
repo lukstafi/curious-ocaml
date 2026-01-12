@@ -4770,41 +4770,54 @@ let rec sel_perms = function
   | xs -> [x::ys | x, xs' <- select xs; ys <- sel_perms xs']
 ```
 
-### 8.2 Generalized Comprehensions: Do-Notation
+### 8.2 Generalized Comprehensions: Binding Operators
 
-To use a more general syntax extension, we need `pa_monad`. With it, the expression generation code becomes:
+OCaml 5 introduced **binding operators** that provide a clean, native syntax for monadic computations. Instead of external syntax extensions like the old `pa_monad`, we can define custom `let*` and `let+` operators that integrate naturally with the language.
+
+For the list monad, we define these binding operators:
+
+```ocaml
+let ( let* ) x f = concat_map f x      (* bind *)
+let ( let+ ) x f = List.map f x        (* map/fmap *)
+let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
+let ( and+ ) = ( and* )
+let return x = [x]
+let fail = []
+```
+
+With these operators, the expression generation code becomes:
 
 ```
 let rec exprs = function
   | [] -> []
   | [n] -> [Val n]
   | ns ->
-      perform with (|->) in
-        (ls, rs) <-- split ns;
-        l <-- exprs ls; r <-- exprs rs;
-        o <-- [Add; Sub; Mul; Div];
-        [App (o, l, r)]
+      let* (ls, rs) = split ns in
+      let* l = exprs ls in
+      let* r = exprs rs in
+      let* o = [Add; Sub; Mul; Div] in
+      [App (o, l, r)]
 ```
 
-The `perform` syntax does not directly support guards. If we try to write:
+Note that unlike the old `perform` syntax where we used `<--` for binding, we now use `let*` followed by `=` and must explicitly write `in` before the continuation.
+
+The `let*` syntax does not directly support guards. If we try to write:
 
 ```
 let solutions ns n =
-  perform with (|->) in
-    ns' <-- choices ns;
-    e <-- exprs ns';
-    eval e = Some n;  (* Error! *)
-    e
+  let* ns' = choices ns in
+  let* e = exprs ns' in
+  eval e = Some n;  (* Error! *)
+  e
 ```
 
 We get an error because it expects a list, not a boolean. We can work around this by deciding whether to return anything:
 
 ```
 let solutions ns n =
-  perform with (|->) in
-    ns' <-- choices ns;
-    e <-- exprs ns';
-    if eval e = Some n then [e] else []
+  let* ns' = choices ns in
+  let* e = exprs ns' in
+  if eval e = Some n then [e] else []
 ```
 
 For a general guard check function, we define:
@@ -4817,11 +4830,10 @@ And then:
 
 ```
 let solutions ns n =
-  perform with (|->) in
-    ns' <-- choices ns;
-    e <-- exprs ns';
-    guard (eval e = Some n);
-    [e]
+  let* ns' = choices ns in
+  let* e = exprs ns' in
+  let* () = guard (eval e = Some n) in
+  [e]
 ```
 
 ### 8.3 Monads
@@ -4832,52 +4844,53 @@ A monad is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at leas
 - `return : 'a -> 'a monad`
 - The infix `>>=` is commonly used for `bind`: `let (>>=) a b = bind a b`
 
-With `bind` in scope, we do not need the `with` clause in `perform`:
+With OCaml 5's binding operators, we define `let*` as an alias for `bind`:
 
-```
+```ocaml
 let bind a b = concat_map b a
 let return x = [x]
+let ( let* ) = bind
 
 let solutions ns n =
-  perform
-    ns' <-- choices ns;
-    e <-- exprs ns';
-    guard (eval e = Some n);
-    return e
+  let* ns' = choices ns in
+  let* e = exprs ns' in
+  let* () = guard (eval e = Some n) in
+  return e
 ```
 
 Why does `guard` look this way? Let us examine:
 
-```
+```ocaml
 let fail = []
 let guard p = if p then return () else fail
 ```
 
-Steps in monadic computation are composed with `>>=` (like `|->` for lists). The key insight is:
+Steps in monadic computation are composed with `let*` (or `>>=`, like `|->` for lists). The key insight is:
 
-- `[] |-> ...` does not produce anything -- as needed by guarding
-- `[()] |-> ...` becomes `(fun _ -> ...) ()` which simply continues the computation unchanged
+- `let* _ = [] in ...` does not produce anything -- as needed by guarding
+- `let* _ = [()] in ...` becomes `(fun _ -> ...) ()` which simply continues the computation unchanged
 
-Throwing away the binding argument is common, with infix syntax `>>` in Haskell:
+Throwing away the binding argument is common. With binding operators, we can use `let* () = ...` or `let* _ = ...`:
 
-```
+```ocaml
+let (>>=) a b = bind a b
 let (>>) m f = m >>= (fun _ -> f)
 ```
 
-#### The Perform Syntax in Depth
+#### The Binding Operator Syntax
 
-The `perform` syntax translates as follows:
+OCaml 5's binding operators translate as follows:
 
 | Source | Translation |
 |--------|-------------|
-| `perform exp` | `exp` |
-| `perform pat <-- exp; rest` | `bind exp (fun pat -> perform rest)` |
-| `perform exp; rest` | `bind exp (fun _ -> perform rest)` |
-| `perform let ... in rest` | `let ... in perform rest` |
-| `perform rpt <-- exp; rest` | `bind exp (function \| rpt -> perform rest \| _ -> failwith "pattern match")` |
-| `perform with b [and f] in body` | Uses `b` instead of `bind` and `f` instead of `failwith` |
+| `let* x = exp in body` | `bind exp (fun x -> body)` |
+| `let+ x = exp in body` | `map (fun x -> body) exp` |
+| `let* () = exp in body` | `bind exp (fun () -> body)` |
+| `let* x = e1 and* y = e2 in body` | `bind (and* e1 e2) (fun (x, y) -> body)` |
 
-It can be useful to redefine `let failwith _ = fail` so that pattern match failures behave like guard failures.
+The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions.
+
+For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately.
 
 ### 8.4 Monad Laws
 
@@ -4971,14 +4984,12 @@ let find_to_eat n island_size num_islands empty_cells =
   let rec find_board s =
     match visit_cell s with
     | None ->
-        perform
-          guard (s.been_islands = num_islands);
-          return s.eaten
+        let* () = guard (s.been_islands = num_islands) in
+        return s.eaten
     | Some (cell, s) ->
-        perform
-          s <-- find_island cell (fresh_island s);
-          guard (s.been_size = island_size);
-          find_board s
+        let* s = find_island cell (fresh_island s) in
+        let* () = guard (s.been_size = island_size) in
+        find_board s
 
   and find_island current s =
     let s = keep_cell current s in
@@ -5107,7 +5118,7 @@ A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with 
 
 Finally, we can pass around modules in normal functions using first-class modules:
 
-```
+```ocaml
 module type T = sig val g : int -> int end
 
 let f mod_v x =
@@ -5130,15 +5141,19 @@ A monad is a **quarantine container**:
 - We can put something into the container with `return`
 - We can operate on it, but the result needs to stay in the container
 
-```
-let lift f m = perform x <-- m; return (f x)
+```ocaml
+let lift f m =
+  let* x = m in
+  return (f x)
 (* val lift : ('a -> 'b) -> 'a monad -> 'b monad *)
 ```
 
 - We can deactivate-unwrap the quarantine container but only when it is in another container so the quarantine is not broken
 
-```
-let join m = perform x <-- m; x
+```ocaml
+let join m =
+  let* x = m in
+  x
 (* val join : ('a monad) monad -> 'a monad *)
 ```
 
@@ -5148,15 +5163,14 @@ Monads with access allow us to extract the resulting element from the container;
 
 #### Monads as Computation
 
-To compute the result, `perform` instructions, naming partial results. The physical metaphor is an **assembly line**:
+To compute the result, use `let*` bindings to sequence instructions, naming partial results. The physical metaphor is an **assembly line**:
 
 ```
 let assemblyLine w =
-  perform
-    c <-- makeChopsticks w;   (* Worker makes chopsticks *)
-    c' <-- polishChopsticks c; (* Worker polishes them *)
-    c'' <-- wrapChopsticks c'; (* Worker wraps them *)
-    return c''                 (* Loader returns the result *)
+  let* c = makeChopsticks w in    (* Worker makes chopsticks *)
+  let* c' = polishChopsticks c in (* Worker polishes them *)
+  let* c'' = wrapChopsticks c' in (* Worker wraps them *)
+  return c''                       (* Loader returns the result *)
 ```
 
 Any expression can be spread over a monad. For lambda-terms:
@@ -5177,7 +5191,7 @@ When an expression is spread over a monad, its computation can be monitored or a
 
 To implement a monad, we need to provide the implementation type, `return`, and `bind` operations.
 
-```
+```ocaml
 module type MONAD = sig
   type 'a t
   val return : 'a -> 'a t
@@ -5189,10 +5203,12 @@ Alternatively, we could start from `return`, `lift`, and `join` operations.
 
 Based on just these two operations, we can define a suite of general-purpose functions:
 
-```
+```ocaml
 module type MONAD_OPS = sig
   type 'a monad
   include MONAD with type 'a t := 'a monad
+  val ( let* ) : 'a monad -> ('a -> 'b monad) -> 'b monad
+  val ( let+ ) : 'a monad -> ('a -> 'b) -> 'b monad
   val ( >>= ) : 'a monad -> ('a -> 'b monad) -> 'b monad
   val foldM : ('a -> 'b -> 'a monad) -> 'a -> 'b list -> 'a monad
   val whenM : bool -> unit monad -> unit monad
@@ -5206,21 +5222,31 @@ module MonadOps (M : MONAD) = struct
   open M
   type 'a monad = 'a t
   let run x = x
+  let ( let* ) a b = bind a b
+  let ( let+ ) a f = bind a (fun x -> return (f x))
   let (>>=) a b = bind a b
   let rec foldM f a = function
     | [] -> return a
-    | x::xs -> f a x >>= fun a' -> foldM f a' xs
+    | x::xs ->
+        let* a' = f a x in
+        foldM f a' xs
   let whenM p s = if p then s else return ()
-  let lift f m = perform x <-- m; return (f x)
+  let lift f m =
+    let* x = m in
+    return (f x)
   let (>>|) a b = lift b a
-  let join m = perform x <-- m; x
-  let (>=>) f g = fun x -> f x >>= g
+  let join m =
+    let* x = m in
+    x
+  let (>=>) f g = fun x ->
+    let* y = f x in
+    g y
 end
 ```
 
 We make the monad "safe" by keeping its type abstract, but `run` exposes "what really happened":
 
-```
+```ocaml
 module Monad (M : MONAD) : sig
   include MONAD_OPS
   val run : 'a monad -> 'a M.t
@@ -5234,7 +5260,7 @@ end
 
 The monad-plus class has many implementations. They need to provide `mzero` and `mplus`:
 
-```
+```ocaml
 module type MONAD_PLUS = sig
   include MONAD
   val mzero : 'a t
@@ -5272,7 +5298,7 @@ end
 
 We also need a class for computations with state:
 
-```
+```ocaml
 module type STATE = sig
   type store
   type 'a t
@@ -5287,7 +5313,7 @@ end
 
 Heavy laziness notation? Try a monad (with access):
 
-```
+```ocaml
 module LazyM = Monad (struct
   type 'a t = 'a Lazy.t
   let bind a b = lazy (Lazy.force (b (Lazy.force a)))
@@ -5301,7 +5327,7 @@ let laccess m = Lazy.force (LazyM.run m)
 
 Our resident list monad (monad-plus):
 
-```
+```ocaml
 module ListM = MonadPlus (struct
   type 'a t = 'a list
   let bind a b = concat_map b a
@@ -5315,21 +5341,21 @@ end)
 
 The Countdown module can be parameterized by any monad-plus:
 
-```
+```ocaml
 module Countdown (M : MONAD_PLUS_OPS) = struct
   open M  (* Open the module to make monad operations visible *)
 
   let rec insert x = function  (* All choice-introducing operations *)
     | [] -> return [x]          (* need to happen in the monad *)
     | y::ys as xs ->
-        return (x::xs) ++
-          perform xys <-- insert x ys; return (y::xys)
+        let* xys = insert x ys in
+        return (x::xs) ++ return (y::xys)
 
   let rec choices = function
     | [] -> return []
-    | x::xs -> perform
-        cxs <-- choices xs;           (* Choosing which numbers in what order *)
-        return cxs ++ insert x cxs    (* and now whether with or without x *)
+    | x::xs ->
+        let* cxs = choices xs in           (* Choosing which numbers in what order *)
+        return cxs ++ insert x cxs         (* and now whether with or without x *)
 
   type op = Add | Sub | Mul | Div
 
@@ -5356,8 +5382,8 @@ module Countdown (M : MONAD_PLUS_OPS) = struct
     | Val n -> string_of_int n
     | App (op, l, r) -> "(" ^ expr2str l ^ op2str op ^ expr2str r ^ ")"
 
-  let combine (l, x) (r, y) o = perform  (* Try out an operator *)
-    guard (valid o x y);
+  let combine (l, x) (r, y) o =  (* Try out an operator *)
+    let* () = guard (valid o x y) in
     return (App (o, l, r), apply o x y)
 
   let split l =  (* Another choice: which numbers go into which argument *)
@@ -5372,19 +5398,20 @@ module Countdown (M : MONAD_PLUS_OPS) = struct
 
   let rec results = function  (* Build possible expressions once numbers *)
     | [] -> fail                (* have been picked *)
-    | [n] -> perform
-        guard (n > 0); return (Val n, n)
-    | ns -> perform
-        (ls, rs) <-- split ns;
-        lx <-- results ls;
-        ly <-- results rs;  (* Collect solutions using each operator *)
+    | [n] ->
+        let* () = guard (n > 0) in
+        return (Val n, n)
+    | ns ->
+        let* (ls, rs) = split ns in
+        let* lx = results ls in
+        let* ly = results rs in  (* Collect solutions using each operator *)
         msum_map (combine lx ly) [Add; Sub; Mul; Div]
 
-  let solutions ns n = perform  (* Solve the problem: *)
-      ns' <-- choices ns;         (* pick numbers and their order, *)
-      (e, m) <-- results ns';     (* build possible expressions, *)
-      guard (m = n);              (* check if the expression gives target value, *)
-      return (expr2str e)         (* "print" the solution *)
+  let solutions ns n =  (* Solve the problem: *)
+    let* ns' = choices ns in         (* pick numbers and their order, *)
+    let* (e, m) = results ns' in     (* build possible expressions, *)
+    let* () = guard (m = n) in       (* check if the expression gives target value, *)
+    return (expr2str e)              (* "print" the solution *)
 end
 ```
 
@@ -5402,7 +5429,7 @@ let time f =
 
 With the list monad:
 
-```
+```ocaml
 module ListCountdown = Countdown (ListM)
 let test1 () = ListM.run (ListCountdown.solutions [1;3;7;10;25;50] 765)
 let t1, sol1 = time test1
@@ -5412,7 +5439,7 @@ let t1, sol1 = time test1
 
 What if we want only one solution? Laziness to the rescue! We define an "odd lazy list":
 
-```
+```ocaml
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -5443,7 +5470,7 @@ Testing shows that the odd lazy list still takes about the same time to even get
 
 The **option monad** does not help either:
 
-```
+```ocaml
 module OptionM = MonadPlus (struct
   type 'a t = 'a option
   let bind a b =
@@ -5460,7 +5487,7 @@ Our lazy list type is not lazy enough. Whenever we "make" a choice with `a ++ b`
 
 We need **even lazy lists** (our `llist` above are called "odd lazy lists"):
 
-```
+```ocaml
 type 'a lazy_list = 'a lazy_list_ Lazy.t
 and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
 
@@ -5498,7 +5525,7 @@ Now the first solution takes considerably less time than all solutions. The next
 
 Built-in non-functional exceptions in OCaml are more efficient and more flexible. However, monadic exceptions are safer than standard exceptions in situations like multi-threading. The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad.
 
-```
+```ocaml
 module ExceptionM (Excn : sig type t end) : sig
   type excn = Excn.t
   type 'a t = OK of 'a | Bad of excn
@@ -5526,7 +5553,7 @@ end
 
 #### The State Monad
 
-```
+```ocaml
 module StateM (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> 'a * store  (* Pass the current store value to get the next value *)
@@ -5565,22 +5592,22 @@ module S = StateM (struct type t = int * (string * string) list end)
 open S
 
 let rec alpha_conv = function
-  | Var x as v -> perform              (* Function from terms to StateM monad *)
-      (_, env) <-- get;                (* Seeing a variable does not change state *)
+  | Var x as v ->                      (* Function from terms to StateM monad *)
+      let* (_, env) = get in           (* Seeing a variable does not change state *)
       let v = try Var (List.assoc x env)  (* but we need its new name *)
         with Not_found -> v in         (* Free variables don't change name *)
       return v
-  | Lam (x, t) -> perform              (* We rename each bound variable *)
-      (fresh, env) <-- get;            (* We need a fresh number *)
+  | Lam (x, t) ->                      (* We rename each bound variable *)
+      let* (fresh, env) = get in       (* We need a fresh number *)
       let x' = x ^ string_of_int fresh in
-      put (fresh+1, (x, x')::env);     (* Remember new name, update number *)
-      t' <-- alpha_conv t;
-      (fresh', _) <-- get;             (* We need to restore names, *)
-      put (fresh', env);               (* but keep the number fresh *)
+      let* () = put (fresh+1, (x, x')::env) in  (* Remember new name, update number *)
+      let* t' = alpha_conv t in
+      let* (fresh', _) = get in        (* We need to restore names, *)
+      let* () = put (fresh', env) in   (* but keep the number fresh *)
       return (Lam (x', t'))
-  | App (t1, t2) -> perform
-      t1 <-- alpha_conv t1;            (* Passing around of names *)
-      t2 <-- alpha_conv t2;            (* and the currently fresh number *)
+  | App (t1, t2) ->
+      let* t1 = alpha_conv t1 in       (* Passing around of names *)
+      let* t2 = alpha_conv t2 in       (* and the currently fresh number *)
       return (App (t1, t2))            (* is done by the monad *)
 
 (* val test : term = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var "x")) *)
@@ -5601,7 +5628,7 @@ We will develop a monad transformer `StateT` which adds state to a monad-plus. T
 
 We need monad transformers in OCaml because "monads are contagious": although we have built-in state and exceptions, we need to use monadic state and exceptions when we are inside a monad. This is the reason Lwt is both a concurrency and an exception monad.
 
-The state monad uses `let x = a in ...` for binding. The transformed monad uses `M.bind` instead:
+The state monad uses `let x = a in ...` for binding. The transformed monad uses `M.bind` (or `M.let*`) instead:
 
 ```
 type 'a state = store -> ('a * store)
@@ -5679,67 +5706,67 @@ module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   module BacktrackingM = StateT (M) (struct type t = state end)
   open BacktrackingM
 
-  let rec visit_cell () = perform    (* State update actions *)
-    s <-- get;
+  let rec visit_cell () =              (* State update actions *)
+    let* s = get in
     match s.unvisited with
     | [] -> return None
-    | c::remaining when CellSet.mem c s.visited -> perform
-        put {s with unvisited=remaining};
-        visit_cell ()                 (* Throwaway argument because of recursion *)
-    | c::remaining -> perform
-        put {s with
+    | c::remaining when CellSet.mem c s.visited ->
+        let* () = put {s with unvisited=remaining} in
+        visit_cell ()                  (* Throwaway argument because of recursion *)
+    | c::remaining ->
+        let* () = put {s with
           unvisited=remaining;
-          visited = CellSet.add c s.visited};
-        return (Some c)               (* This action returns a value *)
+          visited = CellSet.add c s.visited} in
+        return (Some c)                (* This action returns a value *)
 
-  let eat_cell c = perform
-    s <-- get;
-    put {s with eaten = c::s.eaten;
+  let eat_cell c =
+    let* s = get in
+    let* () = put {s with eaten = c::s.eaten;
          visited = CellSet.add c s.visited;
-         more_to_eat = s.more_to_eat - 1};
-    return ()                         (* Remaining state update actions just affect the state *)
+         more_to_eat = s.more_to_eat - 1} in
+    return ()                          (* Remaining state update actions just affect the state *)
 
-  let keep_cell c = perform
-    s <-- get;
-    put {s with
+  let keep_cell c =
+    let* s = get in
+    let* () = put {s with
       visited = CellSet.add c s.visited;
-      been_size = s.been_size + 1};
+      been_size = s.been_size + 1} in
     return ()
 
-  let fresh_island = perform
-    s <-- get;
-    put {s with been_size = 0;
-         been_islands = s.been_islands + 1};
+  let fresh_island =
+    let* s = get in
+    let* () = put {s with been_size = 0;
+         been_islands = s.been_islands + 1} in
     return ()
 
   let find_to_eat n island_size num_islands empty_cells =
     let honey = honey_cells n empty_cells in
-    let rec find_board () = perform
-      cell <-- visit_cell ();
+    let rec find_board () =
+      let* cell = visit_cell () in
       match cell with
-      | None -> perform
-          s <-- get;
-          guard (s.been_islands = num_islands);
+      | None ->
+          let* s = get in
+          let* () = guard (s.been_islands = num_islands) in
           return s.eaten
-      | Some cell -> perform
-          fresh_island;
-          find_island cell;
-          s <-- get;
-          guard (s.been_size = island_size);
+      | Some cell ->
+          let* () = fresh_island in
+          let* () = find_island cell in
+          let* s = get in
+          let* () = guard (s.been_size = island_size) in
           find_board ()
 
-    and find_island current = perform
-      keep_cell current;
+    and find_island current =
+      let* () = keep_cell current in
       neighbors n empty_cells current
       |> foldM
-           (fun () neighbor -> perform
-              s <-- get;
+           (fun () neighbor ->
+              let* s = get in
               whenM (not (CellSet.mem neighbor s.visited))
-                (let choose_eat = perform
-                   guard (s.more_to_eat > 0);
+                (let choose_eat =
+                   let* () = guard (s.more_to_eat > 0) in
                    eat_cell neighbor
-                 and choose_keep = perform
-                   guard (s.been_size < island_size);
+                 and choose_keep =
+                   let* () = guard (s.been_size < island_size) in
                    find_island neighbor in
                  choose_eat ++ choose_keep)) () in
 
@@ -5823,7 +5850,8 @@ module DistribM : PROBABILITY = struct
   module M = struct                      (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
     let bind a b = merge              (* x w.p. p and then y w.p. q happens = *)
-      [y, q *. p | (x, p) <- a; (y, q) <- b x]  (* y results w.p. p*q *)
+      (List.concat_map (fun (x, p) ->
+        List.map (fun (y, q) -> (y, q *. p)) (b x)) a)  (* y results w.p. p*q *)
     let return a = [a, 1.]               (* Certainly a *)
   end
   include M
@@ -5888,14 +5916,12 @@ module MontyHall (P : PROBABILITY) = struct
   type door = A | B | C
   let doors = [A; B; C]
 
-  let monty_win switch = perform
-    prize <-- uniform doors;
-    chosen <-- uniform doors;
-    opened <-- uniform
-      (list_diff doors [prize; chosen]);
+  let monty_win switch =
+    let* prize = uniform doors in
+    let* chosen = uniform doors in
+    let* opened = uniform (list_diff doors [prize; chosen]) in
     let final =
-      if switch then List.hd
-        (list_diff doors [opened; chosen])
+      if switch then List.hd (list_diff doors [opened; chosen])
       else chosen in
     return (final = prize)
 end
@@ -5935,7 +5961,8 @@ module DistribMP : COND_PROBAB = struct
   module MP = struct
     type 'a t = ('a * float) list      (* Measures no longer restricted to *)
     let bind a b = merge               (* probability distributions *)
-      [y, q *. p | (x, p) <- a; (y, q) <- b x]
+      (List.concat_map (fun (x, p) ->
+        List.map (fun (y, q) -> (y, q *. p)) (b x)) a)
     let return a = [a, 1.]
     let mzero = []                     (* Measure equal 0 everywhere is OK *)
     let mplus = List.append
@@ -6024,23 +6051,23 @@ module Burglary (P : COND_PROBAB) = struct
   type what_happened =
     | Safe | Burgl | Earthq | Burgl_n_earthq
 
-  let check ~john_called ~mary_called ~radio = perform
-    earthquake <-- flip 0.002;
-    guard (radio = None || radio = Some earthquake);
-    burglary <-- flip 0.001;
+  let check ~john_called ~mary_called ~radio =
+    let* earthquake = flip 0.002 in
+    let* () = guard (radio = None || radio = Some earthquake) in
+    let* burglary = flip 0.001 in
     let alarm_p =
       match burglary, earthquake with
       | false, false -> 0.001
       | false, true -> 0.29
       | true, false -> 0.94
       | true, true -> 0.95 in
-    alarm <-- flip alarm_p;
+    let* alarm = flip alarm_p in
     let john_p = if alarm then 0.9 else 0.05 in
-    john_calls <-- flip john_p;
-    guard (john_calls = john_called);
+    let* john_calls = flip john_p in
+    let* () = guard (john_calls = john_called) in
     let mary_p = if alarm then 0.7 else 0.01 in
-    mary_calls <-- flip mary_p;
-    guard (mary_calls = mary_called);
+    let* mary_calls = flip mary_p in
+    let* () = guard (mary_calls = mary_called) in
     match burglary, earthquake with
     | false, false -> return Safe
     | true, false -> return Burgl
@@ -6075,12 +6102,11 @@ where `parallel a b (fun x y -> c)` does not wait for `a` to be computed before 
 If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
 
 ```
-perform
-  let a = ea in
-  let b = eb in
-  x <-- a;
-  y <-- b;
-  c x y
+let a = ea in
+let b = eb in
+let* x = a in
+let* y = b in
+c x y
 ```
 
 #### Fine-Grained vs. Coarse-Grained Concurrency
@@ -6190,10 +6216,10 @@ module Cooperative = Threads(struct
     | Link _ -> assert false);
     m
 
-  let parallel a b c = perform         (* Since in our implementation *)
-    x <-- a;                           (* the threads run as soon as they are created, *)
-    y <-- b;                           (* parallel is redundant *)
-    c x y
+  let parallel a b c =                 (* Since in our implementation *)
+    bind a (fun x ->                   (* the threads run as soon as they are created, *)
+    bind b (fun y ->                   (* parallel is redundant *)
+    c x y))
 
   let rec access m =                   (* Accessing not only gets the result of m, *)
     let m = find m in                  (* but spins the thread loop till m terminates *)
@@ -6215,8 +6241,8 @@ end)
 ```
 module TTest (T : THREAD_OPS) = struct
   open T
-  let rec loop s n = perform
-    return (Printf.printf "-- %s(%d)\n%!" s n);
+  let rec loop s n =
+    let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
     if n > 0 then loop s (n-1)         (* We cannot use whenM because *)
     else return ()                     (* the thread would be created regardless of condition *)
 end
@@ -6262,11 +6288,11 @@ For example: if Bono and Larry walk across first, 10 minutes have elapsed when t
 
 Find all answers to the puzzle using a list comprehension. The comprehension will be a bit long but recursion is not needed.
 
-**Exercise 2.** Assume `concat_map` as defined in lecture 6. What will the following expressions return? Why?
+**Exercise 2.** Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
 
-1. `perform with (|->) in return 5; return 7`
-2. `let guard p = if p then [()] else [];; perform with (|->) in guard false; return 7;;`
-3. `perform with (|->) in return 5; guard false; return 7;;`
+1. `let* _ = return 5 in return 7`
+2. `let guard p = if p then [()] else [] in let* () = guard false in return 7`
+3. `let* _ = return 5 in let* () = guard false in return 7`
 
 **Exercise 3.** Define `bind` in terms of `lift` and `join`.
 

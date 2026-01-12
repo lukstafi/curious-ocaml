@@ -9,8 +9,16 @@ let const x _ = x
 let (-|) f g x = f (g x)
 let (|-) f g x = g (f x)
 
-(* concat_map: map then flatten *)
-let concat_map f l = List.concat (List.map f l)
+(* concat_map: map then flatten - use stdlib version *)
+let concat_map = List.concat_map
+
+(* Binding operators for the list monad (OCaml 5 style) *)
+let ( let* ) x f = concat_map f x      (* bind *)
+let ( let+ ) x f = List.map f x        (* map/fmap *)
+let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
+let ( and+ ) = ( and* )
+let return x = [x]
+let fail = []
 
 (* The |-> operator for multiple data sources *)
 let ( |-> ) x f = concat_map f x

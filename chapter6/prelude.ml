@@ -18,8 +18,8 @@ let uncurry f (x, y) = f x y
 (* Curry a function *)
 let curry f x y = f (x, y)
 
-(* concat_map: map then flatten *)
-let concat_map f l = List.concat (List.map f l)
+(* concat_map: map then flatten - use stdlib version *)
+let concat_map = List.concat_map
 
 (* Range function *)
 let rec fromto a b = if a > b then [] else a :: fromto (a + 1) b
