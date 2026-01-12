@@ -23,10 +23,8 @@
   1. Write a more efficient variant of `list_diff` that computes the 
      difference of sets represented as sorted lists.
   1. `is_unique` in the provided code takes quadratic time – optimize it.
-* Write functions `compose` and `perform` that take a list of functions and 
-  return their composition, i.e. a function `compose [f1; …; fn] = x 
-  ↦ f1 (… (fn x)…)` and `perform [f1; …; fn] = x 
-  ↦ fn (… (f1 x)…)`.
+* Write functions `compose` and `perform` that take a list of functions and
+  return their composition, i.e. a function `compose [f1; ...; fn] = x -> f1 (... (fn x)...)` and `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`.
 * Write a solver for the *Tents Puzzle* 
   [http://www.mathsisfun.com/games/tents-puzzle.html](http://www.mathsisfun.com/games/tents-puzzle.html).
 * \* **Robot Squad**. We are given a map of terrain with empty spaces and 

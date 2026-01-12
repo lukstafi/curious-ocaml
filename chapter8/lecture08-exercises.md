@@ -151,10 +151,8 @@ probability tables are:
   \\\\\\
   P (\operatorname{sprinkler}|\operatorname{cloudy}) & = & 0.1 \\\\\\
   P (\operatorname{sprinkler}|\operatorname{not}\operatorname{cloudy}) & = &
-  \0.5 \\\\\\
-  P
-  
-(\operatorname{wet}\operatorname{roof}|\operatorname{not}\operatorname{rain})
+  0.5 \\\\\\
+  P (\operatorname{wet\_roof}|\operatorname{not}\operatorname{rain})
   & = & 0 \\\\\\
   P (\operatorname{wet}\operatorname{roof}|\operatorname{rain}) & = & 0.7
   \\\\\\

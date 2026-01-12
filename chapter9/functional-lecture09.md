@@ -1168,15 +1168,25 @@ searching for address we're at:  | SeekSeek: still seeking, Addr
 (true…): possibly finished,  | Addr of bool * string * string 
 `list`Addr (false…): no domain.
 
-let report state lexbuf =Report the found address, if any.    match state with 
-   | Seek -> ()    | Addr (false, , ) -> ()    | Addr (true, name, 
-addr) ->With line at which it is found.      Printf.printf "%d: %s@%sn" 
-lexbuf.lexcurrp.poslnum        name (String.concat "." (List.rev addr))}let 
-newline = ('\n' | "\r\n")Regexp for end of line.let addrchar = 
-['a'-'z''A'-'Z''0'-'9''-''']let atwsymb = "where" | "WHERE" | "at" | "At" | 
-"AT"let atnwsymb = '@' | "&#x40;" | "&#64;"let opensymb = ' '* '(' ' '* | ' 
-'+Demarcate a possible @let closesymb = ' '* ')'' '* | ' '+or . symbol.let 
-atsepsymb =  opensymb? atnwsymb closesymb? |  opensymb atwsymb closesymb
+```
+(* Report the found address, if any. *)
+let report state lexbuf =
+  match state with
+  | Seek -> ()
+  | Addr (false, _, _) -> ()
+  | Addr (true, name, addr) ->  (* With line at which it is found. *)
+    Printf.printf "%d: %s@%s\n"
+      lexbuf.lex_curr_p.pos_lnum
+      name (String.concat "." (List.rev addr))
+}
+let newline = ('\n' | "\r\n")  (* Regexp for end of line. *)
+let addrchar = ['a'-'z''A'-'Z''0'-'9''-''_']
+let atwsymb = "where" | "WHERE" | "at" | "At" | "AT"
+let atnwsymb = '@' | "&#x40;" | "&#64;"
+let opensymb = ' '* '(' ' '* | ' '+  (* Demarcate a possible @ *)
+let closesymb = ' '* ')' ' '* | ' '+  (* or . symbol. *)
+let atsepsymb = opensymb? atnwsymb closesymb? | opensymb atwsymb closesymb
+```
 
 let dotwsymb = "dot" | "DOT" | "dt" | "DT"let domwsymb = dotwsymb | "dom" | 
 "DOM"Obfuscation for last dot.let dotsepsymb =  opensymb dotwsymb closesymb |  
@@ -1377,12 +1387,23 @@ THESEDET | THOSEDET | COMMACNJ | ANDCNJ | DOTPUNCT let tokstr = function
 information.let log s = Printf.fprintf logfile "%sn%!" s let lasttok = ref 
 DOTPUNCTState for better tagging.
 
- let tokbuf = Queue.create ()Token buffer, since single word let push w =is 
-sometimes two tokens.   log ("lex: "tokstr w);Log lexed token.   lasttok := w; 
-Queue.push w tokbuf exception LexError of string}let alphanum = ['0'-'9' 
-'a'-'z' 'A'-'Z' ''' '-']rule line = parseFor line-based interface.| (['\n']* 
-'\n') as l { l }| eof { exit 0 }and lexword = parse| [' ' '\t']Skip 
-whitespace.    { lexword lexbuf }| '.' { push DOTPUNCT }End of sentence.| "a" 
+```
+(* Token buffer, since single word is sometimes two tokens. *)
+let tokbuf = Queue.create ()
+let push w =
+  log ("lex: " ^ tokstr w);  (* Log lexed token. *)
+  lasttok := w;
+  Queue.push w tokbuf
+exception LexError of string
+}
+let alphanum = ['0'-'9' 'a'-'z' 'A'-'Z' '\'' '-']
+rule line = parse  (* For line-based interface. *)
+| ([^'\n']* '\n') as l { l }
+| eof { exit 0 }
+and lexword = parse
+| [' ' '\t']  (* Skip whitespace. *)
+  { lexword lexbuf }
+```| '.' { push DOTPUNCT }End of sentence.| "a" 
 { push ADET } | "the" { push THEDET }‘‘Keywords''.| "some" { push SOMEDET }| 
 "this" { push THISDET } | "that" { push THATDET }| "these" { push THESEDET } | 
 "those" { push THOSEDET }| "A" { push ADET } | "The" { push THEDET }| "Some" { 
@@ -1445,17 +1466,26 @@ adjsub; action=fst vbadv; plural=true;       adjs=fst adjsub; advs=snd vbadv}
 
 * File `Eng.ml` is the same as `calc.ml` from previous example:
 
-open EngLexerlet () =  let stdinbuf = Lexing.fromchannel stdin in  while true 
-do    (* Read line by line. *)    let linebuf = Lexing.fromstring (line 
-stdinbuf) in
-
-    try      (* Run the parser on a single line of input. *)      let s = 
-EngParser.sentence lexeme linebuf in      Printf.printf    
-"subject=%s\nplural=%b\nadjs=%s\naction=%snadvs=%s\n\n%!"        s.subject 
-s.plural (String.concat ", " s.adjs)        s.action (String.concat ", " 
-s.advs)    with    | LexError msg ->      Printf.fprintf stderr "%sn%!" 
-msg    | EngParser.Error ->      Printf.fprintf stderr "At offset %d: 
-syntax error.n%!"          (Lexing.lexemestart linebuf)  done
+```ocaml
+open EngLexer
+let () =
+  let stdinbuf = Lexing.from_channel stdin in
+  while true do
+    (* Read line by line. *)
+    let linebuf = Lexing.from_string (line stdinbuf) in
+    try
+      (* Run the parser on a single line of input. *)
+      let s = EngParser.sentence lexeme linebuf in
+      Printf.printf "subject=%s\nplural=%b\nadjs=%s\naction=%s\nadvs=%s\n\n%!"
+        s.subject s.plural (String.concat ", " s.adjs)
+        s.action (String.concat ", " s.advs)
+    with
+    | LexError msg -> Printf.fprintf stderr "%s\n%!" msg
+    | EngParser.Error ->
+      Printf.fprintf stderr "At offset %d: syntax error.\n%!"
+        (Lexing.lexeme_start linebuf)
+  done
+```
 
 * Build & run command:
 
@@ -1510,22 +1540,35 @@ incr word; w, !word) words in        WORDS words }  | alphanum+ as w      {
 incr word; WORDS [w, !word] }  | "&amp;"      { incr word; WORDS ["&", !word] 
 }
 
-  | ['.' '!' '?'] as pDedicated tokens for punctuation      { SENTENCE 
-(Char.escaped p) }so that it doesn't break phrases.  | "--"      { PUNCT "--" 
-}  | [',' ':' ''' '-' ';'] as p      { PUNCT (Char.escaped p) }  | eof { EOF } 
-      | xmlstart      { commentstart := lexbuf.Lexing.lexcurrp;        let s = 
-comment [] lexbuf in        COMMENT s }  |       { let pos = 
-lexbuf.Lexing.lexcurrp in        let pos' = {pos with          Lexing.poscnum 
-= pos.Lexing.poscnum + 1} in        Printf.printf "%s\n%!"          
-(parseerrormsg pos pos' "lexer error");        failwith "LEXER ERROR" }
+Dedicated tokens for punctuation:
+```
+| ['.' '!' '?'] as p  { SENTENCE (Char.escaped p) }  (* so that it doesn't break phrases. *)
+| "--"      { PUNCT "--" }
+| [',' ':' '\'' '-' ';'] as p      { PUNCT (Char.escaped p) }
+| eof { EOF }
+| xmlstart
+  { commentstart := lexbuf.Lexing.lex_curr_p;
+    let s = comment [] lexbuf in
+    COMMENT s }
+| _
+  { let pos = lexbuf.Lexing.lex_curr_p in
+    let pos' = {pos with Lexing.pos_cnum = pos.Lexing.pos_cnum + 1} in
+    Printf.printf "%s\n%!" (parse_error_msg pos pos' "lexer error");
+    failwith "LEXER ERROR" }
 
-and comment strings = parse  | xmlend      { String.concat "" (List.rev 
-strings) }  | eof      { let pos = !commentstart in        let pos' = 
-lexbuf.Lexing.lexcurrp in        Printf.printf "%sn%!"          (parseerrormsg 
-pos pos' "lexer error: unclosed comment");        failwith "LEXER ERROR" }  | 
-newline      { nextline lexbuf;        comment (Lexing.lexeme lexbuf :: 
-strings) lexbuf      }  |       { comment (Lexing.lexeme lexbuf :: strings) 
-lexbuf }
+and comment strings = parse
+| xmlend      { String.concat "" (List.rev strings) }
+| eof
+  { let pos = !commentstart in
+    let pos' = lexbuf.Lexing.lex_curr_p in
+    Printf.printf "%s\n%!" (parse_error_msg pos pos' "lexer error: unclosed comment");
+    failwith "LEXER ERROR" }
+| newline
+  { nextline lexbuf;
+    comment (Lexing.lexeme lexbuf :: strings) lexbuf }
+| _
+  { comment (Lexing.lexeme lexbuf :: strings) lexbuf }
+```
 
 * Parsing: the inverted index and the query.
 

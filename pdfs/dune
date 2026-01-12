@@ -27,10 +27,11 @@
  (action
   (system "pandoc -s --toc --katex %{deps} -o %{target}")))
 
-(rule
- (alias old_lectures_as_book)
- (mode promote)
- (target old_lectures_as_book.pdf)
- (deps old_lectures_as_book.md)
- (action
-  (system "pandoc -s --toc --katex %{deps} -o %{target}")))
+; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
+; (rule
+;  (alias old_lectures_as_book)
+;  (mode promote)
+;  (target old_lectures_as_book.pdf)
+;  (deps old_lectures_as_book.md)
+;  (action
+;   (system "pandoc -s --toc --katex %{deps} -o %{target}")))

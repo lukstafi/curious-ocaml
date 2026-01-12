@@ -42,13 +42,12 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 | $\top$ | $\frac{}{\top}$ | doesn't have
 | $\bot$ | doesn't have |  $\frac{\bot}{a}$ (i.e. anything)
 | $\wedge$ | $\frac{a \; b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) $\frac{a \wedge b}{b}$ (take second)
-| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{b} \tiny{y}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }b)}{c}$ using $x, y$
-| $\rightarrow$ | $\frac{{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}}{a \rightarrow b}$ using $x$ | $\frac{{a \rightarrow b} \; a}{b}$
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; c} \quad \genfrac{}{}{0pt}{}{[b]^y}{\vdots \; c}}{c}$ using $x, y$
+| $\rightarrow$ | $\frac{\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$
 
 Notations
 
-$$ {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
-   {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} $$
+$$ \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b} \text{, \ \ or \ \ } \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; c} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
 $\frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
@@ -86,10 +85,7 @@ an umbrella. Therefore, won't need an umbrella.We need one more kind of rules to
 (it is somewhat similar to reasoning by cases). Example rule for induction on 
 natural numbers:
 
-$$ \frac{\begin{matrix}
-     p (0) &
-{{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
-   \end{matrix}}{p (n)} \text{ by induction, using } x $$
+$$ \frac{p(0) \quad \genfrac{}{}{0pt}{}{[p(x)]^x}{\vdots \; p(x+1)}}{p(n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
 and using it for $x$ we can derive it for the successor $x + 1$, where $x$ is 
@@ -137,20 +133,12 @@ called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 **Definitions for expressions** are introduced by rules a bit more complex 
 than these:
 
-$$ \frac{\begin{matrix}
-     e_{1} : a &
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{matrix}}{{\texttt{let}} \; x \; {\texttt{=}} \;
-   e_{1} \; {\texttt{in}} \; e_{2} : b} $$
+$$ \frac{e_1 : a \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
 
-$$ \frac{\begin{matrix}
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{matrix}}{{\texttt{let rec}} \; x \;
-   {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} $$
+$$ \frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_1 : a} \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 

@@ -34,7 +34,7 @@ ML languages have built-in support for lazy evaluation, while Haskell has built-
 
 Call-by-name is useful not only for implementing flow control:
 
-```ocaml
+```
 let if_then_else cond e1 e2 =
   match cond with
   | true -> e1 ()
@@ -45,13 +45,13 @@ but also for arguments of value constructors, i.e. for data structures.
 
 **Streams** are lists with call-by-name tails:
 
-```ocaml
+```
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
 Reading from a stream into a list:
 
-```ocaml
+```
 let rec stake n = function
   | SCons (a, s) when n > 0 -> a :: (stake (n-1) (s ()))
   | _ -> []
@@ -59,7 +59,7 @@ let rec stake n = function
 
 Streams can easily be infinite:
 
-```ocaml
+```
 let rec s_ones = SCons (1, fun () -> s_ones)
 
 let rec s_from n =
@@ -70,7 +70,7 @@ let rec s_from n =
 
 Streams admit list-like operations:
 
-```ocaml
+```
 let rec smap f = function
   | SNil -> SNil
   | SCons (a, s) -> SCons (f a, fun () -> smap f (s ()))
@@ -84,7 +84,7 @@ let rec szip = function
 
 Streams can provide scaffolding for recursive algorithms. Consider the Fibonacci sequence:
 
-```ocaml
+```
 let rec sfib =
   SCons (1, fun () -> smap (fun (a,b) -> a+b)
     (szip (sfib, SCons (1, fun () -> sfib))))
@@ -103,7 +103,7 @@ The `+` operation between corresponding elements produces the next values.
 
 Streams are less functional than could be expected in the context of input-output effects:
 
-```ocaml
+```
 let file_stream name =
   let ch = open_in name in
   let rec ch_read_line () =
@@ -133,13 +133,13 @@ Two ways to use a lazy value (be careful when the result is computed!):
 
 Lazy lists are defined as:
 
-```ocaml
+```
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 ```
 
 Reading from a lazy list into a list:
 
-```ocaml
+```
 let rec ltake n = function
   | LCons (a, lazy l) when n > 0 -> a :: (ltake (n-1) l)
   | _ -> []
@@ -147,7 +147,7 @@ let rec ltake n = function
 
 Lazy lists can easily be infinite:
 
-```ocaml
+```
 let rec l_ones = LCons (1, lazy l_ones)
 
 let rec l_from n = LCons (n, lazy (l_from (n+1)))
@@ -155,7 +155,7 @@ let rec l_from n = LCons (n, lazy (l_from (n+1)))
 
 Read once, access multiple times (unlike streams):
 
-```ocaml
+```
 let file_llist name =
   let ch = open_in name in
   let rec ch_read_line () =
@@ -166,7 +166,7 @@ let file_llist name =
 
 #### 7.3.2 Lazy List Operations
 
-```ocaml
+```
 let rec lzip = function
   | LNil, LNil -> LNil
   | LCons (a1, ll1), LCons (a2, ll2) ->
@@ -182,7 +182,7 @@ let rec lmap f = function
 
 Using these operations, we can define the factorial sequence elegantly:
 
-```ocaml
+```
 let posnums = l_from 1
 
 let rec lfact =
@@ -207,7 +207,7 @@ The expression $P(x) = \sum_{i=0}^{n} a_i x^i$ defines a polynomial for $n < \in
 
 If we define:
 
-```ocaml
+```
 let rec lfold_right f l base =
   match l with
     | LNil -> base
@@ -216,7 +216,7 @@ let rec lfold_right f l base =
 
 then we can compute polynomials using Horner's method:
 
-```ocaml
+```
 let horner x l =
   lfold_right (fun c sum -> c +. x *. sum) l 0.
 ```
@@ -227,7 +227,7 @@ If the power series converges for $x > 1$, then when the elements $a_n$ get smal
 
 `lfold_right` falls into an infinite loop on infinite lists. We need call-by-name / call-by-need semantics for the argument function `f`:
 
-```ocaml
+```
 let rec lazy_foldr f l base =
   match l with
     | LNil -> base
@@ -237,7 +237,7 @@ let rec lazy_foldr f l base =
 
 We need a stopping condition in the Horner algorithm step:
 
-```ocaml
+```
 let lhorner x l =                         (* This is a bit of a hack, *)
   let upd c sum =                         (* we hope to "hit" the interval (0, epsilon]. *)
     if c = 0. || abs_float c > epsilon_float
@@ -251,7 +251,7 @@ let e = lhorner 1. inv_fact
 
 #### 7.4.1 Power Series / Polynomial Operations
 
-```ocaml
+```
 let rec add xs ys =
   match xs, ys with
     | LNil, _ -> ys
@@ -311,7 +311,7 @@ $$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 
 
 We will solve the corresponding integral equations. We cannot define the integral by direct recursion like this:
 
-```ocaml
+```
 let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)
 
 let rec sin = integrate (of_int 0) cos
@@ -324,7 +324,7 @@ Even changing the second argument of `integrate` to call-by-need does not help, 
 
 We need to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure:
 
-```ocaml
+```
 let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums))
 
 let rec sin = LCons (of_int 0, lazy (integ cos))
@@ -337,7 +337,7 @@ Although this approach is not limited to linear equations, equations like Lotka-
 
 Drawing functions work like in the previous lecture, but with open curves:
 
-```ocaml
+```
 let plot_1D f ~w ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   Array.init w (fun i ->
@@ -353,7 +353,7 @@ For infinite precision on rational numbers we use the `nums` library -- but it d
 
 We need to generate a sequence of approximations to the power series limit at $x$:
 
-```ocaml
+```
 let infhorner x l =
   let upd c sum =
     LCons (c, lazy (lmap (fun apx -> c +. x *. apx)
@@ -363,7 +363,7 @@ let infhorner x l =
 
 Find where the series converges -- as far as a given test is concerned:
 
-```ocaml
+```
 let rec exact f = function           (* We arbitrarily decide that convergence is *)
   | LNil -> assert false             (* when three consecutive results are the same. *)
   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))
@@ -373,7 +373,7 @@ let rec exact f = function           (* We arbitrarily decide that convergence i
 
 Draw the pixels of the graph at exact coordinates:
 
-```ocaml
+```
 let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   let eval = exact (fun y -> to_int (scale *. y)) in
@@ -390,7 +390,7 @@ Consider a nuclear chain reaction where substance A decays into B, which decays 
 
 $$\frac{dN_A}{dt} = -\lambda_A N_A, \quad \frac{dN_B}{dt} = \lambda_A N_A - \lambda_B N_B$$
 
-```ocaml
+```
 let n_chain ~nA0 ~nB0 ~lA ~lB =
   let rec nA =
     LCons (nA0, lazy (integ (~-.lA *:. nA)))
@@ -415,12 +415,12 @@ Double-linked lists contain such cycles between any two nodes even if they are n
 
 We need to "break" the cycles by making some links lazy:
 
-```ocaml
+```
 type 'a dllist =
   DLNil | DLCons of 'a dllist Lazy.t * 'a * 'a dllist
 ```
 
-```ocaml
+```
 let rec dldrop n l =
   match l with
     | DLCons (_, x, xs) when n > 0 ->
@@ -430,7 +430,7 @@ let rec dldrop n l =
 
 Creating a double-linked list from a regular list:
 
-```ocaml
+```
 let dllist_of_list l =
   let rec dllist prev l =
     match l with
@@ -444,7 +444,7 @@ let dllist_of_list l =
 
 Taking elements going forward:
 
-```ocaml
+```
 let rec dltake n l =
   match l with
     | DLCons (_, x, xs) when n > 0 ->
@@ -454,7 +454,7 @@ let rec dltake n l =
 
 Taking elements going backward:
 
-```ocaml
+```
 let rec dlbackwards n l =
   match l with
     | DLCons (lazy xs, x, _) when n > 0 ->
@@ -466,20 +466,20 @@ let rec dlbackwards n l =
 
 The stream type used a throwaway argument to make a suspension:
 
-```ocaml
+```
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
 What if we take a real argument?
 
-```ocaml
+```
 type ('a, 'b) iostream =
   EOS | More of 'b * ('a -> ('a, 'b) iostream)
 ```
 
 This is a stream that for a single input value produces an output value.
 
-```ocaml
+```
 type 'a istream = (unit, 'a) iostream  (* Input stream produces output when "asked". *)
 type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input. *)
 ```
@@ -488,7 +488,7 @@ type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input.
 
 We can compose streams: directing output of one to input of another.
 
-```ocaml
+```
 let rec compose sf sg =
   match sg with
   | EOS -> EOS                              (* No more output. *)
@@ -511,7 +511,7 @@ We need a more flexible input-output stream definition:
 
 After Haskell, we call the data structure `pipe`:
 
-```ocaml
+```
 type ('a, 'b) pipe =
   EOP                                       (* End of pipe *)
 | Yield of 'b * ('a, 'b) pipe               (* For incremental streams change to lazy. *)
@@ -520,7 +520,7 @@ type ('a, 'b) pipe =
 
 Again, we can have producing output only *input pipes* and consuming input only *output pipes*:
 
-```ocaml
+```
 type 'a ipipe = (unit, 'a) pipe
 type void
 type 'a opipe = ('a, void) pipe
@@ -532,7 +532,7 @@ Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe 
 
 Composition of pipes is like "concatenating them in space" or connecting boxes:
 
-```ocaml
+```
 let rec compose pf pg =
   match pg with
   | EOP -> EOP                              (* Done producing results. *)
@@ -550,7 +550,7 @@ let (>->) pf pg = compose pf pg
 
 Appending pipes means "concatenating them in time" or adding more fuel to a box:
 
-```ocaml
+```
 let rec append pf pg =
   match pf with
   | EOP -> pg                               (* When pf runs out, use pg. *)
@@ -562,7 +562,7 @@ let rec append pf pg =
 
 Append a list of ready results in front of a pipe:
 
-```ocaml
+```
 let rec yield_all l tail =
   match l with
   | [] -> tail
@@ -571,7 +571,7 @@ let rec yield_all l tail =
 
 Iterate a pipe (**not functional** -- performs side effects):
 
-```ocaml
+```
 let rec iterate f : 'a opipe =
   Await (fun x -> let () = f x in iterate f)
 ```
@@ -580,12 +580,12 @@ let rec iterate f : 'a opipe =
 
 Print a hierarchically organized document with a limited line width.
 
-```ocaml
+```
 type doc =
   Text of string | Line | Cat of doc * doc | Group of doc
 ```
 
-```ocaml
+```
 let (++) d1 d2 = Cat (d1, Cat (Line, d2))
 let (!) s = Text s
 
@@ -612,7 +612,7 @@ Document First part Second part
 
 #### 7.9.1 Straightforward Solution
 
-```ocaml
+```
 let pretty w d =                            (* Allowed width of line w. *)
   let rec width = function                  (* Total length of subdocument. *)
     | Text z -> String.length z
@@ -635,14 +635,14 @@ let pretty w d =                            (* Allowed width of line w. *)
 
 Working with a stream of nodes:
 
-```ocaml
+```
 type ('a, 'b) doc_e =                       (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
 Normalize a subdocument -- remove empty groups:
 
-```ocaml
+```
 let rec norm = function
   | Group d -> norm d
   | Text "" -> None
@@ -652,7 +652,7 @@ let rec norm = function
 
 Generate the stream by infix traversal:
 
-```ocaml
+```
 let rec gen = function
   | Text z -> Yield (TE ((),z), EOP)
   | Line -> Yield (LE (), EOP)
@@ -667,7 +667,7 @@ let rec gen = function
 
 Compute lengths of document prefixes, i.e. the position of each node counting by characters from the beginning of document:
 
-```ocaml
+```
 let rec docpos curpos =
   Await (function                           (* We input from a doc_e pipe *)
   | TE (_, z) ->
@@ -685,7 +685,7 @@ let docpos = docpos 0                       (* The whole document starts at 0. *
 
 Put the end position of the group into the group beginning marker, so that we can know whether to break it into multiple lines:
 
-```ocaml
+```
 let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
@@ -707,7 +707,7 @@ let rec grends grstack =
 
 That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
 
-```ocaml
+```
 type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
@@ -742,7 +742,7 @@ let grends w = grends w []                  (* Initial stack is empty. *)
 
 Finally we produce the resulting stream of strings:
 
-```ocaml
+```
 let rec format w (inline, endlpos as st) =  (* State: the stack of *)
   Await (function                           (* "group fits in line"; position where end of line would be. *)
   | TE (_, z) -> Yield (z, format w st)
@@ -770,7 +770,7 @@ Put the pipes together:
 
 Factorize `format` so that various line breaking styles can be plugged in:
 
-```ocaml
+```
 let rec breaks w (inline, endlpos as st) =
   Await (function
   | TE _ as e -> Yield (e, breaks w st)
@@ -801,7 +801,7 @@ let pretty_print w doc =
 
 **Exercise 1:** My first impulse was to define lazy list functions as follows:
 
-```ocaml
+```
 let rec wrong_lzip = function
   | LNil, LNil -> LNil
   | LCons (a1, lazy l1), LCons (a2, lazy l2) ->
@@ -831,7 +831,7 @@ In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related t
 
 Starter code is available in the lecture script `Lec7.ml`:
 
-```ocaml
+```
 let rec lfilter f = function
   | LNil -> LNil
   | LCons (n, ll) ->
@@ -885,7 +885,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```ocaml
+```
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of doc * doc | Group of 'a * doc
 ```

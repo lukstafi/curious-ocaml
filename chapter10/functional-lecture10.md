@@ -658,9 +658,10 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   100.let game = lift3 (fun walls paddle ball ->  Group [walls; paddle; 
   ball]) walls paddle ball
 * We can easily monitor signals while debugging, e.g.:
-
-    notifye xbounce (fun () -> Printf.printf "xbounce\n%!");  notifye 
-  ybounce (fun () -> Printf.printf "ybounce\n%!");
+  ```
+  notifye xbounce (fun () -> Printf.printf "xbounce\n%!");
+  notifye ybounce (fun () -> Printf.printf "ybounce\n%!");
+  ```
 * Invocation:`ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs 
   froc/froc,unix,graphics,threads/threads --`
 
@@ -771,7 +772,25 @@ while building the initial monadic value.
   the start of the loop – but if after bind (“below first line” of a loop), at 
   each step of the loop.
 
-let f =  repeat (perform      emit (Printf.printf "[0]\n%!"; '0');      () <-- await aas;      emit (Printf.printf "[1]\n%!"; '1');      () <-- await bs;      emit (Printf.printf "[2]\n%!"; '2');      () <-- await cs;      emit (Printf.printf "[3]\n%!"; '3');      () <-- await ds;      emit (Printf.printf "[4]\n%!"; '4'))let e, cancele = eventflow flet () =  F.notifye e (fun c -> Printf.printf "flow: %c\n%!" c);  Printf.printf "notification installed\n%!"let () =  F.send a (); F.send b (); F.send c (); F.send d ();  F.send a (); F.send b (); F.send c (); F.send d ()
+```
+let f = repeat (perform
+  emit (Printf.printf "[0]\n%!"; '0');
+  () <-- await aas;
+  emit (Printf.printf "[1]\n%!"; '1');
+  () <-- await bs;
+  emit (Printf.printf "[2]\n%!"; '2');
+  () <-- await cs;
+  emit (Printf.printf "[3]\n%!"; '3');
+  () <-- await ds;
+  emit (Printf.printf "[4]\n%!"; '4'))
+let e, cancele = eventflow f
+let () =
+  F.notifye e (fun c -> Printf.printf "flow: %c\n%!" c);
+  Printf.printf "notification installed\n%!"
+let () =
+  F.send a (); F.send b (); F.send c (); F.send d ();
+  F.send a (); F.send b (); F.send c (); F.send d ()
+```
 
 [0]Only printed once -- when building the loop.`notification installed`Only 
 installed **after** the first flow event sent.event: aEvent notification (see 

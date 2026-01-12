@@ -2261,51 +2261,51 @@ A statement that an expression has a type in an environment is called a *type ju
 
 $$\Gamma \vdash e : \tau$$
 
-We will derive the equations in one go using $\llbracket \cdot \rrbracket$, to be solved later. Besides equations we will need to manage introduced variables, using existential quantification.
+We will derive the equations in one go using $[\![ \cdot ]\!]$, to be solved later. Besides equations we will need to manage introduced variables, using existential quantification.
 
 For local definitions we require remembering what constraints should hold when the definition is used. Therefore we extend *type schemes* in the environment to: $\Gamma = \{x : \forall \beta_1 \ldots \beta_m [\exists \alpha_1 \ldots \alpha_n . D] . \tau_x ; \ldots\}$ where $D$ are equations -- keeping the variables $\alpha_1 \ldots \alpha_n$ introduced while deriving $D$ in front. A simpler form would be enough: $\Gamma = \{x : \forall \beta [\exists \alpha_1 \ldots \alpha_n . D] . \beta ; \ldots\}$
 
 The formal constraint generation rules are:
 
-$$\llbracket \Gamma \vdash x : \tau \rrbracket = \exists \overline{\beta'} \overline{\alpha'} . (D[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \wedge \tau_x[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \doteq \tau)$$
+$$[\![ \Gamma \vdash x : \tau ]\!] = \exists \overline{\beta'} \overline{\alpha'} . (D[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \wedge \tau_x[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \doteq \tau)$$
 
 where $\Gamma(x) = \forall \overline{\beta} [\exists \overline{\alpha} . D] . \tau_x$, $\overline{\beta'} \overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
 
-$$\llbracket \Gamma \vdash \mathbf{fun} \ x \texttt{->} e : \tau \rrbracket = \exists \alpha_1 \alpha_2 . (\llbracket \Gamma \{x : \alpha_1\} \vdash e : \alpha_2 \rrbracket \wedge \alpha_1 \rightarrow \alpha_2 \doteq \tau)$$
+$$[\![ \Gamma \vdash \mathbf{fun} \ x \texttt{->} e : \tau ]\!] = \exists \alpha_1 \alpha_2 . ([\![ \Gamma \{x : \alpha_1\} \vdash e : \alpha_2 ]\!] \wedge \alpha_1 \rightarrow \alpha_2 \doteq \tau)$$
 
 where $\alpha_1 \alpha_2 \# \text{FV}(\Gamma, \tau)$
 
-$$\llbracket \Gamma \vdash e_1 \ e_2 : \tau \rrbracket = \exists \alpha . (\llbracket \Gamma \vdash e_1 : \alpha \rightarrow \tau \rrbracket \wedge \llbracket \Gamma \vdash e_2 : \alpha \rrbracket), \alpha \# \text{FV}(\Gamma, \tau)$$
+$$[\![ \Gamma \vdash e_1 \ e_2 : \tau ]\!] = \exists \alpha . ([\![ \Gamma \vdash e_1 : \alpha \rightarrow \tau ]\!] \wedge [\![ \Gamma \vdash e_2 : \alpha ]\!]), \alpha \# \text{FV}(\Gamma, \tau)$$
 
-$$\llbracket \Gamma \vdash K \ e_1 \ldots e_n : \tau \rrbracket = \exists \overline{\alpha'} . (\bigwedge_i \llbracket \Gamma \vdash e_i : \tau_i[\overline{\alpha} := \overline{\alpha'}] \rrbracket \wedge \varepsilon(\overline{\alpha'}) \doteq \tau)$$
+$$[\![ \Gamma \vdash K \ e_1 \ldots e_n : \tau ]\!] = \exists \overline{\alpha'} . (\bigwedge_i [\![ \Gamma \vdash e_i : \tau_i[\overline{\alpha} := \overline{\alpha'}] ]\!] \wedge \varepsilon(\overline{\alpha'}) \doteq \tau)$$
 
 where $K : \forall \overline{\alpha} . \tau_1 \times \ldots \times \tau_n \rightarrow \varepsilon(\overline{\alpha})$, $\overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
 
 For let-expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{let} \ x = e_1 \ \mathbf{in} \ e_2 : \tau \rrbracket = (\exists \beta . C) \wedge \llbracket \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{let} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
 
-where $C = \llbracket \Gamma \vdash e_1 : \beta \rrbracket$
+where $C = [\![ \Gamma \vdash e_1 : \beta ]\!]$
 
 For recursive let-expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{letrec} \ x = e_1 \ \mathbf{in} \ e_2 : \tau \rrbracket = (\exists \beta . C) \wedge \llbracket \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{letrec} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
 
-where $C = \llbracket \Gamma \{x : \beta\} \vdash e_1 : \beta \rrbracket$
+where $C = [\![ \Gamma \{x : \beta\} \vdash e_1 : \beta ]\!]$
 
 For match expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{match} \ e_v \ \mathbf{with} \ \overline{c} : \tau \rrbracket = \exists \alpha_v . \llbracket \Gamma \vdash e_v : \alpha_v \rrbracket \bigwedge_i \llbracket \Gamma \vdash p_i . e_i : \alpha_v \rightarrow \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{match} \ e_v \ \mathbf{with} \ \overline{c} : \tau ]\!] = \exists \alpha_v . [\![ \Gamma \vdash e_v : \alpha_v ]\!] \bigwedge_i [\![ \Gamma \vdash p_i . e_i : \alpha_v \rightarrow \tau ]\!]$$
 
 where $\overline{c} = p_1 . e_1 | \ldots | p_n . e_n$, $\alpha_v \# \text{FV}(\Gamma, \tau)$
 
 For pattern clauses:
 
-$$\llbracket \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 \rrbracket = \llbracket \Sigma \vdash p \downarrow \tau_1 \rrbracket \wedge \exists \overline{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_2 \rrbracket$$
+$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \exists \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
 
-where $\exists \overline{\beta} \Gamma'$ is $\llbracket \Sigma \vdash p \uparrow \tau_1 \rrbracket$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
+where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
 
-The notation $\llbracket \Sigma \vdash p \downarrow \tau_1 \rrbracket$ derives constraints on the type of the matched value, while $\llbracket \Sigma \vdash p \uparrow \tau_1 \rrbracket$ derives the environment for pattern variables.
+The notation $[\![ \Sigma \vdash p \downarrow \tau_1 ]\!]$ derives constraints on the type of the matched value, while $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$ derives the environment for pattern variables.
 
 By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some length: $\alpha_1 \ldots \alpha_n$. By $\bigwedge_i \varphi_i$ we denote a conjunction of $\overline{\varphi_i}$: $\varphi_1 \wedge \ldots \wedge \varphi_n$.
 
@@ -2780,13 +2780,13 @@ Functional programming emphasizes identifying common patterns and abstracting th
 
 Consider the problem of printing a comma-separated list of integers. The `String` module provides:
 
-```ocaml
+```
 val concat : string -> string list -> string
 ```
 
 First, we need to convert numbers into strings:
 
-```ocaml
+```
 let rec strings_of_ints = function
   | [] -> []
   | hd::tl -> string_of_int hd :: strings_of_ints tl
@@ -2796,7 +2796,7 @@ let comma_sep_ints = String.concat ", " -| strings_of_ints
 
 Similarly, to sort strings from shortest to longest, we first compute lengths:
 
-```ocaml
+```
 let rec strings_lengths = function
   | [] -> []
   | hd::tl -> (String.length hd, hd) :: strings_lengths tl
@@ -2806,7 +2806,7 @@ let by_size = List.sort compare -| strings_lengths
 
 Notice the common structure in `strings_of_ints` and `strings_lengths`: both transform each element of a list independently. We can extract this pattern into a generic function called `map`:
 
-```ocaml
+```
 let rec list_map f = function
   | [] -> []
   | hd::tl -> f hd :: list_map f tl
@@ -2814,7 +2814,7 @@ let rec list_map f = function
 
 Now we can rewrite our functions more concisely:
 
-```ocaml
+```
 let comma_sep_ints =
   String.concat ", " -| list_map string_of_int
 
@@ -2826,7 +2826,7 @@ let by_size =
 
 Consider summing elements of a list:
 
-```ocaml
+```
 let rec balance = function
   | [] -> 0
   | hd::tl -> hd + balance tl
@@ -2834,7 +2834,7 @@ let rec balance = function
 
 Or multiplying elements:
 
-```ocaml
+```
 let rec total_ratio = function
   | [] -> 1.
   | hd::tl -> hd *. total_ratio tl
@@ -2842,7 +2842,7 @@ let rec total_ratio = function
 
 The pattern is the same: we combine each element with the result of processing the rest of the list. This is the **fold** operation:
 
-```ocaml
+```
 let rec list_fold f base = function
   | [] -> base
   | hd::tl -> f hd (list_fold f base tl)
@@ -2859,7 +2859,7 @@ The key insight is that `map` alters the *contents* of data without changing its
 
 Let us investigate tail-recursive functions. Consider reversing a list:
 
-```ocaml
+```
 let rec list_rev acc = function
   | [] -> acc
   | hd::tl -> list_rev (hd::acc) tl
@@ -2867,7 +2867,7 @@ let rec list_rev acc = function
 
 Or computing an average:
 
-```ocaml
+```
 let rec average (sum, tot) = function
   | [] when tot = 0. -> 0.
   | [] -> sum /. tot
@@ -2876,7 +2876,7 @@ let rec average (sum, tot) = function
 
 The pattern here is different from `fold_right`. We process elements from left to right, accumulating a result:
 
-```ocaml
+```
 let rec fold_left f accu = function
   | [] -> accu
   | a::l -> fold_left f (f accu a) l
@@ -2884,7 +2884,7 @@ let rec fold_left f accu = function
 
 With `fold_left`, hiding the accumulator is straightforward:
 
-```ocaml
+```
 let list_rev l =
   fold_left (fun t h -> h::t) [] l
 
@@ -2908,14 +2908,14 @@ The "backward" structure of `fold_left`:
 
 List filtering is naturally expressed using `fold_right`:
 
-```ocaml
+```
 let list_filter p l =
   List.fold_right (fun h t -> if p h then h::t else t) l []
 ```
 
 A tail-recursive map that returns elements in reverse order:
 
-```ocaml
+```
 let list_rev_map f l =
   List.fold_left (fun t h -> f h :: t) [] l
 ```
@@ -2926,7 +2926,7 @@ let list_rev_map f l =
 
 Mapping binary trees is straightforward:
 
-```ocaml
+```
 type 'a btree = Empty | Node of 'a * 'a btree * 'a btree
 
 let rec bt_map f = function
@@ -2942,7 +2942,7 @@ The `map` and `fold` functions we consider here preserve/respect the structure o
 
 The most general form of `fold` for binary trees processes each element together with partial results from subtrees:
 
-```ocaml
+```
 let rec bt_fold f base = function
   | Empty -> base
   | Node (e, l, r) ->
@@ -2951,7 +2951,7 @@ let rec bt_fold f base = function
 
 Examples:
 
-```ocaml
+```
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
 let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 ```
@@ -2960,7 +2960,7 @@ let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 
 To demonstrate map and fold for more complex structures, we recall the expression type from Chapter 3:
 
-```ocaml
+```
 type expression =
     Const of float
   | Var of string
@@ -2972,7 +2972,7 @@ type expression =
 
 The multitude of cases makes the datatype harder to work with. Fortunately, *or-patterns* help:
 
-```ocaml
+```
 let rec vars = function
   | Const _ -> []
   | Var x -> [x]
@@ -2982,7 +2982,7 @@ let rec vars = function
 
 Mapping and folding must be specialized for each case. We pack behaviors into records:
 
-```ocaml
+```
 type expression_map = {
   map_const : float -> expression;
   map_var : string -> expression;
@@ -3005,7 +3005,7 @@ type 'a expression_fold = {
 
 We define standard behaviors that can be tailored for specific uses:
 
-```ocaml
+```
 let identity_map = {
   map_const = (fun c -> Const c);
   map_var = (fun x -> Var x);
@@ -3025,7 +3025,7 @@ let make_fold op base = {
 
 The actual `map` and `fold` functions:
 
-```ocaml
+```
 let rec expr_map emap = function
   | Const c -> emap.map_const c
   | Var x -> emap.map_var x
@@ -3045,7 +3045,7 @@ let rec expr_fold efold = function
 
 Using the `{record with field = value}` syntax to customize behaviors:
 
-```ocaml
+```
 let prime_vars = expr_map
   {identity_map with map_var = fun x -> Var (x ^ "'")}
 
@@ -3074,7 +3074,7 @@ In 1977/78, John Backus designed **FP**, the first *function-level programming* 
 
 For function-level programming, we need combinators like these from *OCaml Batteries*:
 
-```ocaml
+```
 let const x _ = x
 let ( |- ) f g x = g (f x)          (* forward composition *)
 let ( -| ) f g x = f (g x)          (* backward composition *)
@@ -3089,7 +3089,7 @@ let uncurry f (x,y) = f x y
 
 The flow of computation can be viewed as a circuit where results of nodes (functions) connect to further nodes as inputs. We represent cross-sections of the circuit as tuples of intermediate values.
 
-```ocaml
+```
 let print2 c i =
   let a = Char.escaped c in
   let b = string_of_int i in
@@ -3098,7 +3098,7 @@ let print2 c i =
 
 In point-free style:
 
-```ocaml
+```
 let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
@@ -3107,13 +3107,13 @@ Since we usually pass arguments one at a time rather than in tuples, we need `un
 
 Another approach uses function composition, `flip`, and the **S** combinator:
 
-```ocaml
+```
 let s x y z = x z (y z)
 ```
 
 Example: transforming a filter-map function step by step:
 
-```ocaml
+```
 let func2 f g l = List.filter f (List.map g l)
 (* Using composition: *)
 let func2 f g = (-|) (List.filter f) (List.map g)
@@ -3131,7 +3131,7 @@ Mathematics has notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
 
 In OCaml, we do not have a universal addition operator:
 
-```ocaml
+```
 let rec i_sum_from_to f a b =
   if a > b then 0
   else f a + i_sum_from_to f (a+1) b
@@ -3146,7 +3146,7 @@ let pi2_over6 =
 
 The natural generalization:
 
-```ocaml
+```
 let rec op_from_to op base f a b =
   if a > b then base
   else op (f a) (op_from_to op base f (a+1) b)
@@ -3160,7 +3160,7 @@ $$f(A) = \bigcup_{p \in A} f(p)$$
 
 This translates to a useful list operation with union as append:
 
-```ocaml
+```
 let rec concat_map f = function
   | [] -> []
   | a::l -> f a @ concat_map f l
@@ -3168,7 +3168,7 @@ let rec concat_map f = function
 
 More efficiently (tail-recursive):
 
-```ocaml
+```
 let concat_map f l =
   let rec cmap_f accu = function
     | [] -> accu
@@ -3178,7 +3178,7 @@ let concat_map f l =
 
 #### All Subsequences of a List
 
-```ocaml
+```
 let rec subseqs l =
   match l with
     | [] -> [[]]
@@ -3189,7 +3189,7 @@ let rec subseqs l =
 
 Tail-recursively:
 
-```ocaml
+```
 let rec rmap_append f accu = function
   | [] -> accu
   | a::l -> rmap_append f (f a :: accu) l
@@ -3210,7 +3210,7 @@ It is often useful to organize values by some property.
 
 First, we collect elements from an association list by key:
 
-```ocaml
+```
 let collect l =
   match List.sort (fun x y -> compare (fst x) (fst y)) l with
   | [] -> []                                (* Start with associations sorted by key *)
@@ -3225,7 +3225,7 @@ let collect l =
 
 Now we can group by an arbitrary property:
 
-```ocaml
+```
 let group_by p l = collect (List.map (fun e -> p e, e) l)
 ```
 
@@ -3233,7 +3233,7 @@ let group_by p l = collect (List.map (fun e -> p e, e) l)
 
 To process results like SQL aggregate operations, we add **reduction**:
 
-```ocaml
+```
 let aggregate_by p red base l =
   let ags = group_by p l in
   List.map (fun (k, vs) -> k, List.fold_right red vs base) ags
@@ -3241,7 +3241,7 @@ let aggregate_by p red base l =
 
 Using the **feed-forward** (pipe) operator `let ( |> ) x f = f x`:
 
-```ocaml
+```
 let aggregate_by p redf base l =
   group_by p l
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
@@ -3249,7 +3249,7 @@ let aggregate_by p redf base l =
 
 Often it is easier to extract the property upfront. Since we first map elements into key-value pairs, we call this `map_reduce`:
 
-```ocaml
+```
 let map_reduce mapf redf base l =
   List.map mapf l
   |> collect
@@ -3260,7 +3260,7 @@ let map_reduce mapf redf base l =
 
 Sometimes we have multiple sources of information:
 
-```ocaml
+```
 let concat_reduce mapf redf base l =
   concat_map mapf l
   |> collect
@@ -3269,7 +3269,7 @@ let concat_reduce mapf redf base l =
 
 Computing a merged histogram of documents:
 
-```ocaml
+```
 let histogram documents =
   let mapf doc =
     Str.split (Str.regexp "[ \t.,;]+") doc
@@ -3279,7 +3279,7 @@ let histogram documents =
 
 Computing an inverted index:
 
-```ocaml
+```
 let cons hd tl = hd::tl
 
 let inverted_index documents =
@@ -3291,7 +3291,7 @@ let inverted_index documents =
 
 A simple "search engine":
 
-```ocaml
+```
 let search index words =
   match List.map (flip List.assoc index) words with
   | [] -> []
@@ -3300,7 +3300,7 @@ let search index words =
 
 where `intersect` computes intersection of sets represented as sorted lists:
 
-```ocaml
+```
 let intersect xs ys =                       (* Sets as sorted lists *)
   let rec aux acc = function
     | [], _ | _, [] -> acc
@@ -3316,7 +3316,7 @@ let intersect xs ys =                       (* Sets as sorted lists *)
 
 Operating on optional values:
 
-```ocaml
+```
 let map_option f = function
   | None -> None
   | Some e -> f e
@@ -3324,7 +3324,7 @@ let map_option f = function
 
 Mapping over a list and filtering out failures:
 
-```ocaml
+```
 let rec map_some f = function
   | [] -> []
   | e::l -> match f e with
@@ -3334,7 +3334,7 @@ let rec map_some f = function
 
 Tail-recursively:
 
-```ocaml
+```
 let map_some f l =
   let rec maps_f accu = function
     | [] -> accu
@@ -3360,7 +3360,7 @@ There are 780 solutions for this example. Changing the target to 831 gives an ex
 
 #### Data Types
 
-```ocaml
+```
 type op = Add | Sub | Mul | Div
 
 let apply op x y =
@@ -3400,7 +3400,7 @@ let solution e ns n =
 
 Splitting a list into two non-empty parts:
 
-```ocaml
+```
 let split l =
   let rec aux lhs acc = function
     | [] | [_] -> []
@@ -3413,13 +3413,13 @@ let split l =
 
 We introduce an operator for working with multiple data sources:
 
-```ocaml
+```
 let ( |-> ) x f = concat_map f x
 ```
 
 Generating all expressions from a list of numbers:
 
-```ocaml
+```
 let combine l r =                           (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
@@ -3435,7 +3435,7 @@ let rec exprs = function
 
 Finding solutions:
 
-```ocaml
+```
 let guard n =
   List.filter (fun e -> eval e = Some n)
 
@@ -3448,7 +3448,7 @@ let solutions ns n =
 
 We memorize values with expressions as pairs `(e, eval e)`, so only valid subexpressions are generated:
 
-```ocaml
+```
 let combine' (l, x) (r, y) =
   [Add; Sub; Mul; Div]
   |> List.filter (fun o -> valid o x y)
@@ -3474,7 +3474,7 @@ let solutions' ns n =
 
 Strengthening the validity predicate to account for commutativity and identity:
 
-```ocaml
+```
 let valid op x y =
   match op with
   | Add -> x <= y
@@ -3493,7 +3493,7 @@ Given a honeycomb with some cells initially marked black, mark additional cells 
 
 #### Representing the Honeycomb
 
-```ocaml
+```
 type cell = int * int                       (* Cartesian coordinates *)
 
 module CellSet =                            (* Store cells in sets *)
@@ -3512,7 +3512,7 @@ let cellset_of_list l =                     (* List to set, inverse of CellSet.e
 
 **Neighborhood:** Each cell (x, y) has up to 6 neighbors:
 
-```ocaml
+```
 let neighbors n eaten (x, y) =
   List.filter
     (inside_board n eaten)
@@ -3522,7 +3522,7 @@ let neighbors n eaten (x, y) =
 
 **Building the honeycomb:**
 
-```ocaml
+```
 let even x = x mod 2 = 0
 
 let inside_board n eaten (x, y) =
@@ -3541,7 +3541,7 @@ let honey_cells n eaten =
 
 We walk through each island counting cells depth-first:
 
-```ocaml
+```
 let check_correct n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -3578,7 +3578,7 @@ let check_correct n island_size num_islands empty_cells =
 
 When processing lists with potentially multiple results per step, we need `concat_fold`:
 
-```ocaml
+```
 let rec concat_fold f a = function
   | [] -> [a]
   | x::xs ->
@@ -3592,7 +3592,7 @@ We transform the testing code into generation code by:
 - Returning results in a list (empty list = no solutions)
 - At each neighbor, trying both eating and keeping
 
-```ocaml
+```
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -3637,7 +3637,7 @@ The main rule: **fail (drop solution candidates) as early as possible**.
 
 We guard both choices (eating and keeping) and track how much honey needs to be eaten:
 
-```ocaml
+```
 type state = {
   been_size: int;                           (* Honey cells in current island *)
   been_islands: int;                        (* Islands visited so far *)
@@ -3679,7 +3679,7 @@ let init_state unvisited more_to_eat = {
 
 The optimized island loop only tries actions that make sense:
 
-```ocaml
+```
   and find_island current s =
     let s = keep_cell current s in
     neighbors n empty_cells current
@@ -3699,7 +3699,7 @@ The optimized island loop only tries actions that make sense:
 
 Finally, compute the required eaten cells and start searching:
 
-```ocaml
+```
   let cells_to_eat =
     List.length honey - island_size * num_islands in
   find_board (init_state honey cells_to_eat)
@@ -3798,7 +3798,7 @@ ML languages have built-in support for lazy evaluation, while Haskell has built-
 
 Call-by-name is useful not only for implementing flow control:
 
-```ocaml
+```
 let if_then_else cond e1 e2 =
   match cond with
   | true -> e1 ()
@@ -3809,13 +3809,13 @@ but also for arguments of value constructors, i.e. for data structures.
 
 **Streams** are lists with call-by-name tails:
 
-```ocaml
+```
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
 Reading from a stream into a list:
 
-```ocaml
+```
 let rec stake n = function
   | SCons (a, s) when n > 0 -> a :: (stake (n-1) (s ()))
   | _ -> []
@@ -3823,7 +3823,7 @@ let rec stake n = function
 
 Streams can easily be infinite:
 
-```ocaml
+```
 let rec s_ones = SCons (1, fun () -> s_ones)
 
 let rec s_from n =
@@ -3834,7 +3834,7 @@ let rec s_from n =
 
 Streams admit list-like operations:
 
-```ocaml
+```
 let rec smap f = function
   | SNil -> SNil
   | SCons (a, s) -> SCons (f a, fun () -> smap f (s ()))
@@ -3848,7 +3848,7 @@ let rec szip = function
 
 Streams can provide scaffolding for recursive algorithms. Consider the Fibonacci sequence:
 
-```ocaml
+```
 let rec sfib =
   SCons (1, fun () -> smap (fun (a,b) -> a+b)
     (szip (sfib, SCons (1, fun () -> sfib))))
@@ -3867,7 +3867,7 @@ The `+` operation between corresponding elements produces the next values.
 
 Streams are less functional than could be expected in the context of input-output effects:
 
-```ocaml
+```
 let file_stream name =
   let ch = open_in name in
   let rec ch_read_line () =
@@ -3897,13 +3897,13 @@ Two ways to use a lazy value (be careful when the result is computed!):
 
 Lazy lists are defined as:
 
-```ocaml
+```
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 ```
 
 Reading from a lazy list into a list:
 
-```ocaml
+```
 let rec ltake n = function
   | LCons (a, lazy l) when n > 0 -> a :: (ltake (n-1) l)
   | _ -> []
@@ -3911,7 +3911,7 @@ let rec ltake n = function
 
 Lazy lists can easily be infinite:
 
-```ocaml
+```
 let rec l_ones = LCons (1, lazy l_ones)
 
 let rec l_from n = LCons (n, lazy (l_from (n+1)))
@@ -3919,7 +3919,7 @@ let rec l_from n = LCons (n, lazy (l_from (n+1)))
 
 Read once, access multiple times (unlike streams):
 
-```ocaml
+```
 let file_llist name =
   let ch = open_in name in
   let rec ch_read_line () =
@@ -3930,7 +3930,7 @@ let file_llist name =
 
 #### 7.3.2 Lazy List Operations
 
-```ocaml
+```
 let rec lzip = function
   | LNil, LNil -> LNil
   | LCons (a1, ll1), LCons (a2, ll2) ->
@@ -3946,7 +3946,7 @@ let rec lmap f = function
 
 Using these operations, we can define the factorial sequence elegantly:
 
-```ocaml
+```
 let posnums = l_from 1
 
 let rec lfact =
@@ -3971,7 +3971,7 @@ The expression $P(x) = \sum_{i=0}^{n} a_i x^i$ defines a polynomial for $n < \in
 
 If we define:
 
-```ocaml
+```
 let rec lfold_right f l base =
   match l with
     | LNil -> base
@@ -3980,7 +3980,7 @@ let rec lfold_right f l base =
 
 then we can compute polynomials using Horner's method:
 
-```ocaml
+```
 let horner x l =
   lfold_right (fun c sum -> c +. x *. sum) l 0.
 ```
@@ -3991,7 +3991,7 @@ If the power series converges for $x > 1$, then when the elements $a_n$ get smal
 
 `lfold_right` falls into an infinite loop on infinite lists. We need call-by-name / call-by-need semantics for the argument function `f`:
 
-```ocaml
+```
 let rec lazy_foldr f l base =
   match l with
     | LNil -> base
@@ -4001,7 +4001,7 @@ let rec lazy_foldr f l base =
 
 We need a stopping condition in the Horner algorithm step:
 
-```ocaml
+```
 let lhorner x l =                         (* This is a bit of a hack, *)
   let upd c sum =                         (* we hope to "hit" the interval (0, epsilon]. *)
     if c = 0. || abs_float c > epsilon_float
@@ -4015,7 +4015,7 @@ let e = lhorner 1. inv_fact
 
 #### 7.4.1 Power Series / Polynomial Operations
 
-```ocaml
+```
 let rec add xs ys =
   match xs, ys with
     | LNil, _ -> ys
@@ -4075,7 +4075,7 @@ $$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 
 
 We will solve the corresponding integral equations. We cannot define the integral by direct recursion like this:
 
-```ocaml
+```
 let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)
 
 let rec sin = integrate (of_int 0) cos
@@ -4088,7 +4088,7 @@ Even changing the second argument of `integrate` to call-by-need does not help, 
 
 We need to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure:
 
-```ocaml
+```
 let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums))
 
 let rec sin = LCons (of_int 0, lazy (integ cos))
@@ -4101,7 +4101,7 @@ Although this approach is not limited to linear equations, equations like Lotka-
 
 Drawing functions work like in the previous lecture, but with open curves:
 
-```ocaml
+```
 let plot_1D f ~w ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   Array.init w (fun i ->
@@ -4117,7 +4117,7 @@ For infinite precision on rational numbers we use the `nums` library -- but it d
 
 We need to generate a sequence of approximations to the power series limit at $x$:
 
-```ocaml
+```
 let infhorner x l =
   let upd c sum =
     LCons (c, lazy (lmap (fun apx -> c +. x *. apx)
@@ -4127,7 +4127,7 @@ let infhorner x l =
 
 Find where the series converges -- as far as a given test is concerned:
 
-```ocaml
+```
 let rec exact f = function           (* We arbitrarily decide that convergence is *)
   | LNil -> assert false             (* when three consecutive results are the same. *)
   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))
@@ -4137,7 +4137,7 @@ let rec exact f = function           (* We arbitrarily decide that convergence i
 
 Draw the pixels of the graph at exact coordinates:
 
-```ocaml
+```
 let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   let eval = exact (fun y -> to_int (scale *. y)) in
@@ -4154,7 +4154,7 @@ Consider a nuclear chain reaction where substance A decays into B, which decays 
 
 $$\frac{dN_A}{dt} = -\lambda_A N_A, \quad \frac{dN_B}{dt} = \lambda_A N_A - \lambda_B N_B$$
 
-```ocaml
+```
 let n_chain ~nA0 ~nB0 ~lA ~lB =
   let rec nA =
     LCons (nA0, lazy (integ (~-.lA *:. nA)))
@@ -4179,12 +4179,12 @@ Double-linked lists contain such cycles between any two nodes even if they are n
 
 We need to "break" the cycles by making some links lazy:
 
-```ocaml
+```
 type 'a dllist =
   DLNil | DLCons of 'a dllist Lazy.t * 'a * 'a dllist
 ```
 
-```ocaml
+```
 let rec dldrop n l =
   match l with
     | DLCons (_, x, xs) when n > 0 ->
@@ -4194,7 +4194,7 @@ let rec dldrop n l =
 
 Creating a double-linked list from a regular list:
 
-```ocaml
+```
 let dllist_of_list l =
   let rec dllist prev l =
     match l with
@@ -4208,7 +4208,7 @@ let dllist_of_list l =
 
 Taking elements going forward:
 
-```ocaml
+```
 let rec dltake n l =
   match l with
     | DLCons (_, x, xs) when n > 0 ->
@@ -4218,7 +4218,7 @@ let rec dltake n l =
 
 Taking elements going backward:
 
-```ocaml
+```
 let rec dlbackwards n l =
   match l with
     | DLCons (lazy xs, x, _) when n > 0 ->
@@ -4230,20 +4230,20 @@ let rec dlbackwards n l =
 
 The stream type used a throwaway argument to make a suspension:
 
-```ocaml
+```
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
 What if we take a real argument?
 
-```ocaml
+```
 type ('a, 'b) iostream =
   EOS | More of 'b * ('a -> ('a, 'b) iostream)
 ```
 
 This is a stream that for a single input value produces an output value.
 
-```ocaml
+```
 type 'a istream = (unit, 'a) iostream  (* Input stream produces output when "asked". *)
 type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input. *)
 ```
@@ -4252,7 +4252,7 @@ type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input.
 
 We can compose streams: directing output of one to input of another.
 
-```ocaml
+```
 let rec compose sf sg =
   match sg with
   | EOS -> EOS                              (* No more output. *)
@@ -4275,7 +4275,7 @@ We need a more flexible input-output stream definition:
 
 After Haskell, we call the data structure `pipe`:
 
-```ocaml
+```
 type ('a, 'b) pipe =
   EOP                                       (* End of pipe *)
 | Yield of 'b * ('a, 'b) pipe               (* For incremental streams change to lazy. *)
@@ -4284,7 +4284,7 @@ type ('a, 'b) pipe =
 
 Again, we can have producing output only *input pipes* and consuming input only *output pipes*:
 
-```ocaml
+```
 type 'a ipipe = (unit, 'a) pipe
 type void
 type 'a opipe = ('a, void) pipe
@@ -4296,7 +4296,7 @@ Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe 
 
 Composition of pipes is like "concatenating them in space" or connecting boxes:
 
-```ocaml
+```
 let rec compose pf pg =
   match pg with
   | EOP -> EOP                              (* Done producing results. *)
@@ -4314,7 +4314,7 @@ let (>->) pf pg = compose pf pg
 
 Appending pipes means "concatenating them in time" or adding more fuel to a box:
 
-```ocaml
+```
 let rec append pf pg =
   match pf with
   | EOP -> pg                               (* When pf runs out, use pg. *)
@@ -4326,7 +4326,7 @@ let rec append pf pg =
 
 Append a list of ready results in front of a pipe:
 
-```ocaml
+```
 let rec yield_all l tail =
   match l with
   | [] -> tail
@@ -4335,7 +4335,7 @@ let rec yield_all l tail =
 
 Iterate a pipe (**not functional** -- performs side effects):
 
-```ocaml
+```
 let rec iterate f : 'a opipe =
   Await (fun x -> let () = f x in iterate f)
 ```
@@ -4344,12 +4344,12 @@ let rec iterate f : 'a opipe =
 
 Print a hierarchically organized document with a limited line width.
 
-```ocaml
+```
 type doc =
   Text of string | Line | Cat of doc * doc | Group of doc
 ```
 
-```ocaml
+```
 let (++) d1 d2 = Cat (d1, Cat (Line, d2))
 let (!) s = Text s
 
@@ -4376,7 +4376,7 @@ Document First part Second part
 
 #### 7.9.1 Straightforward Solution
 
-```ocaml
+```
 let pretty w d =                            (* Allowed width of line w. *)
   let rec width = function                  (* Total length of subdocument. *)
     | Text z -> String.length z
@@ -4399,14 +4399,14 @@ let pretty w d =                            (* Allowed width of line w. *)
 
 Working with a stream of nodes:
 
-```ocaml
+```
 type ('a, 'b) doc_e =                       (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
 Normalize a subdocument -- remove empty groups:
 
-```ocaml
+```
 let rec norm = function
   | Group d -> norm d
   | Text "" -> None
@@ -4416,7 +4416,7 @@ let rec norm = function
 
 Generate the stream by infix traversal:
 
-```ocaml
+```
 let rec gen = function
   | Text z -> Yield (TE ((),z), EOP)
   | Line -> Yield (LE (), EOP)
@@ -4431,7 +4431,7 @@ let rec gen = function
 
 Compute lengths of document prefixes, i.e. the position of each node counting by characters from the beginning of document:
 
-```ocaml
+```
 let rec docpos curpos =
   Await (function                           (* We input from a doc_e pipe *)
   | TE (_, z) ->
@@ -4449,7 +4449,7 @@ let docpos = docpos 0                       (* The whole document starts at 0. *
 
 Put the end position of the group into the group beginning marker, so that we can know whether to break it into multiple lines:
 
-```ocaml
+```
 let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
@@ -4471,7 +4471,7 @@ let rec grends grstack =
 
 That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
 
-```ocaml
+```
 type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
@@ -4506,7 +4506,7 @@ let grends w = grends w []                  (* Initial stack is empty. *)
 
 Finally we produce the resulting stream of strings:
 
-```ocaml
+```
 let rec format w (inline, endlpos as st) =  (* State: the stack of *)
   Await (function                           (* "group fits in line"; position where end of line would be. *)
   | TE (_, z) -> Yield (z, format w st)
@@ -4534,7 +4534,7 @@ Put the pipes together:
 
 Factorize `format` so that various line breaking styles can be plugged in:
 
-```ocaml
+```
 let rec breaks w (inline, endlpos as st) =
   Await (function
   | TE _ as e -> Yield (e, breaks w st)
@@ -4565,7 +4565,7 @@ let pretty_print w doc =
 
 **Exercise 1:** My first impulse was to define lazy list functions as follows:
 
-```ocaml
+```
 let rec wrong_lzip = function
   | LNil, LNil -> LNil
   | LCons (a1, lazy l1), LCons (a2, lazy l2) ->
@@ -4595,7 +4595,7 @@ In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related t
 
 Starter code is available in the lecture script `Lec7.ml`:
 
-```ocaml
+```
 let rec lfilter f = function
   | LNil -> LNil
   | LCons (n, ll) ->
@@ -4649,7 +4649,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```ocaml
+```
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of doc * doc | Group of 'a * doc
 ```
@@ -4838,7 +4838,7 @@ A monad is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at leas
 
 With `bind` in scope, we do not need the `with` clause in `perform`:
 
-```ocaml
+```
 let bind a b = concat_map b a
 let return x = [x]
 
@@ -4852,7 +4852,7 @@ let solutions ns n =
 
 Why does `guard` look this way? Let us examine:
 
-```ocaml
+```
 let fail = []
 let guard p = if p then return () else fail
 ```
@@ -4864,7 +4864,7 @@ Steps in monadic computation are composed with `>>=` (like `|->` for lists). The
 
 Throwing away the binding argument is common, with infix syntax `>>` in Haskell:
 
-```ocaml
+```
 let (>>) m f = m >>= (fun _ -> f)
 ```
 
@@ -4897,7 +4897,7 @@ $$
 
 You should verify that these laws hold for our list monad:
 
-```ocaml
+```
 let bind a b = concat_map b a
 let return x = [x]
 ```
@@ -4947,7 +4947,7 @@ $$
 
 The list type has a natural monad and monoid structure:
 
-```ocaml
+```
 let mzero = []
 let mplus = (@)
 let bind a b = concat_map b a
@@ -4956,7 +4956,7 @@ let return a = [a]
 
 We can define in any monad-plus:
 
-```ocaml
+```
 let fail = mzero
 let failwith _ = fail
 let (++) = mplus
@@ -4968,7 +4968,7 @@ let guard p = if p then return () else fail
 
 We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
 
-```ocaml
+```
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -5015,7 +5015,7 @@ As monad-plus shows, things get interesting when we add more operations to a bas
 
 **Monads with access:**
 
-```ocaml
+```
 access : 'a monad -> 'a
 ```
 
@@ -5023,34 +5023,34 @@ Example: the lazy monad.
 
 **Monad-plus (non-deterministic computation):**
 
-```ocaml
+```
 mzero : 'a monad
 mplus : 'a monad -> 'a monad -> 'a monad
 ```
 
 **Monads with state (parameterized by type `store`):**
 
-```ocaml
+```
 get : store monad
 put : store -> unit monad
 ```
 
 There is a "canonical" state monad. Similar monads include the writer monad (with `get` called `listen` and `put` called `tell`) and the reader monad, without `put`, but with `get` (called `ask`) and:
 
-```ocaml
+```
 local : (store -> store) -> 'a monad -> 'a monad
 ```
 
 **Exception/error monads (parameterized by type `excn`):**
 
-```ocaml
+```
 throw : excn -> 'a monad
 catch : 'a monad -> (excn -> 'a monad) -> 'a monad
 ```
 
 **Continuation monad:**
 
-```ocaml
+```
 callCC : (('a -> 'b monad) -> 'a monad) -> 'a monad
 ```
 
@@ -5058,7 +5058,7 @@ We will not cover continuations in detail here.
 
 **Probabilistic computation:**
 
-```ocaml
+```
 choose : float -> 'a monad -> 'a monad -> 'a monad
 ```
 
@@ -5075,7 +5075,7 @@ $$
 
 **Parallel computation (monad with access and parallel bind):**
 
-```ocaml
+```
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
@@ -5099,7 +5099,7 @@ Content of a module is included into another module with `include Module`.
 
 **Functors** are module functions -- functions from modules to modules:
 
-```ocaml
+```
 module Funct = functor (Arg : sig ... end) -> struct ... end
 (* Or equivalently: *)
 module Funct (Arg : sig ... end) = struct ... end
@@ -5111,7 +5111,7 @@ A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with 
 
 Finally, we can pass around modules in normal functions using first-class modules:
 
-```ocaml
+```
 module type T = sig val g : int -> int end
 
 let f mod_v x =
@@ -5134,14 +5134,14 @@ A monad is a **quarantine container**:
 - We can put something into the container with `return`
 - We can operate on it, but the result needs to stay in the container
 
-```ocaml
+```
 let lift f m = perform x <-- m; return (f x)
 (* val lift : ('a -> 'b) -> 'a monad -> 'b monad *)
 ```
 
 - We can deactivate-unwrap the quarantine container but only when it is in another container so the quarantine is not broken
 
-```ocaml
+```
 let join m = perform x <-- m; x
 (* val join : ('a monad) monad -> 'a monad *)
 ```
@@ -5154,7 +5154,7 @@ Monads with access allow us to extract the resulting element from the container;
 
 To compute the result, `perform` instructions, naming partial results. The physical metaphor is an **assembly line**:
 
-```ocaml
+```
 let assemblyLine w =
   perform
     c <-- makeChopsticks w;   (* Worker makes chopsticks *)
@@ -5167,11 +5167,11 @@ Any expression can be spread over a monad. For lambda-terms:
 
 $$
 \begin{aligned}
-\llbracket N \rrbracket &= \text{return}\ N & \text{(constant)} \\
-\llbracket x \rrbracket &= \text{return}\ x & \text{(variable)} \\
-\llbracket \lambda x.a \rrbracket &= \text{return}\ (\lambda x.\llbracket a \rrbracket) & \text{(function)} \\
-\llbracket \text{let}\ x = a\ \text{in}\ b \rrbracket &= \text{bind}\ \llbracket a \rrbracket\ (\lambda x.\llbracket b \rrbracket) & \text{(local definition)} \\
-\llbracket a\ b \rrbracket &= \text{bind}\ \llbracket a \rrbracket\ (\lambda v_a.\text{bind}\ \llbracket b \rrbracket\ (\lambda v_b.v_a\ v_b)) & \text{(application)}
+[\![ N ]\!] &= \text{return}\ N & \text{(constant)} \\
+[\![ x ]\!] &= \text{return}\ x & \text{(variable)} \\
+[\![ \lambda x.a ]\!] &= \text{return}\ (\lambda x.[\![ a ]\!]) & \text{(function)} \\
+[\![ \text{let}\ x = a\ \text{in}\ b ]\!] &= \text{bind}\ [\![ a ]\!]\ (\lambda x.[\![ b ]\!]) & \text{(local definition)} \\
+[\![ a\ b ]\!] &= \text{bind}\ [\![ a ]\!]\ (\lambda v_a.\text{bind}\ [\![ b ]\!]\ (\lambda v_b.v_a\ v_b)) & \text{(application)}
 \end{aligned}
 $$
 
@@ -5181,7 +5181,7 @@ When an expression is spread over a monad, its computation can be monitored or a
 
 To implement a monad, we need to provide the implementation type, `return`, and `bind` operations.
 
-```ocaml
+```
 module type MONAD = sig
   type 'a t
   val return : 'a -> 'a t
@@ -5193,7 +5193,7 @@ Alternatively, we could start from `return`, `lift`, and `join` operations.
 
 Based on just these two operations, we can define a suite of general-purpose functions:
 
-```ocaml
+```
 module type MONAD_OPS = sig
   type 'a monad
   include MONAD with type 'a t := 'a monad
@@ -5224,7 +5224,7 @@ end
 
 We make the monad "safe" by keeping its type abstract, but `run` exposes "what really happened":
 
-```ocaml
+```
 module Monad (M : MONAD) : sig
   include MONAD_OPS
   val run : 'a monad -> 'a M.t
@@ -5238,7 +5238,7 @@ end
 
 The monad-plus class has many implementations. They need to provide `mzero` and `mplus`:
 
-```ocaml
+```
 module type MONAD_PLUS = sig
   include MONAD
   val mzero : 'a t
@@ -5276,7 +5276,7 @@ end
 
 We also need a class for computations with state:
 
-```ocaml
+```
 module type STATE = sig
   type store
   type 'a t
@@ -5291,7 +5291,7 @@ end
 
 Heavy laziness notation? Try a monad (with access):
 
-```ocaml
+```
 module LazyM = Monad (struct
   type 'a t = 'a Lazy.t
   let bind a b = lazy (Lazy.force (b (Lazy.force a)))
@@ -5305,7 +5305,7 @@ let laccess m = Lazy.force (LazyM.run m)
 
 Our resident list monad (monad-plus):
 
-```ocaml
+```
 module ListM = MonadPlus (struct
   type 'a t = 'a list
   let bind a b = concat_map b a
@@ -5319,7 +5319,7 @@ end)
 
 The Countdown module can be parameterized by any monad-plus:
 
-```ocaml
+```
 module Countdown (M : MONAD_PLUS_OPS) = struct
   open M  (* Open the module to make monad operations visible *)
 
@@ -5396,7 +5396,7 @@ end
 
 Let us measure execution times:
 
-```ocaml
+```
 let time f =
   let tbeg = Unix.gettimeofday () in
   let res = f () in
@@ -5406,7 +5406,7 @@ let time f =
 
 With the list monad:
 
-```ocaml
+```
 module ListCountdown = Countdown (ListM)
 let test1 () = ListM.run (ListCountdown.solutions [1;3;7;10;25;50] 765)
 let t1, sol1 = time test1
@@ -5416,7 +5416,7 @@ let t1, sol1 = time test1
 
 What if we want only one solution? Laziness to the rescue! We define an "odd lazy list":
 
-```ocaml
+```
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -5447,7 +5447,7 @@ Testing shows that the odd lazy list still takes about the same time to even get
 
 The **option monad** does not help either:
 
-```ocaml
+```
 module OptionM = MonadPlus (struct
   type 'a t = 'a option
   let bind a b =
@@ -5464,7 +5464,7 @@ Our lazy list type is not lazy enough. Whenever we "make" a choice with `a ++ b`
 
 We need **even lazy lists** (our `llist` above are called "odd lazy lists"):
 
-```ocaml
+```
 type 'a lazy_list = 'a lazy_list_ Lazy.t
 and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
 
@@ -5502,7 +5502,7 @@ Now the first solution takes considerably less time than all solutions. The next
 
 Built-in non-functional exceptions in OCaml are more efficient and more flexible. However, monadic exceptions are safer than standard exceptions in situations like multi-threading. The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad.
 
-```ocaml
+```
 module ExceptionM (Excn : sig type t end) : sig
   type excn = Excn.t
   type 'a t = OK of 'a | Bad of excn
@@ -5530,7 +5530,7 @@ end
 
 #### The State Monad
 
-```ocaml
+```
 module StateM (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> 'a * store  (* Pass the current store value to get the next value *)
@@ -5554,7 +5554,7 @@ end
 
 The state monad is useful to hide passing-around of a "current" value. Here is an example that renames variables in lambda-terms to eliminate potential name clashes:
 
-```ocaml
+```
 type term =
   | Var of string
   | Lam of string * term
@@ -5607,7 +5607,7 @@ We need monad transformers in OCaml because "monads are contagious": although we
 
 The state monad uses `let x = a in ...` for binding. The transformed monad uses `M.bind` instead:
 
-```ocaml
+```
 type 'a state = store -> ('a * store)
 
 let return (a : 'a) : 'a state =
@@ -5629,7 +5629,7 @@ let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
 
 #### State Transformer Implementation
 
-```ocaml
+```
 module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> ('a * store) MP.monad
@@ -5660,7 +5660,7 @@ end
 
 Using the state transformer with our puzzle solver:
 
-```ocaml
+```
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   type state = {
     been_size : int;
@@ -5784,7 +5784,7 @@ Outside-monad operations:
 - `distrib : 'a monad -> ('a * float) list`: Returns the distribution of probabilities over the resulting values.
 - `access : 'a monad -> 'a`: Samples a random result from the distribution -- **non-functional** behavior.
 
-```ocaml
+```
 module type PROBABILITY = sig
   include MONAD_OPS
   val choose : float -> 'a monad -> 'a monad -> 'a monad
@@ -5800,7 +5800,7 @@ end
 
 Helper functions:
 
-```ocaml
+```
 let total dist =
   List.fold_left (fun a (_,b) -> a +. b) 0. dist
 
@@ -5822,7 +5822,7 @@ let roulette dist =                      (* Roulette wheel from a distribution/m
 
 #### Exact Distribution Monad
 
-```ocaml
+```
 module DistribM : PROBABILITY = struct
   module M = struct                      (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
@@ -5850,7 +5850,7 @@ end
 
 #### Sampling Monad
 
-```ocaml
+```
 module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   module M = struct                      (* Parameterized by how many samples *)
     type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
@@ -5886,7 +5886,7 @@ end
 
 In search of a new car, the player picks a door, say 1. The game host then opens one of the other doors, say 3, to reveal a goat and offers to let the player pick door 2 instead of door 1.
 
-```ocaml
+```
 module MontyHall (P : PROBABILITY) = struct
   open P
   type door = A | B | C
@@ -5929,7 +5929,7 @@ To compute $P(A|B)$:
 
 For the exact distribution monad, we just need to allow intermediate distributions to be unnormalized (sum to less than 1). For the sampling monad, we use rejection sampling (though `mplus` has no straightforward correct implementation).
 
-```ocaml
+```
 module type COND_PROBAB = sig
   include PROBABILITY
   include MONAD_PLUS_OPS with type 'a monad := 'a monad
@@ -6022,7 +6022,7 @@ Probability tables:
 - $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
 - $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
 
-```ocaml
+```
 module Burglary (P : COND_PROBAB) = struct
   open P
   type what_happened =
@@ -6070,7 +6070,7 @@ The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a
 
 For concurrency, we need to "suppress" this sequentiality. We introduce:
 
-```ocaml
+```
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
@@ -6078,7 +6078,7 @@ where `parallel a b (fun x y -> c)` does not wait for `a` to be computed before 
 
 If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
 
-```ocaml
+```
 perform
   let a = ea in
   let b = eb in
@@ -6095,7 +6095,7 @@ Under **coarse-grained** concurrency, computation is only suspended when request
 
 #### Thread Monad Signatures
 
-```ocaml
+```
 module type THREADS = sig
   include MONAD
   val parallel :
@@ -6142,7 +6142,7 @@ end
 
 #### Cooperative Thread Implementation
 
-```ocaml
+```
 module Cooperative = Threads(struct
   type 'a state =
     | Return of 'a                     (* The thread has returned *)
@@ -6216,7 +6216,7 @@ end)
 
 #### Testing the Thread Implementation
 
-```ocaml
+```
 module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n = perform
@@ -6276,7 +6276,7 @@ Find all answers to the puzzle using a list comprehension. The comprehension wil
 
 **Exercise 4.** Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
 
-```ocaml
+```
 type 'a tree = Empty | Leaf of 'a | T of 'a tree * 'a tree
 
 module TreeM = MonadPlus (struct
@@ -6294,7 +6294,7 @@ end)
 
 **Exercise 6.** Why is the following monad-plus not lazy enough?
 
-```ocaml
+```
 let rec badappend l1 l2 =
   match l1 with lazy LazNil -> l2
   | lazy (LazCons (hd, tl)) ->
@@ -8022,7 +8022,7 @@ Often we need to keep track of a position within a data structure: easily access
 
 Consider binary trees:
 
-```ocaml
+```
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -8037,7 +8037,7 @@ $$
 
 This derivative gives us the context type:
 
-```ocaml
+```
 type btree_dir = LeftBranch | RightBranch
 type btree_deriv =
   | Here of btree * btree
@@ -8065,7 +8065,7 @@ This tells us that the context can be stored as a list with the root as the last
 
 Contexts of subtrees are more useful than contexts of single elements:
 
-```ocaml
+```
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
 type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
@@ -8082,7 +8082,7 @@ We can imagine a location as a rooted tree which is hanging pinned at one of its
 
 Navigation functions allow us to traverse the structure:
 
-```ocaml
+```
 let ascend loc =
   match loc.ctx with
   | [] -> loc  (* Or raise exception *)
@@ -8108,7 +8108,7 @@ let desc_right loc =
 
 Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches, representing a document structure:
 
-```ocaml
+```
 type doc = Text of string | Line | Group of doc list
 type context = (doc list * doc list) list
 type location = {sub: doc; ctx: context}
@@ -8116,7 +8116,7 @@ type location = {sub: doc; ctx: context}
 
 The navigation functions for this more complex structure:
 
-```ocaml
+```
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
@@ -8168,7 +8168,7 @@ $$
 
 First, the groundwork:
 
-```ocaml
+```
 type op = Add | Mul
 type expr = Val of int | Var of string | App of expr * op * expr
 type expr_dir = Left_arg | Right_arg
@@ -8178,7 +8178,7 @@ type location = {sub: expr; ctx: context}
 
 To locate the subexpression described by predicate `p`:
 
-```ocaml
+```
 let rec find_aux p e =
   if p e then Some (e, [])
   else match e with
@@ -8201,7 +8201,7 @@ let find p e =
 
 Now we can implement the pull-out transformation:
 
-```ocaml
+```
 let rec pull_out loc =
   match loc.ctx with
   | [] -> loc  (* Done *)
@@ -8225,7 +8225,7 @@ Since operators are commutative, we ignore the direction for the second piece of
 
 Testing the implementation:
 
-```ocaml
+```
 let (+) a b = App (a, Add, b)
 let ( * ) a b = App (a, Mul, b)
 let (!) a = Val a
@@ -8254,7 +8254,7 @@ The functional description of computation is within a monad. We can change monad
 
 The monadic value `'a changeable` will be the *dependency graph* of the computation of the represented value `'a`. Consider the computation:
 
-```ocaml
+```
 let u = v / w + x * y + z
 ```
 
@@ -8262,7 +8262,7 @@ The dependency graph shows how the result depends on the inputs. When we modify 
 
 We use the order of computation (represented as gray numbers in the dependency visualization) for the order of updates. Similarly to `parallel` in the concurrency monad, we provide `bind2`, `bind3`, etc., and corresponding `lift2`, `lift3`, etc., to introduce nodes with several children:
 
-```ocaml
+```
 let n0 = bind2 v w (fun v w -> return (v / w))
 let n1 = bind2 x y (fun x y -> return (x * y))
 let n2 = bind2 n0 n1 (fun n0 n1 -> return (n0 + n1))
@@ -8271,7 +8271,7 @@ let u = bind2 n2 z (fun n2 z -> return (n2 + z))
 
 Do-notation is not necessary to have readable expressions:
 
-```ocaml
+```
 let (/) = lift2 (/)
 let ( * ) = lift2 ( * )
 let (+) = lift2 (+)
@@ -8280,7 +8280,7 @@ let u = v / w + x * y + z
 
 As in other monads, we can decrease overhead by using bigger chunks:
 
-```ocaml
+```
 let n0 = blift2 v w (fun v w -> v / w)
 let n2 = blift3 n0 x y (fun n0 x y -> n0 + x * y)
 let u = blift2 n2 z (fun n2 z -> n2 + z)
@@ -8290,7 +8290,7 @@ let u = blift2 n2 z (fun n2 z -> n2 + z)
 
 We have a problem if we recompute all nodes simply by order of computation:
 
-```ocaml
+```
 let b = x >>= fun x -> return (x = 0)
 let n0 = x >>= fun x -> return (100 / x)
 let y = bind2 b n0 (fun b n0 -> if b then return 0 else n0)
@@ -8306,7 +8306,7 @@ We need memoization to re-attach the same nodes in case they do not need updatin
 
 The `Froc_sa` (for *self-adjusting*) module exports the monadic type `t` for changeable computation, and a handle type `u` for updating the computation:
 
-```ocaml
+```
 open Froc_sa
 
 type tree =  (* Binary tree with nodes storing their screen location *)
@@ -8316,7 +8316,7 @@ type tree =  (* Binary tree with nodes storing their screen location *)
 
 Displaying the tree is a changeable effect. Whenever the tree changes, displaying will be updated. Only new nodes will be drawn after an update:
 
-```ocaml
+```
 let rec display px py t =
   match t with
   | Leaf (x, y) ->
@@ -8331,7 +8331,7 @@ let rec display px py t =
 
 Growing the tree:
 
-```ocaml
+```
 let grow_at (x, depth, upd) =
   let x_l = x - f2i (width *. (2.0 ** (~-. (i2f (depth + 1))))) in
   let l, upd_l = changeable (Leaf (x_l, (depth + 1) * 20)) in
@@ -8344,7 +8344,7 @@ let grow_at (x, depth, upd) =
 
 The main loop:
 
-```ocaml
+```
 let rec loop t subts steps =
   if steps <= 0 then ()
   else loop t (concat_map grow_at subts) (steps - 1)
@@ -8378,7 +8378,7 @@ FRP is *synchronous*: it is possible to set up for events to happen at the same 
 
 Ideally we would define:
 
-```ocaml
+```
 type time = float
 type 'a behavior = time -> 'a  (* Arbitrary function *)
 type 'a event = ('a, time) stream  (* Increasing time instants *)
@@ -8386,7 +8386,7 @@ type 'a event = ('a, time) stream  (* Increasing time instants *)
 
 Forcing a lazy list (stream) of events would wait until an event arrives. But behaviors need to react to external events:
 
-```ocaml
+```
 type user_action =
   | Key of char * bool
   | Button of int * int * bool * bool
@@ -8398,14 +8398,14 @@ type 'a behavior = user_action event -> time -> 'a
 
 Scanning through an event list since the beginning of time until current time, each time we evaluate a behavior, is very wasteful with respect to time and space. Producing a stream of behaviors for the stream of time allows us to forget about events already in the past:
 
-```ocaml
+```
 type 'a behavior =
   user_action event -> time stream -> 'a stream
 ```
 
 The next optimization is to pair user actions with sampling times:
 
-```ocaml
+```
 type 'a behavior =
   (user_action option * time) stream -> 'a stream
 ```
@@ -8416,7 +8416,7 @@ Turning behaviors and events from functions of time into input-output streams is
 
 Now we can in turn define events in terms of behaviors:
 
-```ocaml
+```
 type 'a event = 'a option behavior
 ```
 
@@ -8428,7 +8428,7 @@ We have gotten very close to *stream processing* as discussed in Chapter 7. Reca
 
 Behaviors are monadic (but see the next point) -- in the original specification:
 
-```ocaml
+```
 type 'a behavior = time -> 'a
 
 val return : 'a -> 'a behavior
@@ -8440,7 +8440,7 @@ let bind a f = fun t -> f (a t) t
 
 As we have seen with changeables, we mostly use lifting. In the Haskell world we would call behaviors *applicative*. To build our own lifters in any monad:
 
-```ocaml
+```
 val ap : ('a -> 'b) monad -> 'a monad -> 'b monad
 let ap fm am = perform
   f <-- fm;
@@ -8454,13 +8454,13 @@ Note that for changeables, the naive implementation above will introduce unneces
 
 Going from events to behaviors, `until` and `switch` have type:
 
-```ocaml
+```
 'a behavior -> 'a behavior event -> 'a behavior
 ```
 
 while `step` has type:
 
-```ocaml
+```
 'a -> 'a event -> 'a behavior
 ```
 
@@ -8474,7 +8474,7 @@ We will use "*signal*" to refer to a behavior or an event. Note that often "sign
 
 The stream processing infrastructure should be familiar from earlier chapters:
 
-```ocaml
+```
 type 'a stream = 'a stream_ Lazy.t
 and 'a stream_ = Cons of 'a * 'a stream
 
@@ -8505,7 +8505,7 @@ let rec lfold acc f (l : 'a stream) = lazy (
 
 Since a behavior is a function of user actions and sample times, we need to ensure that only one stream is created for the actual input stream:
 
-```ocaml
+```
 type ('a, 'b) memo1 =
   {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
 
@@ -8529,7 +8529,7 @@ type 'a behavior =
 
 The monadic/applicative functions to build complex behaviors. If you do not provide type annotations in `.ml` files, work together with an `.mli` file to catch problems early. You can later add more type annotations as needed to find out what is wrong.
 
-```ocaml
+```
 let returnB x : 'a behavior =
   let rec xs = lazy (Cons (x, xs)) in
   memo1 (fun _ -> xs)
@@ -8555,7 +8555,7 @@ let (->>) e v = e =>> fun _ -> v
 
 Creating events out of behaviors:
 
-```ocaml
+```
 let whileB (fb : bool behavior) : unit event =
   memo1 (fun uts ->
     lmap (function true -> Some () | false -> None)
@@ -8578,7 +8578,7 @@ let snapshot fe fb : ('a * 'b) event =
 
 Creating behaviors out of events:
 
-```ocaml
+```
 let step acc fe =  (* The step function: value of last event *)
   memo1 (fun uts -> lfold acc
     (fun acc -> function None -> acc | Some v -> v)
@@ -8593,7 +8593,7 @@ let step_accum acc ff =  (* Transform a value by a series of functions *)
 
 To numerically integrate a behavior, we need to access the sampling times:
 
-```ocaml
+```
 let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
@@ -8609,7 +8609,7 @@ In our *paddle game* example, we paradoxically express position and velocity in 
 
 User actions:
 
-```ocaml
+```
 let lbp : unit event =
   memo1 (fun uts -> lmap
     (function Some(Button(_,_)), _ -> Some() | _ -> None)
@@ -8635,7 +8635,7 @@ let height : int behavior = step 512 (liftE snd screen)
 
 A *scene graph* is a data structure that represents a "world" which can be drawn on screen:
 
-```ocaml
+```
 type scene =
   | Rect of int * int * int * int  (* position, width, height *)
   | Circle of int * int * int  (* position, radius *)
@@ -8646,7 +8646,7 @@ type scene =
 
 Drawing a scene explains what we mean above:
 
-```ocaml
+```
 let draw sc =
   let f2i = int_of_float in
   let open Graphics in
@@ -8668,7 +8668,7 @@ An animation is a scene behavior. To animate it we need to create the input stre
 
 General-purpose behavior operators:
 
-```ocaml
+```
 let (+*) = liftB2 (+)
 let (-*) = liftB2 (-)
 let ( *** ) = liftB2 ( * )
@@ -8681,7 +8681,7 @@ let (>*) = liftB2 (>)
 
 The walls are drawn on left, top and right borders of the window:
 
-```ocaml
+```
 let walls =
   liftB2 (fun w h -> Color (Graphics.blue, Group
     [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
@@ -8691,7 +8691,7 @@ let walls =
 
 The paddle is tied to the mouse at the bottom border of the window:
 
-```ocaml
+```
 let paddle = liftB (fun mx ->
   Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
 ```
@@ -8730,7 +8730,7 @@ Rather than following our incremental computing example (a scene with changeable
 
 First we introduce time:
 
-```ocaml
+```
 open Froc
 let clock, tick = make_event ()
 let time = hold (Unix.gettimeofday ()) clock
@@ -8738,7 +8738,7 @@ let time = hold (Unix.gettimeofday ()) clock
 
 Next we define integration:
 
-```ocaml
+```
 let integral fb =
   let aux (sum, t0) t1 =
     sum +. (t1 -. t0) *. sample fb, t1 in
@@ -8747,14 +8747,14 @@ let integral fb =
 
 For convenience, the integral remembers the current upper limit of integration. It will be useful to get the integer part:
 
-```ocaml
+```
 let integ_res fb =
   lift (fun (v, _) -> int_of_float v) (integral fb)
 ```
 
 We can also define integration in pure style:
 
-```ocaml
+```
 let pair fa fb = lift2 (fun x y -> x, y) fa fb
 
 let integral_nice fb =
@@ -8782,7 +8782,7 @@ A flow is a kind of a *lightweight thread* as in the end of Chapter 8; we will m
 
 We build a module `Flow` with monadic type `('a, 'b) flow` "storing" `'b` and emitting `'a`:
 
-```ocaml
+```
 type ('a, 'b) flow
 type cancellable  (* A handle to cancel a flow (stop further computation) *)
 val noop_flow : ('a, unit) flow  (* Same as return () *)
@@ -8805,7 +8805,7 @@ val is_cancelled : cancellable -> bool
 
 We follow our (or *Lwt*) implementation of lightweight threads, adapting it to the need of cancelling flows:
 
-```ocaml
+```
 module F = Froc
 type 'a result =
   | Return of 'a  (* Notifications to cancel when cancelled *)
@@ -8820,13 +8820,13 @@ Functions `find`, `wakeup`, `connect` are as in Chapter 8 (but connecting to can
 
 Our monad is actually a reader monad over the result state. The reader supplies the `emit` function:
 
-```ocaml
+```
 type ('a, 'b) flow = ('a -> unit) -> 'b state
 ```
 
 The `return` and `bind` functions are as in our lightweight threads, but we need to handle cancelled flows: for `m = bind a b`, if `a` is cancelled then `m` is cancelled, and if `m` is cancelled then we do not wake up `b`:
 
-```ocaml
+```
 let waiter x =
   if not (is_cancelled m)
   then connect m (b x emit) in
@@ -8835,7 +8835,7 @@ let waiter x =
 
 `await` is implemented like `next`, but it wakes up a flow:
 
-```ocaml
+```
 let await t = fun emit ->
   let c = ref F.no_cancel in
   let m = {state = Sleep ([], [c])} in
@@ -8854,7 +8854,7 @@ let await t = fun emit ->
 
 The scene is a list of shapes, the first shape is open:
 
-```ocaml
+```
 type scene = (int * int) list list
 
 let draw sc =
@@ -8870,7 +8870,7 @@ let draw sc =
 
 We build a flow and turn it into a behavior to animate:
 
-```ocaml
+```
 let painter =
   let cld = ref [] in  (* Global state of painter *)
   repeat (perform
@@ -8892,7 +8892,7 @@ Global state and thread-local state can be used with lightweight threads, but pa
 
 Side effects hidden in `return` and `emit` arguments are not inside the monad. For example, if in the "first line" of a loop effects are executed only at the start of the loop -- but if after bind ("below first line" of a loop), at each step of the loop:
 
-```ocaml
+```
 let f =
   repeat (perform
       emit (Printf.printf "[0]\n%!"; '0');
@@ -8933,7 +8933,7 @@ We demonstrate two libraries: *LablTk* based on optional labelled arguments (dis
 
 We represent the mechanics of the calculator directly as a flow:
 
-```ocaml
+```
 let digits, digit = F.make_event ()
 let ops, op = F.make_event ()
 let dots, dot = F.make_event ()
@@ -8963,7 +8963,7 @@ Widget toolkit *Tk* is known from the *Tcl* language.
 
 Layout of the calculator -- common across GUIs:
 
-```ocaml
+```
 let layout = [|
   [|"7", `Di 7.; "8", `Di 8.; "9", `Di 9.; "+", `O (+.)|];
   [|"4", `Di 4.; "5", `Di 5.; "6", `Di 6.; "-", `O (-.)|];
@@ -8979,7 +8979,7 @@ Key concepts:
 - *Frames* in *Tk* group widgets
 - The parent is sent as last argument, after optional labelled arguments
 
-```ocaml
+```
 let top = Tk.openTk ()
 
 let btn_frame =
@@ -9008,7 +9008,7 @@ GUI toolkits have layout algorithms, so we only need to tell which widgets hang 
 - The `grid` packing flexibility: `~columnspan` and `~rowspan`
 - `configure` functions accept the same arguments as `create` but change existing widgets
 
-```ocaml
+```
 let () =
   Wm.title_set top "Calculator";
   Tk.pack [result] ~side:`Top ~fill:`X;
@@ -9046,7 +9046,7 @@ The `coerce` method casts the type of the object (in *Tk* there is `coe` functio
 
 Setup:
 
-```ocaml
+```
 let _ = GtkMain.Main.init ()
 let window =
   GWindow.window ~width:200 ~height:200 ~title:"Calculator" ()
@@ -9059,7 +9059,7 @@ let btn_frame =
 
 Button actions:
 
-```ocaml
+```
 let buttons =
   Array.map (Array.map (function
     | label, `Dot ->
@@ -9078,7 +9078,7 @@ let buttons =
 
 Button layout, result notification, start application:
 
-```ocaml
+```
 let delete_event _ = GMain.Main.quit (); false
 
 let () =
@@ -9122,7 +9122,7 @@ let () =
 
 **Exercise 10:** The Flow module has reader monad functions that have not been discussed in this chapter:
 
-```ocaml
+```
 let local f m = fun emit -> m (fun x -> emit (f x))
 let local_opt f m = fun emit ->
   m (fun x -> match f x with None -> () | Some y -> emit y)
@@ -9189,7 +9189,7 @@ For brevity, we place examples in a single file, but the component type and func
 
 Here is the implementation:
 
-```ocaml
+```
 type var = string  (* Variables constitute a sub-language of its own *)
                    (* We treat this sub-language slightly differently -- no need for a dedicated variant *)
 
@@ -9227,7 +9227,7 @@ let rec eval1 subst =  (* and the corresponding eval function *)
 
 Now we define the arithmetic sub-language:
 
-```ocaml
+```
 type 'a expr =  (* The sub-language of arithmetic expressions *)
   VarE of var | Num of int | Add of 'a * 'a | Mult of 'a * 'a
 
@@ -9261,7 +9261,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
 
 Finally, we merge the two sub-languages:
 
-```ocaml
+```
 type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
   Lambda of 'a lambda | Expr of 'a expr  (* can also be used as a sub-language for further extensions *)
 
@@ -9301,7 +9301,7 @@ Exceptions have always formed an extensible variant type in OCaml, whose pattern
 
 **Verdict:** Pleasant-looking, but the worst approach because of possible bugginess. Unless bug-proneness is not a concern, then the best approach.
 
-```ocaml
+```
 type expr = ..  (* This is how extensible variant types are defined *)
 
 type var_name = string
@@ -9346,7 +9346,7 @@ let fv_test = freevars1 test1
 
 Now we extend with arithmetic:
 
-```ocaml
+```
 type expr += Num of int | Add of expr * expr | Mult of expr * expr
 
 let map_expr f = function
@@ -9376,7 +9376,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 let eval_lexpr eval_rec subst e =
   eval_expr eval_rec subst (eval_lambda eval_rec subst e)
 
@@ -9399,7 +9399,7 @@ OCaml's **objects** are values, somewhat similar to records. Viewed from the out
 
 **Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned decides if an object can be used. Parametric polymorphism can be used to infer if an object has the required methods.
 
-```ocaml
+```
 let f x = x#m  (* Method invocation: object#method *)
 (* val f : < m : 'a; .. > -> 'a *)
 (* Type polymorphic in two ways: 'a is the method type, *)
@@ -9414,7 +9414,7 @@ Methods are computed when they are invoked, even if they do not take arguments. 
 
 Constructor arguments can often be used instead of constant fields:
 
-```ocaml
+```
 let square w = object
   method area = float_of_int (w * w)
   method width = w
@@ -9425,7 +9425,7 @@ Subtyping often needs to be explicit: we write `(object :> supertype)` or in mor
 
 Technically speaking, subtyping in OCaml always is explicit, and *open types*, containing `..`, use **row polymorphism** rather than subtyping.
 
-```ocaml
+```
 let a = object method m = 7  method x = "a" end  (* Toy example: object types *)
 let b = object method m = 42 method y = "b" end  (* share some but not all methods *)
 
@@ -9451,7 +9451,7 @@ We can try to solve the expression problem using objects directly. However, addi
 
 Here is an implementation using objects:
 
-```ocaml
+```
 type var_name = string
 
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
@@ -9514,7 +9514,7 @@ let e_test1 = test1#eval []
 
 Extending with arithmetic requires additional mixins:
 
-```ocaml
+```
 class virtual compute_mixin = object
   method compute : int option = None
 end
@@ -9610,7 +9610,7 @@ The **visitor pattern** is a design pattern that separates an algorithm from the
 
 **Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
 
-```ocaml
+```
 type 'visitor visitable = < accept : 'visitor -> unit >
 (* The variants need be visitable *)
 (* We store the computation as side effect because of the difficulty *)
@@ -9734,7 +9734,7 @@ Extending with arithmetic expressions follows a similar pattern, and the merged 
 
 **Verdict:** A flexible solution, better than the previous approaches but still not perfect.
 
-```ocaml
+```
 type var = [`Var of string]
 
 let eval_var sub (`Var s as v : var) =
@@ -9775,7 +9775,7 @@ let fv_test = freevars1 test1
 
 The arithmetic expression sub-language:
 
-```ocaml
+```
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -9809,7 +9809,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 type 'a lexpr = ['a lambda | 'a expr]
 
 let eval_lexpr eval_rec subst : 'a lexpr -> 'a = function
@@ -9844,7 +9844,7 @@ We need **private types**, which for objects and polymorphic variants means *pri
 
 and then of private row types as abstracting the row variable:
 
-```ocaml
+```
 type 'row t = [`Int of int | `String of string | 'row]
 ```
 
@@ -9857,7 +9857,7 @@ But the actual formalization of private row types is more complex.
 
 **Verdict:** A clean solution, best place.
 
-```ocaml
+```
 type var = [`Var of string]
 
 let eval_var subst (`Var s as v : var) =
@@ -9913,7 +9913,7 @@ let fv_test = LambdaFV.freevars test1
 
 The arithmetic expression sub-language:
 
-```ocaml
+```
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -9952,7 +9952,7 @@ let fvs_test2 = Expr.freevars test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 type 'a lexpr = ['a lambda | 'a expr]
 
 module LEF(X : Operations with type exp = private [> 'a lexpr] as 'a) =
@@ -10029,7 +10029,7 @@ Alternatively, one can split the state monad into a reader monad with the parsed
 
 We experiment with a different approach to monad-plus: **lazy-monad-plus**:
 
-```ocaml
+```
 val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 ```
 
@@ -10037,7 +10037,7 @@ val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 
 First an operation from `MonadPlusOps`:
 
-```ocaml
+```
 let msum_map f l =
   List.fold_left  (* Folding left reverses the apparent order of composition *)
     (fun acc a -> mplus acc (lazy (f a))) mzero l  (* order from l is preserved *)
@@ -10045,7 +10045,7 @@ let msum_map f l =
 
 The implementation of the lazy-monad-plus using lazy lists:
 
-```ocaml
+```
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -10074,7 +10074,7 @@ end)
 
 File `Parsec.ml`:
 
-```ocaml
+```
 open Monad
 
 module type PARSE = sig
@@ -10117,7 +10117,7 @@ end
 
 #### Additional Parser Operations
 
-```ocaml
+```
 module type PARSE_OPS = sig
   include PARSE
   val many : 'a monad -> 'a list monad
@@ -10168,7 +10168,7 @@ end
 
 File `PluginBase.ml`:
 
-```ocaml
+```
 module ParseM =
   Parsec.ParseOps (Monad.LListM) (Parsec.ParseT (Monad.LListM))
 open ParseM
@@ -10188,7 +10188,7 @@ let get_language () : int monad =
 
 File `PluginRun.ml`:
 
-```ocaml
+```
 let load_plug fname : unit =
   let fname = Dynlink.adapt_filename fname in
   if Sys.file_exists fname then
@@ -10219,7 +10219,7 @@ let () =
 
 File `Plugin1.ml`:
 
-```ocaml
+```
 open PluginBase.ParseM
 let digit_of_char d = int_of_char d - int_of_char '0'
 
@@ -10243,7 +10243,7 @@ let () =
 
 File `Plugin2.ml`:
 
-```ocaml
+```
 open PluginBase.ParseM
 
 let multiplication lang =  (* Multiplication rule: S -> (S * S) *)

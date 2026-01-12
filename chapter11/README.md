@@ -53,7 +53,7 @@ For brevity, we place examples in a single file, but the component type and func
 
 Here is the implementation:
 
-```ocaml
+```
 type var = string  (* Variables constitute a sub-language of its own *)
                    (* We treat this sub-language slightly differently -- no need for a dedicated variant *)
 
@@ -91,7 +91,7 @@ let rec eval1 subst =  (* and the corresponding eval function *)
 
 Now we define the arithmetic sub-language:
 
-```ocaml
+```
 type 'a expr =  (* The sub-language of arithmetic expressions *)
   VarE of var | Num of int | Add of 'a * 'a | Mult of 'a * 'a
 
@@ -125,7 +125,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
 
 Finally, we merge the two sub-languages:
 
-```ocaml
+```
 type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
   Lambda of 'a lambda | Expr of 'a expr  (* can also be used as a sub-language for further extensions *)
 
@@ -165,7 +165,7 @@ Exceptions have always formed an extensible variant type in OCaml, whose pattern
 
 **Verdict:** Pleasant-looking, but the worst approach because of possible bugginess. Unless bug-proneness is not a concern, then the best approach.
 
-```ocaml
+```
 type expr = ..  (* This is how extensible variant types are defined *)
 
 type var_name = string
@@ -210,7 +210,7 @@ let fv_test = freevars1 test1
 
 Now we extend with arithmetic:
 
-```ocaml
+```
 type expr += Num of int | Add of expr * expr | Mult of expr * expr
 
 let map_expr f = function
@@ -240,7 +240,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 let eval_lexpr eval_rec subst e =
   eval_expr eval_rec subst (eval_lambda eval_rec subst e)
 
@@ -263,7 +263,7 @@ OCaml's **objects** are values, somewhat similar to records. Viewed from the out
 
 **Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned decides if an object can be used. Parametric polymorphism can be used to infer if an object has the required methods.
 
-```ocaml
+```
 let f x = x#m  (* Method invocation: object#method *)
 (* val f : < m : 'a; .. > -> 'a *)
 (* Type polymorphic in two ways: 'a is the method type, *)
@@ -278,7 +278,7 @@ Methods are computed when they are invoked, even if they do not take arguments. 
 
 Constructor arguments can often be used instead of constant fields:
 
-```ocaml
+```
 let square w = object
   method area = float_of_int (w * w)
   method width = w
@@ -289,7 +289,7 @@ Subtyping often needs to be explicit: we write `(object :> supertype)` or in mor
 
 Technically speaking, subtyping in OCaml always is explicit, and *open types*, containing `..`, use **row polymorphism** rather than subtyping.
 
-```ocaml
+```
 let a = object method m = 7  method x = "a" end  (* Toy example: object types *)
 let b = object method m = 42 method y = "b" end  (* share some but not all methods *)
 
@@ -315,7 +315,7 @@ We can try to solve the expression problem using objects directly. However, addi
 
 Here is an implementation using objects:
 
-```ocaml
+```
 type var_name = string
 
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
@@ -378,7 +378,7 @@ let e_test1 = test1#eval []
 
 Extending with arithmetic requires additional mixins:
 
-```ocaml
+```
 class virtual compute_mixin = object
   method compute : int option = None
 end
@@ -474,7 +474,7 @@ The **visitor pattern** is a design pattern that separates an algorithm from the
 
 **Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
 
-```ocaml
+```
 type 'visitor visitable = < accept : 'visitor -> unit >
 (* The variants need be visitable *)
 (* We store the computation as side effect because of the difficulty *)
@@ -598,7 +598,7 @@ Extending with arithmetic expressions follows a similar pattern, and the merged 
 
 **Verdict:** A flexible solution, better than the previous approaches but still not perfect.
 
-```ocaml
+```
 type var = [`Var of string]
 
 let eval_var sub (`Var s as v : var) =
@@ -639,7 +639,7 @@ let fv_test = freevars1 test1
 
 The arithmetic expression sub-language:
 
-```ocaml
+```
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -673,7 +673,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 type 'a lexpr = ['a lambda | 'a expr]
 
 let eval_lexpr eval_rec subst : 'a lexpr -> 'a = function
@@ -708,7 +708,7 @@ We need **private types**, which for objects and polymorphic variants means *pri
 
 and then of private row types as abstracting the row variable:
 
-```ocaml
+```
 type 'row t = [`Int of int | `String of string | 'row]
 ```
 
@@ -721,7 +721,7 @@ But the actual formalization of private row types is more complex.
 
 **Verdict:** A clean solution, best place.
 
-```ocaml
+```
 type var = [`Var of string]
 
 let eval_var subst (`Var s as v : var) =
@@ -777,7 +777,7 @@ let fv_test = LambdaFV.freevars test1
 
 The arithmetic expression sub-language:
 
-```ocaml
+```
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -816,7 +816,7 @@ let fvs_test2 = Expr.freevars test2
 
 Merging the sub-languages:
 
-```ocaml
+```
 type 'a lexpr = ['a lambda | 'a expr]
 
 module LEF(X : Operations with type exp = private [> 'a lexpr] as 'a) =
@@ -893,7 +893,7 @@ Alternatively, one can split the state monad into a reader monad with the parsed
 
 We experiment with a different approach to monad-plus: **lazy-monad-plus**:
 
-```ocaml
+```
 val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 ```
 
@@ -901,7 +901,7 @@ val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 
 First an operation from `MonadPlusOps`:
 
-```ocaml
+```
 let msum_map f l =
   List.fold_left  (* Folding left reverses the apparent order of composition *)
     (fun acc a -> mplus acc (lazy (f a))) mzero l  (* order from l is preserved *)
@@ -909,7 +909,7 @@ let msum_map f l =
 
 The implementation of the lazy-monad-plus using lazy lists:
 
-```ocaml
+```
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -938,7 +938,7 @@ end)
 
 File `Parsec.ml`:
 
-```ocaml
+```
 open Monad
 
 module type PARSE = sig
@@ -981,7 +981,7 @@ end
 
 #### Additional Parser Operations
 
-```ocaml
+```
 module type PARSE_OPS = sig
   include PARSE
   val many : 'a monad -> 'a list monad
@@ -1032,7 +1032,7 @@ end
 
 File `PluginBase.ml`:
 
-```ocaml
+```
 module ParseM =
   Parsec.ParseOps (Monad.LListM) (Parsec.ParseT (Monad.LListM))
 open ParseM
@@ -1052,7 +1052,7 @@ let get_language () : int monad =
 
 File `PluginRun.ml`:
 
-```ocaml
+```
 let load_plug fname : unit =
   let fname = Dynlink.adapt_filename fname in
   if Sys.file_exists fname then
@@ -1083,7 +1083,7 @@ let () =
 
 File `Plugin1.ml`:
 
-```ocaml
+```
 open PluginBase.ParseM
 let digit_of_char d = int_of_char d - int_of_char '0'
 
@@ -1107,7 +1107,7 @@ let () =
 
 File `Plugin2.ml`:
 
-```ocaml
+```
 open PluginBase.ParseM
 
 let multiplication lang =  (* Multiplication rule: S -> (S * S) *)

@@ -490,10 +490,17 @@ let intersect xs ys =Sets as **sorted** lists.  let rec aux acc = function
 < 0 then aux acc (xs', ys)      else aux acc (xs, ys') in  List.rev (aux 
 [] (xs, ys))
 
-let readlines file =  let input = openin file in  let rec read lines =The 
-Scanf library uses continuation passing.    try Scanf.fscanf input "%[\r\n]\n" 
-         (fun x -> read (x :: lines))    with Endoffile -> lines in  
-List.rev (read [])
+```
+let readlines file =
+  let input = open_in file in
+  let rec read lines =
+    (* The Scanf library uses continuation passing. *)
+    try Scanf.fscanf input "%[\r\n]\n"
+      (fun x -> read (x :: lines))
+    with End_of_file -> lines
+  in
+  List.rev (read [])
+```
 
 let indexed l =Index elements by their positions.  Array.oflist l |> 
 Array.mapi (fun i e->i,e)  |> Array.tolist

@@ -474,15 +474,15 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 * Any expression can be spread over a monad, e.g. for $\lambda$-terms:
 
   $$ \begin{matrix}
-  \llbracket N \rrbracket = & \operatorname{return}N & \text{(constant)}\\\\\\
-  \llbracket x \rrbracket = & \operatorname{return}x & \text{(variable)}\\\\\\
-  \llbracket \lambda x.a \rrbracket = & \operatorname{return} (\lambda x.
-  \llbracket a \rrbracket) & \text{(function)}\\\\\\
-  \llbracket \operatorname{let}x = a\operatorname{in}b \rrbracket = &
-  \operatorname{bind} \llbracket a \rrbracket  (\lambda x. \llbracket b
-  \rrbracket) & \text{(local definition)}\\\\\\
-  \llbracket a b \rrbracket = & \operatorname{bind} \llbracket a \rrbracket
-  (\lambda v_{a} .\operatorname{bind} \llbracket b \rrbracket  (\lambda
+  [\![ N ]\!] = & \operatorname{return}N & \text{(constant)}\\\\\\
+  [\![ x ]\!] = & \operatorname{return}x & \text{(variable)}\\\\\\
+  [\![ \lambda x.a ]\!] = & \operatorname{return} (\lambda x.
+  [\![ a ]\!]) & \text{(function)}\\\\\\
+  [\![ \operatorname{let}x = a\operatorname{in}b ]\!] = &
+  \operatorname{bind} [\![ a ]\!]  (\lambda x. [\![ b
+  ]\!]) & \text{(local definition)}\\\\\\
+  [\![ a b ]\!] = & \operatorname{bind} [\![ a ]\!]
+  (\lambda v_{a} .\operatorname{bind} [\![ b ]\!]  (\lambda
   v_{b} .v_{a} v_{b})) & \text{(application)} \end{matrix} $$
 * When an expression is spread over a monad, its computation can be monitored 
   or affected without modifying the expression.
@@ -1342,10 +1342,18 @@ Queue.pop jobs ()Perform suspended work.       with Queue.Empty ->
 failwith "access: result not available");      access m    | Link  -> 
 assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
 
-* module TTest (T : THREADOPS) = struct  open T  let rec loop s n = perform    
-  return (Printf.printf "-- %s(%d)\n%!" s n);    if n > 0 then loop s 
-  (n-1)We cannot use `whenM` because    else return ()the thread would be 
-  created regardless of condition.endmodule TT = TTest (Cooperative)
+* ```
+  module TTest (T : THREADOPS) = struct
+    open T
+    let rec loop s n = perform
+      return (Printf.printf "-- %s(%d)\n%!" s n);
+      (* We cannot use `whenM` because the thread would be
+         created regardless of condition. *)
+      if n > 0 then loop s (n-1)
+      else return ()
+  end
+  module TT = TTest (Cooperative)
+  ```
 * let test =  Cooperative.killthreads ();Clean-up after previous tests.  let 
   thread1 = TT.loop "A" 5 in  let thread2 = TT.loop "B" 4 in  
   Cooperative.access thread1;We ensure threads finish computing  

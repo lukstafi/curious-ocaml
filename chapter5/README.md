@@ -127,51 +127,51 @@ A statement that an expression has a type in an environment is called a *type ju
 
 $$\Gamma \vdash e : \tau$$
 
-We will derive the equations in one go using $\llbracket \cdot \rrbracket$, to be solved later. Besides equations we will need to manage introduced variables, using existential quantification.
+We will derive the equations in one go using $[\![ \cdot ]\!]$, to be solved later. Besides equations we will need to manage introduced variables, using existential quantification.
 
 For local definitions we require remembering what constraints should hold when the definition is used. Therefore we extend *type schemes* in the environment to: $\Gamma = \{x : \forall \beta_1 \ldots \beta_m [\exists \alpha_1 \ldots \alpha_n . D] . \tau_x ; \ldots\}$ where $D$ are equations -- keeping the variables $\alpha_1 \ldots \alpha_n$ introduced while deriving $D$ in front. A simpler form would be enough: $\Gamma = \{x : \forall \beta [\exists \alpha_1 \ldots \alpha_n . D] . \beta ; \ldots\}$
 
 The formal constraint generation rules are:
 
-$$\llbracket \Gamma \vdash x : \tau \rrbracket = \exists \overline{\beta'} \overline{\alpha'} . (D[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \wedge \tau_x[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \doteq \tau)$$
+$$[\![ \Gamma \vdash x : \tau ]\!] = \exists \overline{\beta'} \overline{\alpha'} . (D[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \wedge \tau_x[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \doteq \tau)$$
 
 where $\Gamma(x) = \forall \overline{\beta} [\exists \overline{\alpha} . D] . \tau_x$, $\overline{\beta'} \overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
 
-$$\llbracket \Gamma \vdash \mathbf{fun} \ x \texttt{->} e : \tau \rrbracket = \exists \alpha_1 \alpha_2 . (\llbracket \Gamma \{x : \alpha_1\} \vdash e : \alpha_2 \rrbracket \wedge \alpha_1 \rightarrow \alpha_2 \doteq \tau)$$
+$$[\![ \Gamma \vdash \mathbf{fun} \ x \texttt{->} e : \tau ]\!] = \exists \alpha_1 \alpha_2 . ([\![ \Gamma \{x : \alpha_1\} \vdash e : \alpha_2 ]\!] \wedge \alpha_1 \rightarrow \alpha_2 \doteq \tau)$$
 
 where $\alpha_1 \alpha_2 \# \text{FV}(\Gamma, \tau)$
 
-$$\llbracket \Gamma \vdash e_1 \ e_2 : \tau \rrbracket = \exists \alpha . (\llbracket \Gamma \vdash e_1 : \alpha \rightarrow \tau \rrbracket \wedge \llbracket \Gamma \vdash e_2 : \alpha \rrbracket), \alpha \# \text{FV}(\Gamma, \tau)$$
+$$[\![ \Gamma \vdash e_1 \ e_2 : \tau ]\!] = \exists \alpha . ([\![ \Gamma \vdash e_1 : \alpha \rightarrow \tau ]\!] \wedge [\![ \Gamma \vdash e_2 : \alpha ]\!]), \alpha \# \text{FV}(\Gamma, \tau)$$
 
-$$\llbracket \Gamma \vdash K \ e_1 \ldots e_n : \tau \rrbracket = \exists \overline{\alpha'} . (\bigwedge_i \llbracket \Gamma \vdash e_i : \tau_i[\overline{\alpha} := \overline{\alpha'}] \rrbracket \wedge \varepsilon(\overline{\alpha'}) \doteq \tau)$$
+$$[\![ \Gamma \vdash K \ e_1 \ldots e_n : \tau ]\!] = \exists \overline{\alpha'} . (\bigwedge_i [\![ \Gamma \vdash e_i : \tau_i[\overline{\alpha} := \overline{\alpha'}] ]\!] \wedge \varepsilon(\overline{\alpha'}) \doteq \tau)$$
 
 where $K : \forall \overline{\alpha} . \tau_1 \times \ldots \times \tau_n \rightarrow \varepsilon(\overline{\alpha})$, $\overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
 
 For let-expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{let} \ x = e_1 \ \mathbf{in} \ e_2 : \tau \rrbracket = (\exists \beta . C) \wedge \llbracket \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{let} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
 
-where $C = \llbracket \Gamma \vdash e_1 : \beta \rrbracket$
+where $C = [\![ \Gamma \vdash e_1 : \beta ]\!]$
 
 For recursive let-expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{letrec} \ x = e_1 \ \mathbf{in} \ e_2 : \tau \rrbracket = (\exists \beta . C) \wedge \llbracket \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{letrec} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
 
-where $C = \llbracket \Gamma \{x : \beta\} \vdash e_1 : \beta \rrbracket$
+where $C = [\![ \Gamma \{x : \beta\} \vdash e_1 : \beta ]\!]$
 
 For match expressions:
 
-$$\llbracket \Gamma \vdash \mathbf{match} \ e_v \ \mathbf{with} \ \overline{c} : \tau \rrbracket = \exists \alpha_v . \llbracket \Gamma \vdash e_v : \alpha_v \rrbracket \bigwedge_i \llbracket \Gamma \vdash p_i . e_i : \alpha_v \rightarrow \tau \rrbracket$$
+$$[\![ \Gamma \vdash \mathbf{match} \ e_v \ \mathbf{with} \ \overline{c} : \tau ]\!] = \exists \alpha_v . [\![ \Gamma \vdash e_v : \alpha_v ]\!] \bigwedge_i [\![ \Gamma \vdash p_i . e_i : \alpha_v \rightarrow \tau ]\!]$$
 
 where $\overline{c} = p_1 . e_1 | \ldots | p_n . e_n$, $\alpha_v \# \text{FV}(\Gamma, \tau)$
 
 For pattern clauses:
 
-$$\llbracket \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 \rrbracket = \llbracket \Sigma \vdash p \downarrow \tau_1 \rrbracket \wedge \exists \overline{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_2 \rrbracket$$
+$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \exists \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
 
-where $\exists \overline{\beta} \Gamma'$ is $\llbracket \Sigma \vdash p \uparrow \tau_1 \rrbracket$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
+where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
 
-The notation $\llbracket \Sigma \vdash p \downarrow \tau_1 \rrbracket$ derives constraints on the type of the matched value, while $\llbracket \Sigma \vdash p \uparrow \tau_1 \rrbracket$ derives the environment for pattern variables.
+The notation $[\![ \Sigma \vdash p \downarrow \tau_1 ]\!]$ derives constraints on the type of the matched value, while $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$ derives the environment for pattern variables.
 
 By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some length: $\alpha_1 \ldots \alpha_n$. By $\bigwedge_i \varphi_i$ we denote a conjunction of $\overline{\varphi_i}$: $\varphi_1 \wedge \ldots \wedge \varphi_n$.
 

@@ -13,7 +13,7 @@ $$ \begin{matrix}
   & \frac{\frac{\,}{{\texttt{x}} : a}
   \tiny{x}}{{\texttt{fun x -> x}} : [?] \rightarrow [?]}
   & \frac{\,}{{\texttt{x}} : a} \tiny{x} \text{ matches with }
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
+\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; e : b}
  \text{ since } e = {\texttt{x}}\\\\\\
   & \frac{\frac{\,}{{\texttt{x}} : a}
   \tiny{x}}{{\texttt{fun x -> x}} : a \rightarrow a} &

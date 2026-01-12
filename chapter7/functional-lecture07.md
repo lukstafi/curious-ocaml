@@ -429,15 +429,27 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   ```
 * Straightforward solution:
 
-  let pretty w d =Allowed width of line `w`.  let rec width = functionTotal 
-  length of subdocument.    | Text z -> String.length z    | Line -> 1 
-     | Cat (d1, d2) -> width d1 + width d2    | Group d -> width d in  
-  let rec format f r = functionRemaining space `r`.    | Text z -> z, r - 
-  String.length z    | Line when f -> " ", r-1If `not f` then line breaks. 
-     | Line -> "\n", w    | Cat (d1, d2) ->      let s1, r = format f 
-  r d1 in      let s2, r = format f r d2 in      s1  s2, `r`If following group 
-  fits, then without line breaks.| Group d -> format (f || width d <= 
-  r) r d in  fst (format false w d)
+```
+let pretty w d =  (* Allowed width of line `w`. *)
+  let rec width = function  (* Total length of subdocument. *)
+    | Text z -> String.length z
+    | Line -> 1
+    | Cat (d1, d2) -> width d1 + width d2
+    | Group d -> width d
+  in
+  let rec format f r = function  (* Remaining space `r`. *)
+    | Text z -> z, r - String.length z
+    | Line when f -> " ", r-1  (* If `not f` then line breaks. *)
+    | Line -> "\n", w
+    | Cat (d1, d2) ->
+      let s1, r = format f r d1 in
+      let s2, r = format f r d2 in
+      s1 ^ s2, r
+    (* If following group fits, then without line breaks. *)
+    | Group d -> format (f || width d <= r) r d
+  in
+  fst (format false w d)
+```
 * Working with a stream of nodes.
 
   type ('a, 'b) doce =Annotated nodes, special for group beginning.  TE of 'a 
@@ -502,17 +514,21 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let grends w = grends w []
 * Finally we produce the resulting stream of strings.
 
-  let rec format w (inline, endlpos as st) =State: the stack of  Await 
-  (function‘‘group fits in line''; position where end of line would be.  | TE 
-  (, z) -> Yield (z, format w st)  | LE p when List.hd inline ->    
-  Yield (" ", format w st)After return, line has `w` free space.  | LE 
-  p -> Yield ("\n", format w (inline, p+w))  | GBeg Toofar ->Group 
-  with end too far is not inline.    format w (false::inline, endlpos)  | GBeg 
-  (Pos p) ->Group is inline if it ends soon enough.    format w 
-  ((p<=endlpos)::inline, endlpos)  | GEnd  -> format w (List.tl 
-  inline, endlpos))
+```
+(* State: the stack of "group fits in line"; position where end of line would be. *)
+let rec format w (inline, endlpos as st) = Await (function
+  | TE (_, z) -> Yield (z, format w st)
+  | LE p when List.hd inline ->
+    Yield (" ", format w st)  (* After return, line has `w` free space. *)
+  | LE p -> Yield ("\n", format w (inline, p+w))
+  | GBeg Toofar ->  (* Group with end too far is not inline. *)
+    format w (false::inline, endlpos)
+  | GBeg (Pos p) ->  (* Group is inline if it ends soon enough. *)
+    format w ((p<=endlpos)::inline, endlpos)
+  | GEnd _ -> format w (List.tl inline, endlpos))
 
-  let format w = format w ([false], w)Break lines outside of groups.
+let format w = format w ([false], w)  (* Break lines outside of groups. *)
+```
 * Put the pipes together:
 
   let prettyprint w doc =<table style="display: inline-table; 

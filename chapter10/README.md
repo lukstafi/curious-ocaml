@@ -14,7 +14,7 @@ Often we need to keep track of a position within a data structure: easily access
 
 Consider binary trees:
 
-```ocaml
+```
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -29,7 +29,7 @@ $$
 
 This derivative gives us the context type:
 
-```ocaml
+```
 type btree_dir = LeftBranch | RightBranch
 type btree_deriv =
   | Here of btree * btree
@@ -57,7 +57,7 @@ This tells us that the context can be stored as a list with the root as the last
 
 Contexts of subtrees are more useful than contexts of single elements:
 
-```ocaml
+```
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
 type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
@@ -74,7 +74,7 @@ We can imagine a location as a rooted tree which is hanging pinned at one of its
 
 Navigation functions allow us to traverse the structure:
 
-```ocaml
+```
 let ascend loc =
   match loc.ctx with
   | [] -> loc  (* Or raise exception *)
@@ -100,7 +100,7 @@ let desc_right loc =
 
 Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches, representing a document structure:
 
-```ocaml
+```
 type doc = Text of string | Line | Group of doc list
 type context = (doc list * doc list) list
 type location = {sub: doc; ctx: context}
@@ -108,7 +108,7 @@ type location = {sub: doc; ctx: context}
 
 The navigation functions for this more complex structure:
 
-```ocaml
+```
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
@@ -160,7 +160,7 @@ $$
 
 First, the groundwork:
 
-```ocaml
+```
 type op = Add | Mul
 type expr = Val of int | Var of string | App of expr * op * expr
 type expr_dir = Left_arg | Right_arg
@@ -170,7 +170,7 @@ type location = {sub: expr; ctx: context}
 
 To locate the subexpression described by predicate `p`:
 
-```ocaml
+```
 let rec find_aux p e =
   if p e then Some (e, [])
   else match e with
@@ -193,7 +193,7 @@ let find p e =
 
 Now we can implement the pull-out transformation:
 
-```ocaml
+```
 let rec pull_out loc =
   match loc.ctx with
   | [] -> loc  (* Done *)
@@ -217,7 +217,7 @@ Since operators are commutative, we ignore the direction for the second piece of
 
 Testing the implementation:
 
-```ocaml
+```
 let (+) a b = App (a, Add, b)
 let ( * ) a b = App (a, Mul, b)
 let (!) a = Val a
@@ -246,7 +246,7 @@ The functional description of computation is within a monad. We can change monad
 
 The monadic value `'a changeable` will be the *dependency graph* of the computation of the represented value `'a`. Consider the computation:
 
-```ocaml
+```
 let u = v / w + x * y + z
 ```
 
@@ -254,7 +254,7 @@ The dependency graph shows how the result depends on the inputs. When we modify 
 
 We use the order of computation (represented as gray numbers in the dependency visualization) for the order of updates. Similarly to `parallel` in the concurrency monad, we provide `bind2`, `bind3`, etc., and corresponding `lift2`, `lift3`, etc., to introduce nodes with several children:
 
-```ocaml
+```
 let n0 = bind2 v w (fun v w -> return (v / w))
 let n1 = bind2 x y (fun x y -> return (x * y))
 let n2 = bind2 n0 n1 (fun n0 n1 -> return (n0 + n1))
@@ -263,7 +263,7 @@ let u = bind2 n2 z (fun n2 z -> return (n2 + z))
 
 Do-notation is not necessary to have readable expressions:
 
-```ocaml
+```
 let (/) = lift2 (/)
 let ( * ) = lift2 ( * )
 let (+) = lift2 (+)
@@ -272,7 +272,7 @@ let u = v / w + x * y + z
 
 As in other monads, we can decrease overhead by using bigger chunks:
 
-```ocaml
+```
 let n0 = blift2 v w (fun v w -> v / w)
 let n2 = blift3 n0 x y (fun n0 x y -> n0 + x * y)
 let u = blift2 n2 z (fun n2 z -> n2 + z)
@@ -282,7 +282,7 @@ let u = blift2 n2 z (fun n2 z -> n2 + z)
 
 We have a problem if we recompute all nodes simply by order of computation:
 
-```ocaml
+```
 let b = x >>= fun x -> return (x = 0)
 let n0 = x >>= fun x -> return (100 / x)
 let y = bind2 b n0 (fun b n0 -> if b then return 0 else n0)
@@ -298,7 +298,7 @@ We need memoization to re-attach the same nodes in case they do not need updatin
 
 The `Froc_sa` (for *self-adjusting*) module exports the monadic type `t` for changeable computation, and a handle type `u` for updating the computation:
 
-```ocaml
+```
 open Froc_sa
 
 type tree =  (* Binary tree with nodes storing their screen location *)
@@ -308,7 +308,7 @@ type tree =  (* Binary tree with nodes storing their screen location *)
 
 Displaying the tree is a changeable effect. Whenever the tree changes, displaying will be updated. Only new nodes will be drawn after an update:
 
-```ocaml
+```
 let rec display px py t =
   match t with
   | Leaf (x, y) ->
@@ -323,7 +323,7 @@ let rec display px py t =
 
 Growing the tree:
 
-```ocaml
+```
 let grow_at (x, depth, upd) =
   let x_l = x - f2i (width *. (2.0 ** (~-. (i2f (depth + 1))))) in
   let l, upd_l = changeable (Leaf (x_l, (depth + 1) * 20)) in
@@ -336,7 +336,7 @@ let grow_at (x, depth, upd) =
 
 The main loop:
 
-```ocaml
+```
 let rec loop t subts steps =
   if steps <= 0 then ()
   else loop t (concat_map grow_at subts) (steps - 1)
@@ -370,7 +370,7 @@ FRP is *synchronous*: it is possible to set up for events to happen at the same 
 
 Ideally we would define:
 
-```ocaml
+```
 type time = float
 type 'a behavior = time -> 'a  (* Arbitrary function *)
 type 'a event = ('a, time) stream  (* Increasing time instants *)
@@ -378,7 +378,7 @@ type 'a event = ('a, time) stream  (* Increasing time instants *)
 
 Forcing a lazy list (stream) of events would wait until an event arrives. But behaviors need to react to external events:
 
-```ocaml
+```
 type user_action =
   | Key of char * bool
   | Button of int * int * bool * bool
@@ -390,14 +390,14 @@ type 'a behavior = user_action event -> time -> 'a
 
 Scanning through an event list since the beginning of time until current time, each time we evaluate a behavior, is very wasteful with respect to time and space. Producing a stream of behaviors for the stream of time allows us to forget about events already in the past:
 
-```ocaml
+```
 type 'a behavior =
   user_action event -> time stream -> 'a stream
 ```
 
 The next optimization is to pair user actions with sampling times:
 
-```ocaml
+```
 type 'a behavior =
   (user_action option * time) stream -> 'a stream
 ```
@@ -408,7 +408,7 @@ Turning behaviors and events from functions of time into input-output streams is
 
 Now we can in turn define events in terms of behaviors:
 
-```ocaml
+```
 type 'a event = 'a option behavior
 ```
 
@@ -420,7 +420,7 @@ We have gotten very close to *stream processing* as discussed in Chapter 7. Reca
 
 Behaviors are monadic (but see the next point) -- in the original specification:
 
-```ocaml
+```
 type 'a behavior = time -> 'a
 
 val return : 'a -> 'a behavior
@@ -432,7 +432,7 @@ let bind a f = fun t -> f (a t) t
 
 As we have seen with changeables, we mostly use lifting. In the Haskell world we would call behaviors *applicative*. To build our own lifters in any monad:
 
-```ocaml
+```
 val ap : ('a -> 'b) monad -> 'a monad -> 'b monad
 let ap fm am = perform
   f <-- fm;
@@ -446,13 +446,13 @@ Note that for changeables, the naive implementation above will introduce unneces
 
 Going from events to behaviors, `until` and `switch` have type:
 
-```ocaml
+```
 'a behavior -> 'a behavior event -> 'a behavior
 ```
 
 while `step` has type:
 
-```ocaml
+```
 'a -> 'a event -> 'a behavior
 ```
 
@@ -466,7 +466,7 @@ We will use "*signal*" to refer to a behavior or an event. Note that often "sign
 
 The stream processing infrastructure should be familiar from earlier chapters:
 
-```ocaml
+```
 type 'a stream = 'a stream_ Lazy.t
 and 'a stream_ = Cons of 'a * 'a stream
 
@@ -497,7 +497,7 @@ let rec lfold acc f (l : 'a stream) = lazy (
 
 Since a behavior is a function of user actions and sample times, we need to ensure that only one stream is created for the actual input stream:
 
-```ocaml
+```
 type ('a, 'b) memo1 =
   {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
 
@@ -521,7 +521,7 @@ type 'a behavior =
 
 The monadic/applicative functions to build complex behaviors. If you do not provide type annotations in `.ml` files, work together with an `.mli` file to catch problems early. You can later add more type annotations as needed to find out what is wrong.
 
-```ocaml
+```
 let returnB x : 'a behavior =
   let rec xs = lazy (Cons (x, xs)) in
   memo1 (fun _ -> xs)
@@ -547,7 +547,7 @@ let (->>) e v = e =>> fun _ -> v
 
 Creating events out of behaviors:
 
-```ocaml
+```
 let whileB (fb : bool behavior) : unit event =
   memo1 (fun uts ->
     lmap (function true -> Some () | false -> None)
@@ -570,7 +570,7 @@ let snapshot fe fb : ('a * 'b) event =
 
 Creating behaviors out of events:
 
-```ocaml
+```
 let step acc fe =  (* The step function: value of last event *)
   memo1 (fun uts -> lfold acc
     (fun acc -> function None -> acc | Some v -> v)
@@ -585,7 +585,7 @@ let step_accum acc ff =  (* Transform a value by a series of functions *)
 
 To numerically integrate a behavior, we need to access the sampling times:
 
-```ocaml
+```
 let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
@@ -601,7 +601,7 @@ In our *paddle game* example, we paradoxically express position and velocity in 
 
 User actions:
 
-```ocaml
+```
 let lbp : unit event =
   memo1 (fun uts -> lmap
     (function Some(Button(_,_)), _ -> Some() | _ -> None)
@@ -627,7 +627,7 @@ let height : int behavior = step 512 (liftE snd screen)
 
 A *scene graph* is a data structure that represents a "world" which can be drawn on screen:
 
-```ocaml
+```
 type scene =
   | Rect of int * int * int * int  (* position, width, height *)
   | Circle of int * int * int  (* position, radius *)
@@ -638,7 +638,7 @@ type scene =
 
 Drawing a scene explains what we mean above:
 
-```ocaml
+```
 let draw sc =
   let f2i = int_of_float in
   let open Graphics in
@@ -660,7 +660,7 @@ An animation is a scene behavior. To animate it we need to create the input stre
 
 General-purpose behavior operators:
 
-```ocaml
+```
 let (+*) = liftB2 (+)
 let (-*) = liftB2 (-)
 let ( *** ) = liftB2 ( * )
@@ -673,7 +673,7 @@ let (>*) = liftB2 (>)
 
 The walls are drawn on left, top and right borders of the window:
 
-```ocaml
+```
 let walls =
   liftB2 (fun w h -> Color (Graphics.blue, Group
     [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
@@ -683,7 +683,7 @@ let walls =
 
 The paddle is tied to the mouse at the bottom border of the window:
 
-```ocaml
+```
 let paddle = liftB (fun mx ->
   Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
 ```
@@ -722,7 +722,7 @@ Rather than following our incremental computing example (a scene with changeable
 
 First we introduce time:
 
-```ocaml
+```
 open Froc
 let clock, tick = make_event ()
 let time = hold (Unix.gettimeofday ()) clock
@@ -730,7 +730,7 @@ let time = hold (Unix.gettimeofday ()) clock
 
 Next we define integration:
 
-```ocaml
+```
 let integral fb =
   let aux (sum, t0) t1 =
     sum +. (t1 -. t0) *. sample fb, t1 in
@@ -739,14 +739,14 @@ let integral fb =
 
 For convenience, the integral remembers the current upper limit of integration. It will be useful to get the integer part:
 
-```ocaml
+```
 let integ_res fb =
   lift (fun (v, _) -> int_of_float v) (integral fb)
 ```
 
 We can also define integration in pure style:
 
-```ocaml
+```
 let pair fa fb = lift2 (fun x y -> x, y) fa fb
 
 let integral_nice fb =
@@ -774,7 +774,7 @@ A flow is a kind of a *lightweight thread* as in the end of Chapter 8; we will m
 
 We build a module `Flow` with monadic type `('a, 'b) flow` "storing" `'b` and emitting `'a`:
 
-```ocaml
+```
 type ('a, 'b) flow
 type cancellable  (* A handle to cancel a flow (stop further computation) *)
 val noop_flow : ('a, unit) flow  (* Same as return () *)
@@ -797,7 +797,7 @@ val is_cancelled : cancellable -> bool
 
 We follow our (or *Lwt*) implementation of lightweight threads, adapting it to the need of cancelling flows:
 
-```ocaml
+```
 module F = Froc
 type 'a result =
   | Return of 'a  (* Notifications to cancel when cancelled *)
@@ -812,13 +812,13 @@ Functions `find`, `wakeup`, `connect` are as in Chapter 8 (but connecting to can
 
 Our monad is actually a reader monad over the result state. The reader supplies the `emit` function:
 
-```ocaml
+```
 type ('a, 'b) flow = ('a -> unit) -> 'b state
 ```
 
 The `return` and `bind` functions are as in our lightweight threads, but we need to handle cancelled flows: for `m = bind a b`, if `a` is cancelled then `m` is cancelled, and if `m` is cancelled then we do not wake up `b`:
 
-```ocaml
+```
 let waiter x =
   if not (is_cancelled m)
   then connect m (b x emit) in
@@ -827,7 +827,7 @@ let waiter x =
 
 `await` is implemented like `next`, but it wakes up a flow:
 
-```ocaml
+```
 let await t = fun emit ->
   let c = ref F.no_cancel in
   let m = {state = Sleep ([], [c])} in
@@ -846,7 +846,7 @@ let await t = fun emit ->
 
 The scene is a list of shapes, the first shape is open:
 
-```ocaml
+```
 type scene = (int * int) list list
 
 let draw sc =
@@ -862,7 +862,7 @@ let draw sc =
 
 We build a flow and turn it into a behavior to animate:
 
-```ocaml
+```
 let painter =
   let cld = ref [] in  (* Global state of painter *)
   repeat (perform
@@ -884,7 +884,7 @@ Global state and thread-local state can be used with lightweight threads, but pa
 
 Side effects hidden in `return` and `emit` arguments are not inside the monad. For example, if in the "first line" of a loop effects are executed only at the start of the loop -- but if after bind ("below first line" of a loop), at each step of the loop:
 
-```ocaml
+```
 let f =
   repeat (perform
       emit (Printf.printf "[0]\n%!"; '0');
@@ -925,7 +925,7 @@ We demonstrate two libraries: *LablTk* based on optional labelled arguments (dis
 
 We represent the mechanics of the calculator directly as a flow:
 
-```ocaml
+```
 let digits, digit = F.make_event ()
 let ops, op = F.make_event ()
 let dots, dot = F.make_event ()
@@ -955,7 +955,7 @@ Widget toolkit *Tk* is known from the *Tcl* language.
 
 Layout of the calculator -- common across GUIs:
 
-```ocaml
+```
 let layout = [|
   [|"7", `Di 7.; "8", `Di 8.; "9", `Di 9.; "+", `O (+.)|];
   [|"4", `Di 4.; "5", `Di 5.; "6", `Di 6.; "-", `O (-.)|];
@@ -971,7 +971,7 @@ Key concepts:
 - *Frames* in *Tk* group widgets
 - The parent is sent as last argument, after optional labelled arguments
 
-```ocaml
+```
 let top = Tk.openTk ()
 
 let btn_frame =
@@ -1000,7 +1000,7 @@ GUI toolkits have layout algorithms, so we only need to tell which widgets hang 
 - The `grid` packing flexibility: `~columnspan` and `~rowspan`
 - `configure` functions accept the same arguments as `create` but change existing widgets
 
-```ocaml
+```
 let () =
   Wm.title_set top "Calculator";
   Tk.pack [result] ~side:`Top ~fill:`X;
@@ -1038,7 +1038,7 @@ The `coerce` method casts the type of the object (in *Tk* there is `coe` functio
 
 Setup:
 
-```ocaml
+```
 let _ = GtkMain.Main.init ()
 let window =
   GWindow.window ~width:200 ~height:200 ~title:"Calculator" ()
@@ -1051,7 +1051,7 @@ let btn_frame =
 
 Button actions:
 
-```ocaml
+```
 let buttons =
   Array.map (Array.map (function
     | label, `Dot ->
@@ -1070,7 +1070,7 @@ let buttons =
 
 Button layout, result notification, start application:
 
-```ocaml
+```
 let delete_event _ = GMain.Main.quit (); false
 
 let () =
@@ -1114,7 +1114,7 @@ let () =
 
 **Exercise 10:** The Flow module has reader monad functions that have not been discussed in this chapter:
 
-```ocaml
+```
 let local f m = fun emit -> m (fun x -> emit (f x))
 let local_opt f m = fun emit ->
   m (fun x -> match f x with None -> () | Some y -> emit y)

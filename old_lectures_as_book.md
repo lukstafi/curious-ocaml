@@ -56,13 +56,12 @@ Text in parentheses is comments. Letters are variables: stand for anything.
 | $\top$ | $\frac{}{\top}$ | doesn't have
 | $\bot$ | doesn't have |  $\frac{\bot}{a}$ (i.e. anything)
 | $\wedge$ | $\frac{a \; b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) $\frac{a \wedge b}{b}$ (take second)
-| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{{a \vee b} \; {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }a) \; {{{\frac{\,}{b} \tiny{y}} \atop {\text{\textbar}}} \atop {c}} (\text{consider }b)}{c}$ using $x, y$
-| $\rightarrow$ | $\frac{{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}}{a \rightarrow b}$ using $x$ | $\frac{{a \rightarrow b} \; a}{b}$
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; c} \quad \genfrac{}{}{0pt}{}{[b]^y}{\vdots \; c}}{c}$ using $x, y$
+| $\rightarrow$ | $\frac{\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$
 
 Notations
 
-$$ {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {b}} \text{, \ \ or \ \ }
-   {{{\frac{\,}{a} \tiny{x}} \atop {\text{\textbar}}} \atop {c}} $$
+$$ \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b} \text{, \ \ or \ \ } \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; c} $$
 
 match any subtree that derives $b$ (or $c$) and can use $a$ (by assumption 
 $\frac{\,}{a} \tiny{x}$) although otherwise $a$ might not be warranted. 
@@ -100,10 +99,7 @@ an umbrella. Therefore, won't need an umbrella.We need one more kind of rules to
 (it is somewhat similar to reasoning by cases). Example rule for induction on 
 natural numbers:
 
-$$ \frac{\begin{matrix}
-     p (0) &
-{{{\frac{\,}{p(x)} \tiny{x}} \atop {\text{\textbar}}} \atop {p(x+1)}}
-   \end{matrix}}{p (n)} \text{ by induction, using } x $$
+$$ \frac{p(0) \quad \genfrac{}{}{0pt}{}{[p(x)]^x}{\vdots \; p(x+1)}}{p(n)} \text{ by induction, using } x $$
 
 So we get any $p$ for any natural number $n$, provided we can get it for $0$, 
 and using it for $x$ we can derive it for the successor $x + 1$, where $x$ is 
@@ -151,20 +147,12 @@ called `fix`) cannot appear alone in OCaml! It must be part of a definition.
 **Definitions for expressions** are introduced by rules a bit more complex 
 than these:
 
-$$ \frac{\begin{matrix}
-     e_{1} : a &
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{matrix}}{{\texttt{let}} \; x \; {\texttt{=}} \;
-   e_{1} \; {\texttt{in}} \; e_{2} : b} $$
+$$ \frac{e_1 : a \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b} $$
 
 (note that this rule is the same as introducing and eliminating 
 $\rightarrow$), and:
 
-$$ \frac{\begin{matrix}
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_1 : a}} &
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e_2 : b}}
-   \end{matrix}}{{\texttt{let rec}} \; x \;
-   {\texttt{=}} e_{1} \; {\texttt{in}} \; e_{2} \: b} $$
+$$ \frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_1 : a} \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b} $$
 
 We will cover what is missing in above rules when we will talk 
 about **polymorphism.*** Type definitions we have seen above are *global*: they need to be at the 
@@ -271,7 +259,7 @@ $$ \begin{matrix}
   & \frac{\frac{\,}{{\texttt{x}} : a}
   \tiny{x}}{{\texttt{fun x -> x}} : [?] \rightarrow [?]}
   & \frac{\,}{{\texttt{x}} : a} \tiny{x} \text{ matches with }
-{{{\frac{\,}{x : a} \tiny{x}} \atop {\text{\textbar}}} \atop {e : b}}
+\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; e : b}
  \text{ since } e = {\texttt{x}}\\\\\\
   & \frac{\frac{\,}{{\texttt{x}} : a}
   \tiny{x}}{{\texttt{fun x -> x}} : a \rightarrow a} &
@@ -2284,8 +2272,8 @@ solves equations.
  _{1} \ldots \alpha_{n} . \tau_{x} ; \ldots \rbrace$, expression $e$ and 
   type $\tau$ we write
 
-  \\[ \Gamma \vdash e : \tau \\]
-* We will derive the equations in one go using $\llbracket \cdot \rrbracket$, 
+  $$\Gamma \vdash e : \tau$$
+* We will derive the equations in one go using $[\![ \cdot ]\!]$, 
   to be solved later. Besides equations we will need to manage introduced 
   variables, using existential quantification.
 * For local definitions we require to remember what constraints should hold 
@@ -2300,7 +2288,7 @@ solves equations.
 
 
 $$ \begin{matrix}
-  \llbracket \Gamma \vdash x : \tau \rrbracket & = & \exists \overline{\beta'}
+  [\![ \Gamma \vdash x : \tau ]\!] & = & \exists \overline{\beta'}
   \bar{\alpha}' . (D [\bar{\beta} \bar{\alpha} := \overline{\beta'}
   \bar{\alpha}'] \wedge \tau_{x} [\bar{\beta} \bar{\alpha} :=
   \overline{\beta'} \bar{\alpha}'] \dot{=} \tau)\\\\\\
@@ -2308,64 +2296,64 @@ $$ \begin{matrix}
   .D] . \tau_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
   (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
-  {\texttt{->}} e : \tau \rrbracket & = & \exists 
+  [\![ \Gamma \vdash \boldsymbol{\operatorname{fun}} x
+  {\texttt{->}} e : \tau ]\!] & = & \exists 
 \alpha
- _{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
-  \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha
+ _{1} \alpha_{2} . ([\![ \Gamma \lbrace x : \alpha_{1} \rbrace
+  \vdash e : \alpha_{2} ]\!] \wedge \alpha_{1} \rightarrow \alpha
  _{2} \dot{=} \tau),\\\\\\
   &  & \text{where } \alpha_{1} \alpha_{2} \#\operatorname{FV} (\Gamma,
   \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e_{1} e_{2} : \tau \rrbracket & = & \exists
-  \alpha . (\llbracket \Gamma \vdash e_{1} : \alpha \rightarrow \tau
-  \rrbracket \wedge \llbracket \Gamma \vdash e_{2} : \alpha \rrbracket),
+  [\![ \Gamma \vdash e_{1} e_{2} : \tau ]\!] & = & \exists
+  \alpha . ([\![ \Gamma \vdash e_{1} : \alpha \rightarrow \tau
+  ]\!] \wedge [\![ \Gamma \vdash e_{2} : \alpha ]\!]),
   \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash K e_{1} \ldots e_{n} : \tau \rrbracket & = &
-  \exists \bar{\alpha}' . (\wedge_{i} \llbracket \Gamma \vdash e_{i} : \tau
- _{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
+  [\![ \Gamma \vdash K e_{1} \ldots e_{n} : \tau ]\!] & = &
+  \exists \bar{\alpha}' . (\wedge_{i} [\![ \Gamma \vdash e_{i} : \tau
+ _{i} [\bar{\alpha} := \bar{\alpha}'] ]\!] \wedge \varepsilon
   (\bar{\alpha}') \dot{=} \tau),\\\\\\
   &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau_{1} \times \ldots
   \times \tau_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
-  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e_{2} : \tau \rrbracket\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & (\exists \beta .C) \wedge
+  [\![ \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e_{2} : \tau ]\!]\\\\\\
   e = \boldsymbol{\operatorname{let}} x = e_{1}
   \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
-  \llbracket \Gamma \vdash e_{1} : \beta \rrbracket\\\\\\
+  [\![ \Gamma \vdash e_{1} : \beta ]\!]\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
-  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e_{2} : \tau \rrbracket\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & (\exists \beta .C) \wedge
+  [\![ \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e_{2} : \tau ]\!]\\\\\\
   e = \boldsymbol{\operatorname{letrec}} x = e_{1}
   \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
-  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
-  \rrbracket\\\\\\
+  [\![ \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
+  ]\!]\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha_{v} .
-  \llbracket \Gamma \vdash e_{v} : \alpha_{v} \rrbracket \wedge_{i}
-  \llbracket \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
-  \rrbracket,\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & \exists \alpha_{v} .
+  [\![ \Gamma \vdash e_{v} : \alpha_{v} ]\!] \wedge_{i}
+  [\![ \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
+  ]\!],\\\\\\
   e = \boldsymbol{\operatorname{match}} e_{v}
   \boldsymbol{\operatorname{with}} \bar{c} &  & \alpha_{v}
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   \bar{c} = p_{1} .e_{1} | \ldots |p_{n} .e_{n} &  &  \\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
-  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket
-  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_{2}
-  \rrbracket\\\\\\
-  &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } \llbracket
-  \Sigma \vdash p \uparrow \tau_{1} \rrbracket, \bar{\beta}
+  [\![ \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
+  ]\!] & = & [\![ \Sigma \vdash p \downarrow \tau_{1} ]\!]
+  \wedge \exists \bar{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_{2}
+  ]\!]\\\\\\
+  &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } [\![
+  \Sigma \vdash p \uparrow \tau_{1} ]\!], \bar{\beta}
   \#\operatorname{FV} (\Gamma, \tau_{2})\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket &  &
+  [\![ \Sigma \vdash p \downarrow \tau_{1} ]\!] &  &
   \text{derives constraints on type of matched value}\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \uparrow \tau_{1} \rrbracket &  & \text{derives
+  [\![ \Sigma \vdash p \uparrow \tau_{1} ]\!] &  & \text{derives
   environment for pattern variables}
 \end{matrix} $$
 
@@ -3407,10 +3395,17 @@ let intersect xs ys =Sets as **sorted** lists.  let rec aux acc = function
 < 0 then aux acc (xs', ys)      else aux acc (xs, ys') in  List.rev (aux 
 [] (xs, ys))
 
-let readlines file =  let input = openin file in  let rec read lines =The 
-Scanf library uses continuation passing.    try Scanf.fscanf input "%[\r\n]\n" 
-         (fun x -> read (x :: lines))    with Endoffile -> lines in  
-List.rev (read [])
+```
+let readlines file =
+  let input = open_in file in
+  let rec read lines =
+    (* The Scanf library uses continuation passing. *)
+    try Scanf.fscanf input "%[\r\n]\n"
+      (fun x -> read (x :: lines))
+    with End_of_file -> lines
+  in
+  List.rev (read [])
+```
 
 let indexed l =Index elements by their positions.  Array.oflist l |> 
 Array.mapi (fun i e->i,e)  |> Array.tolist
@@ -3861,10 +3856,8 @@ findboard (initstate honey cellstoeat)
   1. Write a more efficient variant of `list_diff` that computes the 
      difference of sets represented as sorted lists.
   1. `is_unique` in the provided code takes quadratic time – optimize it.
-* Write functions `compose` and `perform` that take a list of functions and 
-  return their composition, i.e. a function `compose [f1; …; fn] = x 
-  ↦ f1 (… (fn x)…)` and `perform [f1; …; fn] = x 
-  ↦ fn (… (f1 x)…)`.
+* Write functions `compose` and `perform` that take a list of functions and
+  return their composition, i.e. a function `compose [f1; ...; fn] = x -> f1 (... (fn x)...)` and `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`.
 * Write a solver for the *Tents Puzzle* 
   [http://www.mathsisfun.com/games/tents-puzzle.html](http://www.mathsisfun.com/games/tents-puzzle.html).
 * \* **Robot Squad**. We are given a map of terrain with empty spaces and 
@@ -4309,15 +4302,27 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   ```
 * Straightforward solution:
 
-  let pretty w d =Allowed width of line `w`.  let rec width = functionTotal 
-  length of subdocument.    | Text z -> String.length z    | Line -> 1 
-     | Cat (d1, d2) -> width d1 + width d2    | Group d -> width d in  
-  let rec format f r = functionRemaining space `r`.    | Text z -> z, r - 
-  String.length z    | Line when f -> " ", r-1If `not f` then line breaks. 
-     | Line -> "\n", w    | Cat (d1, d2) ->      let s1, r = format f 
-  r d1 in      let s2, r = format f r d2 in      s1  s2, `r`If following group 
-  fits, then without line breaks.| Group d -> format (f || width d <= 
-  r) r d in  fst (format false w d)
+```
+let pretty w d =  (* Allowed width of line `w`. *)
+  let rec width = function  (* Total length of subdocument. *)
+    | Text z -> String.length z
+    | Line -> 1
+    | Cat (d1, d2) -> width d1 + width d2
+    | Group d -> width d
+  in
+  let rec format f r = function  (* Remaining space `r`. *)
+    | Text z -> z, r - String.length z
+    | Line when f -> " ", r-1  (* If `not f` then line breaks. *)
+    | Line -> "\n", w
+    | Cat (d1, d2) ->
+      let s1, r = format f r d1 in
+      let s2, r = format f r d2 in
+      s1 ^ s2, r
+    (* If following group fits, then without line breaks. *)
+    | Group d -> format (f || width d <= r) r d
+  in
+  fst (format false w d)
+```
 * Working with a stream of nodes.
 
   type ('a, 'b) doce =Annotated nodes, special for group beginning.  TE of 'a 
@@ -4382,17 +4387,21 @@ Call-by-needIf the function argument is evaluated, that value is stored for
   let grends w = grends w []
 * Finally we produce the resulting stream of strings.
 
-  let rec format w (inline, endlpos as st) =State: the stack of  Await 
-  (function‘‘group fits in line''; position where end of line would be.  | TE 
-  (, z) -> Yield (z, format w st)  | LE p when List.hd inline ->    
-  Yield (" ", format w st)After return, line has `w` free space.  | LE 
-  p -> Yield ("\n", format w (inline, p+w))  | GBeg Toofar ->Group 
-  with end too far is not inline.    format w (false::inline, endlpos)  | GBeg 
-  (Pos p) ->Group is inline if it ends soon enough.    format w 
-  ((p<=endlpos)::inline, endlpos)  | GEnd  -> format w (List.tl 
-  inline, endlpos))
+```
+(* State: the stack of "group fits in line"; position where end of line would be. *)
+let rec format w (inline, endlpos as st) = Await (function
+  | TE (_, z) -> Yield (z, format w st)
+  | LE p when List.hd inline ->
+    Yield (" ", format w st)  (* After return, line has `w` free space. *)
+  | LE p -> Yield ("\n", format w (inline, p+w))
+  | GBeg Toofar ->  (* Group with end too far is not inline. *)
+    format w (false::inline, endlpos)
+  | GBeg (Pos p) ->  (* Group is inline if it ends soon enough. *)
+    format w ((p<=endlpos)::inline, endlpos)
+  | GEnd _ -> format w (List.tl inline, endlpos))
 
-  let format w = format w ([false], w)Break lines outside of groups.
+let format w = format w ([false], w)  (* Break lines outside of groups. *)
+```
 * Put the pipes together:
 
   let prettyprint w doc =<table style="display: inline-table; 
@@ -5077,15 +5086,15 @@ islandsize * numislands in  findboard (initstate honey cellstoeat)
 * Any expression can be spread over a monad, e.g. for $\lambda$-terms:
 
   $$ \begin{matrix}
-  \llbracket N \rrbracket = & \operatorname{return}N & \text{(constant)}\\\\\\
-  \llbracket x \rrbracket = & \operatorname{return}x & \text{(variable)}\\\\\\
-  \llbracket \lambda x.a \rrbracket = & \operatorname{return} (\lambda x.
-  \llbracket a \rrbracket) & \text{(function)}\\\\\\
-  \llbracket \operatorname{let}x = a\operatorname{in}b \rrbracket = &
-  \operatorname{bind} \llbracket a \rrbracket  (\lambda x. \llbracket b
-  \rrbracket) & \text{(local definition)}\\\\\\
-  \llbracket a b \rrbracket = & \operatorname{bind} \llbracket a \rrbracket
-  (\lambda v_{a} .\operatorname{bind} \llbracket b \rrbracket  (\lambda
+  [\![ N ]\!] = & \operatorname{return}N & \text{(constant)}\\\\\\
+  [\![ x ]\!] = & \operatorname{return}x & \text{(variable)}\\\\\\
+  [\![ \lambda x.a ]\!] = & \operatorname{return} (\lambda x.
+  [\![ a ]\!]) & \text{(function)}\\\\\\
+  [\![ \operatorname{let}x = a\operatorname{in}b ]\!] = &
+  \operatorname{bind} [\![ a ]\!]  (\lambda x. [\![ b
+  ]\!]) & \text{(local definition)}\\\\\\
+  [\![ a b ]\!] = & \operatorname{bind} [\![ a ]\!]
+  (\lambda v_{a} .\operatorname{bind} [\![ b ]\!]  (\lambda
   v_{b} .v_{a} v_{b})) & \text{(application)} \end{matrix} $$
 * When an expression is spread over a monad, its computation can be monitored 
   or affected without modifying the expression.
@@ -5945,10 +5954,18 @@ Queue.pop jobs ()Perform suspended work.       with Queue.Empty ->
 failwith "access: result not available");      access m    | Link  -> 
 assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
 
-* module TTest (T : THREADOPS) = struct  open T  let rec loop s n = perform    
-  return (Printf.printf "-- %s(%d)\n%!" s n);    if n > 0 then loop s 
-  (n-1)We cannot use `whenM` because    else return ()the thread would be 
-  created regardless of condition.endmodule TT = TTest (Cooperative)
+* ```
+  module TTest (T : THREADOPS) = struct
+    open T
+    let rec loop s n = perform
+      return (Printf.printf "-- %s(%d)\n%!" s n);
+      (* We cannot use `whenM` because the thread would be
+         created regardless of condition. *)
+      if n > 0 then loop s (n-1)
+      else return ()
+  end
+  module TT = TTest (Cooperative)
+  ```
 * let test =  Cooperative.killthreads ();Clean-up after previous tests.  let 
   thread1 = TT.loop "A" 5 in  let thread2 = TT.loop "B" 4 in  
   Cooperative.access thread1;We ensure threads finish computing  
@@ -6111,10 +6128,8 @@ probability tables are:
   \\\\\\
   P (\operatorname{sprinkler}|\operatorname{cloudy}) & = & 0.1 \\\\\\
   P (\operatorname{sprinkler}|\operatorname{not}\operatorname{cloudy}) & = &
-  \0.5 \\\\\\
-  P
-  
-(\operatorname{wet}\operatorname{roof}|\operatorname{not}\operatorname{rain})
+  0.5 \\\\\\
+  P (\operatorname{wet\_roof}|\operatorname{not}\operatorname{rain})
   & = & 0 \\\\\\
   P (\operatorname{wet}\operatorname{roof}|\operatorname{rain}) & = & 0.7
   \\\\\\
@@ -7313,15 +7328,25 @@ searching for address we're at:  | SeekSeek: still seeking, Addr
 (true…): possibly finished,  | Addr of bool * string * string 
 `list`Addr (false…): no domain.
 
-let report state lexbuf =Report the found address, if any.    match state with 
-   | Seek -> ()    | Addr (false, , ) -> ()    | Addr (true, name, 
-addr) ->With line at which it is found.      Printf.printf "%d: %s@%sn" 
-lexbuf.lexcurrp.poslnum        name (String.concat "." (List.rev addr))}let 
-newline = ('\n' | "\r\n")Regexp for end of line.let addrchar = 
-['a'-'z''A'-'Z''0'-'9''-''']let atwsymb = "where" | "WHERE" | "at" | "At" | 
-"AT"let atnwsymb = '@' | "&#x40;" | "&#64;"let opensymb = ' '* '(' ' '* | ' 
-'+Demarcate a possible @let closesymb = ' '* ')'' '* | ' '+or . symbol.let 
-atsepsymb =  opensymb? atnwsymb closesymb? |  opensymb atwsymb closesymb
+```
+(* Report the found address, if any. *)
+let report state lexbuf =
+  match state with
+  | Seek -> ()
+  | Addr (false, _, _) -> ()
+  | Addr (true, name, addr) ->  (* With line at which it is found. *)
+    Printf.printf "%d: %s@%s\n"
+      lexbuf.lex_curr_p.pos_lnum
+      name (String.concat "." (List.rev addr))
+}
+let newline = ('\n' | "\r\n")  (* Regexp for end of line. *)
+let addrchar = ['a'-'z''A'-'Z''0'-'9''-''_']
+let atwsymb = "where" | "WHERE" | "at" | "At" | "AT"
+let atnwsymb = '@' | "&#x40;" | "&#64;"
+let opensymb = ' '* '(' ' '* | ' '+  (* Demarcate a possible @ *)
+let closesymb = ' '* ')' ' '* | ' '+  (* or . symbol. *)
+let atsepsymb = opensymb? atnwsymb closesymb? | opensymb atwsymb closesymb
+```
 
 let dotwsymb = "dot" | "DOT" | "dt" | "DT"let domwsymb = dotwsymb | "dom" | 
 "DOM"Obfuscation for last dot.let dotsepsymb =  opensymb dotwsymb closesymb |  
@@ -7522,12 +7547,23 @@ THESEDET | THOSEDET | COMMACNJ | ANDCNJ | DOTPUNCT let tokstr = function
 information.let log s = Printf.fprintf logfile "%sn%!" s let lasttok = ref 
 DOTPUNCTState for better tagging.
 
- let tokbuf = Queue.create ()Token buffer, since single word let push w =is 
-sometimes two tokens.   log ("lex: "tokstr w);Log lexed token.   lasttok := w; 
-Queue.push w tokbuf exception LexError of string}let alphanum = ['0'-'9' 
-'a'-'z' 'A'-'Z' ''' '-']rule line = parseFor line-based interface.| (['\n']* 
-'\n') as l { l }| eof { exit 0 }and lexword = parse| [' ' '\t']Skip 
-whitespace.    { lexword lexbuf }| '.' { push DOTPUNCT }End of sentence.| "a" 
+```
+(* Token buffer, since single word is sometimes two tokens. *)
+let tokbuf = Queue.create ()
+let push w =
+  log ("lex: " ^ tokstr w);  (* Log lexed token. *)
+  lasttok := w;
+  Queue.push w tokbuf
+exception LexError of string
+}
+let alphanum = ['0'-'9' 'a'-'z' 'A'-'Z' '\'' '-']
+rule line = parse  (* For line-based interface. *)
+| ([^'\n']* '\n') as l { l }
+| eof { exit 0 }
+and lexword = parse
+| [' ' '\t']  (* Skip whitespace. *)
+  { lexword lexbuf }
+```| '.' { push DOTPUNCT }End of sentence.| "a" 
 { push ADET } | "the" { push THEDET }‘‘Keywords''.| "some" { push SOMEDET }| 
 "this" { push THISDET } | "that" { push THATDET }| "these" { push THESEDET } | 
 "those" { push THOSEDET }| "A" { push ADET } | "The" { push THEDET }| "Some" { 
@@ -7590,17 +7626,26 @@ adjsub; action=fst vbadv; plural=true;       adjs=fst adjsub; advs=snd vbadv}
 
 * File `Eng.ml` is the same as `calc.ml` from previous example:
 
-open EngLexerlet () =  let stdinbuf = Lexing.fromchannel stdin in  while true 
-do    (* Read line by line. *)    let linebuf = Lexing.fromstring (line 
-stdinbuf) in
-
-    try      (* Run the parser on a single line of input. *)      let s = 
-EngParser.sentence lexeme linebuf in      Printf.printf    
-"subject=%s\nplural=%b\nadjs=%s\naction=%snadvs=%s\n\n%!"        s.subject 
-s.plural (String.concat ", " s.adjs)        s.action (String.concat ", " 
-s.advs)    with    | LexError msg ->      Printf.fprintf stderr "%sn%!" 
-msg    | EngParser.Error ->      Printf.fprintf stderr "At offset %d: 
-syntax error.n%!"          (Lexing.lexemestart linebuf)  done
+```ocaml
+open EngLexer
+let () =
+  let stdinbuf = Lexing.from_channel stdin in
+  while true do
+    (* Read line by line. *)
+    let linebuf = Lexing.from_string (line stdinbuf) in
+    try
+      (* Run the parser on a single line of input. *)
+      let s = EngParser.sentence lexeme linebuf in
+      Printf.printf "subject=%s\nplural=%b\nadjs=%s\naction=%s\nadvs=%s\n\n%!"
+        s.subject s.plural (String.concat ", " s.adjs)
+        s.action (String.concat ", " s.advs)
+    with
+    | LexError msg -> Printf.fprintf stderr "%s\n%!" msg
+    | EngParser.Error ->
+      Printf.fprintf stderr "At offset %d: syntax error.\n%!"
+        (Lexing.lexeme_start linebuf)
+  done
+```
 
 * Build & run command:
 
@@ -7655,22 +7700,35 @@ incr word; w, !word) words in        WORDS words }  | alphanum+ as w      {
 incr word; WORDS [w, !word] }  | "&amp;"      { incr word; WORDS ["&", !word] 
 }
 
-  | ['.' '!' '?'] as pDedicated tokens for punctuation      { SENTENCE 
-(Char.escaped p) }so that it doesn't break phrases.  | "--"      { PUNCT "--" 
-}  | [',' ':' ''' '-' ';'] as p      { PUNCT (Char.escaped p) }  | eof { EOF } 
-      | xmlstart      { commentstart := lexbuf.Lexing.lexcurrp;        let s = 
-comment [] lexbuf in        COMMENT s }  |       { let pos = 
-lexbuf.Lexing.lexcurrp in        let pos' = {pos with          Lexing.poscnum 
-= pos.Lexing.poscnum + 1} in        Printf.printf "%s\n%!"          
-(parseerrormsg pos pos' "lexer error");        failwith "LEXER ERROR" }
+Dedicated tokens for punctuation:
+```
+| ['.' '!' '?'] as p  { SENTENCE (Char.escaped p) }  (* so that it doesn't break phrases. *)
+| "--"      { PUNCT "--" }
+| [',' ':' '\'' '-' ';'] as p      { PUNCT (Char.escaped p) }
+| eof { EOF }
+| xmlstart
+  { commentstart := lexbuf.Lexing.lex_curr_p;
+    let s = comment [] lexbuf in
+    COMMENT s }
+| _
+  { let pos = lexbuf.Lexing.lex_curr_p in
+    let pos' = {pos with Lexing.pos_cnum = pos.Lexing.pos_cnum + 1} in
+    Printf.printf "%s\n%!" (parse_error_msg pos pos' "lexer error");
+    failwith "LEXER ERROR" }
 
-and comment strings = parse  | xmlend      { String.concat "" (List.rev 
-strings) }  | eof      { let pos = !commentstart in        let pos' = 
-lexbuf.Lexing.lexcurrp in        Printf.printf "%sn%!"          (parseerrormsg 
-pos pos' "lexer error: unclosed comment");        failwith "LEXER ERROR" }  | 
-newline      { nextline lexbuf;        comment (Lexing.lexeme lexbuf :: 
-strings) lexbuf      }  |       { comment (Lexing.lexeme lexbuf :: strings) 
-lexbuf }
+and comment strings = parse
+| xmlend      { String.concat "" (List.rev strings) }
+| eof
+  { let pos = !commentstart in
+    let pos' = lexbuf.Lexing.lex_curr_p in
+    Printf.printf "%s\n%!" (parse_error_msg pos pos' "lexer error: unclosed comment");
+    failwith "LEXER ERROR" }
+| newline
+  { nextline lexbuf;
+    comment (Lexing.lexeme lexbuf :: strings) lexbuf }
+| _
+  { comment (Lexing.lexeme lexbuf :: strings) lexbuf }
+```
 
 * Parsing: the inverted index and the query.
 
@@ -8590,9 +8648,10 @@ let pbal vel =  let rec xvel uts =    stepaccum vel (xbounce ->> ($\sim$-.)) $ u
   100.let game = lift3 (fun walls paddle ball ->  Group [walls; paddle; 
   ball]) walls paddle ball
 * We can easily monitor signals while debugging, e.g.:
-
-    notifye xbounce (fun () -> Printf.printf "xbounce\n%!");  notifye 
-  ybounce (fun () -> Printf.printf "ybounce\n%!");
+  ```
+  notifye xbounce (fun () -> Printf.printf "xbounce\n%!");
+  notifye ybounce (fun () -> Printf.printf "ybounce\n%!");
+  ```
 * Invocation:`ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs 
   froc/froc,unix,graphics,threads/threads --`
 
@@ -8703,7 +8762,25 @@ while building the initial monadic value.
   the start of the loop – but if after bind (“below first line” of a loop), at 
   each step of the loop.
 
-let f =  repeat (perform      emit (Printf.printf "[0]\n%!"; '0');      () <-- await aas;      emit (Printf.printf "[1]\n%!"; '1');      () <-- await bs;      emit (Printf.printf "[2]\n%!"; '2');      () <-- await cs;      emit (Printf.printf "[3]\n%!"; '3');      () <-- await ds;      emit (Printf.printf "[4]\n%!"; '4'))let e, cancele = eventflow flet () =  F.notifye e (fun c -> Printf.printf "flow: %c\n%!" c);  Printf.printf "notification installed\n%!"let () =  F.send a (); F.send b (); F.send c (); F.send d ();  F.send a (); F.send b (); F.send c (); F.send d ()
+```
+let f = repeat (perform
+  emit (Printf.printf "[0]\n%!"; '0');
+  () <-- await aas;
+  emit (Printf.printf "[1]\n%!"; '1');
+  () <-- await bs;
+  emit (Printf.printf "[2]\n%!"; '2');
+  () <-- await cs;
+  emit (Printf.printf "[3]\n%!"; '3');
+  () <-- await ds;
+  emit (Printf.printf "[4]\n%!"; '4'))
+let e, cancele = eventflow f
+let () =
+  F.notifye e (fun c -> Printf.printf "flow: %c\n%!" c);
+  Printf.printf "notification installed\n%!"
+let () =
+  F.send a (); F.send b (); F.send c (); F.send d ();
+  F.send a (); F.send b (); F.send c (); F.send d ()
+```
 
 [0]Only printed once -- when building the loop.`notification installed`Only 
 installed **after** the first flow event sent.event: aEvent notification (see 

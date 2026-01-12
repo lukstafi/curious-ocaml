@@ -128,8 +128,8 @@ solves equations.
  _{1} \ldots \alpha_{n} . \tau_{x} ; \ldots \rbrace$, expression $e$ and 
   type $\tau$ we write
 
-  \\[ \Gamma \vdash e : \tau \\]
-* We will derive the equations in one go using $\llbracket \cdot \rrbracket$, 
+  $$\Gamma \vdash e : \tau$$
+* We will derive the equations in one go using $[\![ \cdot ]\!]$, 
   to be solved later. Besides equations we will need to manage introduced 
   variables, using existential quantification.
 * For local definitions we require to remember what constraints should hold 
@@ -144,7 +144,7 @@ solves equations.
 
 
 $$ \begin{matrix}
-  \llbracket \Gamma \vdash x : \tau \rrbracket & = & \exists \overline{\beta'}
+  [\![ \Gamma \vdash x : \tau ]\!] & = & \exists \overline{\beta'}
   \bar{\alpha}' . (D [\bar{\beta} \bar{\alpha} := \overline{\beta'}
   \bar{\alpha}'] \wedge \tau_{x} [\bar{\beta} \bar{\alpha} :=
   \overline{\beta'} \bar{\alpha}'] \dot{=} \tau)\\\\\\
@@ -152,64 +152,64 @@ $$ \begin{matrix}
   .D] . \tau_{x}, \overline{\beta'} \bar{\alpha}' \#\operatorname{FV}
   (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash \boldsymbol{\operatorname{fun}} x
-  {\texttt{->}} e : \tau \rrbracket & = & \exists 
+  [\![ \Gamma \vdash \boldsymbol{\operatorname{fun}} x
+  {\texttt{->}} e : \tau ]\!] & = & \exists 
 \alpha
- _{1} \alpha_{2} . (\llbracket \Gamma \lbrace x : \alpha_{1} \rbrace
-  \vdash e : \alpha_{2} \rrbracket \wedge \alpha_{1} \rightarrow \alpha
+ _{1} \alpha_{2} . ([\![ \Gamma \lbrace x : \alpha_{1} \rbrace
+  \vdash e : \alpha_{2} ]\!] \wedge \alpha_{1} \rightarrow \alpha
  _{2} \dot{=} \tau),\\\\\\
   &  & \text{where } \alpha_{1} \alpha_{2} \#\operatorname{FV} (\Gamma,
   \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e_{1} e_{2} : \tau \rrbracket & = & \exists
-  \alpha . (\llbracket \Gamma \vdash e_{1} : \alpha \rightarrow \tau
-  \rrbracket \wedge \llbracket \Gamma \vdash e_{2} : \alpha \rrbracket),
+  [\![ \Gamma \vdash e_{1} e_{2} : \tau ]\!] & = & \exists
+  \alpha . ([\![ \Gamma \vdash e_{1} : \alpha \rightarrow \tau
+  ]\!] \wedge [\![ \Gamma \vdash e_{2} : \alpha ]\!]),
   \alpha \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash K e_{1} \ldots e_{n} : \tau \rrbracket & = &
-  \exists \bar{\alpha}' . (\wedge_{i} \llbracket \Gamma \vdash e_{i} : \tau
- _{i} [\bar{\alpha} := \bar{\alpha}'] \rrbracket \wedge \varepsilon
+  [\![ \Gamma \vdash K e_{1} \ldots e_{n} : \tau ]\!] & = &
+  \exists \bar{\alpha}' . (\wedge_{i} [\![ \Gamma \vdash e_{i} : \tau
+ _{i} [\bar{\alpha} := \bar{\alpha}'] ]\!] \wedge \varepsilon
   (\bar{\alpha}') \dot{=} \tau),\\\\\\
   &  & \text{w. } K \,:\, \forall \bar{\alpha} . \tau_{1} \times \ldots
   \times \tau_{n} \rightarrow \varepsilon (\bar{\alpha}), \bar{\alpha}'
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
-  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e_{2} : \tau \rrbracket\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & (\exists \beta .C) \wedge
+  [\![ \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e_{2} : \tau ]\!]\\\\\\
   e = \boldsymbol{\operatorname{let}} x = e_{1}
   \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
-  \llbracket \Gamma \vdash e_{1} : \beta \rrbracket\\\\\\
+  [\![ \Gamma \vdash e_{1} : \beta ]\!]\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & (\exists \beta .C) \wedge
-  \llbracket \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
-  e_{2} : \tau \rrbracket\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & (\exists \beta .C) \wedge
+  [\![ \Gamma \lbrace x : \forall \beta [C] . \beta \rbrace \vdash
+  e_{2} : \tau ]\!]\\\\\\
   e = \boldsymbol{\operatorname{letrec}} x = e_{1}
   \boldsymbol{\operatorname{in}} e_{2} &  & \text{where } C =
-  \llbracket \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
-  \rrbracket\\\\\\
+  [\![ \Gamma \lbrace x : \beta \rbrace \vdash e_{1} : \beta
+  ]\!]\\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma \vdash e : \tau \rrbracket & = & \exists \alpha_{v} .
-  \llbracket \Gamma \vdash e_{v} : \alpha_{v} \rrbracket \wedge_{i}
-  \llbracket \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
-  \rrbracket,\\\\\\
+  [\![ \Gamma \vdash e : \tau ]\!] & = & \exists \alpha_{v} .
+  [\![ \Gamma \vdash e_{v} : \alpha_{v} ]\!] \wedge_{i}
+  [\![ \Gamma \vdash p_{i} .e_{i} : \alpha_{v} \rightarrow \tau
+  ]\!],\\\\\\
   e = \boldsymbol{\operatorname{match}} e_{v}
   \boldsymbol{\operatorname{with}} \bar{c} &  & \alpha_{v}
   \#\operatorname{FV} (\Gamma, \tau)\\\\\\
   \bar{c} = p_{1} .e_{1} | \ldots |p_{n} .e_{n} &  &  \\\\\\
   &  &  \\\\\\
-  \llbracket \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
-  \rrbracket & = & \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket
-  \wedge \exists \bar{\beta} . \llbracket \Gamma \Gamma' \vdash e : \tau_{2}
-  \rrbracket\\\\\\
-  &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } \llbracket
-  \Sigma \vdash p \uparrow \tau_{1} \rrbracket, \bar{\beta}
+  [\![ \Gamma, \Sigma \vdash p.e : \tau_{1} \rightarrow \tau_{2}
+  ]\!] & = & [\![ \Sigma \vdash p \downarrow \tau_{1} ]\!]
+  \wedge \exists \bar{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_{2}
+  ]\!]\\\\\\
+  &  & \text{where } \exists \bar{\beta} \Gamma' \text{ is } [\![
+  \Sigma \vdash p \uparrow \tau_{1} ]\!], \bar{\beta}
   \#\operatorname{FV} (\Gamma, \tau_{2})\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \downarrow \tau_{1} \rrbracket &  &
+  [\![ \Sigma \vdash p \downarrow \tau_{1} ]\!] &  &
   \text{derives constraints on type of matched value}\\\\\\
   &  &  \\\\\\
-  \llbracket \Sigma \vdash p \uparrow \tau_{1} \rrbracket &  & \text{derives
+  [\![ \Sigma \vdash p \uparrow \tau_{1} ]\!] &  & \text{derives
   environment for pattern variables}
 \end{matrix} $$
 
