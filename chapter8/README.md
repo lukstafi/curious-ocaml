@@ -6,7 +6,7 @@ This chapter explores one of functional programming's most powerful abstractions
 
 Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The brute-force generation of expressions looked like this:
 
-```
+```ocaml
 let combine l r =
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
@@ -22,7 +22,7 @@ let rec exprs = function
 
 And the generate-and-test scheme used:
 
-```
+```ocaml
 let guard p e = if p e then [e] else []
 
 let solutions ns n =
@@ -33,7 +33,7 @@ let solutions ns n =
 
 We introduced the operator `|->` defined as:
 
-```
+```ocaml
 let ( |-> ) x f = concat_map f x
 ```
 
@@ -154,7 +154,7 @@ let solutions ns n =
 
 For a general guard check function, we define:
 
-```
+```ocaml
 let guard p = if p then [()] else []
 ```
 
@@ -238,7 +238,7 @@ $$
 
 You should verify that these laws hold for our list monad:
 
-```
+```ocaml
 let bind a b = concat_map b a
 let return x = [x]
 ```
@@ -288,7 +288,7 @@ $$
 
 The list type has a natural monad and monoid structure:
 
-```
+```ocaml
 let mzero = []
 let mplus = (@)
 let bind a b = concat_map b a
@@ -297,7 +297,7 @@ let return a = [a]
 
 We can define in any monad-plus:
 
-```
+```ocaml
 let fail = mzero
 let failwith _ = fail
 let (++) = mplus
@@ -737,7 +737,7 @@ end
 
 Let us measure execution times:
 
-```
+```ocaml
 let time f =
   let tbeg = Unix.gettimeofday () in
   let res = f () in

@@ -165,7 +165,7 @@ Exceptions have always formed an extensible variant type in OCaml, whose pattern
 
 **Verdict:** Pleasant-looking, but the worst approach because of possible bugginess. Unless bug-proneness is not a concern, then the best approach.
 
-```
+```ocaml
 type expr = ..  (* This is how extensible variant types are defined *)
 
 type var_name = string
@@ -210,7 +210,7 @@ let fv_test = freevars1 test1
 
 Now we extend with arithmetic:
 
-```
+```ocaml
 type expr += Num of int | Add of expr * expr | Mult of expr * expr
 
 let map_expr f = function
@@ -240,7 +240,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```
+```ocaml
 let eval_lexpr eval_rec subst e =
   eval_expr eval_rec subst (eval_lambda eval_rec subst e)
 
@@ -263,7 +263,7 @@ OCaml's **objects** are values, somewhat similar to records. Viewed from the out
 
 **Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned decides if an object can be used. Parametric polymorphism can be used to infer if an object has the required methods.
 
-```
+```ocaml
 let f x = x#m  (* Method invocation: object#method *)
 (* val f : < m : 'a; .. > -> 'a *)
 (* Type polymorphic in two ways: 'a is the method type, *)
@@ -278,7 +278,7 @@ Methods are computed when they are invoked, even if they do not take arguments. 
 
 Constructor arguments can often be used instead of constant fields:
 
-```
+```ocaml
 let square w = object
   method area = float_of_int (w * w)
   method width = w
@@ -289,7 +289,7 @@ Subtyping often needs to be explicit: we write `(object :> supertype)` or in mor
 
 Technically speaking, subtyping in OCaml always is explicit, and *open types*, containing `..`, use **row polymorphism** rather than subtyping.
 
-```
+```ocaml
 let a = object method m = 7  method x = "a" end  (* Toy example: object types *)
 let b = object method m = 42 method y = "b" end  (* share some but not all methods *)
 
@@ -315,7 +315,7 @@ We can try to solve the expression problem using objects directly. However, addi
 
 Here is an implementation using objects:
 
-```
+```ocaml
 type var_name = string
 
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
@@ -378,7 +378,7 @@ let e_test1 = test1#eval []
 
 Extending with arithmetic requires additional mixins:
 
-```
+```ocaml
 class virtual compute_mixin = object
   method compute : int option = None
 end
@@ -474,7 +474,7 @@ The **visitor pattern** is a design pattern that separates an algorithm from the
 
 **Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
 
-```
+```ocaml
 type 'visitor visitable = < accept : 'visitor -> unit >
 (* The variants need be visitable *)
 (* We store the computation as side effect because of the difficulty *)
@@ -598,7 +598,7 @@ Extending with arithmetic expressions follows a similar pattern, and the merged 
 
 **Verdict:** A flexible solution, better than the previous approaches but still not perfect.
 
-```
+```ocaml
 type var = [`Var of string]
 
 let eval_var sub (`Var s as v : var) =
@@ -639,7 +639,7 @@ let fv_test = freevars1 test1
 
 The arithmetic expression sub-language:
 
-```
+```ocaml
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -673,7 +673,7 @@ let fv_test2 = freevars2 test2
 
 Merging the sub-languages:
 
-```
+```ocaml
 type 'a lexpr = ['a lambda | 'a expr]
 
 let eval_lexpr eval_rec subst : 'a lexpr -> 'a = function

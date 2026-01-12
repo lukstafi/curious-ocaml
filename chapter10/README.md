@@ -14,7 +14,7 @@ Often we need to keep track of a position within a data structure: easily access
 
 Consider binary trees:
 
-```
+```ocaml
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -29,7 +29,7 @@ $$
 
 This derivative gives us the context type:
 
-```
+```ocaml
 type btree_dir = LeftBranch | RightBranch
 type btree_deriv =
   | Here of btree * btree
@@ -57,7 +57,7 @@ This tells us that the context can be stored as a list with the root as the last
 
 Contexts of subtrees are more useful than contexts of single elements:
 
-```
+```ocaml
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
 type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
@@ -74,7 +74,7 @@ We can imagine a location as a rooted tree which is hanging pinned at one of its
 
 Navigation functions allow us to traverse the structure:
 
-```
+```ocaml
 let ascend loc =
   match loc.ctx with
   | [] -> loc  (* Or raise exception *)
@@ -100,7 +100,7 @@ let desc_right loc =
 
 Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches, representing a document structure:
 
-```
+```ocaml
 type doc = Text of string | Line | Group of doc list
 type context = (doc list * doc list) list
 type location = {sub: doc; ctx: context}
@@ -108,7 +108,7 @@ type location = {sub: doc; ctx: context}
 
 The navigation functions for this more complex structure:
 
-```
+```ocaml
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
@@ -160,7 +160,7 @@ $$
 
 First, the groundwork:
 
-```
+```ocaml
 type op = Add | Mul
 type expr = Val of int | Var of string | App of expr * op * expr
 type expr_dir = Left_arg | Right_arg
@@ -170,7 +170,7 @@ type location = {sub: expr; ctx: context}
 
 To locate the subexpression described by predicate `p`:
 
-```
+```ocaml
 let rec find_aux p e =
   if p e then Some (e, [])
   else match e with
@@ -193,7 +193,7 @@ let find p e =
 
 Now we can implement the pull-out transformation:
 
-```
+```ocaml
 let rec pull_out loc =
   match loc.ctx with
   | [] -> loc  (* Done *)
@@ -217,7 +217,7 @@ Since operators are commutative, we ignore the direction for the second piece of
 
 Testing the implementation:
 
-```
+```ocaml
 let (+) a b = App (a, Add, b)
 let ( * ) a b = App (a, Mul, b)
 let (!) a = Val a
