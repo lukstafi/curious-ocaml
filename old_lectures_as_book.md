@@ -767,9 +767,7 @@ predicate does not hold for any node.
 
 
 ## Chapter 2: Derivation example
-# Lecture 2: Algebra
-
-Type inference example derivation
+## Lecture 2: Type inference example derivation
 
 $$ \frac{[?]}{{\texttt{fun x -> ((+) x) 1}} : [?]} $$
 
@@ -8907,7 +8905,7 @@ None -> () | Some y -> emit y)val local : ('a -> 'b) -> ('a,
 
 
 
-The Expression Problem
+# The Expression Problem
 
 The Expression Problem
 
@@ -9354,9 +9352,7 @@ open0.5emPluginBase.ParseMlet0.5emdigitofchar0.5emd0.5em=0.5emintofchar0.5emd0.5
 open0.5emPluginBase.ParseMlet0.5emmultiplication0.5emlang0.5em=0.5em0.5emperformMultiplication rule: $S \rightarrow (S \ast S)$.0.5em0.5em0.5em0.5emliteral0.5em"(";0.5emn10.5em<--0.5emlang;0.5emliteral0.5em"*";0.5emn20.5em<--0.5emlang;0.5emliteral0.5em")";0.5em0.5em0.5em0.5emreturn0.5em(n10.5em*0.5emn2)let0.5em()0.5em= PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)
 
 
-Functional ProgrammingŁukasz Stafiniak
-
-The Expression Problem
+## The Expression Problem -- Exercises
 
 **Exercise 1:** <span id="ExStringOf"></span>Implement the 
 `string_of_` functions or methods, covering all data cases, corresponding to 

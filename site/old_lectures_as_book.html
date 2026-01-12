@@ -61,6 +61,10 @@
     img {
       max-width: 100%;
     }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
     h1, h2, h3, h4, h5, h6 {
       margin-top: 1.4em;
     }
@@ -104,8 +108,8 @@
      overflow: visible;
     }
     hr {
-      background-color: #1a1a1a;
       border: none;
+      border-top: 1px solid #1a1a1a;
       height: 1px;
       margin: 1em 0;
     }
@@ -153,15 +157,19 @@
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
     div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-    ul.task-list{list-style: none;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
     ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
       width: 0.8em;
       margin: 0 0.8em 0.2em -1.6em;
       vertical-align: middle;
     }
     /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
     pre > code.sourceCode { white-space: pre; position: relative; }
-    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
     pre > code.sourceCode > span:empty { height: 1.2em; }
     .sourceCode { overflow: visible; }
     code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -228,7 +236,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script>
   <script defer=""
-  src="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.js"></script>
+  src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
   <script>document.addEventListener("DOMContentLoaded", function () {
  var mathElements = document.getElementsByClassName("math");
  var macros = [];
@@ -244,10 +252,7 @@
 }}});
   </script>
   <link rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/katex@0.15.1/dist/katex.min.css" />
-  <!--[if lt IE 9]>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
-  <![endif]-->
+  href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css" />
 </head>
 <body>
 <header id="title-block-header">
@@ -300,9 +305,10 @@ Algebraic Data Types</a></li>
 <li><a href="#chapter-2-derivation-example"
 id="toc-chapter-2-derivation-example">Chapter 2: Derivation
 example</a></li>
+<li><a href="#lecture-2-type-inference-example-derivation"
+id="toc-lecture-2-type-inference-example-derivation">Lecture 2: Type
+inference example derivation</a></li>
 </ul></li>
-<li><a href="#lecture-2-algebra-1" id="toc-lecture-2-algebra-1">Lecture
-2: Algebra</a></li>
 <li><a href="#lecture-3-computation"
 id="toc-lecture-3-computation">Lecture 3: Computation</a>
 <ul>
@@ -683,6 +689,13 @@ Flow</a></li>
 <em>LablGTk</em></a></li>
 </ul></li>
 </ul></li>
+<li><a href="#the-expression-problem"
+id="toc-the-expression-problem">The Expression Problem</a>
+<ul>
+<li><a href="#the-expression-problem-exercises"
+id="toc-the-expression-problem-exercises">The Expression Problem –
+Exercises</a></li>
+</ul></li>
 <li><a href="#exam-exercises-for-review"
 id="toc-exam-exercises-for-review">Exam: Exercises for review</a>
 <ul>
@@ -708,7 +721,7 @@ Logos</h2>
 <col style="width: 20%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th><span class="math inline">\top</span></th>
 <th><span class="math inline">\bot</span></th>
 <th><span class="math inline">\wedge</span></th>
@@ -717,21 +730,21 @@ Logos</h2>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td></td>
 <td></td>
 <td><span class="math inline">a \wedge b</span></td>
 <td><span class="math inline">a \vee b</span></td>
 <td><span class="math inline">a \rightarrow b</span></td>
 </tr>
-<tr class="even">
+<tr>
 <td>truth</td>
 <td>falsehood</td>
 <td>conjunction</td>
 <td>disjunction</td>
 <td>implication</td>
 </tr>
-<tr class="odd">
+<tr>
 <td>“trivial”</td>
 <td>“impossible”</td>
 <td><span class="math inline">a</span> and <span
@@ -741,7 +754,7 @@ class="math inline">b</span></td>
 <td><span class="math inline">a</span> gives <span
 class="math inline">b</span></td>
 </tr>
-<tr class="even">
+<tr>
 <td></td>
 <td>shouldn’t get</td>
 <td>got both</td>
@@ -762,11 +775,11 @@ have by
      default}}}{\text{another fact}}
    \end{matrix}}{\text{final conclusion}} </span></p>
 <p>Define by providing rules for using the connectives: for example, a
-rule <span class="math inline">\frac{\begin{matrix} a &amp; b
-\end{matrix}}{c}</span> matches parts of the tree that have two premises,
-represented by variables <span class="math inline">a</span> and <span
-class="math inline">b</span>, and have any conclusion, represented by
-variable <span class="math inline">c</span>.</p>
+rule <span class="math inline">\frac{\begin{matrix}   a &amp; b
+\end{matrix}}{c}</span> matches parts of the tree that have two
+premises, represented by variables <span class="math inline">a</span>
+and <span class="math inline">b</span>, and have any conclusion,
+represented by variable <span class="math inline">c</span>.</p>
 <p>Try to use only the connective you define in its definition.</p>
 <h2 id="rules-for-logical-connectives">2 Rules for Logical
 Connectives</h2>
@@ -781,30 +794,30 @@ anything.</p>
 <col style="width: 36%" />
 </colgroup>
 <thead>
-<tr class="header">
+<tr>
 <th>Connective</th>
 <th>Introduction Rules</th>
 <th>Elimination Rules</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><span class="math inline">\top</span></td>
 <td><span class="math inline">\frac{}{\top}</span></td>
 <td>doesn’t have</td>
 </tr>
-<tr class="even">
+<tr>
 <td><span class="math inline">\bot</span></td>
 <td>doesn’t have</td>
 <td><span class="math inline">\frac{\bot}{a}</span> (i.e. anything)</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><span class="math inline">\wedge</span></td>
 <td><span class="math inline">\frac{a \; b}{a \wedge b}</span></td>
 <td><span class="math inline">\frac{a \wedge b}{a}</span> (take first)
 <span class="math inline">\frac{a \wedge b}{b}</span> (take second)</td>
 </tr>
-<tr class="even">
+<tr>
 <td><span class="math inline">\vee</span></td>
 <td><span class="math inline">\frac{a}{a \vee b}</span> (put first)
 <span class="math inline">\frac{b}{a \vee b}</span> (put second)</td>
@@ -814,7 +827,7 @@ anything.</p>
 (\text{consider }b)}{c}</span> using <span class="math inline">x,
 y</span></td>
 </tr>
-<tr class="odd">
+<tr>
 <td><span class="math inline">\rightarrow</span></td>
 <td><span class="math inline">\frac{{{\frac{\,}{a} \tiny{x}} \atop
 {\text{\textbar}}} \atop {b}}{a \rightarrow b}</span> using <span
@@ -884,7 +897,7 @@ class="math inline">x</span>” on the side).</p>
 OCaml</h2>
 <table>
 <thead>
-<tr class="header">
+<tr>
 <th>Logic</th>
 <th>Type</th>
 <th>Expression</th>
@@ -893,7 +906,7 @@ OCaml</h2>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><span class="math inline">\top</span></td>
 <td><code>unit</code></td>
 <td><code>()</code></td>
@@ -960,12 +973,12 @@ class="math inline">\rightarrow</span>), and:</p>
 expressions, and they extend from the point they occur till the end of
 the source file or interactive session. *
 <code>let</code>-<code>in</code> definitions for expressions: <span
-class="math inline">{\texttt{let}} \; x \;  {\texttt{=}} \; e_{1} \;
-{\texttt{in}} \; e_{2}</span> are <em>local</em>, <span
-class="math inline">x</span> is only visible in <span
-class="math inline">e_{2}</span>. But <code>let</code> definitions are
-global: placing <span class="math inline">{\texttt{let}} \; x
-\;  {\texttt{=}} \; e_{1}</span> at the top-level makes <span
+class="math inline">{\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1} \; {\texttt{in}} \; e_{2}</span> are
+<em>local</em>, <span class="math inline">x</span> is only visible in
+<span class="math inline">e_{2}</span>. But <code>let</code> definitions
+are global: placing <span class="math inline">{\texttt{let}} \; x \;
+  {\texttt{=}} \; e_{1}</span> at the top-level makes <span
 class="math inline">x</span> visible from after <span
 class="math inline">e_{1}</span> till the end of the source file or
 interactive session. * In the interactive session, we mark an end of a
@@ -1148,11 +1161,12 @@ as in other places with <span class="math inline">[?
 <h3 id="curried-form">1.1 Curried form</h3>
 <p>When there are several arrows “on the same depth” in a function type,
 it means that the function returns a function: e.g. <span
+class="math inline">{\texttt{(+)}} :
+{\texttt{int}} \rightarrow {\texttt{int}}
+\rightarrow {\texttt{int}}</span> is just a shorthand for <span
 class="math inline">{\texttt{(+)}} : {\texttt{int}} \rightarrow
-{\texttt{int}} \rightarrow {\texttt{int}}</span> is just a shorthand for
-<span class="math inline">{\texttt{(+)}} : {\texttt{int}} \rightarrow
-\left( {\texttt{int}} \rightarrow {\texttt{int}} \right)</span>. It is
-very different from</p>
+\left( {\texttt{int}} \rightarrow
+{\texttt{int}} \right)</span>. It is very different from</p>
 <p><span class="math display"> {\texttt{fun f -&gt; (f 1) + 1}} : \left(
    {\texttt{int}} \rightarrow {\texttt{int}}
    \right) \rightarrow {\texttt{int}} </span></p>
@@ -1501,8 +1515,8 @@ actually return a <code>btree_deriv option</code>, with
 <p><em>This homework is due for the class <strong>after</strong> the
 Computation class, i.e. for (before) the Functions class.</em></p>
 <h2 id="chapter-2-derivation-example">Chapter 2: Derivation example</h2>
-<h1 id="lecture-2-algebra-1">Lecture 2: Algebra</h1>
-<p>Type inference example derivation</p>
+<h2 id="lecture-2-type-inference-example-derivation">Lecture 2: Type
+inference example derivation</h2>
 <p><span class="math display"> \frac{[?]}{{\texttt{fun x -&gt; ((+) x)
 1}} : [?]} </span></p>
 <p><span class="math display"> \text{use } \rightarrow \text{
@@ -1677,9 +1691,9 @@ class="math inline">b^a</span> notation is actually used to denote
 functions in set theory.</p>
 <ol type="1">
 <li>Translate <span class="math inline">a^{b + cd}</span> and <span
-class="math inline">a^b (a^c)^d</span> into OCaml types, using any
+class="math inline">a^b  (a^c)^d</span> into OCaml types, using any
 distinct types for <span class="math inline">a, b, c, d</span>, and
-using the <code>('a,'b) choice = Left of 'a     | Right of 'b</code>
+using the <code>('a,'b) choice = Left of 'a  | Right of 'b</code>
 datatype for <span class="math inline">+</span>. Write the bijection
 function in both directions.</li>
 <li>Come up with a type <code>'t exp</code>, that shares with the
@@ -1799,8 +1813,8 @@ v := &amp; {\texttt{fun }} x {\texttt{-&gt;}} a
 primitives} \end{matrix} </span></p></li>
 <li><p>To <em>substitute</em> a value <span class="math inline">v</span>
 for a variable <span class="math inline">x</span> in expression <span
-class="math inline">a</span> we write <span class="math inline">a [x :=
-v]</span> – it behaves as if every occurrence of <span
+class="math inline">a</span> we write <span class="math inline">a
+[x := v]</span> – it behaves as if every occurrence of <span
 class="math inline">x</span> in <span class="math inline">a</span> was
 <em>rewritten</em> by <span class="math inline">v</span>.</p>
 <ul>
@@ -1838,9 +1852,9 @@ class="math inline">f (v_{1}, \ldots, v_{n})</span> we denote the actual
 value resulting from computing the primitive. We omit the more complex
 cases of pattern matching.</p></li>
 <li><p>Rule variables: <span class="math inline">x</span> matches any
-expression/pattern variable; <span class="math inline">a, a_{1}, \ldots,
-a_{n}</span> match any expression; <span class="math inline">v, v_{1},
-\ldots, v_{n}</span> match any value. Substitute them so that the
+expression/pattern variable; <span class="math inline">a, a_{1},
+\ldots, a_{n}</span> match any expression; <span class="math inline">v,
+v_{1}, \ldots, v_{n}</span> match any value. Substitute them so that the
 left-hand-side of a rule is your expression, then the right-hand-side is
 the reduced expression.</p></li>
 <li><p>The remaining rules evaluate the arguments in arbitrary order,
@@ -1867,8 +1881,9 @@ is a binary primitive:</p>
 {\texttt{fix}}^2 v_{1} v_{2} &amp; \rightsquigarrow &amp; v_{1}
 \left( {\texttt{fix}}^2 v_{1} \right) v_{2} \end{matrix} </span></p>
 <p>Because <code>fix</code> is binary, <span class="math inline">\left(
-{\texttt{fix}}^2 v_{1} \right)</span> is already a value so it will not
-be further computed until it is applied inside of <span
+{\texttt{fix}}^2 v_{1}
+\right)</span> is already a value so it will not be further computed
+until it is applied inside of <span
 class="math inline">v_{1}</span>.</p></li>
 <li><p>Compute some programs using the rules by hand.</p></li>
 </ul>
@@ -1978,8 +1993,8 @@ style.</li>
 <code>btree_deriv_at</code>.</li>
 <li>Write a function <code>simplify: expression -&gt; expression</code>
 that simplifies the expression a bit, so that for example the result of
-<code>simplify (deriv     exp dv)</code> looks more like what a human
-would get computing the derivative of <code>exp</code> with respect to
+<code>simplify (deriv  exp dv)</code> looks more like what a human would
+get computing the derivative of <code>exp</code> with respect to
 <code>dv</code>.
 <ul>
 <li>Write a <code>simplify_once</code> function that performs a single
@@ -2327,7 +2342,7 @@ class="math inline">\lambda</span>-calculus</h2>
 <ul>
 <li>We write <span class="math inline">\lambda x.a</span> for
 <code>fun x-&gt;a</code>, <span class="math inline">\lambda x y.a</span>
-for <code>fun x    y-&gt;a</code>, etc.</li>
+for <code>fun x  y-&gt;a</code>, etc.</li>
 </ul></li>
 <li><p>Let’s forget about all other constructions, only fun and
 variables.</p></li>
@@ -2481,7 +2496,8 @@ z-&gt;0)) ((+) 1)</p>
 Combinator</h2>
 <ul>
 <li><p>Turing’s fixpoint combinator: <span class="math inline">\Theta =
-(\lambda x y.y (x x y)) (\lambda x y.y (x x y))</span></p>
+(\lambda x y.y (x x y))  (\lambda x
+y.y (x x y))</span></p>
 <p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \Theta F\\\\\\
 &amp; = &amp; (\lambda x y.y (x x y))  (\lambda x y.y (x x y)) F\\\\\\
@@ -2490,8 +2506,8 @@ y))  (\lambda x y.y
 (x x y)) F)\\\\\\
 &amp; = &amp; F (\Theta F) = F N \end{matrix} </span></p></li>
 <li><p>Curry’s fixpoint combinator: <span
-class="math inline">\boldsymbol{Y}= \lambda f. (\lambda x.f (x
-x))  (\lambda x.f (x x))</span></p>
+class="math inline">\boldsymbol{Y}= \lambda f. (\lambda x.f (x x))
+(\lambda x.f (x x))</span></p>
 <p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \boldsymbol{Y}F\\\\\\
 &amp; = &amp; (\lambda f. (\lambda x.f (x x))  (\lambda x.f (x x)))
@@ -2505,8 +2521,8 @@ x.f (x
 x))) F)\\\\\\
 &amp; = &amp; F (\boldsymbol{Y}F) = F N \end{matrix} </span></p></li>
 <li><p>Call-by-value <em>fix</em>point combinator: <span
-class="math inline">\lambda f&#39; . (\lambda f x.f&#39; (f f)
-x)  (\lambda f x.f&#39; (f f) x)</span></p>
+class="math inline">\lambda f&#39; . (\lambda f x.f&#39;  (f f) x)
+(\lambda f x.f&#39;  (f f) x)</span></p>
 <p><span class="math display"> \begin{matrix}
 N &amp; = &amp; \operatorname{fix}F\\\\\\
 &amp; = &amp; (\lambda f&#39; . (\lambda f x.f&#39;  (f f) x)  (\lambda
@@ -2558,11 +2574,12 @@ loops for all recursive definitions).</p>
 </ul></li>
 <li><p>Therefore, we need more specific rules. For example, most
 languages use <span class="math inline">\left( {\texttt{fun }} x
-{\texttt{-&gt;}} a \right) v \rightsquigarrow a [x := v]</span>, which
-is called <em>call-by-value</em>, or <strong>eager</strong> computation
-(because the program <em>eagerly</em> computes the arguments before
-starting to compute the function). (It’s exactly the rule we introduced
-in <em>Computation</em> lecture.)</p></li>
+{\texttt{-&gt;}}
+a \right) v \rightsquigarrow a [x := v]</span>, which is called
+<em>call-by-value</em>, or <strong>eager</strong> computation (because
+the program <em>eagerly</em> computes the arguments before starting to
+compute the function). (It’s exactly the rule we introduced in
+<em>Computation</em> lecture.)</p></li>
 <li><p>What happens with call-by-value fixpoint combinator?</p>
 <p><span class="math display"> \begin{matrix}
 \operatorname{fix}F &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
@@ -2574,9 +2591,9 @@ x)  (\lambda f x.F
 <p>Voila – if we use <span class="math inline">\left( {\texttt{fun }} x
 {\texttt{-&gt;}} a \right) v \rightsquigarrow a [x := v]</span> as the
 rulerather than <span class="math inline">\left( {\texttt{fun }} x
-{\texttt{-&gt;}} a_{1} \right) a_{2} \rightsquigarrow a_{1} [x :=
-a_{2}]</span>, the computation stops. Let’s compute the function on some
-input:</p>
+{\texttt{-&gt;}} a_{1} \right) a_{2} \rightsquigarrow
+a_{1} [x := a_{2}]</span>, the computation stops. Let’s compute the
+function on some input:</p>
 <p><span class="math display"> \begin{matrix}
 \operatorname{fix}F v &amp; \rightsquigarrow &amp; (\lambda f x.F (f f)
 x)  (\lambda
@@ -2725,7 +2742,7 @@ addition:</li>
 (pnsucc (f (pnpred m) n)) ) m n;;decodepnat (pnadd pn3 pn3);;</p>
 <ul>
 <li>Oops… OCaml
-says:<code>Stack overflow during evaluation (looping    recursion?).</code></li>
+says:<code>Stack overflow during evaluation (looping  recursion?).</code></li>
 <li>What is wrong? Nothing as far as <span
 class="math inline">\lambda</span>-calculus is concerned. But OCaml and
 F# always compute arguments before calling a function. By definition of
@@ -2841,7 +2858,7 @@ learnt, just implement the functions in OCaml / F#, using built-in int
 and bool types. You can use let rec instead of fix.</em></p>
 <ul>
 <li><em>For example, in exercise (a), write a function</em> <em>let
-rec</em> <code>*for_to f beg_i   end_i s*</code> =<em>… where</em>
+rec</em> <code>*for_to f beg_i end_i s*</code> =<em>… where</em>
 <code>*f*</code> <em>takes arguments</em> <code>*i*</code> <em>ranging
 from</em> <code>*beg_i*</code> <em>to</em> <code>*end_i*</code><em>,
 state</em> <code>*s*</code> <em>at given step, and returns state</em>
@@ -2893,9 +2910,9 @@ correct types exist? It solves equations.</p>
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> f = <span class="dt">List</span>.hd;;</span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="kw">val</span> f : &#39;a <span class="dt">list</span> -&gt; &#39;a</span></code></pre></div>
 <p><code>'a</code> is a parameter: it can become any type.
-Mathematically we write: <span class="math inline">f : \forall \alpha .
-\alpha \operatorname{list} \rightarrow \alpha</span> – the quantified
-type is called a <em>type scheme</em>.</p></li>
+Mathematically we write: <span class="math inline">f :
+\forall \alpha . \alpha \operatorname{list} \rightarrow \alpha</span> –
+the quantified type is called a <em>type scheme</em>.</p></li>
 <li><p>Inside:</p>
 <div class="sourceCode" id="cb42"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> x = <span class="dt">ref</span> [];;</span>
@@ -2921,36 +2938,39 @@ that <span class="math inline">e : \tau</span> in type environment <span
 class="math inline">\Gamma</span>?”
 <ul>
 <li>If, for example, <span class="math inline">f : \forall \alpha .
-\alpha \operatorname{list} \rightarrow \alpha \in \Gamma</span>, then
-for <span class="math inline">f : \tau</span> we introduce <span
-class="math inline">\gamma \operatorname{list} \rightarrow \gamma =
-\tau</span> for some fresh unknown <span
-class="math inline">\gamma</span>.</li>
+\alpha \operatorname{list}
+\rightarrow \alpha \in \Gamma</span>, then for <span
+class="math inline">f : \tau</span> we introduce <span
+class="math inline">\gamma
+\operatorname{list} \rightarrow \gamma = \tau</span> for some fresh
+unknown <span class="math inline">\gamma</span>.</li>
 <li>For <span class="math inline">e_{1} e_{2} : \tau</span> we introduce
 <span class="math inline">\beta = \tau</span> and ask for <span
 class="math inline">e_{1} : \gamma \rightarrow \beta</span> and <span
 class="math inline">e_{2} : \gamma</span>, for some fresh unknowns <span
 class="math inline">\beta, \gamma</span>.</li>
 <li>For <span class="math inline">\operatorname{fun}x \rightarrow e :
-\tau</span> we introduce <span class="math inline">\beta \rightarrow
-\gamma = \tau</span> and ask for <span class="math inline">e :
-\gamma</span> in environment <span class="math inline">\lbrace x : \beta
-\rbrace \cup \Gamma</span>, for some fresh unknowns <span
-class="math inline">\beta, \gamma</span>.</li>
+\tau</span> we introduce <span class="math inline">\beta
+\rightarrow \gamma = \tau</span> and ask for <span class="math inline">e
+: \gamma</span> in environment <span class="math inline">\lbrace x :
+\beta \rbrace \cup \Gamma</span>, for some fresh unknowns <span
+class="math inline">\beta,
+\gamma</span>.</li>
 <li>Case <span class="math inline">\operatorname{let}x = e_{1}
 \operatorname{in}e_{2} : \tau</span> is different. One approach is to
 <em>first</em> solve the equations that we get by asking for <span
 class="math inline">e_{1} : \beta</span>, for some fresh unknown <span
 class="math inline">\beta</span>. Let’s say a solution <span
 class="math inline">\beta = \tau_{\beta}</span> has been found, <span
-class="math inline">\alpha_{1} \ldots \alpha_{n} \beta_{1} \ldots
-\beta_{m}</span> are the remaining unknowns in <span
-class="math inline">\tau_{\beta}</span>, and <span
+class="math inline">\alpha_{1} \ldots
+\alpha_{n} \beta_{1} \ldots \beta_{m}</span> are the remaining unknowns
+in <span class="math inline">\tau_{\beta}</span>, and <span
 class="math inline">\alpha_{1} \ldots \alpha_{n}</span> are all that do
 not appear in <span class="math inline">\Gamma</span>. Then we ask for
 <span class="math inline">e_{2} : \tau</span> in environment <span
 class="math inline">\lbrace x : \forall \alpha_{1} \ldots \alpha_{n} .
-\tau_{\beta} \rbrace \cup \Gamma</span>.</li>
+\tau_{\beta}
+\rbrace \cup \Gamma</span>.</li>
 <li>Remember that whenever we establish a solution <span
 class="math inline">\beta = \tau_{\beta}</span> to an unknown <span
 class="math inline">\beta</span>, it takes effect everywhere!</li>
@@ -2992,7 +3012,8 @@ type ’a mylist.</li>
 type name. For example:</p>
 <p>type (’a, ’b) choice = Left of ’a | Right of ’b</p>
 <p>has two parameters. Mathematically we would write <span
-class="math inline">\operatorname{choice} (\alpha, \beta)</span>.</p>
+class="math inline">\operatorname{choice}
+(\alpha, \beta)</span>.</p>
 <ul>
 <li><p>Functions do not have to be polymorphic:</p>
 <div class="sourceCode" id="cb45"><pre
@@ -3013,9 +3034,9 @@ arguments:</p>
 <ul>
 <li><p>A statement that an expression has a type in an environment is
 called a <em>type judgement</em>. For environment <span
-class="math inline">\Gamma = \lbrace x : \forall \alpha  _{1} \ldots
-\alpha_{n} . \tau_{x} ; \ldots \rbrace</span>, expression <span
-class="math inline">e</span> and type <span
+class="math inline">\Gamma = \lbrace x : \forall \alpha
+_{1} \ldots \alpha_{n} . \tau_{x} ; \ldots \rbrace</span>, expression
+<span class="math inline">e</span> and type <span
 class="math inline">\tau</span> we write</p>
 <p>\[ e : \]</p></li>
 <li><p>We will derive the equations in one go using <span
@@ -3025,15 +3046,17 @@ using existential quantification.</p></li>
 <li><p>For local definitions we require to remember what constraints
 should hold when the definition is used. Therefore we extend <em>type
 schemes</em> in the environment to: <span class="math inline">\Gamma =
-\lbrace x : \forall \beta_{1} \ldots \beta_{m} [\exists \alpha_{1}
-\ldots \alpha_{n} .D] . \tau_{x} ; \ldots \rbrace</span> where <span
-class="math inline">D</span> are equations – keeping the variables <span
-class="math inline">\alpha_{1} \ldots \alpha  _{n}</span> introduced
-while deriving <span class="math inline">D</span> in front.</p>
+\lbrace x : \forall \beta_{1} \ldots \beta_{m}
+[\exists \alpha_{1} \ldots \alpha_{n} .D] . \tau_{x} ; \ldots
+\rbrace</span> where <span class="math inline">D</span> are equations –
+keeping the variables <span class="math inline">\alpha_{1} \ldots \alpha
+_{n}</span> introduced while deriving <span class="math inline">D</span>
+in front.</p>
 <ul>
 <li>A simpler form would be enough: <span class="math inline">\Gamma =
-\lbrace x : \forall \beta [\exists \alpha_{1} \ldots \alpha_{n} .D] .
-\beta ; \ldots \rbrace</span></li>
+\lbrace x : \forall \beta
+[\exists \alpha_{1} \ldots \alpha_{n} .D] . \beta ; \ldots
+\rbrace</span></li>
 </ul></li>
 </ul>
 <p><span class="math display"> \begin{matrix}
@@ -3140,8 +3163,8 @@ class="math inline">\varphi_{1} \ldots \varphi_{n}</span>.</li>
 <li>In modern OCaml we can bypass the problem if we provide type of
 <code>f</code> upfront: let rec f : ’a. ’a -&gt; ’a list = …</li>
 <li>where ’a. ’a -&gt; ’a list stands for <span
-class="math inline">\forall \alpha . \alpha \rightarrow \alpha
-\operatorname{list}</span>.</li>
+class="math inline">\forall \alpha . \alpha
+\rightarrow \alpha \operatorname{list}</span>.</li>
 </ul></li>
 <li>Using the recursively defined function with different types in its
 definition is called polymorphic recursion.</li>
@@ -3269,21 +3292,24 @@ uses ,
 <li>Mappings between algebraic structures with the same signature
 preserving operations.</li>
 <li>A <em>homomorphism</em> from algebraic structure <span
-class="math inline">(A, \lbrace f^A, g^A, \ldots \rbrace)</span> to
-<span class="math inline">(B, \lbrace f^B, g^B, \ldots \rbrace)</span>
-is a function <span class="math inline">h : A \rightarrow B</span> such
-that <span class="math inline">h (f^A (a_{1}, \ldots, a_{n_{f}})) = f^B
-(h (a_{1}), \ldots, h (a_{n_{f}}))</span> for all <span
+class="math inline">(A, \lbrace f^A, g^A, \ldots
+\rbrace)</span> to <span class="math inline">(B, \lbrace f^B, g^B,
+\ldots \rbrace)</span> is a function <span class="math inline">h : A
+\rightarrow B</span> such that <span class="math inline">h (f^A (a_{1},
+\ldots, a_{n_{f}})) = f^B (h
+(a_{1}), \ldots, h (a_{n_{f}}))</span> for all <span
 class="math inline">(a_{1}, \ldots, a_{n_{f}})</span>, <span
 class="math inline">h (g^A (a_{1}, \ldots, a_{n_{g}})) = g^B (h (a_{1}),
-\ldots, h (a_{n_{g}}))</span> for all <span class="math inline">(a_{1},
-\ldots, a_{n_{g}})</span>, …</li>
+\ldots, h
+(a_{n_{g}}))</span> for all <span class="math inline">(a_{1}, \ldots,
+a_{n_{g}})</span>, …</li>
 <li>Two algebraic structures are <em>isomorphic</em> if there are
 homomorphisms <span class="math inline">h_{1} : A \rightarrow B, h_{2} :
 B \rightarrow A</span> from one to the other and back, that when
 composed in any order form identity: <span class="math inline">\forall
-(b \in B) h_{1} (h_{2} (b)) = b</span>, <span
-class="math inline">\forall (a \in A) h_{2} (h_{1} (a)) = a</span>.</li>
+(b \in B)
+h_{1} (h_{2} (b)) = b</span>, <span class="math inline">\forall (a \in
+A) h_{2} (h_{1} (a)) = a</span>.</li>
 <li>An algebraic specification whose all implementations without junk
 are isomorphic is called “<em>monomorphic</em>”.
 <ul>
@@ -3370,7 +3396,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb47-1"><a hre
 <span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> remove k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; Empty      | Add </span>
 <span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>(k2, , m) <span class="kw">when</span> k = k2 -&gt; m      | Add (k2, v, m) -&gt; Add (k2, v, remove </span>
-<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>k m)  <span class="kw">let</span> <span class="kw">rec</span> find k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="dt">raise</span> Error      </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>k m)  <span class="kw">let</span> <span class="kw">rec</span> find k m =    <span class="kw">match</span> m <span class="kw">with</span>      | Empty -&gt; <span class="dt">raise</span> <span class="dt">Error</span>      </span>
 <span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>| Add (k2, v, ) <span class="kw">when</span> k = k2 -&gt; v      | Add (, , m2) -&gt; find k m2 <span class="kw">end</span></span></code></pre></div>
 <h2 id="implementing-maps-binary-search-trees">9 Implementing maps:
 Binary search trees</h2>
@@ -3383,7 +3409,8 @@ node.</li>
 trees, and compare the elements by keys alone.</li>
 <li>On average, binary search trees are fast because they use
 “divide-and-conquer” to search for the value associated with a key.
-(<span class="math inline">O (\log n)</span> compl.)
+(<span class="math inline">O
+(\log n)</span> compl.)
 <ul>
 <li>In worst case they reduce to association lists.</li>
 </ul></li>
@@ -3454,9 +3481,10 @@ balanced tree with the same number of nodes.</li>
 <h3 id="b-trees-of-order-4-2-3-4-trees">10.1 B-trees of order 4 (2-3-4
 trees)</h3>
 <p>How can we have perfectly balanced trees without worrying about
-having <span class="math inline">2^k - 1</span> elements? <strong>2-3-4
-trees</strong> can store from 1 to 3 elements in each node and have 2 to
-4 subtrees correspondingly. Lots of freedom!</p>
+having <span class="math inline">2^k -
+1</span> elements? <strong>2-3-4 trees</strong> can store from 1 to 3
+elements in each node and have 2 to 4 subtrees correspondingly. Lots of
+freedom!</p>
 <p>To insert “25” into (“.” stand for leaves, ignored later)</p>
 <p>we descend right, but it is a full node, so we move the middle up and
 split the remaining elements:</p>
@@ -3507,11 +3535,13 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb49-1"><a hre
 (true::false::[])</p>
 <p>in environ. <span class="math inline">\Gamma = \left\lbrace
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha ;
+: \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha ;
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha
-\operatorname{list} \right\rbrace</span>. You can take “shortcuts” if it
-is too many equations to write down.</p></li>
+: \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha \operatorname{list}
+\right\rbrace</span>. You can take “shortcuts” if it is too many
+equations to write down.</p></li>
 <li><p>What does it mean that an implementation has junk (as an
 algebraic structure for a given signature)? Is it bad?</p></li>
 <li><p>Define a monomorphic algebraic specification (other than, but
@@ -3584,11 +3614,13 @@ find the type for:</p>
 (true::false::[])</em></p>
 <p><em>in environment <span class="math inline">\Gamma = \left\lbrace
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha ;
+: \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha ;
 \text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{tl}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha
-\operatorname{list} \right\rbrace</span>. You can take “shortcuts” if it
-is too many equations to write down.</em></p>
+: \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha \operatorname{list}
+\right\rbrace</span>. You can take “shortcuts” if it is too many
+equations to write down.</em></p>
 <p><strong>Exercise 2:</strong> <em>Terms</em> <span
 class="math inline">t_{1}, t_{2}, \ldots \in T (\Sigma, X)</span> are
 built out of variables <span class="math inline">x, y, \ldots \in
@@ -3601,9 +3633,10 @@ variables are terms; usually an infinite set,</em></li>
 \in T (\Sigma, X)</span> <em>and a function symbol</em> <span
 class="math inline">f \in \Sigma _{n}</span> <em>of arity</em> <span
 class="math inline">n</span>,<span class="math inline">f (t_{1}, \ldots,
-t_{n}) \in T (\Sigma, X)</span> <em>– bigger terms arise from applying
-function symbols to smaller terms;</em> <span class="math inline">\Sigma
-= \dot{\cup}_{n} \Sigma _{n}</span> <em>is called a signature.</em></li>
+t_{n}) \in
+T (\Sigma, X)</span> <em>– bigger terms arise from applying function
+symbols to smaller terms;</em> <span class="math inline">\Sigma =
+\dot{\cup}_{n} \Sigma _{n}</span> <em>is called a signature.</em></li>
 </ul>
 <p><em>In OCaml, we can define terms as: type term = V of string | T of
 string </em> term list5mm, where for example V(“x”) is a variable <span
@@ -3613,11 +3646,13 @@ class="math inline">x</span> and T(“f”, [V(“x”); V(“y”)]) is the ter
 \ldots</span> we mean finite sets of variable, term pairs which we can
 write as <span class="math inline">\lbrace x_{1} \mapsto t_{1}, \ldots,
 x_{k} \mapsto t_{k} \rbrace</span> or <span class="math inline">[x_{1}
-:= t_{1} ; \ldots ; x_{k} := t_{k}]</span>, but also functions from
-terms to terms <span class="math inline">\sigma : T (\Sigma, X)
+:= t_{1} ; \ldots ; x_{k} :=
+t_{k}]</span>, but also functions from terms to terms <span
+class="math inline">\sigma : T (\Sigma, X)
 \rightarrow T (\Sigma, X)</span> related to the pairs as follows: if
-<span class="math inline">\sigma = \lbrace x_{1} \mapsto t_{1}, \ldots,
-x_{k} \mapsto t_{k} \rbrace</span>, then*</p>
+<span class="math inline">\sigma =
+\lbrace x_{1} \mapsto t_{1}, \ldots, x_{k} \mapsto t_{k} \rbrace</span>,
+then*</p>
 <ul>
 <li><span class="math inline">\sigma (x_{i}) = t_{i}</span> <em>for</em>
 <span class="math inline">x_{i} \in \lbrace x_{1}, \ldots, x_{k}
@@ -3626,7 +3661,8 @@ x_{k} \mapsto t_{k} \rbrace</span>, then*</p>
 class="math inline">x \in X\backslash \lbrace x_{1}, \ldots, x_{k}
 \rbrace</span>,</li>
 <li><span class="math inline">\sigma (f (t_{1}, \ldots, t_{n})) = f
-(\sigma (t_{1}), \ldots, \sigma (t_{n}))</span>.</li>
+(\sigma (t_{1}), \ldots, \sigma
+(t_{n}))</span>.</li>
 </ul>
 <p><em>In OCaml, we can define substitutions <span
 class="math inline">\sigma</span> as: type subst = (string </em> term)
@@ -3639,31 +3675,35 @@ substitutions <span class="math inline">\rho \circ \sigma</span>, where
 (x))</span>. In type inference, we are interested in most general
 solutions: the less general type judgement <span
 class="math inline">\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
-: \operatorname{int}\operatorname{list} \rightarrow
+:
+\operatorname{int}\operatorname{list} \rightarrow
 \operatorname{int}</span>, although valid, is less useful than <span
 class="math inline">\text{{\textcolor{green}{List}}{\textcolor{blue}{.}}{\textcolor{brown}{hd}}}
-: \forall \alpha . \alpha \operatorname{list} \rightarrow \alpha</span>
-because it limits the usage of List.hd.*</p>
+: \forall \alpha . \alpha
+\operatorname{list} \rightarrow \alpha</span> because it limits the
+usage of List.hd.*</p>
 <p><em>A </em>unification problem* is a finite set of equations <span
-class="math inline">S = \lbrace s_{1} =^? t_{1}, \ldots, s_{n} =^? t_{n}
-\rbrace</span> which we can also write as <span
-class="math inline">s_{1} \dot{=} t_{1} \wedge \ldots \wedge s_{n}
-\dot{=} t_{n}</span>. A solution, or <em>unifier</em> of <span
-class="math inline">S</span>, is a substitution <span
-class="math inline">\sigma</span> such that <span
-class="math inline">\sigma (s_{i}) = \sigma (t_{i})</span> for <span
-class="math inline">i = 1, \ldots, n</span>. A <em>most general
-unifier</em>, for short <em>MGU</em>, is a most general such
-substitution.*</p>
+class="math inline">S = \lbrace s_{1} =^?
+t_{1}, \ldots, s_{n} =^? t_{n} \rbrace</span> which we can also write as
+<span class="math inline">s_{1}
+\dot{=} t_{1} \wedge \ldots \wedge s_{n} \dot{=} t_{n}</span>. A
+solution, or <em>unifier</em> of <span class="math inline">S</span>, is
+a substitution <span class="math inline">\sigma</span> such that <span
+class="math inline">\sigma (s_{i}) =
+\sigma (t_{i})</span> for <span class="math inline">i = 1, \ldots,
+n</span>. A <em>most general unifier</em>, for short <em>MGU</em>, is a
+most general such substitution.*</p>
 <p><em>A substitution is </em>idempotent* when <span
 class="math inline">\sigma = \sigma \circ \sigma</span>. If <span
 class="math inline">\sigma = \lbrace x_{1} \mapsto t_{1}, \ldots, x_{k}
-\mapsto t_{k} \rbrace</span>, then <span
-class="math inline">\sigma</span> is idempotent exactly when no <span
-class="math inline">t_{i}</span> contains any of the variables <span
-class="math inline">\lbrace x_{1}, \ldots, x_{n} \rbrace</span>;
-i.e. <span class="math inline">\lbrace x_{1}, \ldots, x_{n} \rbrace \cap
-\operatorname{Vars} (t_{1}, \ldots, t_{n}) = \varnothing</span>.*</p>
+\mapsto t_{k}
+\rbrace</span>, then <span class="math inline">\sigma</span> is
+idempotent exactly when no <span class="math inline">t_{i}</span>
+contains any of the variables <span class="math inline">\lbrace x_{1},
+\ldots, x_{n} \rbrace</span>; i.e. <span class="math inline">\lbrace
+x_{1},
+\ldots, x_{n} \rbrace \cap \operatorname{Vars} (t_{1}, \ldots, t_{n}) =
+\varnothing</span>.*</p>
 <ol type="1">
 <li><em>Implement an algorithm that, given a set of equations
 represented as a list of pairs of terms, computes an idempotent most
@@ -3672,12 +3712,12 @@ general unifier of the equations.</em></li>
 All That”**, p. 82.) Modify the implementation of unification to achieve
 linear space complexity by working with what could be called iterated
 substitutions. For example, the solution to* <span
-class="math inline">\lbrace x =^? f (y), y =^? g (z), z =^? a
-\rbrace</span> <em>should be represented as variable, term pairs</em>
-<span class="math inline">(x, f (y)), (y, g (z)), (z, a)</span><em>.
-(Hint: iterated substitutions should be unfolded lazily, i.e. only so
-far that either a non-variable term or the end of the instantiation
-chain is found.)</em></li>
+class="math inline">\lbrace x =^? f (y), y =^? g
+(z), z =^? a \rbrace</span> <em>should be represented as variable, term
+pairs</em> <span class="math inline">(x,
+f (y)), (y, g (z)), (z, a)</span><em>. (Hint: iterated substitutions
+should be unfolded lazily, i.e. only so far that either a non-variable
+term or the end of the instantiation chain is found.)</em></li>
 </ol>
 <p><strong>Exercise 3:</strong></p>
 <ol type="1">
@@ -4486,7 +4526,7 @@ generate phase with the test phase</h3>
 and evaluation of expressions:</p>
 <ul>
 <li>We memorize the value together with the expression – in pairs
-<code>(e, eval    e)</code> – so only valid subexpressions are ever
+<code>(e, eval  e)</code> – so only valid subexpressions are ever
 generated.</li>
 </ul>
 <p>let combine’ (l,x) (r,y) = [Add; Sub; Mul; Div] |&gt; List.filter
@@ -4861,7 +4901,7 @@ f x a |-&gt; (fun a’ -&gt; concatfold f a’ xs)</li>
 <li>run-length encoding of a list (exercise 10 from <em>99
 Problems</em>).
 <ul>
-<li><code>encode [‘a;‘a;‘a;‘a;‘b;‘c;‘c;‘a;‘a;‘d] = [4,‘a; 1,‘b; 2,‘c; 2,‘a;    1,‘d]</code></li>
+<li><code>encode [‘a;‘a;‘a;‘a;‘b;‘c;‘c;‘a;‘a;‘d] = [4,‘a; 1,‘b; 2,‘c; 2,‘a;  1,‘d]</code></li>
 </ul></li>
 </ol></li>
 <li><ol type="1">
@@ -4872,8 +4912,8 @@ optimize it.</li>
 </ol></li>
 <li><p>Write functions <code>compose</code> and <code>perform</code>
 that take a list of functions and return their composition, i.e. a
-function <code>compose [f1; …; fn] = x    ↦ f1 (… (fn x)…)</code> and
-<code>perform [f1; …; fn] = x    ↦ fn (… (f1 x)…)</code>.</p></li>
+function <code>compose [f1; …; fn] = x  ↦ f1 (… (fn x)…)</code> and
+<code>perform [f1; …; fn] = x  ↦ fn (… (f1 x)…)</code>.</p></li>
 <li><p>Write a solver for the <em>Tents Puzzle</em> <a
 href="http://www.mathsisfun.com/games/tents-puzzle.html">http://www.mathsisfun.com/games/tents-puzzle.html</a>.</p></li>
 <li><p>* <strong>Robot Squad</strong>. We are given a map of terrain
@@ -5080,8 +5120,8 @@ differential equations</h2>
 <li><p>Differential equations idea due to Henning Thielemann.
 <strong>Just an example.</strong></p></li>
 <li><p>Expression <span class="math inline">P (x) = \sum_{i = 0}^n a_{i}
-x^i</span> defines a polynomial for <span class="math inline">n &lt;
-\infty</span> and a power series for <span class="math inline">n =
+x^i</span> defines a polynomial for <span class="math inline">n
+&lt; \infty</span> and a power series for <span class="math inline">n =
 \infty</span>.</p></li>
 <li><p>If we define</p>
 <p>let rec lfoldright f l base = match l with | LNil -&gt; base | LCons
@@ -5145,8 +5185,8 @@ posnums))</li>
 <h3 id="differential-equations">5.2 Differential equations</h3>
 <ul>
 <li><p><span class="math inline">\frac{\mathrm{d} \sin x}{\mathrm{d} x}
-= \cos x, \frac{\mathrm{d} \cos x}{\mathrm{d} x} = - \sin x, \sin 0 = 0,
-\cos 0 = 1</span>.</p></li>
+= \cos x, \frac{\mathrm{d} \cos
+x}{\mathrm{d} x} = - \sin x, \sin 0 = 0, \cos 0 = 1</span>.</p></li>
 <li><p>We will solve the corresponding integral equations.
 <em>Why?</em></p></li>
 <li><p>We cannot define the integral by direct recursion like this:</p>
@@ -5602,9 +5642,9 @@ the power series for the</em> <span class="math inline">\exp
 e^x</span><em>). Using</em> <code>*cycle*</code> <em>and</em>
 <code>*inv_fact*</code><em>, define the power series for</em> <span
 class="math inline">\sin (\cdot)</span> <em>and</em> <span
-class="math inline">\cos  (\cdot)</span><em>, and draw their graphs
-using helper functions from the lecture script</em>
-<code>*Lec7.ml*</code>.</p>
+class="math inline">\cos
+   (\cdot)</span><em>, and draw their graphs using helper functions from
+the lecture script</em> <code>*Lec7.ml*</code>.</p>
 <p><strong>Exercise 3:</strong> * Modify one of the puzzle solving
 programs (either from the previous lecture or from your previous
 homework) to work with lazy lists. Implement the necessary higher-order
@@ -6563,8 +6603,8 @@ aend)</p></li>
 <li><p>module OptCountdown = Countdown (OptionM)let test3 () =
 OptionM.run (OptCountdown.solutions [1;3;7;10;25;50] 765)</p></li>
 <li><div class="sourceCode" id="cb57"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t3, sol3 = time test3;;<span class="kw">val</span> t3 : <span class="dt">float</span> = <span class="fl">5.0067901611328125e-06</span>val </span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  sol3 : <span class="dt">string</span> <span class="dt">option</span> = <span class="dt">None</span></span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t3, sol3 = time test3;;<span class="kw">val</span> t3 : <span class="dt">float</span> = <span class="fl">5.0067901611328125e-06</span>val </span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>sol3 : <span class="dt">string</span> <span class="dt">option</span> = <span class="dt">None</span></span></code></pre></div>
 <p>It very quickly computes… nothing. Why?</p>
 <ul>
 <li>What is the OptionM monad (<code>Maybe</code> monad in Haskell) good
@@ -6598,15 +6638,15 @@ LazNil)) let mzero = lazy LazNil let mplus = lazappendend)</p></li>
 <li><p>module LazyCountdown = Countdown (LazyListM)let test4 () =
 LazyListM.run (LazyCountdown.solutions [1;3;7;10;25;50] 765)</p></li>
 <li><div class="sourceCode" id="cb58"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t4a, sol4 = time test4;;<span class="kw">val</span> t4a : <span class="dt">float</span> = <span class="fl">2.86102294921875e-06</span>val </span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  sol4 : <span class="dt">string</span> lazylist = &lt;<span class="kw">lazy</span>&gt;# <span class="kw">let</span> t4b, sol41 = time (<span class="kw">fun</span> </span>
-<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>  () -&gt; laztake <span class="dv">1</span> sol4);;<span class="kw">val</span> t4b : <span class="dt">float</span> = <span class="fl">0.367874860763549805</span>val sol41 : </span>
-<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# <span class="kw">let</span> t4c, sol49 = time (<span class="kw">fun</span> () -&gt; </span>
-<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  laztake <span class="dv">10</span> sol4);;<span class="kw">val</span> t4c : <span class="dt">float</span> = <span class="fl">0.234670877456665039</span>val sol49 : <span class="dt">string</span> </span>
-<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t4d, </span>
-<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  sol439 = time (<span class="kw">fun</span> () -&gt; laztake <span class="dv">49</span> sol4);;<span class="kw">val</span> t4d : <span class="dt">float</span> </span>
-<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>  = <span class="fl">4.0594940185546875</span>val sol439 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
-<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t4a, sol4 = time test4;;<span class="kw">val</span> t4a : <span class="dt">float</span> = <span class="fl">2.86102294921875e-06</span>val </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>sol4 : <span class="dt">string</span> lazylist = &lt;<span class="kw">lazy</span>&gt;# <span class="kw">let</span> t4b, sol41 = time (<span class="kw">fun</span> </span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>() -&gt; laztake <span class="dv">1</span> sol4);;<span class="kw">val</span> t4b : <span class="dt">float</span> = <span class="fl">0.367874860763549805</span>val sol41 : </span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="dt">string</span> <span class="dt">list</span> = [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>]# <span class="kw">let</span> t4c, sol49 = time (<span class="kw">fun</span> () -&gt; </span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>laztake <span class="dv">10</span> sol4);;<span class="kw">val</span> t4c : <span class="dt">float</span> = <span class="fl">0.234670877456665039</span>val sol49 : <span class="dt">string</span> </span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a><span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; <span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …# <span class="kw">let</span> t4d, </span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>sol439 = time (<span class="kw">fun</span> () -&gt; laztake <span class="dv">49</span> sol4);;<span class="kw">val</span> t4d : <span class="dt">float</span> </span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>= <span class="fl">4.0594940185546875</span>val sol439 : <span class="dt">string</span> <span class="dt">list</span> =  [<span class="st">&quot;((25-(3+7))*(1+50))&quot;</span>; </span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a><span class="st">&quot;(((25-3)-7)*(1+50))&quot;</span>; …</span></code></pre></div>
 <ul>
 <li>Finally, the first solution in considerably less time than all
 solutions.</li>
@@ -6965,14 +7005,14 @@ prize)end</p></li>
 SamplingM (struct let samples = 1000 end)module MontySimul = MontyHall
 (Sampling1000)</p></li>
 <li><div class="sourceCode" id="cb61"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>  # <span class="kw">let</span> t1 = DistribM.distrib (MontyExact.montywin <span class="kw">false</span>);;<span class="kw">val</span> t1 : (<span class="dt">bool</span> * </span>
-<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.333333333333333315</span>); (<span class="kw">false</span>, <span class="fl">0.66666666666666663</span>)]# </span>
-<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t2 = DistribM.distrib (MontyExact.montywin <span class="kw">true</span>);;<span class="kw">val</span> t2 : (<span class="dt">bool</span> * </span>
-<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.66666666666666663</span>); (<span class="kw">false</span>, <span class="fl">0.333333333333333315</span>)]# </span>
-<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> t3 = Sampling1000.distrib (MontySimul.montywin <span class="kw">false</span>);;<span class="kw">val</span> t3 : (<span class="dt">bool</span> * </span>
-<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.313</span>); (<span class="kw">false</span>, <span class="fl">0.687</span>)]# <span class="kw">let</span> t4 = Sampling1000.distrib </span>
-<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>  (MontySimul.montywin <span class="kw">true</span>);;<span class="kw">val</span> t4 : (<span class="dt">bool</span> * <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.655</span>); </span>
-<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>  (<span class="kw">false</span>, <span class="fl">0.345</span>)]</span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> t1 = DistribM.distrib (MontyExact.montywin <span class="kw">false</span>);;<span class="kw">val</span> t1 : (<span class="dt">bool</span> * </span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.333333333333333315</span>); (<span class="kw">false</span>, <span class="fl">0.66666666666666663</span>)]# </span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t2 = DistribM.distrib (MontyExact.montywin <span class="kw">true</span>);;<span class="kw">val</span> t2 : (<span class="dt">bool</span> * </span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span>) <span class="dt">list</span> =  [(<span class="kw">true</span>, <span class="fl">0.66666666666666663</span>); (<span class="kw">false</span>, <span class="fl">0.333333333333333315</span>)]# </span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t3 = Sampling1000.distrib (MontySimul.montywin <span class="kw">false</span>);;<span class="kw">val</span> t3 : (<span class="dt">bool</span> * </span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a><span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.313</span>); (<span class="kw">false</span>, <span class="fl">0.687</span>)]# <span class="kw">let</span> t4 = Sampling1000.distrib </span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>(MontySimul.montywin <span class="kw">true</span>);;<span class="kw">val</span> t4 : (<span class="dt">bool</span> * <span class="dt">float</span>) <span class="dt">list</span> = [(<span class="kw">true</span>, <span class="fl">0.655</span>); </span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>(<span class="kw">false</span>, <span class="fl">0.345</span>)]</span></code></pre></div>
 <h3 id="conditional-probabilities">10.3 Conditional
 probabilities</h3></li>
 <li><p>Wouldn’t it be nice to have a monad-plus rather than a
@@ -7009,11 +7049,11 @@ q*.p | (x,p) &lt;- a; (y,q) &lt;- b x] let return a = [a, 1.] let mzero
 = []Measure equal 0 everywhere is OK. let mplus = List.append end
 include MP include MonadPlusOps (MP) let choose p a b =It isn’t
 <code>a</code> w.p. <span class="math inline">p</span> &amp;
-<code>b</code> w.p. <span class="math inline">(1 - p)</span> since
-<code>a</code> and <code>b</code> List.map (fun (e,w) -&gt; e, p<em>.w)
-a <span class="citation" data-cites="are">@are</span> not
-normalized!List.map (fun (e,w) -&gt; e, (1. -.p)</em>.w) b let pick dist
-= <code>dist</code></p>
+<code>b</code> w.p. <span class="math inline">(1 -
+p)</span> since <code>a</code> and <code>b</code> List.map (fun (e,w)
+-&gt; e, p<em>.w) a <span class="citation" data-cites="are">@are</span>
+not normalized!List.map (fun (e,w) -&gt; e, (1. -.p)</em>.w) b let pick
+dist = <code>dist</code></p>
 <p>let uniform elems = normalize (List.map (fun e-&gt;e,1.) elems) let
 coin = [true, 0.5; false, 0.5] let flip p = [true, p; false, 1. -. p]
 let prob p m = <code>normalize m</code>Final normalization step.|&gt;
@@ -7261,7 +7301,7 @@ is the computed results.</li>
 concurrency.</p></li>
 <li><p>If the monad starts computing right away, as in the <em>Lwt</em>
 library,
-<code>parallel    \concat{e}{\rsub{a}} \concat{e}{\rsub{b}} c</code> is
+<code>parallel  \concat{e}{\rsub{a}} \concat{e}{\rsub{b}} c</code> is
 equivalent to</p>
 <p>perform let a = <span class="math inline">e_{a}</span> in let b =
 <span class="math inline">e_{b}</span> in x &lt;– a; y &lt;– b; c x
@@ -8368,7 +8408,7 @@ marked;</li>
 <li><strong>hatched</strong>: free list element;</li>
 <li><strong>white</strong>: elements previously being in use.</li>
 </ul></li>
-<li><code># let u = let l = ['c'; 'a'; 'm'] in List.tl l ;;``val u : char list =    ['a'; 'm']``# let v = let r = ( ['z'] , u ) in match r with p -&gt; (fst p)    @ (snd p) ;;``val v : char list = ['z'; 'a'; 'm']</code></li>
+<li><code># let u = let l = ['c'; 'a'; 'm'] in List.tl l ;;``val u : char list =  ['a'; 'm']``# let v = let r = ( ['z'] , u ) in match r with p -&gt; (fst p)  @ (snd p) ;;``val v : char list = ['z'; 'a'; 'm']</code></li>
 <li><img src="book-ora034-GC_Marking_phase.gif" /></li>
 <li><img src="book-ora035-GC_Sweep_phase.gif" /></li>
 </ul>
@@ -9702,10 +9742,10 @@ whether a rule applies.</p>
 grammars are a small subset of <em>context free grammars</em>, the
 semantic actions can depend on context: actions can be functions that
 take some form of context as input.</p></li>
-<li><p>Positions are available in actions via keywords
-$<code>startpos</code>(<code>x</code>) and
-$<code>endpos</code>(<code>x</code>) where <code>x</code> is name given
-to part of pattern.</p>
+<li><p>Positions are available in actions via keywords <span
+class="math inline">`startpos`(`x`)
+and</span><code>endpos</code>(<code>x</code>) where <code>x</code> is
+name given to part of pattern.</p>
 <ul>
 <li>Do not use the Parsing module from OCaml standard library.</li>
 </ul></li>
@@ -10369,10 +10409,10 @@ class="math inline">D [(C [x] \circ e_{1}) \circ e_{2}] / D [e_{2} \circ
 (C [x] \circ e_{1})] \Rightarrow D [C [x] \circ (e_{1} \circ
 e_{2})]</span> pullout {loc with ctx=(Rightarg, op1, App(e1,op1,e2)) ::
 upctx} | (Rightarg, Add, e1) :: (, Mul, e2) :: upctx -&gt; pullout {loc
-with ctx=<span class="math inline">D [(C [x] + e_{1}) e_{2}] / D [e_{2}
-(C [x] + e_{1})] \Rightarrow D [C [x] e_{2} + e_{1} e_{2}]</span>
-(Rightarg, Mul, e2) :: (Rightarg, Add, App(e1,Mul,e2)) :: upctx} |
-(Rightarg, op, r)::upctx -&gt;Move up the context. pullout
+with ctx=<span class="math inline">D [(C [x] + e_{1}) e_{2}] / D
+[e_{2}  (C [x] + e_{1})] \Rightarrow D [C [x] e_{2} + e_{1}
+e_{2}]</span> (Rightarg, Mul, e2) :: (Rightarg, Add, App(e1,Mul,e2)) ::
+upctx} | (Rightarg, op, r)::upctx -&gt;Move up the context. pullout
 {sub=App(loc.sub, op, r); ctx=upctx}</p>
 <ul>
 <li><p>Since operators are commutative, we ignore the direction for the
@@ -10783,10 +10823,10 @@ sampling times.</p>
 <p>let integral fb = let rec loop t0 acc uts bs = let Cons ((,t1), uts)
 = Lazy.force uts in let Cons (b, bs) = Lazy.force bs in let acc = acc +.
 (t1 -. t0) *. b in<span class="math inline">b =\operatorname{fb}
-(t_{1}), \operatorname{acc} \approx \int_{t \leqslant t_{0}} f</span>.
-Cons (acc, lazy (loop t1 acc uts bs)) in memo1 (fun uts -&gt; lazy ( let
-Cons ((,t), uts’) = Lazy.force uts in Cons (0., lazy (loop t 0. uts’ (fb
-$ uts)))))</p>
+(t_{1}), \operatorname{acc}
+\approx \int_{t \leqslant t_{0}} f</span>. Cons (acc, lazy (loop t1 acc
+uts bs)) in memo1 (fun uts -&gt; lazy ( let Cons ((,t), uts’) =
+Lazy.force uts in Cons (0., lazy (loop t 0. uts’ (fb $ uts)))))</p>
 <ul>
 <li>In our <em>paddle game</em> example, we paradoxically express
 position and velocity in mutually recursive manner. The trick is the
@@ -11048,7 +11088,7 @@ ball]) walls paddle ball</p></li>
 <li><p>We can easily monitor signals while debugging, e.g.:</p>
 <p>notifye xbounce (fun () -&gt; Printf.printf “xbounce%!”); notifye
 ybounce (fun () -&gt; Printf.printf “ybounce%!”);</p></li>
-<li><p>Invocation:<code>ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs    froc/froc,unix,graphics,threads/threads --</code></p></li>
+<li><p>Invocation:<code>ocamlbuild Lec10c.native -cflags -I,+froc,-I,+threads -libs  froc/froc,unix,graphics,threads/threads --</code></p></li>
 </ul>
 <h2 id="direct-control">6 Direct Control</h2>
 <ul>
@@ -11064,7 +11104,7 @@ next event, disregarding any further arrivals of the first event!</p>
 <ul>
 <li>Therefore <em>Froc</em> constructs like mapping an event:
 <code>map</code>, or attaching a notification to a behavior change:
-<code>bind b1 (fun v1 -&gt; notify_b    ~now:false b2 (fun v2 -&gt;</code>
+<code>bind b1 (fun v1 -&gt; notify_b  ~now:false b2 (fun v2 -&gt;</code>
 …)), will not work.</li>
 </ul></li>
 <li><p>We also want to be able to repeat or loop a flow, but starting
@@ -11139,7 +11179,7 @@ unsuspended flows” | Sleep (xwaiters, xcancels) -&gt; a.state &lt;-
 Sleep (loop::xwaiters, xcancels)<br />
 | Link -&gt; assert false) in loop (); out</p></li>
 <li><p>Example: drawing shapes.
-Invocation:<code>ocamlbuild Lec10d.native -pp "camlp4o    monad/pa_monad.cmo" -libs froc/froc,graphics -cflags -I,+froc --</code></p></li>
+Invocation:<code>ocamlbuild Lec10d.native -pp "camlp4o  monad/pa_monad.cmo" -libs froc/froc,graphics -cflags -I,+froc --</code></p></li>
 <li><p>The event handlers and drawing/event dispatch loop
 <code>reactimate</code> is similar to the paddle game example (we
 removed unnecessary events).</p></li>
@@ -11223,17 +11263,17 @@ update.</p>
 <ul>
 <li><p>Widget toolkit <strong><em>Tk</em></strong> known from the
 <em>Tcl</em> language.</p></li>
-<li><p>Invocation:<code>ocamlbuild Lec10tk.byte -cflags -I,+froc -libs froc/froc  -pkg    labltk -pp "camlp4o monad/pa_monad.cmo" --</code></p>
+<li><p>Invocation:<code>ocamlbuild Lec10tk.byte -cflags -I,+froc -libs froc/froc  -pkg  labltk -pp "camlp4o monad/pa_monad.cmo" --</code></p>
 <ul>
 <li>For unknown reason I had build problems with <code>ocamlopt</code>
 (native).</li>
 </ul></li>
 <li><p>Layout of the calculator – common across GUIs.</p>
-<p>let layout = [|[|“7”,’Di 7.; “8”,’Di 8.; “9”,’Di 9.; “+”,’O
+<p>let layout = [|[|“7”,‘Di 7.; “8”,‘Di 8.; “9”,‘Di 9.; “+”,‘O
 (+.)|];<br />
-[|“4”,’Di 4.; “5”,’Di 5.; “6”,’Di 6.; “-”,’O (-.)|]; [|“1”,’Di 1.;
-“2”,’Di 2.; “3”,’Di 3.; “<em>“,’O ( </em>.)|]; [|“0”,’Di 0.; “.”,’Dot;
-“=”, ’O sk; “/”,’O (/.)|]|]</p></li>
+[|“4”,‘Di 4.; “5”,‘Di 5.; “6”,‘Di 6.; “-”,‘O (-.)|]; [|“1”,‘Di 1.;
+“2”,‘Di 2.; “3”,‘Di 3.; “<em>“,‘O ( </em>.)|]; [|“0”,‘Di 0.; “.”,‘Dot;
+“=”, ‘O sk; “/”,‘O (/.)|]|]</p></li>
 <li><p>Every <em>widget</em> (window gadget) has a parent in which it is
 located.</p></li>
 <li><p><em>Buttons</em> have action associated with pressing them,
@@ -11247,20 +11287,20 @@ class="math inline">\sim</span><code>command</code> argument.</li>
 <li><p>The parent is sent as last argument, after optional labelled
 arguments.</p>
 <p>let top = Tk.openTk ()let btnframe = Frame.create <span
-class="math inline">\sim</span>relief:’Groove <span
+class="math inline">\sim</span>relief:‘Groove <span
 class="math inline">\sim</span>borderwidth:2 toplet buttons = Array.map
-(Array.map (function | text, ’Dot -&gt; Button.create <span
+(Array.map (function | text, ‘Dot -&gt; Button.create <span
 class="math inline">\sim</span>text <span
 class="math inline">\sim</span>command:(fun () -&gt; F.send dot ())
-btnframe | text, ’Di d -&gt; Button.create <span
+btnframe | text, ‘Di d -&gt; Button.create <span
 class="math inline">\sim</span>text <span
 class="math inline">\sim</span>command:(fun () -&gt; F.send digit d)
-btnframe | text, ’O f -&gt; Button.create <span
+btnframe | text, ‘O f -&gt; Button.create <span
 class="math inline">\sim</span>text <span
 class="math inline">\sim</span>command:(fun () -&gt; F.send op f)
 btnframe)) layoutlet result = Label.create <span
 class="math inline">\sim</span>text:“0” <span
-class="math inline">\sim</span>relief:’Sunken top</p></li>
+class="math inline">\sim</span>relief:‘Sunken top</p></li>
 <li><p>GUI toolkits have layout algorithms, so we only need to tell
 which widgets hang together and whether they should fill all available
 space etc. – via <code>pack</code>, or <code>grid</code> for
@@ -11278,9 +11318,9 @@ class="math inline">\sim</span>rowspan.</p></li>
 <li><p><code>configure</code> functions accept the same arguments as
 <code>create</code> but change existing widgets.</p></li>
 <li><p>let () = Wm.titleset top “Calculator”; Tk.pack [result] <span
-class="math inline">\sim</span>side:’Top <span
-class="math inline">\sim</span>fill:’X; Tk.pack [btnframe] <span
-class="math inline">\sim</span>side:’Bottom <span
+class="math inline">\sim</span>side:‘Top <span
+class="math inline">\sim</span>fill:‘X; Tk.pack [btnframe] <span
+class="math inline">\sim</span>side:‘Bottom <span
 class="math inline">\sim</span>expand:true;<br />
 Array.iteri (fun column -&gt;Array.iteri (fun row button -&gt; Tk.grid
 <span class="math inline">\sim</span>column <span
@@ -11304,8 +11344,8 @@ methods are called with # syntax, e.g. window#show ()</p></li>
 <li>Registering a notification is called connecting a signal handler,
 e.g.button#connect#clicked <span
 class="math inline">\sim</span>callback:hello which takes <span
-class="math inline">\sim {\nobreak}</span>callback:(unit -&gt; unit) and
-returns GtkSignal.id.
+class="math inline">\sim
+{\nobreak}</span>callback:(unit -&gt; unit) and returns GtkSignal.id.
 <ul>
 <li>As with <em>Froc</em> notifications, multiple handlers can be
 attached.</li>
@@ -11338,7 +11378,7 @@ class="math inline">\sim</span>expand take <code>‘X</code>,
 <code>result</code> widget.</p></li>
 <li><p>Widgets have setter methods <code>widget#set_X</code> (instead of
 a single <code>configure</code> function in <em>Tk</em>).</p></li>
-<li><p>Invocation:<code>ocamlbuild Lec10gtk.native -cflags -I,+froc -libs froc/froc     -pkg lablgtk2 -pp "camlp4o monad/pa_monad.cmo" --</code></p></li>
+<li><p>Invocation:<code>ocamlbuild Lec10gtk.native -cflags -I,+froc -libs froc/froc   -pkg lablgtk2 -pp "camlp4o monad/pa_monad.cmo" --</code></p></li>
 <li><p>The model part of application doesn’t change.</p></li>
 <li><p>Setup:</p>
 <p>let = GtkMain.Main.init ()let window = GWindow.window <span
@@ -11353,15 +11393,15 @@ layout) <span class="math inline">\sim</span>columns:(Array.length
 layout.(0)) <span class="math inline">\sim</span>packing:top#add
 ()</p></li>
 <li><p>Button actions:</p>
-<p>let buttons = Array.map (Array.map (function | label, ’Dot -&gt; let
+<p>let buttons = Array.map (Array.map (function | label, ‘Dot -&gt; let
 b = GButton.button <span class="math inline">\sim</span>label () in let
 = b#connect#clicked<br />
 <span class="math inline">\sim</span>callback:(fun () -&gt; F.send dot
-()) in b | label, ’Di d -&gt;<br />
+()) in b | label, ‘Di d -&gt;<br />
 let b = GButton.button <span class="math inline">\sim</span>label () in
 let = b#connect#clicked<br />
 <span class="math inline">\sim</span>callback:(fun () -&gt; F.send digit
-d) in b | label, ’O f -&gt;<br />
+d) in b | label, ‘O f -&gt;<br />
 let b = GButton.button <span class="math inline">\sim</span>label () in
 let = b#connect#clicked<br />
 <span class="math inline">\sim</span>callback:(fun () -&gt; F.send op f)
@@ -11373,8 +11413,8 @@ class="math inline">\sim</span>callback:deleteevent in Array.iteri (fun
 column-&gt;Array.iteri (fun row button -&gt; btnframe#attach <span
 class="math inline">\sim</span>left:column <span
 class="math inline">\sim</span>top:row <span
-class="math inline">\sim</span>fill:’BOTH <span
-class="math inline">\sim</span>expand:’BOTH (button#coerce)) ) buttons;
+class="math inline">\sim</span>fill:‘BOTH <span
+class="math inline">\sim</span>expand:‘BOTH (button#coerce)) ) buttons;
 F.notifye calce (fun now -&gt; result#setlabel (stringoffloat now));
 window#show (); GMain.Main.main ()</p></li>
 <li><p><img src="Lec10calc_gtk.png" /></p></li>
@@ -11440,7 +11480,7 @@ localopt : (’a -&gt; ’b option) -&gt; (’a, ’c) flow -&gt; (’b, ’c)
 flow</p>
 <p><em>Implement an example that uses this compositionality-increasing
 capability.</em></p>
-<p>The Expression Problem</p>
+<h1 id="the-expression-problem">The Expression Problem</h1>
 <p>The Expression Problem</p>
 <p>Code organization, extensibility and reuse</p>
 <ul>
@@ -11874,7 +11914,7 @@ polymorphic variants.Duality implies many behaviors are opposite.</li>
 <li><p>While object subtypes have more methods, polymorphic variant
 subtypes have less tags.</p></li>
 <li><p>The &gt; sign means “these tags or more”:</p>
-<p>let0.5eml0.5em=0.5em[’Int0.5em3;0.5em‘Float0.5em4.];;val0.5eml0.5em:0.5em[&gt;0.5em‘Float0.5emof0.5emfloat0.5em0.5em‘Int0.5emof0.5emint0.5em]0.5emlist0.5em=0.5em[’Int0.5em3;0.5em‘Float0.5em4.]</p></li>
+<p>let0.5eml0.5em=0.5em[‘Int0.5em3;0.5em‘Float0.5em4.];;val0.5eml0.5em:0.5em[&gt;0.5em‘Float0.5emof0.5emfloat0.5em0.5em‘Int0.5emof0.5emint0.5em]0.5emlist0.5em=0.5em[‘Int0.5em3;0.5em‘Float0.5em4.]</p></li>
 <li><p>The &lt; sign means “these tags or less”:</p>
 <p>let0.5emispositive0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em0.5em‘Int0.5em0.5em0.5emx0.5em-&gt;0.5emSome0.5em(x0.5em&gt;0.5em0)0.5em0.5em0.5em0.5em0.5em0.5em‘Float0.5emx0.5em-&gt;0.5emSome0.5em(x0.5em&gt;0.5em0.)0.5em0.5em0.5em0.5em0.5em0.5em‘Notanumber0.5em-&gt;0.5emNone;;val0.5emispositive0.5em:0.5em0.5em[&lt;0.5em‘Float0.5emof0.5emfloat0.5em0.5em‘Int0.5emof0.5emint0.5em0.5em‘Notanumber0.5em]0.5em-&gt;0.5em
 bool0.5emoption0.5em=0.5em<fun></p></li>
@@ -11883,7 +11923,7 @@ the ..)</p></li>
 <li><p>Both an upper and a lower bound are sometimes inferred,see <a
 href="https://realworldocaml.org/v1/en/html/variants.html">https://realworldocaml.org/v1/en/html/variants.html</a></p>
 <p>List.filter0.5em0.5em(fun0.5emx0.5em-&gt;0.5emmatch0.5emispositive0.5emx0.5emwith0.5emNone0.5em-&gt;0.5emfalse0.5em0.5emSome0.5emb0.5em-&gt;0.5emb)0.5eml;;-0.5em:0.5em[&lt;0.5em‘Float0.5emof0.5emfloat0.5em0.5em‘Int0.5emof0.5emint0.5em0.5em‘Notanumber0.5em&gt;0.5em‘Float0.5em‘Int0.5em]0.5em
-list0.5em=[’Int0.5em3;0.5em‘Float0.5em4.]Polymorphic Variant Types: The
+list0.5em=[‘Int0.5em3;0.5em‘Float0.5em4.]Polymorphic Variant Types: The
 Expression Problem</p></li>
 <li><p>Because distinct polymorphic variant types can share the same
 tags, the solution to the Expression Problem is
@@ -11901,15 +11941,15 @@ aggregation (i.e.  merging sub-languages).</li>
 </ul>
 <p>Verdict: a flexible and concise solution, second-best place.</p></li>
 </ul>
-<p>type0.5emvar0.5em=0.5em[’Var0.5emof0.5emstring]let0.5emevalvar0.5emsub0.5em(’Var0.5ems0.5emas0.5emv0.5em:0.5emvar)0.5em=0.5em0.5emtry0.5emList.assoc0.5ems0.5emsub0.5emwith0.5emNotfound0.5em-&gt;0.5emvtype0.5em’a0.5emlambda0.5em=0.5em0.5em[’Var0.5emof0.5emstring0.5em0.5em‘Abs0.5emof0.5emstring0.5em<em>0.5em’a0.5em0.5em‘App0.5emof0.5em’a0.5em</em>0.5em’a]let0.5emgensym0.5em=0.5emlet0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5em0.5emstringofint0.5em!nlet0.5emevallambda0.5emevalrec0.5emsubst0.5em:0.5em’a0.5emlambda0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5em<code>evalvar0.5emsubst0.5emv</code>We
+<p>type0.5emvar0.5em=0.5em[‘Var0.5emof0.5emstring]let0.5emevalvar0.5emsub0.5em(‘Var0.5ems0.5emas0.5emv0.5em:0.5emvar)0.5em=0.5em0.5emtry0.5emList.assoc0.5ems0.5emsub0.5emwith0.5emNotfound0.5em-&gt;0.5emvtype0.5em’a0.5emlambda0.5em=0.5em0.5em[‘Var0.5emof0.5emstring0.5em0.5em‘Abs0.5emof0.5emstring0.5em<em>0.5em’a0.5em0.5em‘App0.5emof0.5em’a0.5em</em>0.5em’a]let0.5emgensym0.5em=0.5emlet0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5em0.5emstringofint0.5em!nlet0.5emevallambda0.5emevalrec0.5emsubst0.5em:0.5em’a0.5emlambda0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5em<code>evalvar0.5emsubst0.5emv</code>We
 could also leave the type
 open0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;rather than closing it
 to
-<code>lambda</code>.0.5em0.5em0.5em0.5emlet0.5eml2’0.5em=0.5emevalrec0.5emsubst0.5eml20.5emin0.5em0.5em0.5em0.5em(match0.5emevalrec0.5emsubst0.5eml10.5emwith0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5embody)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emevalrec0.5em[s,0.5eml2’]0.5embody0.5em0.5em0.5em0.5em0.5eml1’0.5em-&gt;0.5em‘App0.5em(l1’,0.5eml2’))0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5emlet0.5ems’0.5em=0.5emgensym0.5em()0.5emin0.5em0.5em0.5em0.5em‘Abs0.5em(s’,0.5emevalrec0.5em((s,0.5em‘Var0.5ems’)::subst)0.5eml1)let0.5emfreevarslambda0.5emfreevarsrec0.5em:0.5em’a0.5emlambda0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5emfreevarsrec0.5eml10.5em@0.5emfreevarsrec0.5eml20.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5emList.filter0.5em(fun0.5emv0.5em-&gt;0.5emv0.5em&lt;&gt;0.5ems)0.5em(freevarsrec0.5eml1)type0.5emlambdat0.5em=0.5emlambdat0.5emlambdalet0.5emrec0.5emeval10.5emsubst0.5eme0.5em:0.5emlambdat0.5em=0.5emevallambda0.5emeval10.5emsubst0.5emelet0.5emrec0.5emfreevars10.5em(e0.5em:0.5emlambdat)0.5em=0.5emfreevarslambda0.5emfreevars10.5emelet0.5emtest10.5em=0.5em(’App0.5em(’Abs0.5em(”x”,0.5em‘Var0.5em”x”),0.5em‘Var0.5em”y”)0.5em:&gt;0.5emlambdat)let0.5emetest0.5em=0.5emeval10.5em[]0.5emtest1let0.5emfvtest0.5em=0.5emfreevars10.5emtest1type0.5em’a0.5emexpr0.5em=0.5em0.5em[’Var0.5emof0.5emstring0.5em0.5em‘Num0.5emof0.5emint0.5em0.5em‘Add0.5emof0.5em’a0.5em<em>0.5em’a0.5em0.5em‘Mult0.5emof0.5em’a0.5em</em>0.5em’a]let0.5emmapexpr0.5em(f0.5em:0.5em0.5em-&gt;0.5em’a)0.5em:0.5em’a0.5emexpr0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emv0.5em0.5em0.5em‘Num0.5em0.5emas0.5emn0.5em-&gt;0.5emn0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Add0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Mult0.5em(f0.5eme1,0.5emf0.5eme2)let0.5emevalexpr0.5emevalrec0.5emsubst0.5em(e0.5em:0.5em’a0.5emexpr)0.5em:0.5em’a0.5em=0.5em0.5emmatch0.5emmapexpr0.5em(evalrec0.5emsubst)0.5eme0.5emwith0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5em<code>evalvar0.5emsubst0.5emv</code>Here
+<code>lambda</code>.0.5em0.5em0.5em0.5emlet0.5eml2’0.5em=0.5emevalrec0.5emsubst0.5eml20.5emin0.5em0.5em0.5em0.5em(match0.5emevalrec0.5emsubst0.5eml10.5emwith0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5embody)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emevalrec0.5em[s,0.5eml2’]0.5embody0.5em0.5em0.5em0.5em0.5eml1’0.5em-&gt;0.5em‘App0.5em(l1’,0.5eml2’))0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5emlet0.5ems’0.5em=0.5emgensym0.5em()0.5emin0.5em0.5em0.5em0.5em‘Abs0.5em(s’,0.5emevalrec0.5em((s,0.5em‘Var0.5ems’)::subst)0.5eml1)let0.5emfreevarslambda0.5emfreevarsrec0.5em:0.5em’a0.5emlambda0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5emfreevarsrec0.5eml10.5em@0.5emfreevarsrec0.5eml20.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5emList.filter0.5em(fun0.5emv0.5em-&gt;0.5emv0.5em&lt;&gt;0.5ems)0.5em(freevarsrec0.5eml1)type0.5emlambdat0.5em=0.5emlambdat0.5emlambdalet0.5emrec0.5emeval10.5emsubst0.5eme0.5em:0.5emlambdat0.5em=0.5emevallambda0.5emeval10.5emsubst0.5emelet0.5emrec0.5emfreevars10.5em(e0.5em:0.5emlambdat)0.5em=0.5emfreevarslambda0.5emfreevars10.5emelet0.5emtest10.5em=0.5em(‘App0.5em(‘Abs0.5em(”x”,0.5em‘Var0.5em”x”),0.5em‘Var0.5em”y”)0.5em:&gt;0.5emlambdat)let0.5emetest0.5em=0.5emeval10.5em[]0.5emtest1let0.5emfvtest0.5em=0.5emfreevars10.5emtest1type0.5em’a0.5emexpr0.5em=0.5em0.5em[‘Var0.5emof0.5emstring0.5em0.5em‘Num0.5emof0.5emint0.5em0.5em‘Add0.5emof0.5em’a0.5em<em>0.5em’a0.5em0.5em‘Mult0.5emof0.5em’a0.5em</em>0.5em’a]let0.5emmapexpr0.5em(f0.5em:0.5em0.5em-&gt;0.5em’a)0.5em:0.5em’a0.5emexpr0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emv0.5em0.5em0.5em‘Num0.5em0.5emas0.5emn0.5em-&gt;0.5emn0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Add0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Mult0.5em(f0.5eme1,0.5emf0.5eme2)let0.5emevalexpr0.5emevalrec0.5emsubst0.5em(e0.5em:0.5em’a0.5emexpr)0.5em:0.5em’a0.5em=0.5em0.5emmatch0.5emmapexpr0.5em(evalrec0.5emsubst)0.5eme0.5emwith0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5em<code>evalvar0.5emsubst0.5emv</code>Here
 and elsewhere, we could also
-factor-out0.5em0.5em<code>0.5em‘</code>Add0.5em(’Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em+0.5emn)the
+factor-out0.5em0.5em<code>0.5em‘</code>Add0.5em(‘Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em+0.5emn)the
 sub-language of
-variables.0.5em0.5em0.5em‘Mult0.5em(’Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em*0.5emn)0.5em0.5em0.5eme0.5em-&gt;0.5emelet0.5emfreevarsexpr0.5emfreevarsrec0.5em:0.5em’a0.5emexpr0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em‘Num0.5em0.5em-&gt;0.5em[]0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5emfreevarsrec0.5eme10.5em@0.5emfreevarsrec0.5eme2type0.5emexprt0.5em=0.5emexprt0.5emexprlet0.5emrec0.5emeval20.5emsubst0.5eme0.5em:0.5emexprt0.5em=0.5emevalexpr0.5emeval20.5emsubst0.5emelet0.5emrec0.5emfreevars20.5em(e0.5em:0.5emexprt)0.5em=0.5emfreevarsexpr0.5emfreevars20.5emelet0.5emtest20.5em=0.5em(’Add0.5em(’Mult0.5em(’Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)0.5em:0.5emexprt)let0.5emetest20.5em=0.5emeval20.5em[“x”,0.5em‘Num0.5em2]0.5emtest2let0.5emfvtest20.5em=0.5emfreevars20.5emtest2type0.5em’a0.5emlexpr0.5em=0.5em[’a0.5emlambda0.5em0.5em’a0.5emexpr]let0.5emevallexpr0.5emevalrec0.5emsubst0.5em:0.5em’a0.5emlexpr0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emevallambda0.5emevalrec0.5emsubst0.5emx0.5em0.5em0.5em#expr0.5emas0.5emx0.5em-&gt;0.5emevalexpr0.5emevalrec0.5emsubst0.5emxlet0.5emfreevarslexpr0.5emfreevarsrec0.5em:0.5em’a0.5emlexpr0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emfreevarslambda0.5emfreevarsrec0.5emx0.5em0.5em0.5em#expr0.5emas0.5emx0.5em-&gt;0.5emfreevarsexpr0.5emfreevarsrec0.5emxtype0.5emlexprt0.5em=0.5emlexprt0.5emlexprlet0.5emrec0.5emeval30.5emsubst0.5eme0.5em:0.5emlexprt0.5em=0.5emevallexpr0.5emeval30.5emsubst0.5emelet0.5emrec0.5emfreevars30.5em(e0.5em:0.5emlexprt)0.5em=0.5emfreevarslexpr0.5emfreevars30.5emelet0.5emtest30.5em=0.5em0.5em(’App0.5em(’Abs0.5em(“x”,0.5em‘Add0.5em(’Mult0.5em(’Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)),0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Num0.5em2)0.5em:0.5emlexprt)let0.5emetest30.5em=0.5emeval30.5em[]0.5emtest3let0.5emfvtest30.5em=0.5emfreevars30.5emtest3let0.5emeoldtest0.5em=0.5emeval30.5em[]0.5em(test20.5em:&gt;0.5emlexprt)let0.5emfvoldtest0.5em=0.5emfreevars30.5em(test20.5em:&gt;0.5emlexprt)Polymorphic
+variables.0.5em0.5em0.5em‘Mult0.5em(‘Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em*0.5emn)0.5em0.5em0.5eme0.5em-&gt;0.5emelet0.5emfreevarsexpr0.5emfreevarsrec0.5em:0.5em’a0.5emexpr0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em‘Num0.5em0.5em-&gt;0.5em[]0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5emfreevarsrec0.5eme10.5em@0.5emfreevarsrec0.5eme2type0.5emexprt0.5em=0.5emexprt0.5emexprlet0.5emrec0.5emeval20.5emsubst0.5eme0.5em:0.5emexprt0.5em=0.5emevalexpr0.5emeval20.5emsubst0.5emelet0.5emrec0.5emfreevars20.5em(e0.5em:0.5emexprt)0.5em=0.5emfreevarsexpr0.5emfreevars20.5emelet0.5emtest20.5em=0.5em(‘Add0.5em(‘Mult0.5em(‘Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)0.5em:0.5emexprt)let0.5emetest20.5em=0.5emeval20.5em[“x”,0.5em‘Num0.5em2]0.5emtest2let0.5emfvtest20.5em=0.5emfreevars20.5emtest2type0.5em’a0.5emlexpr0.5em=0.5em[’a0.5emlambda0.5em0.5em’a0.5emexpr]let0.5emevallexpr0.5emevalrec0.5emsubst0.5em:0.5em’a0.5emlexpr0.5em-&gt;0.5em’a0.5em=0.5emfunction0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emevallambda0.5emevalrec0.5emsubst0.5emx0.5em0.5em0.5em#expr0.5emas0.5emx0.5em-&gt;0.5emevalexpr0.5emevalrec0.5emsubst0.5emxlet0.5emfreevarslexpr0.5emfreevarsrec0.5em:0.5em’a0.5emlexpr0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emfreevarslambda0.5emfreevarsrec0.5emx0.5em0.5em0.5em#expr0.5emas0.5emx0.5em-&gt;0.5emfreevarsexpr0.5emfreevarsrec0.5emxtype0.5emlexprt0.5em=0.5emlexprt0.5emlexprlet0.5emrec0.5emeval30.5emsubst0.5eme0.5em:0.5emlexprt0.5em=0.5emevallexpr0.5emeval30.5emsubst0.5emelet0.5emrec0.5emfreevars30.5em(e0.5em:0.5emlexprt)0.5em=0.5emfreevarslexpr0.5emfreevars30.5emelet0.5emtest30.5em=0.5em0.5em(‘App0.5em(‘Abs0.5em(“x”,0.5em‘Add0.5em(‘Mult0.5em(‘Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)),0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Num0.5em2)0.5em:0.5emlexprt)let0.5emetest30.5em=0.5emeval30.5em[]0.5emtest3let0.5emfvtest30.5em=0.5emfreevars30.5emtest3let0.5emeoldtest0.5em=0.5emeval30.5em[]0.5em(test20.5em:&gt;0.5emlexprt)let0.5emfvoldtest0.5em=0.5emfreevars30.5em(test20.5em:&gt;0.5emlexprt)Polymorphic
 Variants and Recursive Modules</p>
 <ul>
 <li>Using recursive modules, we can clean-up the confusing or cluttering
@@ -11919,11 +11959,11 @@ arguments.</li>
 variants means <em>private rows</em>.
 <ul>
 <li><p>We can conceive of open row types, e.g. [&gt;
-’Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring] as using a
+‘Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring] as using a
 <em>row variable</em>, e.g. <code>'a</code>:</p>
-<p>[’Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring0.5em0.5em’a]</p>
+<p>[‘Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring0.5em0.5em’a]</p>
 <p>and then of private row types as abstracting the row variable:</p>
-<p>type0.5emtrowtype0.5emt0.5em=0.5em[’Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring0.5em0.5emtrow]</p>
+<p>type0.5emtrowtype0.5emt0.5em=0.5em[‘Int0.5emof0.5emint0.5em0.5em‘String0.5emof0.5emstring0.5em0.5emtrow]</p>
 <p>But the actual formalization of private row types is more
 complex.</p></li>
 </ul></li>
@@ -11936,12 +11976,12 @@ dispatch on merging of sub-languages.</li>
 </ul></li>
 <li>Verdict: a clean solution, best place.</li>
 </ul>
-<p>type0.5emvar0.5em=0.5em[’Var0.5emof0.5emstring]let0.5emevalvar0.5emsubst0.5em(’Var0.5ems0.5emas0.5emv0.5em:0.5emvar)0.5em=0.5em0.5emtry0.5emList.assoc0.5ems0.5emsubst0.5emwith0.5emNotfound0.5em-&gt;0.5emvtype0.5em’a0.5emlambda0.5em=0.5em0.5em[’Var0.5emof0.5emstring0.5em0.5em‘Abs0.5emof0.5emstring0.5em<em>0.5em’a0.5em0.5em‘App0.5emof0.5em’a0.5em</em>0.5em’a]module0.5emtype0.5emEval0.5em=sig0.5emtype0.5emexp0.5emval0.5emeval0.5em:0.5em(string0.5em*0.5emexp)0.5emlist0.5em-&gt;0.5emexp0.5em-&gt;0.5emexp0.5emendmodule0.5emLF(X0.5em:0.5emEval0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlambda]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlambda0.5em0.5emlet0.5emgensym0.5em=0.5em</p>
-<p>let0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5em0.5emstringofint0.5em!n0.5em0.5emlet0.5emeval0.5emsubst0.5em:0.5emexp0.5em-&gt;0.5emX.exp0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emevalvar0.5emsubst0.5emv0.5em0.5em0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emlet0.5eml2’0.5em=0.5emX.eval0.5emsubst0.5eml20.5emin0.5em0.5em0.5em0.5em0.5em0.5em(match0.5emX.eval0.5emsubst0.5eml10.5emwith0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5embody)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5emX.eval0.5em[s,0.5eml2’]0.5embody0.5em0.5em0.5em0.5em0.5em0.5em0.5eml1’0.5em-&gt;0.5em‘App0.5em(l1’,0.5eml2’))0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emlet0.5ems’0.5em=0.5emgensym0.5em()0.5emin0.5em0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s’,0.5emX.eval0.5em((s,0.5em‘Var0.5ems’)::subst)0.5eml1)endmodule0.5emrec0.5emLambda0.5em:0.5em(Eval0.5emwith0.5emtype0.5emexp0.5em=0.5emLambda.exp0.5emlambda)0.5em=0.5em0.5emLF(Lambda)module0.5emtype0.5emFreeVars0.5em=sig0.5emtype0.5emexp0.5emval0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5emstring0.5emlist0.5emendmodule0.5emLFVF(X0.5em:0.5emFreeVars0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlambda]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlambda0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5emX.freevars0.5eml10.5em@0.5emX.freevars0.5eml20.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emList.filter0.5em(fun0.5emv0.5em-&gt;0.5emv0.5em&lt;&gt;0.5ems)0.5em(X.freevars0.5eml1)endmodule0.5emrec0.5emLambdaFV0.5em:0.5em(FreeVars0.5emwith0.5emtype0.5emexp0.5em=0.5emLambdaFV.exp0.5emlambda)0.5em=0.5em0.5emLFVF(LambdaFV)let0.5emtest10.5em=0.5em(’App0.5em(’Abs0.5em(”x”,0.5em‘Var0.5em”x”),0.5em‘Var0.5em”y”)0.5em:0.5emLambda.exp)let0.5emetest0.5em=0.5emLambda.eval0.5em[]0.5emtest1let0.5emfvtest0.5em=0.5emLambdaFV.freevars0.5emtest1type0.5em’a0.5emexpr0.5em=0.5em0.5em[’Var0.5emof0.5emstring0.5em0.5em‘Num0.5emof0.5emint0.5em0.5em‘Add0.5emof0.5em’a0.5em<em>0.5em’a0.5em0.5em‘Mult0.5emof0.5em’a0.5em</em>0.5em’a]module0.5emtype0.5emOperations0.5em=sig0.5eminclude0.5emEval0.5eminclude0.5emFreeVars0.5emwith0.5emtype0.5emexp0.5em:=0.5emexp0.5emendmodule0.5emEF(X0.5em:0.5emOperations0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emexpr]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emexpr0.5em0.5emlet0.5emmapexpr0.5emf0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emv0.5em0.5em0.5em0.5em0.5em‘Num0.5em0.5emas0.5emn0.5em-&gt;0.5emn0.5em0.5em0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Add0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5em0.5em0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Mult0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5emlet0.5emeval0.5emsubst0.5em(e0.5em:0.5emexp)0.5em:0.5emX.exp0.5em=0.5em0.5em0.5em0.5emmatch0.5emmapexpr0.5em(X.eval0.5emsubst)0.5eme0.5emwith0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emevalvar0.5emsubst0.5emv0.5em0.5em0.5em0.5em0.5em‘Add0.5em(’Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em+0.5emn)0.5em0.5em0.5em0.5em0.5em‘Mult0.5em(’Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em*0.5emn)0.5em0.5em0.5em0.5em0.5eme0.5em-&gt;0.5eme0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em0.5em0.5em‘Num0.5em0.5em-&gt;0.5em[]0.5em0.5em0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5emX.freevars0.5eme10.5em@0.5emX.freevars0.5eme2endmodule0.5emrec0.5emExpr0.5em:0.5em(Operations0.5emwith0.5emtype0.5emexp0.5em=0.5emExpr.exp0.5emexpr)0.5em=0.5em0.5emEF(Expr)let0.5emtest20.5em=0.5em(’Add0.5em(’Mult0.5em(’Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)0.5em:0.5emExpr.exp)let0.5emetest20.5em=0.5emExpr.eval0.5em[“x”,0.5em‘Num0.5em2]0.5emtest2let0.5emfvstest20.5em=0.5emExpr.freevars0.5emtest2type0.5em’a0.5emlexpr0.5em=0.5em[’a0.5emlambda0.5em0.5em’a0.5emexpr]module0.5emLEF(X0.5em:0.5emOperations0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlexpr]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlexpr0.5em0.5emmodule0.5emLambdaX0.5em=0.5emLF(X)0.5em0.5emmodule0.5emLambdaFVX0.5em=0.5emLFVF(X)0.5em0.5emmodule0.5emExprX0.5em=0.5emEF(X)0.5em0.5emlet0.5emeval0.5emsubst0.5em:0.5emexp0.5em-&gt;0.5emX.exp0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#LambdaX.exp0.5emas0.5emx0.5em-&gt;0.5emLambdaX.eval0.5emsubst0.5emx0.5em0.5em0.5em0.5em0.5em#ExprX.exp0.5emas0.5emx0.5em-&gt;0.5emExprX.eval0.5emsubst0.5emx0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emLambdaFVX.freevars0.5emxEither
+<p>type0.5emvar0.5em=0.5em[‘Var0.5emof0.5emstring]let0.5emevalvar0.5emsubst0.5em(‘Var0.5ems0.5emas0.5emv0.5em:0.5emvar)0.5em=0.5em0.5emtry0.5emList.assoc0.5ems0.5emsubst0.5emwith0.5emNotfound0.5em-&gt;0.5emvtype0.5em’a0.5emlambda0.5em=0.5em0.5em[‘Var0.5emof0.5emstring0.5em0.5em‘Abs0.5emof0.5emstring0.5em<em>0.5em’a0.5em0.5em‘App0.5emof0.5em’a0.5em</em>0.5em’a]module0.5emtype0.5emEval0.5em=sig0.5emtype0.5emexp0.5emval0.5emeval0.5em:0.5em(string0.5em*0.5emexp)0.5emlist0.5em-&gt;0.5emexp0.5em-&gt;0.5emexp0.5emendmodule0.5emLF(X0.5em:0.5emEval0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlambda]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlambda0.5em0.5emlet0.5emgensym0.5em=0.5em</p>
+<p>let0.5emn0.5em=0.5emref0.5em00.5emin0.5emfun0.5em()0.5em-&gt;0.5emincr0.5emn;0.5em”“0.5em0.5emstringofint0.5em!n0.5em0.5emlet0.5emeval0.5emsubst0.5em:0.5emexp0.5em-&gt;0.5emX.exp0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emevalvar0.5emsubst0.5emv0.5em0.5em0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emlet0.5eml2’0.5em=0.5emX.eval0.5emsubst0.5eml20.5emin0.5em0.5em0.5em0.5em0.5em0.5em(match0.5emX.eval0.5emsubst0.5eml10.5emwith0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5embody)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5emX.eval0.5em[s,0.5eml2’]0.5embody0.5em0.5em0.5em0.5em0.5em0.5em0.5eml1’0.5em-&gt;0.5em‘App0.5em(l1’,0.5eml2’))0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emlet0.5ems’0.5em=0.5emgensym0.5em()0.5emin0.5em0.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s’,0.5emX.eval0.5em((s,0.5em‘Var0.5ems’)::subst)0.5eml1)endmodule0.5emrec0.5emLambda0.5em:0.5em(Eval0.5emwith0.5emtype0.5emexp0.5em=0.5emLambda.exp0.5emlambda)0.5em=0.5em0.5emLF(Lambda)module0.5emtype0.5emFreeVars0.5em=sig0.5emtype0.5emexp0.5emval0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5emstring0.5emlist0.5emendmodule0.5emLFVF(X0.5em:0.5emFreeVars0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlambda]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlambda0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em0.5em0.5em‘App0.5em(l1,0.5eml2)0.5em-&gt;0.5emX.freevars0.5eml10.5em@0.5emX.freevars0.5eml20.5em0.5em0.5em0.5em0.5em‘Abs0.5em(s,0.5eml1)0.5em-&gt;0.5em0.5em0.5em0.5em0.5em0.5emList.filter0.5em(fun0.5emv0.5em-&gt;0.5emv0.5em&lt;&gt;0.5ems)0.5em(X.freevars0.5eml1)endmodule0.5emrec0.5emLambdaFV0.5em:0.5em(FreeVars0.5emwith0.5emtype0.5emexp0.5em=0.5emLambdaFV.exp0.5emlambda)0.5em=0.5em0.5emLFVF(LambdaFV)let0.5emtest10.5em=0.5em(‘App0.5em(‘Abs0.5em(”x”,0.5em‘Var0.5em”x”),0.5em‘Var0.5em”y”)0.5em:0.5emLambda.exp)let0.5emetest0.5em=0.5emLambda.eval0.5em[]0.5emtest1let0.5emfvtest0.5em=0.5emLambdaFV.freevars0.5emtest1type0.5em’a0.5emexpr0.5em=0.5em0.5em[‘Var0.5emof0.5emstring0.5em0.5em‘Num0.5emof0.5emint0.5em0.5em‘Add0.5emof0.5em’a0.5em<em>0.5em’a0.5em0.5em‘Mult0.5emof0.5em’a0.5em</em>0.5em’a]module0.5emtype0.5emOperations0.5em=sig0.5eminclude0.5emEval0.5eminclude0.5emFreeVars0.5emwith0.5emtype0.5emexp0.5em:=0.5emexp0.5emendmodule0.5emEF(X0.5em:0.5emOperations0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emexpr]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emexpr0.5em0.5emlet0.5emmapexpr0.5emf0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emv0.5em0.5em0.5em0.5em0.5em‘Num0.5em0.5emas0.5emn0.5em-&gt;0.5emn0.5em0.5em0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Add0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5em0.5em0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5em‘Mult0.5em(f0.5eme1,0.5emf0.5eme2)0.5em0.5emlet0.5emeval0.5emsubst0.5em(e0.5em:0.5emexp)0.5em:0.5emX.exp0.5em=0.5em0.5em0.5em0.5emmatch0.5emmapexpr0.5em(X.eval0.5emsubst)0.5eme0.5emwith0.5em0.5em0.5em0.5em0.5em#var0.5emas0.5emv0.5em-&gt;0.5emevalvar0.5emsubst0.5emv0.5em0.5em0.5em0.5em0.5em‘Add0.5em(‘Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em+0.5emn)0.5em0.5em0.5em0.5em0.5em‘Mult0.5em(‘Num0.5emm,0.5em‘Num0.5emn)0.5em-&gt;0.5em‘Num0.5em(m0.5em*0.5emn)0.5em0.5em0.5em0.5em0.5eme0.5em-&gt;0.5eme0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em‘Var0.5emv0.5em-&gt;0.5em[v]0.5em0.5em0.5em0.5em0.5em‘Num0.5em0.5em-&gt;0.5em[]0.5em0.5em0.5em0.5em0.5em‘Add0.5em(e1,0.5eme2)0.5em0.5em‘Mult0.5em(e1,0.5eme2)0.5em-&gt;0.5emX.freevars0.5eme10.5em@0.5emX.freevars0.5eme2endmodule0.5emrec0.5emExpr0.5em:0.5em(Operations0.5emwith0.5emtype0.5emexp0.5em=0.5emExpr.exp0.5emexpr)0.5em=0.5em0.5emEF(Expr)let0.5emtest20.5em=0.5em(‘Add0.5em(‘Mult0.5em(‘Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)0.5em:0.5emExpr.exp)let0.5emetest20.5em=0.5emExpr.eval0.5em[“x”,0.5em‘Num0.5em2]0.5emtest2let0.5emfvstest20.5em=0.5emExpr.freevars0.5emtest2type0.5em’a0.5emlexpr0.5em=0.5em[’a0.5emlambda0.5em0.5em’a0.5emexpr]module0.5emLEF(X0.5em:0.5emOperations0.5emwith0.5emtype0.5emexp0.5em=0.5emprivate0.5em[&gt;0.5em’a0.5emlexpr]0.5emas0.5em’a)0.5em=struct0.5em0.5emtype0.5emexp0.5em=0.5emX.exp0.5emlexpr0.5em0.5emmodule0.5emLambdaX0.5em=0.5emLF(X)0.5em0.5emmodule0.5emLambdaFVX0.5em=0.5emLFVF(X)0.5em0.5emmodule0.5emExprX0.5em=0.5emEF(X)0.5em0.5emlet0.5emeval0.5emsubst0.5em:0.5emexp0.5em-&gt;0.5emX.exp0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#LambdaX.exp0.5emas0.5emx0.5em-&gt;0.5emLambdaX.eval0.5emsubst0.5emx0.5em0.5em0.5em0.5em0.5em#ExprX.exp0.5emas0.5emx0.5em-&gt;0.5emExprX.eval0.5emsubst0.5emx0.5em0.5emlet0.5emfreevars0.5em:0.5emexp0.5em-&gt;0.5em’b0.5em=0.5emfunction0.5em0.5em0.5em0.5em0.5em#lambda0.5emas0.5emx0.5em-&gt;0.5emLambdaFVX.freevars0.5emxEither
 of #lambda or #LambdaX.exp is
 fine.<code>0.5em0.5em0.5em0.5em</code>0.5em#expr0.5emas0.5emx0.5em-&gt;0.5emExprX.freevars0.5emxEither
 of #expr or #ExprX.exp is
-fine.endmodule0.5emrec0.5emLExpr0.5em:0.5em(Operations0.5emwith0.5emtype0.5emexp0.5em=0.5emLExpr.exp0.5emlexpr)0.5em=0.5em0.5emLEF(LExpr)let0.5emtest30.5em=0.5em0.5em(’App0.5em(’Abs0.5em(“x”,0.5em‘Add0.5em(’Mult0.5em(’Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)),0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Num0.5em2)0.5em:0.5emLExpr.exp)let0.5emetest30.5em=0.5emLExpr.eval0.5em[]0.5emtest3let0.5emfvtest30.5em=0.5emLExpr.freevars0.5emtest3let0.5emeoldtest0.5em=0.5emLExpr.eval0.5em[]0.5em(test20.5em:&gt;0.5emLExpr.exp)let0.5emfvoldtest0.5em=0.5emLExpr.freevars0.5em(test20.5em:&gt;0.5emLExpr.exp)Digression:
+fine.endmodule0.5emrec0.5emLExpr0.5em:0.5em(Operations0.5emwith0.5emtype0.5emexp0.5em=0.5emLExpr.exp0.5emlexpr)0.5em=0.5em0.5emLEF(LExpr)let0.5emtest30.5em=0.5em0.5em(‘App0.5em(‘Abs0.5em(“x”,0.5em‘Add0.5em(‘Mult0.5em(‘Num0.5em3,0.5em‘Var0.5em”x”),0.5em‘Num0.5em1)),0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em0.5em‘Num0.5em2)0.5em:0.5emLExpr.exp)let0.5emetest30.5em=0.5emLExpr.eval0.5em[]0.5emtest3let0.5emfvtest30.5em=0.5emLExpr.freevars0.5emtest3let0.5emeoldtest0.5em=0.5emLExpr.eval0.5em[]0.5em(test20.5em:&gt;0.5emLExpr.exp)let0.5emfvoldtest0.5em=0.5emLExpr.freevars0.5em(test20.5em:&gt;0.5emLExpr.exp)Digression:
 Parser Combinators</p>
 <ul>
 <li><p>We have done parsing using external languages OCamlLex and
@@ -11960,8 +12000,8 @@ of the <em>Extended Backus-Naur Form</em> notation are:</p>
 class="math inline">S = \lbrace \epsilon \rbrace \cup A</span>, where
 <span class="math inline">\epsilon</span> is an empty string,</li>
 <li>repetition: <span class="math inline">S = \lbrace A \rbrace</span>
-stands for <span class="math inline">S = \lbrace \epsilon \rbrace \cup
-\lbrace a s|a \in A, s \in S \rbrace</span>,</li>
+stands for <span class="math inline">S = \lbrace \epsilon
+\rbrace \cup \lbrace a s|a \in A, s \in S \rbrace</span>,</li>
 <li>terminal string: <span class="math inline">S =&#39;&#39;
 a&#39;&#39;</span> stands for <span class="math inline">S = \lbrace a
 \rbrace</span>.</li>
@@ -11973,7 +12013,7 @@ Algorithmically they are <em>recursive descent parsers</em>.</p></li>
 plus</em> values:</p>
 <ul>
 <li><p>Bind:
-<code>val (&gt;&gt;=) : 'a parser -&gt; ('a -&gt; 'b parser) -&gt;    'b parser</code></p>
+<code>val (&gt;&gt;=) : 'a parser -&gt; ('a -&gt; 'b parser) -&gt;  'b parser</code></p>
 <ul>
 <li><code>p &gt;&gt;= f</code> is a parser that first parses
 <code>p</code>, and makes the result available for parsing
@@ -11982,16 +12022,17 @@ plus</em> values:</p>
 <li><p>Return: <code>val return : 'a -&gt; 'a parser</code></p>
 <ul>
 <li><code>return x</code> parses an empty string, symbolically <span
-class="math inline">S = \lbrace \epsilon \rbrace</span>, and returns
-<code>x</code>.</li>
+class="math inline">S = \lbrace \epsilon
+\rbrace</span>, and returns <code>x</code>.</li>
 </ul></li>
 <li><p>MZero: <code>val fail : 'a parser</code></p>
 <ul>
 <li><code>fail</code> fails to parse anything, symbolically <span
-class="math inline">S = \varnothing = \lbrace \rbrace</span>.</li>
+class="math inline">S = \varnothing = \lbrace
+\rbrace</span>.</li>
 </ul></li>
 <li><p>MPlus: either
-<code>val &lt;|&gt; : 'a parser -&gt; 'a parser -&gt; 'a    parser</code>,</p>
+<code>val &lt;|&gt; : 'a parser -&gt; 'a parser -&gt; 'a  parser</code>,</p>
 <p>or
 <code>val &lt;|&gt; : 'a parser -&gt; 'b parser -&gt; ('a, 'b) choice  parser</code></p>
 <ul>
@@ -12120,8 +12161,8 @@ PluginBase.(grammarrules0.5em:=0.5emnumber0.5em::0.5emaddition0.5em::0.5em!gramm
 rule: <span class="math inline">S \rightarrow (S \ast
 S)</span>.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0.5emliteral0.5em”<em>“;0.5emn20.5em&lt;–0.5emlang;0.5emliteral0.5em”)“;0.5em0.5em0.5em0.5emreturn0.5em(n10.5em</em>0.5emn2)let0.5em()0.5em=
 PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)</p>
-<p>Functional ProgrammingŁukasz Stafiniak</p>
-<p>The Expression Problem</p>
+<h2 id="the-expression-problem-exercises">The Expression Problem –
+Exercises</h2>
 <p><strong>Exercise 1:</strong> <span id="ExStringOf"></span>Implement
 the <code>string_of_</code> functions or methods, covering all data
 cases, corresponding to the <code>eval_</code> functions in at least two
@@ -12321,10 +12362,10 @@ values (a dictionary) using only functions (without data structures like
 lists or trees).</p>
 <p><strong>Exercise 11:</strong> (Purple.) One way to express
 constraints on a polymorphic function is to write its type in the form:
-<span class="math inline">\forall \alpha _{1} \ldots \alpha _{n} [C] .
-\tau</span>, where <span class="math inline">\tau</span> is the type of
-the function, <span class="math inline">\alpha _{1} \ldots \alpha
-_{n}</span> are the polymorphic type variables, and <span
+<span class="math inline">\forall \alpha _{1} \ldots \alpha
+_{n} [C] . \tau</span>, where <span class="math inline">\tau</span> is
+the type of the function, <span class="math inline">\alpha _{1}
+\ldots \alpha _{n}</span> are the polymorphic type variables, and <span
 class="math inline">C</span> are additional constraints that the
 variables <span class="math inline">\alpha _{1} \ldots \alpha
 _{n}</span> have to meet. Let’s say we allow “local variables” in <span
@@ -12343,8 +12384,8 @@ left subtree and the height of its right subtree are almost equal, which
 means their difference is not greater than one. Consider a
 height-balanced binary tree of height <span
 class="math inline">h</span>. What is the maximum number of nodes it can
-contain? Clearly, <span class="math inline">\operatorname{maxN}= 2 h -
-1</span>. However, finding the minimum number <span
+contain? Clearly, <span class="math inline">\operatorname{maxN}=
+2 h - 1</span>. However, finding the minimum number <span
 class="math inline">\operatorname{minN}</span> is more difficult.</p>
 <p><em>Construct all the height-balanced binary trees with a given nuber
 of nodes. <code>hbal_tree_nodes n</code> returns a list of all
