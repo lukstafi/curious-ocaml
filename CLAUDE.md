@@ -60,7 +60,7 @@ dune build @pdfs/new_book
 
 ## TeXmacs Source File Extraction
 
-Some source materials may be in TeXmacs format (.tm files). Key knowledge for extracting content:
+The source materials are in TeXmacs format (.tm files). Key knowledge for extracting content:
 
 ### TeXmacs Format Basics
 
@@ -81,32 +81,16 @@ The author uses a custom highlighting style with semantic commands:
 
 **Important**: The `hlendline` content is particularly valuable as it contains pedagogical commentary explaining what the code does. These should be preserved as inline comments in the extracted code.
 
-### Translation Strategy (Learned from Pascal-course project)
+### Textbook-ization Strategy
 
-Based on successful translation of 17 TeXmacs files (10 lectures + 7 assignments):
-
-1. **Direct TeXmacs → Markdown translation** works better than TeXmacs → LaTeX → Markdown pipeline
+1. Use the automatically extracted `.md` files e.g. chapter1/functional-lecture01.md as scaffolding, audit them against the original `.tm` files e.g. chapter1/functional-lecture01.tm , extract **all** information to README files e.g. chapter1/README.md while adjusting the content and presentation to be more like in a textbook
 2. **Use Task agents** for large files (>25k tokens) - they can handle the full document in one pass
 3. **Preserve margin comments** by converting `hlendline` content to inline code comments
 4. **Extract code blocks** with proper language tagging (```ocaml for this project)
 5. **YAML front matter** for metadata (title, author, lecture number, etc.)
 6. **Pandoc-flavored Markdown** for enhanced styling (tables, code blocks, math)
 7. **Fix escape sequences** - wrap literal `\n`, `\r`, etc. in backticks to avoid LaTeX errors
-8. **Generate PDFs** using `pandoc --pdf-engine=xelatex` for Unicode support
-
-### Example Translation Workflow
-
-```bash
-# Read TeXmacs source directly (use Task agent for large files)
-# Translate to Markdown preserving:
-# - Code structure with syntax highlighting
-# - Margin comments as inline comments
-# - Mathematical notation
-# - Document structure (sections, lists)
-
-# Generate PDF from Markdown
-pandoc output.md -o output.pdf --pdf-engine=xelatex --variable geometry:margin=1in
-```
+8. The README.md files e.g. chapter1/README.md should contain the **complete contents**, adjusted for a more textbook-like presentation relative to the slide sources
 
 ### Custom Highlighting Command Reference
 
@@ -115,7 +99,7 @@ When encountering TeXmacs code blocks with highlighting:
 ```
 <\code>
   <\with|par-mode|center|par-hyphen|normal>
-    <hlkwa|let> <hlstd|x> <hlopt|=> <hlnum|42> <hlendline|// This is a margin comment>
+    <hlkwa|let> <hlstd|x> <hlopt|=> <hlnum|42> <hlendline|This is a margin comment>
   </with>
 </code>
 ```
@@ -123,7 +107,7 @@ When encountering TeXmacs code blocks with highlighting:
 Should be extracted as:
 
 ```ocaml
-let x = 42  // This is a margin comment
+let x = 42  (* This is a margin comment *)
 ```
 
 The semantic highlighting commands can be stripped during extraction - they're primarily for visual presentation in TeXmacs.
