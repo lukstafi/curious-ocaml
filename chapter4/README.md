@@ -17,7 +17,7 @@ Recall that we use `fix` instead of `let rec` to simplify rules for recursion. A
 
 Consider the following recursive `length` function applied to a two-element list:
 
-```ocaml
+```
 let rec fix f x = f (fix f) x
 
 type int_list = Nil | Cons of int * int_list
@@ -26,7 +26,8 @@ let length =
   fix (fun f l ->
     match l with
       | Nil -> 0
-      | Cons (x, xs) -> 1 + f xs) in
+      | Cons (x, xs) -> 1 + f xs)
+
 length (Cons (1, (Cons (2, Nil))))
 ```
 
@@ -579,7 +580,7 @@ The encoded variants serve as shallow pattern matching with guaranteed exhaustiv
 
 Let us return to pair-encoded numbers and define addition:
 
-```ocaml
+```
 let pn_add m n =
   fix (fun f m n ->
     if_then_else (pn_is_zero m)
@@ -598,7 +599,7 @@ To avoid looping recursion, you need to guard all recursive calls. Besides putti
 
 The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value:
 
-```ocaml
+```
 let id x = x
 let rec fix f x = f (fix f) x
 let pn1 x = pn_succ pn0 x
