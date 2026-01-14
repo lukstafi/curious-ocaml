@@ -3933,10 +3933,21 @@ The naming convention for `fold_right` and `fold_left` reflects associativity:
 - `fold_left f` makes `f` **left associative**, like function application:
   `List.fold_left f a [b1; ...; bn]` is `f (... (f (f a b1) b2) ...) bn`
 
-The &quot;backward&quot; structure of `fold_left`:
-- Input: `[a; b; c; d]`
-- Result: `f (f (f (f accu a) b) c) d`
+The &quot;backward&quot; structure of `fold_left` — the input list has a right-leaning spine,
+while the computation tree has a left-leaning spine:
+</code></pre>
+<pre><code>Input list              Result computation
 
+    ::                         f
+   /  \                       / \
+  a    ::                    f   d
+      /  \                  / \
+     b    ::               f   c
+         /  \             / \
+        c    ::          f   b
+            /  \        / \
+           d    []  accu   a</code></pre>
+<pre><code>
 #### Useful Derived Functions
 
 List filtering is naturally expressed using `fold_right`:
@@ -4275,8 +4286,27 @@ contact).</p>
 <p>Given a honeycomb with some cells initially marked black, mark
 additional cells so that unmarked cells form <code>num_islands</code>
 disconnected components, each with <code>island_size</code> cells.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Task: 3 islands × 3 cells</th>
+<th style="text-align: center;">Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><img src="honey0.png" alt="Task" /></td>
+<td style="text-align: center;"><img src="honey1.png"
+alt="Solution" /></td>
+</tr>
+</tbody>
+</table>
+<p>In the solution, yellow cells contain honey, black cells were
+initially empty, and purple cells are the newly “eaten” cells that
+separate the honey into 3 islands of 3 cells each.</p>
 <h4 id="representing-the-honeycomb">Representing the Honeycomb</h4>
-<p>```ocaml skip type cell = int * int (* Cartesian coordinates *)</p>
+<p>```ocaml env=ch6 type cell = int * int (* Cartesian coordinates
+*)</p>
 <p>module CellSet = (* Store cells in sets *) Set.Make (struct type t =
 cell let compare = compare end)</p>
 <p>type task = { (* For board size N, coordinates <em>) board_size :
@@ -4289,61 +4319,64 @@ Initially empty cells *) }</p>
 <pre><code>
 **Neighborhood:** Each cell (x, y) has up to 6 neighbors:
 
-```ocaml skip
+```ocaml env=ch6
+let even x = x mod 2 = 0
+
+let inside_board n eaten (x, y) =
+  even x = even y &amp;&amp; abs y &lt;= n &amp;&amp;
+  abs x + abs y &lt;= 2*n &amp;&amp;
+  not (CellSet.mem (x, y) eaten)
+
 let neighbors n eaten (x, y) =
   List.filter
     (inside_board n eaten)
     [x-1,y-1; x+1,y-1; x+2,y;
      x+1,y+1; x-1,y+1; x-2,y]</code></pre>
 <p><strong>Building the honeycomb:</strong></p>
-<p>```ocaml skip let even x = x mod 2 = 0</p>
-<p>let inside_board n eaten (x, y) = even x = even y &amp;&amp; abs y
-&lt;= n &amp;&amp; abs x + abs y &lt;= 2*n &amp;&amp; not (CellSet.mem
-(x, y) eaten)</p>
-<p>let honey_cells n eaten = fromto (-2<em>n) (2</em>n) |-&gt; (fun x
--&gt; fromto (-n) n |-&gt; (fun y -&gt; pred_guard (inside_board n
-eaten) (x, y)))</p>
+<p><code>ocaml env=ch6 let honey_cells n eaten =   fromto (-2*n) (2*n) |-&gt; (fun x -&gt;     fromto (-n) n |-&gt; (fun y -&gt;      pred_guard (inside_board n eaten)         (x, y)))</code></p>
+<h4 id="drawing-honeycombs">Drawing Honeycombs</h4>
+<p>To visualize the honeycomb, we generate colored polygons. Each cell
+is drawn as a hexagon by placing 6 points evenly spaced on a
+circumcircle:</p>
+<p><code>ocaml skip let draw_honeycomb ~w ~h task eaten =   let i2f = float_of_int in   let nx = i2f (4 * task.board_size + 2) in   let ny = i2f (2 * task.board_size + 2) in   let radius = min (i2f w /. nx) (i2f h /. ny) in   let x0 = w / 2 in   let y0 = h / 2 in   let dx = (sqrt 3. /. 2.) *. radius +. 1. in  (* Distance between *)   let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)   let draw_cell (x, y) =     Array.init 7                               (* Draw a closed polygon *)       (fun i -&gt;                                (* with 6 points evenly *)         let phi = float_of_int i *. pi /. 3. in   (* spaced on circumcircle *)         x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),         y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in   let honey =     honey_cells task.board_size (CellSet.union task.empty_cells                                    (cellset_of_list eaten))     |&gt; List.map (fun p -&gt; draw_cell p, (255, 255, 0)) in   (* Yellow cells *)   let eaten = List.map     (fun p -&gt; draw_cell p, (50, 0, 50)) eaten in           (* Purple: eaten *)   let old_empty = List.map     (fun p -&gt; draw_cell p, (0, 0, 0))                      (* Black: empty *)     (CellSet.elements task.empty_cells) in   honey @ eaten @ old_empty</code></p>
+<p><strong>Drawing to SVG:</strong> We can render the polygons to an SVG
+image file:</p>
+<p><code>ocaml skip let draw_to_svg file ~w ~h ?title ?desc curves =   let f = open_out file in   Printf.fprintf f "&lt;?xml version=\"1.0\" standalone=\"no\"?&gt; &lt;!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"   \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"&gt; &lt;svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"     xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"&gt; " w h w h;   (match title with None -&gt; ()   | Some title -&gt; Printf.fprintf f "  &lt;title&gt;%s&lt;/title&gt;\n" title);   (match desc with None -&gt; ()   | Some desc -&gt; Printf.fprintf f "  &lt;desc&gt;%s&lt;/desc&gt;\n" desc);   let draw_shape (points, (r, g, b)) =     uncurry (Printf.fprintf f "  &lt;path d=\"M %d %d") points.(0);     Array.iteri (fun i (x, y) -&gt;       if i &gt; 0 then Printf.fprintf f " L %d %d" x y) points;     Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" /&gt;\n"       r g b in   List.iter draw_shape curves;   Printf.fprintf f "&lt;/svg&gt;%!"</code></p>
+<p><strong>Drawing to screen:</strong> We can also draw interactively
+using the <code>Graphics</code> library. In the toplevel, load it with
+<code>#load "graphics.cma";;</code>. When compiling, provide
+<code>graphics.cma</code> to the command.</p>
+<p><code>ocaml skip let draw_to_screen ~w ~h curves =   Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);   Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)   Graphics.fill_rect 0 0 (Graphics.size_x ()) (Graphics.size_y ());   List.iter (fun (points, (r, g, b)) -&gt;     Graphics.set_color (Graphics.rgb r g b);     Graphics.fill_poly points) curves;   if Graphics.read_key () = 'q'                (* Wait so solutions can be seen *)   then failwith "User interrupted finding solutions.";   Graphics.close_graph ()</code></p>
+<h4 id="testing-correctness">Testing Correctness</h4>
+<p>We walk through each island counting cells depth-first:</p>
+<p>```ocaml skip let check_correct n island_size num_islands empty_cells
+= let honey = honey_cells n empty_cells in</p>
+<p>let rec check_board been_islands unvisited visited = match unvisited
+with | [] -&gt; been_islands = num_islands | cell::remaining when
+CellSet.mem cell visited -&gt; check_board been_islands remaining
+visited (* Keep looking <em>) | cell::remaining (</em> when not visited
+<em>) -&gt; let (been_size, unvisited, visited) = check_island cell
+(</em> Visit another island *) (1, remaining, CellSet.add cell visited)
+in been_size = island_size &amp;&amp; check_board (been_islands+1)
+unvisited visited</p>
+<p>and check_island current state = neighbors n empty_cells current
+|&gt; List.fold_left (* Walk into each direction <em>) (fun (been_size,
+unvisited, visited as state) neighbor -&gt; if CellSet.mem neighbor
+visited then state else let unvisited = remove neighbor unvisited in let
+visited = CellSet.add neighbor visited in let been_size = been_size + 1
+in check_island neighbor (been_size, unvisited, visited)) state in
+(</em> Initial been_size is 1 *)</p>
+<p>check_board 0 honey empty_cells</p>
 <pre><code>
-#### Testing Correctness
+#### Multiple Results per Step: concat_fold
 
-We walk through each island counting cells depth-first:
+When processing lists with potentially multiple results per step, we need `concat_fold`:
 
-```ocaml skip
-let check_correct n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec check_board been_islands unvisited visited =
-    match unvisited with
-    | [] -&gt; been_islands = num_islands
-    | cell::remaining when CellSet.mem cell visited -&gt;
-        check_board been_islands remaining visited    (* Keep looking *)
-    | cell::remaining (* when not visited *) -&gt;
-        let (been_size, unvisited, visited) =
-          check_island cell                           (* Visit another island *)
-            (1, remaining, CellSet.add cell visited) in
-        been_size = island_size
-        &amp;&amp; check_board (been_islands+1) unvisited visited
-
-  and check_island current state =
-    neighbors n empty_cells current
-    |&gt; List.fold_left                                 (* Walk into each direction *)
-      (fun (been_size, unvisited, visited as state)
-        neighbor -&gt;
-        if CellSet.mem neighbor visited then state
-        else
-          let unvisited = remove neighbor unvisited in
-          let visited = CellSet.add neighbor visited in
-          let been_size = been_size + 1 in
-          check_island neighbor
-            (been_size, unvisited, visited))
-      state in                                        (* Initial been_size is 1 *)
-
-  check_board 0 honey empty_cells</code></pre>
-<h4 id="multiple-results-per-step-concat_fold">Multiple Results per
-Step: concat_fold</h4>
-<p>When processing lists with potentially multiple results per step, we
-need <code>concat_fold</code>:</p>
-<p><code>ocaml env=ch6 let rec concat_fold f a = function   | [] -&gt; [a]   | x::xs -&gt;     f x a |-&gt; (fun a' -&gt; concat_fold f a' xs)</code></p>
+```ocaml env=ch6
+let rec concat_fold f a = function
+  | [] -&gt; [a]
+  | x::xs -&gt;
+    f x a |-&gt; (fun a&#39; -&gt; concat_fold f a&#39; xs)</code></pre>
 <h4 id="generating-solutions">Generating Solutions</h4>
 <p>We transform the testing code into generation code by:</p>
 <ul>

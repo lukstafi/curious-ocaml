@@ -7,6 +7,10 @@
 
 (copy_files
  (mode promote)
+ (files ../chapter6/*.png))
+
+(copy_files
+ (mode promote)
  (files ../chapter7/*.eps))
 
 (copy_files

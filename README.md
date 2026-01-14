@@ -2902,9 +2902,22 @@ The naming convention for `fold_right` and `fold_left` reflects associativity:
 - `fold_left f` makes `f` **left associative**, like function application:
   `List.fold_left f a [b1; ...; bn]` is `f (... (f (f a b1) b2) ...) bn`
 
-The "backward" structure of `fold_left`:
-- Input: `[a; b; c; d]`
-- Result: `f (f (f (f accu a) b) c) d`
+The "backward" structure of `fold_left` — the input list has a right-leaning spine,
+while the computation tree has a left-leaning spine:
+
+```
+    Input list              Result computation
+
+        ::                         f
+       /  \                       / \
+      a    ::                    f   d
+          /  \                  / \
+         b    ::               f   c
+             /  \             / \
+            c    ::          f   b
+                /  \        / \
+               d    []  accu   a
+```
 
 #### Useful Derived Functions
 
@@ -3513,9 +3526,15 @@ The Honey Islands puzzle: Find cells to eat honey from so that the least amount 
 
 Given a honeycomb with some cells initially marked black, mark additional cells so that unmarked cells form `num_islands` disconnected components, each with `island_size` cells.
 
+| Task: 3 islands × 3 cells | Solution |
+|:-------------------------:|:--------:|
+| ![Task](honey0.png) | ![Solution](honey1.png) |
+
+In the solution, yellow cells contain honey, black cells were initially empty, and purple cells are the newly "eaten" cells that separate the honey into 3 islands of 3 cells each.
+
 #### Representing the Honeycomb
 
-```ocaml skip
+```ocaml env=ch6
 type cell = int * int                       (* Cartesian coordinates *)
 
 module CellSet =                            (* Store cells in sets *)
@@ -3534,7 +3553,14 @@ let cellset_of_list l =                     (* List to set, inverse of CellSet.e
 
 **Neighborhood:** Each cell (x, y) has up to 6 neighbors:
 
-```ocaml skip
+```ocaml env=ch6
+let even x = x mod 2 = 0
+
+let inside_board n eaten (x, y) =
+  even x = even y && abs y <= n &&
+  abs x + abs y <= 2*n &&
+  not (CellSet.mem (x, y) eaten)
+
 let neighbors n eaten (x, y) =
   List.filter
     (inside_board n eaten)
@@ -3544,19 +3570,87 @@ let neighbors n eaten (x, y) =
 
 **Building the honeycomb:**
 
-```ocaml skip
-let even x = x mod 2 = 0
-
-let inside_board n eaten (x, y) =
-  even x = even y && abs y <= n &&
-  abs x + abs y <= 2*n &&
-  not (CellSet.mem (x, y) eaten)
-
+```ocaml env=ch6
 let honey_cells n eaten =
   fromto (-2*n) (2*n) |-> (fun x ->
     fromto (-n) n |-> (fun y ->
      pred_guard (inside_board n eaten)
         (x, y)))
+```
+
+#### Drawing Honeycombs
+
+To visualize the honeycomb, we generate colored polygons. Each cell is drawn as a hexagon
+by placing 6 points evenly spaced on a circumcircle:
+
+```ocaml skip
+let draw_honeycomb ~w ~h task eaten =
+  let i2f = float_of_int in
+  let nx = i2f (4 * task.board_size + 2) in
+  let ny = i2f (2 * task.board_size + 2) in
+  let radius = min (i2f w /. nx) (i2f h /. ny) in
+  let x0 = w / 2 in
+  let y0 = h / 2 in
+  let dx = (sqrt 3. /. 2.) *. radius +. 1. in  (* Distance between *)
+  let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)
+  let draw_cell (x, y) =
+    Array.init 7                               (* Draw a closed polygon *)
+      (fun i ->                                (* with 6 points evenly *)
+        let phi = float_of_int i *. pi /. 3. in   (* spaced on circumcircle *)
+        x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),
+        y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in
+  let honey =
+    honey_cells task.board_size (CellSet.union task.empty_cells
+                                   (cellset_of_list eaten))
+    |> List.map (fun p -> draw_cell p, (255, 255, 0)) in   (* Yellow cells *)
+  let eaten = List.map
+    (fun p -> draw_cell p, (50, 0, 50)) eaten in           (* Purple: eaten *)
+  let old_empty = List.map
+    (fun p -> draw_cell p, (0, 0, 0))                      (* Black: empty *)
+    (CellSet.elements task.empty_cells) in
+  honey @ eaten @ old_empty
+```
+
+**Drawing to SVG:** We can render the polygons to an SVG image file:
+
+```ocaml skip
+let draw_to_svg file ~w ~h ?title ?desc curves =
+  let f = open_out file in
+  Printf.fprintf f "<?xml version=\"1.0\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"
+  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"
+    xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">
+" w h w h;
+  (match title with None -> ()
+  | Some title -> Printf.fprintf f "  <title>%s</title>\n" title);
+  (match desc with None -> ()
+  | Some desc -> Printf.fprintf f "  <desc>%s</desc>\n" desc);
+  let draw_shape (points, (r, g, b)) =
+    uncurry (Printf.fprintf f "  <path d=\"M %d %d") points.(0);
+    Array.iteri (fun i (x, y) ->
+      if i > 0 then Printf.fprintf f " L %d %d" x y) points;
+    Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" />\n"
+      r g b in
+  List.iter draw_shape curves;
+  Printf.fprintf f "</svg>%!"
+```
+
+**Drawing to screen:** We can also draw interactively using the `Graphics` library.
+In the toplevel, load it with `#load "graphics.cma";;`. When compiling, provide
+`graphics.cma` to the command.
+
+```ocaml skip
+let draw_to_screen ~w ~h curves =
+  Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);
+  Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)
+  Graphics.fill_rect 0 0 (Graphics.size_x ()) (Graphics.size_y ());
+  List.iter (fun (points, (r, g, b)) ->
+    Graphics.set_color (Graphics.rgb r g b);
+    Graphics.fill_poly points) curves;
+  if Graphics.read_key () = 'q'                (* Wait so solutions can be seen *)
+  then failwith "User interrupted finding solutions.";
+  Graphics.close_graph ()
 ```
 
 #### Testing Correctness

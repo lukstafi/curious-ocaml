@@ -5,6 +5,9 @@
  (files ../chapter6/*.eps))
 
 (copy_files
+ (files ../chapter6/*.png))
+
+(copy_files
  (files ../chapter7/*.eps))
 
 (copy_files
