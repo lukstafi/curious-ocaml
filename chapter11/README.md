@@ -53,9 +53,10 @@ For brevity, we place examples in a single file, but the component type and func
 
 Here is the implementation:
 
-```
+```ocaml
 type var = string  (* Variables constitute a sub-language of its own *)
-                   (* We treat this sub-language slightly differently -- no need for a dedicated variant *)
+                   (* We treat this sub-language slightly differently --
+                      no need for a dedicated variant *)
 
 let eval_var wrap sub (s : var) =
   try List.assoc s sub with Not_found -> wrap s
@@ -82,7 +83,7 @@ let eval_lambda eval_rec wrap unwrap subst e =
     wrap (Abs (s', eval_rec ((s, wrap (VarL s'))::subst) l1))
   | None -> e  (* Falling-through when not in the current sub-language *)
 
-type lambda_t = Lambda_t of lambda_t lambda  (* Defining lambda-expressions as the completed language *)
+type lambda_t = Lambda_t of lambda_t lambda  (* Defining lambdas as the completed language *)
 
 let rec eval1 subst =  (* and the corresponding eval function *)
   eval_lambda eval1
@@ -91,7 +92,7 @@ let rec eval1 subst =  (* and the corresponding eval function *)
 
 Now we define the arithmetic sub-language:
 
-```
+```ocaml
 type 'a expr =  (* The sub-language of arithmetic expressions *)
   VarE of var | Num of int | Add of 'a * 'a | Mult of 'a * 'a
 
@@ -116,7 +117,7 @@ let eval_expr eval_rec wrap unwrap subst e =
     | _ -> wrap (Mult (m', n')))
   | None -> e
 
-type expr_t = Expr_t of expr_t expr  (* Defining arithmetic expressions as the completed language *)
+type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed language *)
 
 let rec eval2 subst =  (* aka "tying the recursive knot" *)
   eval_expr eval2
@@ -125,9 +126,9 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
 
 Finally, we merge the two sub-languages:
 
-```
+```ocaml
 type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
-  Lambda of 'a lambda | Expr of 'a expr  (* can also be used as a sub-language for further extensions *)
+  Lambda of 'a lambda | Expr of 'a expr  (* can also be used in further extensions *)
 
 let eval_lexpr eval_rec wrap unwrap subst e =
   eval_lambda eval_rec
@@ -721,7 +722,7 @@ But the actual formalization of private row types is more complex.
 
 **Verdict:** A clean solution, best place.
 
-```
+```ocaml
 type var = [`Var of string]
 
 let eval_var subst (`Var s as v : var) =
@@ -777,7 +778,7 @@ let fv_test = LambdaFV.freevars test1
 
 The arithmetic expression sub-language:
 
-```
+```ocaml
 type 'a expr =
   [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
 
@@ -816,7 +817,7 @@ let fvs_test2 = Expr.freevars test2
 
 Merging the sub-languages:
 
-```
+```ocaml
 type 'a lexpr = ['a lambda | 'a expr]
 
 module LEF(X : Operations with type exp = private [> 'a lexpr] as 'a) =
@@ -848,7 +849,7 @@ let fv_old_test = LExpr.freevars (test2 :> LExpr.exp)
 
 ### 11.9 Parser Combinators
 
-We have done parsing using external languages OCamlLex and Menhir. Now we look at parsers written directly in OCaml.
+Large-scale parsing in OCaml is typically done using external languages OCamlLex and Menhir. But it is convenient to have parsers written directly in OCaml.
 
 Language **combinators** are ways of defining languages by composing definitions of smaller languages. For example, the combinators of the **Extended Backus-Naur Form** notation are:
 
@@ -901,7 +902,7 @@ val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 
 First an operation from `MonadPlusOps`:
 
-```
+```ocaml
 let msum_map f l =
   List.fold_left  (* Folding left reverses the apparent order of composition *)
     (fun acc a -> mplus acc (lazy (f a))) mzero l  (* order from l is preserved *)
@@ -909,7 +910,7 @@ let msum_map f l =
 
 The implementation of the lazy-monad-plus using lazy lists:
 
-```
+```ocaml
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -938,7 +939,7 @@ end)
 
 File `Parsec.ml`:
 
-```
+```ocaml
 open Monad
 
 module type PARSE = sig
@@ -981,7 +982,7 @@ end
 
 #### Additional Parser Operations
 
-```
+```ocaml
 module type PARSE_OPS = sig
   include PARSE
   val many : 'a monad -> 'a list monad
@@ -1032,7 +1033,7 @@ end
 
 File `PluginBase.ml`:
 
-```
+```ocaml
 module ParseM =
   Parsec.ParseOps (Monad.LListM) (Parsec.ParseT (Monad.LListM))
 open ParseM
@@ -1052,7 +1053,7 @@ let get_language () : int monad =
 
 File `PluginRun.ml`:
 
-```
+```ocaml
 let load_plug fname : unit =
   let fname = Dynlink.adapt_filename fname in
   if Sys.file_exists fname then
@@ -1083,7 +1084,7 @@ let () =
 
 File `Plugin1.ml`:
 
-```
+```ocaml
 open PluginBase.ParseM
 let digit_of_char d = int_of_char d - int_of_char '0'
 
@@ -1107,7 +1108,7 @@ let () =
 
 File `Plugin2.ml`:
 
-```
+```ocaml
 open PluginBase.ParseM
 
 let multiplication lang =  (* Multiplication rule: S -> (S * S) *)

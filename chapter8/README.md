@@ -912,7 +912,7 @@ end = struct
     type 'a t = store -> 'a * store
     let return a = fun s -> a, s     (* Keep the current value unchanged *)
     let bind m b = fun s -> let a, s' = m s in b a s'
-  end                                (* To bind two steps, pass the value after first step to the second step *)
+  end                       (* To bind two steps, pass the value after first step to the second step *)
   include M
   include MonadOps(M)
   let get = fun s -> s, s            (* Keep the value unchanged but put it in monad *)
@@ -922,7 +922,7 @@ end
 
 The state monad is useful to hide passing-around of a "current" value. Here is an example that renames variables in lambda-terms to eliminate potential name clashes:
 
-```
+```ocaml
 type term =
   | Var of string
   | Lam of string * term
@@ -997,7 +997,7 @@ let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
 
 #### State Transformer Implementation
 
-```
+```ocaml
 module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> ('a * store) MP.monad
@@ -1028,7 +1028,7 @@ end
 
 Using the state transformer with our puzzle solver:
 
-```
+```ocaml
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   type state = {
     been_size : int;
@@ -1051,25 +1051,25 @@ module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   module BacktrackingM = StateT (M) (struct type t = state end)
   open BacktrackingM
 
-  let rec visit_cell () =              (* State update actions *)
+  let rec visit_cell () =           (* State update actions *)
     let* s = get in
     match s.unvisited with
     | [] -> return None
     | c::remaining when CellSet.mem c s.visited ->
         let* () = put {s with unvisited=remaining} in
-        visit_cell ()                  (* Throwaway argument because of recursion *)
+        visit_cell ()               (* Throwaway argument because of recursion *)
     | c::remaining ->
         let* () = put {s with
           unvisited=remaining;
           visited = CellSet.add c s.visited} in
-        return (Some c)                (* This action returns a value *)
+        return (Some c)             (* This action returns a value *)
 
   let eat_cell c =
     let* s = get in
     let* () = put {s with eaten = c::s.eaten;
          visited = CellSet.add c s.visited;
          more_to_eat = s.more_to_eat - 1} in
-    return ()                          (* Remaining state update actions just affect the state *)
+    return ()                       (* Remaining state update actions just affect the state *)
 
   let keep_cell c =
     let* s = get in
@@ -1152,7 +1152,7 @@ Outside-monad operations:
 - `distrib : 'a monad -> ('a * float) list`: Returns the distribution of probabilities over the resulting values.
 - `access : 'a monad -> 'a`: Samples a random result from the distribution -- **non-functional** behavior.
 
-```
+```ocaml
 module type PROBABILITY = sig
   include MONAD_OPS
   val choose : float -> 'a monad -> 'a monad -> 'a monad
@@ -1168,18 +1168,18 @@ end
 
 Helper functions:
 
-```
+```ocaml
 let total dist =
   List.fold_left (fun a (_,b) -> a +. b) 0. dist
 
 let merge dist = map_reduce (fun x -> x) (+.) 0. dist  (* Merge repeating elements *)
 
-let normalize dist =                     (* Normalize a measure into a distribution *)
+let normalize dist =                 (* Normalize a measure into a distribution *)
   let tot = total dist in
   if tot = 0. then dist
   else List.map (fun (e,w) -> e, w /. tot) dist
 
-let roulette dist =                      (* Roulette wheel from a distribution/measure *)
+let roulette dist =                  (* Roulette wheel from a distribution/measure *)
   let tot = total dist in
   let rec aux r = function
     | [] -> assert false
@@ -1190,14 +1190,14 @@ let roulette dist =                      (* Roulette wheel from a distribution/m
 
 #### Exact Distribution Monad
 
-```
+```ocaml
 module DistribM : PROBABILITY = struct
-  module M = struct                      (* Exact probability distribution -- naive implementation *)
+  module M = struct                  (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
-    let bind a b = merge              (* x w.p. p and then y w.p. q happens = *)
+    let bind a b = merge             (* x w.p. p and then y w.p. q happens = *)
       (List.concat_map (fun (x, p) ->
         List.map (fun (y, q) -> (y, q *. p)) (b x)) a)  (* y results w.p. p*q *)
-    let return a = [a, 1.]               (* Certainly a *)
+    let return a = [a, 1.]           (* Certainly a *)
   end
   include M
   include MonadOps (M)
@@ -1219,7 +1219,7 @@ end
 
 #### Sampling Monad
 
-```
+```ocaml
 module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   module M = struct                      (* Parameterized by how many samples *)
     type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
@@ -1255,7 +1255,7 @@ end
 
 In search of a new car, the player picks a door, say 1. The game host then opens one of the other doors, say 3, to reveal a goat and offers to let the player pick door 2 instead of door 1.
 
-```
+```ocaml
 module MontyHall (P : PROBABILITY) = struct
   open P
   type door = A | B | C
@@ -1296,7 +1296,7 @@ To compute $P(A|B)$:
 
 For the exact distribution monad, we just need to allow intermediate distributions to be unnormalized (sum to less than 1). For the sampling monad, we use rejection sampling (though `mplus` has no straightforward correct implementation).
 
-```
+```ocaml
 module type COND_PROBAB = sig
   include PROBABILITY
   include MONAD_PLUS_OPS with type 'a monad := 'a monad
@@ -1390,7 +1390,7 @@ Probability tables:
 - $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
 - $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
 
-```
+```ocaml
 module Burglary (P : COND_PROBAB) = struct
   open P
   type what_happened =
@@ -1462,7 +1462,7 @@ Under **coarse-grained** concurrency, computation is only suspended when request
 
 #### Thread Monad Signatures
 
-```
+```ocaml
 module type THREADS = sig
   include MONAD
   val parallel :
@@ -1509,7 +1509,7 @@ end
 
 #### Cooperative Thread Implementation
 
-```
+```ocaml
 module Cooperative = Threads(struct
   type 'a state =
     | Return of 'a                     (* The thread has returned *)
@@ -1583,13 +1583,13 @@ end)
 
 #### Testing the Thread Implementation
 
-```
+```ocaml
 module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
     let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
-    if n > 0 then loop s (n-1)         (* We cannot use whenM because *)
-    else return ()                     (* the thread would be created regardless of condition *)
+    if n > 0 then loop s (n-1)         (* We cannot use whenM because the thread *)
+    else return ()                     (* would be created regardless of condition *)
 end
 
 module TT = TTest (Cooperative)
@@ -1643,7 +1643,7 @@ Find all answers to the puzzle using a list comprehension. The comprehension wil
 
 **Exercise 4.** Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
 
-```
+```ocaml
 type 'a tree = Empty | Leaf of 'a | T of 'a tree * 'a tree
 
 module TreeM = MonadPlus (struct
@@ -1661,7 +1661,7 @@ end)
 
 **Exercise 6.** Why is the following monad-plus not lazy enough?
 
-```
+```ocaml
 let rec badappend l1 l2 =
   match l1 with lazy LazNil -> l2
   | lazy (LazCons (hd, tl)) ->

@@ -5,6 +5,7 @@
 This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We begin with a review of computation by hand using our reduction semantics, then introduce the lambda-calculus notation and show how to encode fundamental data types---booleans, pairs, and natural numbers---using only functions. The chapter concludes with an examination of recursion through fixpoint combinators and practical considerations for avoiding infinite loops in eager evaluation.
 
 **References:**
+
 - "Introduction to Lambda Calculus" by Henk Barendregt and Erik Barendsen
 - "Lecture Notes on the Lambda Calculus" by Peter Selinger
 
@@ -16,7 +17,7 @@ Recall that we use `fix` instead of `let rec` to simplify rules for recursion. A
 
 Consider the following recursive `length` function applied to a two-element list:
 
-```
+```ocaml
 let rec fix f x = f (fix f) x
 
 type int_list = Nil | Cons of int * int_list
@@ -543,7 +544,7 @@ And in solved form:
 
 $$\texttt{addtree} = \texttt{fix} \; (\lambda ft. t \; (\lambda n.n) \; (\lambda lr. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
 
-```
+```ocaml
 let rec fix f x = f (fix f) x
 let nil = fun x y -> y
 let cons h t = fun x y -> x h t
@@ -578,7 +579,7 @@ The encoded variants serve as shallow pattern matching with guaranteed exhaustiv
 
 Let us return to pair-encoded numbers and define addition:
 
-```
+```ocaml
 let pn_add m n =
   fix (fun f m n ->
     if_then_else (pn_is_zero m)
@@ -597,7 +598,7 @@ To avoid looping recursion, you need to guard all recursive calls. Besides putti
 
 The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value:
 
-```
+```ocaml
 let id x = x
 let rec fix f x = f (fix f) x
 let pn1 x = pn_succ pn0 x

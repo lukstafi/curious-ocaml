@@ -723,7 +723,7 @@ Given a honeycomb with some cells initially marked black, mark additional cells 
 
 #### Representing the Honeycomb
 
-```
+```ocaml
 type cell = int * int                       (* Cartesian coordinates *)
 
 module CellSet =                            (* Store cells in sets *)
@@ -752,7 +752,7 @@ let neighbors n eaten (x, y) =
 
 **Building the honeycomb:**
 
-```
+```ocaml
 let even x = x mod 2 = 0
 
 let inside_board n eaten (x, y) =

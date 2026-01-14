@@ -251,7 +251,7 @@ let e = lhorner 1. inv_fact
 
 #### 7.4.1 Power Series / Polynomial Operations
 
-```
+```ocaml
 let rec add xs ys =
   match xs, ys with
     | LNil, _ -> ys
@@ -324,7 +324,7 @@ Even changing the second argument of `integrate` to call-by-need does not help, 
 
 We need to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure:
 
-```
+```ocaml
 let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums))
 
 let rec sin = LCons (of_int 0, lazy (integ cos))
@@ -669,18 +669,18 @@ Compute lengths of document prefixes, i.e. the position of each node counting by
 
 ```ocaml
 let rec docpos curpos =
-  Await (function                           (* We input from a doc_e pipe *)
+  Await (function                         (* We input from a doc_e pipe *)
   | TE (_, z) ->
-    Yield (TE (curpos, z),                  (* and output doc_e annotated with position. *)
+    Yield (TE (curpos, z),                (* and output doc_e annotated with position. *)
            docpos (curpos + String.length z))
-  | LE _ ->                                 (* Space and line breaks increase position by 1. *)
+  | LE _ ->                               (* Space and line breaks increase position by 1. *)
     Yield (LE curpos, docpos (curpos + 1))
-  | GBeg _ ->                               (* Groups do not increase position. *)
+  | GBeg _ ->                             (* Groups do not increase position. *)
     Yield (GBeg curpos, docpos curpos)
   | GEnd _ ->
     Yield (GEnd curpos, docpos curpos))
 
-let docpos = docpos 0                       (* The whole document starts at 0. *)
+let docpos = docpos 0                     (* The whole document starts at 0. *)
 ```
 
 Put the end position of the group into the group beginning marker, so that we can know whether to break it into multiple lines:
@@ -690,19 +690,19 @@ let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
     (match grstack with
-    | [] -> Yield (e, grends [])            (* We can yield only when *)
-    | gr::grs -> grends ((e::gr)::grs))     (* no group is waiting. *)
-  | GBeg _ -> grends ([]::grstack)          (* Wait for end of group. *)
+    | [] -> Yield (e, grends [])          (* We can yield only when *)
+    | gr::grs -> grends ((e::gr)::grs))   (* no group is waiting. *)
+  | GBeg _ -> grends ([]::grstack)        (* Wait for end of group. *)
   | GEnd endp ->
-    match grstack with                      (* End the group on top of stack. *)
+    match grstack with                    (* End the group on top of stack. *)
     | [] -> failwith "grends: unmatched group end marker"
-    | [gr] ->                               (* Top group -- we can yield now. *)
+    | [gr] ->                             (* Top group -- we can yield now. *)
       yield_all
         (GBeg endp::List.rev (GEnd endp::gr))
         (grends [])
-    | gr::par::grs ->                       (* Remember in parent group instead. *)
+    | gr::par::grs ->                     (* Remember in parent group instead. *)
       let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))                    (* Could use catenable lists above. *)
+      grends (par::grs))                  (* Could use catenable lists above. *)
 ```
 
 That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
@@ -714,7 +714,7 @@ let rec grends w grstack =
   let flush tail =                   (* When the stack exceeds width w, *)
     yield_all                        (* flush it -- yield everything in it. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in                        (* Above: concatenate in rev. with prep before each part. *)
+      tail in
   Await (function
   | TE (curp, _) | LE curp as e ->
     (match grstack with              (* Remember beginning of groups in the stack. *)
