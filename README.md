@@ -3589,6 +3589,7 @@ let rec concat_fold f a = function
 #### Generating Solutions
 
 We transform the testing code into generation code by:
+
 - Passing around the current solution `eaten`
 - Returning results in a list (empty list = no solutions)
 - At each neighbor, trying both eating and keeping
@@ -3705,10 +3706,12 @@ The optimized island loop only tries actions that make sense:
 ### 6.10 Constraint-Based Puzzles
 
 Puzzles can be presented by providing:
+
 1. The general form of solutions
 2. Additional requirements (constraints) that solutions must meet
 
 For many puzzles, solutions decompose into a fixed number of **variables**:
+
 - A **domain** is the set of possible values a variable can have
 - In Honey Islands, variables are cells with domain {Honey, Empty}
 - **Constraints** specify relationships: cells that must be empty, number and size of connected components, neighborhood graph
@@ -4978,7 +4981,7 @@ let guard p = if p then return () else fail
 
 We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
 
-```
+```ocaml
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -5568,8 +5571,8 @@ end = struct
     type 'a t = store -> 'a * store
     let return a = fun s -> a, s     (* Keep the current value unchanged *)
     let bind m b = fun s -> let a, s' = m s in b a s'
-  end                       (* To bind two steps, pass the value after first step to the second step *)
-  include M
+  end                          (* To bind two steps, pass the value after first step *)
+  include M                          (* to the second step *)
   include MonadOps(M)
   let get = fun s -> s, s            (* Keep the value unchanged but put it in monad *)
   let put s' = fun _ -> (), s'       (* Change the value; a throwaway in monad *)
@@ -5848,7 +5851,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 ```ocaml
 module DistribM : PROBABILITY = struct
-  module M = struct                  (* Exact probability distribution -- naive implementation *)
+  module M = struct           (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
     let bind a b = merge             (* x w.p. p and then y w.p. q happens = *)
       (List.concat_map (fun (x, p) ->
@@ -6040,6 +6043,7 @@ Consider a problem with this dependency structure:
 - You can check on the radio if there was an earthquake, but you might miss the news
 
 Probability tables:
+
 - $P(\text{Burglary}) = 0.001$
 - $P(\text{Earthquake}) = 0.002$
 - $P(\text{Alarm}|\text{B}, \text{E})$ varies (0.001 for FF, 0.29 for FT, 0.94 for TF, 0.95 for TT)
@@ -6387,6 +6391,7 @@ TODO
 This chapter explores techniques for dealing with change and interaction in functional programming. We begin with zippers, a data structure for navigating and modifying positions within larger structures, then progress to adaptive (incremental) programming and Functional Reactive Programming (FRP). We conclude with practical examples including graphical user interfaces.
 
 **Recommended Reading:**
+
 - *"Zipper"* in Haskell Wikibook and *"The Zipper"* by Gerard Huet
 - *"How `froc` works"* by Jacob Donham
 - *"The Haskell School of Expression"* by Paul Hudak
@@ -6745,6 +6750,7 @@ Unfortunately, the overhead of incremental computation is quite large. Comparing
 FRP is an attempt to declaratively deal with time. *Behaviors* are functions of time -- a behavior has a specific value in each instant. *Events* are sets of (time, value) pairs, organized into streams of actions.
 
 Two problems arise in FRP:
+
 1. Behaviors and events are well-defined when they do not depend on future
 2. Efficiency: minimize overhead
 
@@ -7348,6 +7354,7 @@ let layout = [|
 ```
 
 Key concepts:
+
 - Every *widget* (window gadget) has a parent in which it is located
 - *Buttons* have action associated with pressing them, *labels* just provide information, *entries* (aka. *edit* fields) are for entering info from keyboard
 - Actions are *callback* functions passed as the `~command` argument
@@ -7404,6 +7411,7 @@ let () =
 In OCaml, object fields are only visible to object methods, and methods are called with `#` syntax, e.g. `window#show ()`.
 
 The interaction with the application is reactive:
+
 - Our events are called signals in *GTk+*
 - Registering a notification is called connecting a signal handler, e.g. `button#connect#clicked ~callback:hello` which takes `~callback:(unit -> unit)` and returns `GtkSignal.id`
 - As with *Froc* notifications, multiple handlers can be attached
@@ -7411,10 +7419,12 @@ The interaction with the application is reactive:
 - *GTk+* event callbacks take more info: `~callback:(event -> unit)` for some type `event`
 
 Automatic layout (aka. packing) seems less sophisticated than in *Tk*:
+
 - only horizontal and vertical boxes
 - therefore `~fill` is binary and `~anchor` is replaced by `~from` `` `START`` or `` `END``
 
 Automatic grid layout is called `table`:
+
 - `~fill` and `~expand` take `` `X``, `` `Y``, `` `BOTH``, `` `NONE``
 
 The `coerce` method casts the type of the object (in *Tk* there is `coe` function). Labels do not have a dedicated module. Widgets have setter methods `widget#set_X` (instead of a single `configure` function in *Tk*).
@@ -7453,7 +7463,7 @@ let buttons =
 
 Button layout, result notification, start application:
 
-```
+```ocaml
 let delete_event _ = GMain.Main.quit (); false
 
 let () =
@@ -8216,7 +8226,9 @@ Using recursive modules, we can clean up the confusing or cluttering aspects of 
 
 We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
 
-`[\`Int of int | \`String of string | 'a]`
+```
+[`Int of int | `String of string | 'a]
+```
 
 and then of private row types as abstracting the row variable:
 
@@ -8455,13 +8467,13 @@ open Monad
 
 module type PARSE = sig
   type 'a backtracking_monad  (* Name for the underlying monad-plus *)
-  type 'a parsing_state = int -> ('a * int) backtracking_monad  (* Processing state -- position *)
+  type 'a parsing_state = int -> ('a * int) backtracking_monad  (* State: position *)
   type 'a t = string -> 'a parsing_state  (* Reader for the parsed text *)
   include MONAD_PLUS_OPS
   val (<|>) : 'a monad -> 'a monad Lazy.t -> 'a monad  (* A synonym for mplus *)
   val run : 'a monad -> 'a t
   val runT : 'a monad -> string -> int -> 'a backtracking_monad
-  val satisfy : (char -> bool) -> char monad  (* Consume a character of the specified class *)
+  val satisfy : (char -> bool) -> char monad  (* Consume a character of the class *)
   val end_of_text : unit monad  (* Check for end of the processed text *)
 end
 
@@ -8499,7 +8511,7 @@ module type PARSE_OPS = sig
   val many : 'a monad -> 'a list monad
   val opt : 'a monad -> 'a option monad
   val (?|) : 'a monad -> 'a option monad
-  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why laziness here? *)
+  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy here? *)
   val (<*>) : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Synonym for seq *)
   val lowercase : char monad
   val uppercase : char monad
@@ -8557,7 +8569,8 @@ let get_language () : int monad =
       (List.fold_left
          (fun acc lang -> acc <|> lazy (lang (Lazy.force result)))
           mzero !grammar_rules) in
-  perform r <-- Lazy.force result; end_of_text; return r  (* Ensure we parse the whole text *)
+  let* r = Lazy.force result in
+  let* () = end_of_text in return r  (* Ensure we parse the whole text *)
 ```
 
 ### 11.12 Parser Combinators: Dynamic Code Loading

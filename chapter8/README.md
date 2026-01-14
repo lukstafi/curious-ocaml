@@ -322,7 +322,7 @@ let guard p = if p then return () else fail
 
 We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
 
-```
+```ocaml
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -912,8 +912,8 @@ end = struct
     type 'a t = store -> 'a * store
     let return a = fun s -> a, s     (* Keep the current value unchanged *)
     let bind m b = fun s -> let a, s' = m s in b a s'
-  end                       (* To bind two steps, pass the value after first step to the second step *)
-  include M
+  end                          (* To bind two steps, pass the value after first step *)
+  include M                          (* to the second step *)
   include MonadOps(M)
   let get = fun s -> s, s            (* Keep the value unchanged but put it in monad *)
   let put s' = fun _ -> (), s'       (* Change the value; a throwaway in monad *)
@@ -1192,7 +1192,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 ```ocaml
 module DistribM : PROBABILITY = struct
-  module M = struct                  (* Exact probability distribution -- naive implementation *)
+  module M = struct           (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
     let bind a b = merge             (* x w.p. p and then y w.p. q happens = *)
       (List.concat_map (fun (x, p) ->
@@ -1384,6 +1384,7 @@ Consider a problem with this dependency structure:
 - You can check on the radio if there was an earthquake, but you might miss the news
 
 Probability tables:
+
 - $P(\text{Burglary}) = 0.001$
 - $P(\text{Earthquake}) = 0.002$
 - $P(\text{Alarm}|\text{B}, \text{E})$ varies (0.001 for FF, 0.29 for FT, 0.94 for TF, 0.95 for TT)

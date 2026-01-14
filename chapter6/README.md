@@ -818,6 +818,7 @@ let rec concat_fold f a = function
 #### Generating Solutions
 
 We transform the testing code into generation code by:
+
 - Passing around the current solution `eaten`
 - Returning results in a list (empty list = no solutions)
 - At each neighbor, trying both eating and keeping
@@ -934,10 +935,12 @@ The optimized island loop only tries actions that make sense:
 ### 6.10 Constraint-Based Puzzles
 
 Puzzles can be presented by providing:
+
 1. The general form of solutions
 2. Additional requirements (constraints) that solutions must meet
 
 For many puzzles, solutions decompose into a fixed number of **variables**:
+
 - A **domain** is the set of possible values a variable can have
 - In Honey Islands, variables are cells with domain {Honey, Empty}
 - **Constraints** specify relationships: cells that must be empty, number and size of connected components, neighborhood graph

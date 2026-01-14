@@ -705,7 +705,9 @@ Using recursive modules, we can clean up the confusing or cluttering aspects of 
 
 We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
 
-`[\`Int of int | \`String of string | 'a]`
+```
+[`Int of int | `String of string | 'a]
+```
 
 and then of private row types as abstracting the row variable:
 
@@ -944,13 +946,13 @@ open Monad
 
 module type PARSE = sig
   type 'a backtracking_monad  (* Name for the underlying monad-plus *)
-  type 'a parsing_state = int -> ('a * int) backtracking_monad  (* Processing state -- position *)
+  type 'a parsing_state = int -> ('a * int) backtracking_monad  (* State: position *)
   type 'a t = string -> 'a parsing_state  (* Reader for the parsed text *)
   include MONAD_PLUS_OPS
   val (<|>) : 'a monad -> 'a monad Lazy.t -> 'a monad  (* A synonym for mplus *)
   val run : 'a monad -> 'a t
   val runT : 'a monad -> string -> int -> 'a backtracking_monad
-  val satisfy : (char -> bool) -> char monad  (* Consume a character of the specified class *)
+  val satisfy : (char -> bool) -> char monad  (* Consume a character of the class *)
   val end_of_text : unit monad  (* Check for end of the processed text *)
 end
 
@@ -988,7 +990,7 @@ module type PARSE_OPS = sig
   val many : 'a monad -> 'a list monad
   val opt : 'a monad -> 'a option monad
   val (?|) : 'a monad -> 'a option monad
-  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why laziness here? *)
+  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy here? *)
   val (<*>) : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Synonym for seq *)
   val lowercase : char monad
   val uppercase : char monad
@@ -1046,7 +1048,8 @@ let get_language () : int monad =
       (List.fold_left
          (fun acc lang -> acc <|> lazy (lang (Lazy.force result)))
           mzero !grammar_rules) in
-  perform r <-- Lazy.force result; end_of_text; return r  (* Ensure we parse the whole text *)
+  let* r = Lazy.force result in
+  let* () = end_of_text in return r  (* Ensure we parse the whole text *)
 ```
 
 ### 11.12 Parser Combinators: Dynamic Code Loading

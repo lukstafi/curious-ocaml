@@ -3,6 +3,7 @@
 This chapter explores techniques for dealing with change and interaction in functional programming. We begin with zippers, a data structure for navigating and modifying positions within larger structures, then progress to adaptive (incremental) programming and Functional Reactive Programming (FRP). We conclude with practical examples including graphical user interfaces.
 
 **Recommended Reading:**
+
 - *"Zipper"* in Haskell Wikibook and *"The Zipper"* by Gerard Huet
 - *"How `froc` works"* by Jacob Donham
 - *"The Haskell School of Expression"* by Paul Hudak
@@ -361,6 +362,7 @@ Unfortunately, the overhead of incremental computation is quite large. Comparing
 FRP is an attempt to declaratively deal with time. *Behaviors* are functions of time -- a behavior has a specific value in each instant. *Events* are sets of (time, value) pairs, organized into streams of actions.
 
 Two problems arise in FRP:
+
 1. Behaviors and events are well-defined when they do not depend on future
 2. Efficiency: minimize overhead
 
@@ -964,6 +966,7 @@ let layout = [|
 ```
 
 Key concepts:
+
 - Every *widget* (window gadget) has a parent in which it is located
 - *Buttons* have action associated with pressing them, *labels* just provide information, *entries* (aka. *edit* fields) are for entering info from keyboard
 - Actions are *callback* functions passed as the `~command` argument
@@ -1020,6 +1023,7 @@ let () =
 In OCaml, object fields are only visible to object methods, and methods are called with `#` syntax, e.g. `window#show ()`.
 
 The interaction with the application is reactive:
+
 - Our events are called signals in *GTk+*
 - Registering a notification is called connecting a signal handler, e.g. `button#connect#clicked ~callback:hello` which takes `~callback:(unit -> unit)` and returns `GtkSignal.id`
 - As with *Froc* notifications, multiple handlers can be attached
@@ -1027,10 +1031,12 @@ The interaction with the application is reactive:
 - *GTk+* event callbacks take more info: `~callback:(event -> unit)` for some type `event`
 
 Automatic layout (aka. packing) seems less sophisticated than in *Tk*:
+
 - only horizontal and vertical boxes
 - therefore `~fill` is binary and `~anchor` is replaced by `~from` `` `START`` or `` `END``
 
 Automatic grid layout is called `table`:
+
 - `~fill` and `~expand` take `` `X``, `` `Y``, `` `BOTH``, `` `NONE``
 
 The `coerce` method casts the type of the object (in *Tk* there is `coe` function). Labels do not have a dedicated module. Widgets have setter methods `widget#set_X` (instead of a single `configure` function in *Tk*).
@@ -1069,7 +1075,7 @@ let buttons =
 
 Button layout, result notification, start application:
 
-```
+```ocaml
 let delete_event _ = GMain.Main.quit (); false
 
 let () =

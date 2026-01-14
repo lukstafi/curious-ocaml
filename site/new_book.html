@@ -4577,10 +4577,12 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb182-1"><a hr
 <span id="cb182-3"><a href="#cb182-3" aria-hidden="true" tabindex="-1"></a>  | x::xs -&gt;</span>
 <span id="cb182-4"><a href="#cb182-4" aria-hidden="true" tabindex="-1"></a>    f x a |-&gt; (<span class="kw">fun</span> a&#39; -&gt; concat_fold f a&#39; xs)</span></code></pre></div>
 <h4 id="generating-solutions">Generating Solutions</h4>
-<p>We transform the testing code into generation code by: - Passing
-around the current solution <code>eaten</code> - Returning results in a
-list (empty list = no solutions) - At each neighbor, trying both eating
-and keeping</p>
+<p>We transform the testing code into generation code by:</p>
+<ul>
+<li>Passing around the current solution <code>eaten</code></li>
+<li>Returning results in a list (empty list = no solutions)</li>
+<li>At each neighbor, trying both eating and keeping</li>
+</ul>
 <div class="sourceCode" id="cb183"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb183-1"><a href="#cb183-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> find_to_eat n island_size num_islands empty_cells =</span>
 <span id="cb183-2"><a href="#cb183-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> honey = honey_cells n empty_cells <span class="kw">in</span></span>
@@ -4682,15 +4684,22 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb184-1"><a hr
     List.length honey - island_size * num_islands in
   find_board (init_state honey cells_to_eat)</code></pre>
 <h3 id="constraint-based-puzzles">6.10 Constraint-Based Puzzles</h3>
-<p>Puzzles can be presented by providing: 1. The general form of
-solutions 2. Additional requirements (constraints) that solutions must
-meet</p>
+<p>Puzzles can be presented by providing:</p>
+<ol type="1">
+<li>The general form of solutions</li>
+<li>Additional requirements (constraints) that solutions must meet</li>
+</ol>
 <p>For many puzzles, solutions decompose into a fixed number of
-<strong>variables</strong>: - A <strong>domain</strong> is the set of
-possible values a variable can have - In Honey Islands, variables are
-cells with domain {Honey, Empty} - <strong>Constraints</strong> specify
-relationships: cells that must be empty, number and size of connected
-components, neighborhood graph</p>
+<strong>variables</strong>:</p>
+<ul>
+<li>A <strong>domain</strong> is the set of possible values a variable
+can have</li>
+<li>In Honey Islands, variables are cells with domain {Honey,
+Empty}</li>
+<li><strong>Constraints</strong> specify relationships: cells that must
+be empty, number and size of connected components, neighborhood
+graph</li>
+</ul>
 <h4 id="finite-domain-constraint-programming">Finite Domain Constraint
 Programming</h4>
 <p>A general and often efficient scheme:</p>
@@ -5945,38 +5954,39 @@ Computation with Choice</h3>
 <p>We have seen <code>mzero</code> (i.e., <code>fail</code>) in the
 countdown problem. What about <code>mplus</code>? Here is an example
 from a puzzle solver:</p>
-<pre><code>let find_to_eat n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec find_board s =
-    match visit_cell s with
-    | None -&gt;
-        let* () = guard (s.been_islands = num_islands) in
-        return s.eaten
-    | Some (cell, s) -&gt;
-        let* s = find_island cell (fresh_island s) in
-        let* () = guard (s.been_size = island_size) in
-        find_board s
-
-  and find_island current s =
-    let s = keep_cell current s in
-    neighbors n empty_cells current
-    |&gt; foldM
-         (fun neighbor s -&gt;
-           if CellSet.mem neighbor s.visited then return s
-           else
-             let choose_eat =
-               if s.more_to_eat &lt;= 0 then fail
-               else return (eat_cell neighbor s)
-             and choose_keep =
-               if s.been_size &gt;= island_size then fail
-               else find_island neighbor s in
-             mplus choose_eat choose_keep)  (* Choice point! *)
-         s in
-
-  let cells_to_eat =
-    List.length honey - island_size * num_islands in
-  find_board (init_state honey cells_to_eat)</code></pre>
+<div class="sourceCode" id="cb266"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb266-1"><a href="#cb266-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> find_to_eat n island_size num_islands empty_cells =</span>
+<span id="cb266-2"><a href="#cb266-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> honey = honey_cells n empty_cells <span class="kw">in</span></span>
+<span id="cb266-3"><a href="#cb266-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb266-4"><a href="#cb266-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> find_board s =</span>
+<span id="cb266-5"><a href="#cb266-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> visit_cell s <span class="kw">with</span></span>
+<span id="cb266-6"><a href="#cb266-6" aria-hidden="true" tabindex="-1"></a>    | <span class="dt">None</span> -&gt;</span>
+<span id="cb266-7"><a href="#cb266-7" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>* () = guard (s.been_islands = num_islands) <span class="kw">in</span></span>
+<span id="cb266-8"><a href="#cb266-8" aria-hidden="true" tabindex="-1"></a>        return s.eaten</span>
+<span id="cb266-9"><a href="#cb266-9" aria-hidden="true" tabindex="-1"></a>    | <span class="dt">Some</span> (cell, s) -&gt;</span>
+<span id="cb266-10"><a href="#cb266-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>* s = find_island cell (fresh_island s) <span class="kw">in</span></span>
+<span id="cb266-11"><a href="#cb266-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span>* () = guard (s.been_size = island_size) <span class="kw">in</span></span>
+<span id="cb266-12"><a href="#cb266-12" aria-hidden="true" tabindex="-1"></a>        find_board s</span>
+<span id="cb266-13"><a href="#cb266-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb266-14"><a href="#cb266-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">and</span> find_island current s =</span>
+<span id="cb266-15"><a href="#cb266-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> s = keep_cell current s <span class="kw">in</span></span>
+<span id="cb266-16"><a href="#cb266-16" aria-hidden="true" tabindex="-1"></a>    neighbors n empty_cells current</span>
+<span id="cb266-17"><a href="#cb266-17" aria-hidden="true" tabindex="-1"></a>    |&gt; foldM</span>
+<span id="cb266-18"><a href="#cb266-18" aria-hidden="true" tabindex="-1"></a>         (<span class="kw">fun</span> neighbor s -&gt;</span>
+<span id="cb266-19"><a href="#cb266-19" aria-hidden="true" tabindex="-1"></a>           <span class="kw">if</span> CellSet.mem neighbor s.visited <span class="kw">then</span> return s</span>
+<span id="cb266-20"><a href="#cb266-20" aria-hidden="true" tabindex="-1"></a>           <span class="kw">else</span></span>
+<span id="cb266-21"><a href="#cb266-21" aria-hidden="true" tabindex="-1"></a>             <span class="kw">let</span> choose_eat =</span>
+<span id="cb266-22"><a href="#cb266-22" aria-hidden="true" tabindex="-1"></a>               <span class="kw">if</span> s.more_to_eat &lt;= <span class="dv">0</span> <span class="kw">then</span> fail</span>
+<span id="cb266-23"><a href="#cb266-23" aria-hidden="true" tabindex="-1"></a>               <span class="kw">else</span> return (eat_cell neighbor s)</span>
+<span id="cb266-24"><a href="#cb266-24" aria-hidden="true" tabindex="-1"></a>             <span class="kw">and</span> choose_keep =</span>
+<span id="cb266-25"><a href="#cb266-25" aria-hidden="true" tabindex="-1"></a>               <span class="kw">if</span> s.been_size &gt;= island_size <span class="kw">then</span> fail</span>
+<span id="cb266-26"><a href="#cb266-26" aria-hidden="true" tabindex="-1"></a>               <span class="kw">else</span> find_island neighbor s <span class="kw">in</span></span>
+<span id="cb266-27"><a href="#cb266-27" aria-hidden="true" tabindex="-1"></a>             mplus choose_eat choose_keep)  <span class="co">(* Choice point! *)</span></span>
+<span id="cb266-28"><a href="#cb266-28" aria-hidden="true" tabindex="-1"></a>         s <span class="kw">in</span></span>
+<span id="cb266-29"><a href="#cb266-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb266-30"><a href="#cb266-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> cells_to_eat =</span>
+<span id="cb266-31"><a href="#cb266-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.length honey - island_size * num_islands <span class="kw">in</span></span>
+<span id="cb266-32"><a href="#cb266-32" aria-hidden="true" tabindex="-1"></a>  find_board (init_state honey cells_to_eat)</span></code></pre></div>
 <p>The <code>mplus choose_eat choose_keep</code> creates a choice point:
 either eat the cell or keep it as part of the island. The monad-plus
 structure handles backtracking automatically.</p>
@@ -6478,8 +6488,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb294-1"><a hr
 <span id="cb294-11"><a href="#cb294-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> &#39;a t = store -&gt; &#39;a * store</span>
 <span id="cb294-12"><a href="#cb294-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> return a = <span class="kw">fun</span> s -&gt; a, s     <span class="co">(* Keep the current value unchanged *)</span></span>
 <span id="cb294-13"><a href="#cb294-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> bind m b = <span class="kw">fun</span> s -&gt; <span class="kw">let</span> a, s&#39; = m s <span class="kw">in</span> b a s&#39;</span>
-<span id="cb294-14"><a href="#cb294-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">end</span>                       <span class="co">(* To bind two steps, pass the value after first step to the second step *)</span></span>
-<span id="cb294-15"><a href="#cb294-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> M</span>
+<span id="cb294-14"><a href="#cb294-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">end</span>                          <span class="co">(* To bind two steps, pass the value after first step *)</span></span>
+<span id="cb294-15"><a href="#cb294-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> M                          <span class="co">(* to the second step *)</span></span>
 <span id="cb294-16"><a href="#cb294-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> MonadOps(M)</span>
 <span id="cb294-17"><a href="#cb294-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> get = <span class="kw">fun</span> s -&gt; s, s            <span class="co">(* Keep the value unchanged but put it in monad *)</span></span>
 <span id="cb294-18"><a href="#cb294-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> put s&#39; = <span class="kw">fun</span> _ -&gt; (), s&#39;       <span class="co">(* Change the value; a throwaway in monad *)</span></span>
@@ -6769,7 +6779,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb300-1"><a hr
 <h4 id="exact-distribution-monad">Exact Distribution Monad</h4>
 <div class="sourceCode" id="cb301"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb301-1"><a href="#cb301-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> DistribM : PROBABILITY = <span class="kw">struct</span></span>
-<span id="cb301-2"><a href="#cb301-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> M = <span class="kw">struct</span>                  <span class="co">(* Exact probability distribution -- naive implementation *)</span></span>
+<span id="cb301-2"><a href="#cb301-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> M = <span class="kw">struct</span>           <span class="co">(* Exact probability distribution -- naive implementation *)</span></span>
 <span id="cb301-3"><a href="#cb301-3" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> &#39;a t = (&#39;a * <span class="dt">float</span>) <span class="dt">list</span></span>
 <span id="cb301-4"><a href="#cb301-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> bind a b = merge             <span class="co">(* x w.p. p and then y w.p. q happens = *)</span></span>
 <span id="cb301-5"><a href="#cb301-5" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">List</span>.concat_map (<span class="kw">fun</span> (x, p) -&gt;</span>
@@ -6955,14 +6965,17 @@ earthquake</li>
 <li>You can check on the radio if there was an earthquake, but you might
 miss the news</li>
 </ul>
-<p>Probability tables: - <span class="math inline">P(\text{Burglary}) =
-0.001</span> - <span class="math inline">P(\text{Earthquake}) =
-0.002</span> - <span class="math inline">P(\text{Alarm}|\text{B},
-\text{E})</span> varies (0.001 for FF, 0.29 for FT, 0.94 for TF, 0.95
-for TT) - <span class="math inline">P(\text{John
-calls}|\text{Alarm})</span> is 0.9 if alarm, 0.05 otherwise - <span
-class="math inline">P(\text{Mary calls}|\text{Alarm})</span> is 0.7 if
-alarm, 0.01 otherwise</p>
+<p>Probability tables:</p>
+<ul>
+<li><span class="math inline">P(\text{Burglary}) = 0.001</span></li>
+<li><span class="math inline">P(\text{Earthquake}) = 0.002</span></li>
+<li><span class="math inline">P(\text{Alarm}|\text{B}, \text{E})</span>
+varies (0.001 for FF, 0.29 for FT, 0.94 for TF, 0.95 for TT)</li>
+<li><span class="math inline">P(\text{John calls}|\text{Alarm})</span>
+is 0.9 if alarm, 0.05 otherwise</li>
+<li><span class="math inline">P(\text{Mary calls}|\text{Alarm})</span>
+is 0.7 if alarm, 0.01 otherwise</li>
+</ul>
 <div class="sourceCode" id="cb305"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb305-1"><a href="#cb305-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> Burglary (P : COND_PROBAB) = <span class="kw">struct</span></span>
 <span id="cb305-2"><a href="#cb305-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">open</span> P</span>
@@ -7317,12 +7330,15 @@ structure for navigating and modifying positions within larger
 structures, then progress to adaptive (incremental) programming and
 Functional Reactive Programming (FRP). We conclude with practical
 examples including graphical user interfaces.</p>
-<p><strong>Recommended Reading:</strong> - <em>“Zipper”</em> in Haskell
-Wikibook and <em>“The Zipper”</em> by Gerard Huet - <em>“How
-<code>froc</code> works”</em> by Jacob Donham - <em>“The Haskell School
-of Expression”</em> by Paul Hudak - <em>“Deprecating the Observer
-Pattern with <code>Scala.React</code>”</em> by Ingo Maier, Martin
-Odersky</p>
+<p><strong>Recommended Reading:</strong></p>
+<ul>
+<li><em>“Zipper”</em> in Haskell Wikibook and <em>“The Zipper”</em> by
+Gerard Huet</li>
+<li><em>“How <code>froc</code> works”</em> by Jacob Donham</li>
+<li><em>“The Haskell School of Expression”</em> by Paul Hudak</li>
+<li><em>“Deprecating the Observer Pattern with
+<code>Scala.React</code>”</em> by Ingo Maier, Martin Odersky</li>
+</ul>
 <h3 id="zippers">10.1 Zippers</h3>
 <p>Often we need to keep track of a position within a data structure:
 easily access and modify it at that location, and easily move the
@@ -7701,8 +7717,12 @@ Programming</h3>
 are functions of time – a behavior has a specific value in each instant.
 <em>Events</em> are sets of (time, value) pairs, organized into streams
 of actions.</p>
-<p>Two problems arise in FRP: 1. Behaviors and events are well-defined
-when they do not depend on future 2. Efficiency: minimize overhead</p>
+<p>Two problems arise in FRP:</p>
+<ol type="1">
+<li>Behaviors and events are well-defined when they do not depend on
+future</li>
+<li>Efficiency: minimize overhead</li>
+</ol>
 <p>FRP is <em>synchronous</em>: it is possible to set up for events to
 happen at the same time. It is also <em>continuous</em>: behaviors can
 have details at arbitrary time resolution. Although the results are
@@ -8296,14 +8316,19 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb366-1"><a hr
 <span id="cb366-4"><a href="#cb366-4" aria-hidden="true" tabindex="-1"></a>  [|<span class="st">&quot;1&quot;</span>, `Di <span class="dv">1</span>.; <span class="st">&quot;2&quot;</span>, `Di <span class="dv">2</span>.; <span class="st">&quot;3&quot;</span>, `Di <span class="dv">3</span>.; <span class="st">&quot;*&quot;</span>, `O ( *.)|];</span>
 <span id="cb366-5"><a href="#cb366-5" aria-hidden="true" tabindex="-1"></a>  [|<span class="st">&quot;0&quot;</span>, `Di <span class="dv">0</span>.; <span class="st">&quot;.&quot;</span>, `Dot;   <span class="st">&quot;=&quot;</span>,  `O sk; <span class="st">&quot;/&quot;</span>, `O (/.)|]</span>
 <span id="cb366-6"><a href="#cb366-6" aria-hidden="true" tabindex="-1"></a>|]</span></code></pre></div>
-<p>Key concepts: - Every <em>widget</em> (window gadget) has a parent in
-which it is located - <em>Buttons</em> have action associated with
-pressing them, <em>labels</em> just provide information,
-<em>entries</em> (aka. <em>edit</em> fields) are for entering info from
-keyboard - Actions are <em>callback</em> functions passed as the
-<code>~command</code> argument - <em>Frames</em> in <em>Tk</em> group
-widgets - The parent is sent as last argument, after optional labelled
-arguments</p>
+<p>Key concepts:</p>
+<ul>
+<li>Every <em>widget</em> (window gadget) has a parent in which it is
+located</li>
+<li><em>Buttons</em> have action associated with pressing them,
+<em>labels</em> just provide information, <em>entries</em> (aka.
+<em>edit</em> fields) are for entering info from keyboard</li>
+<li>Actions are <em>callback</em> functions passed as the
+<code>~command</code> argument</li>
+<li><em>Frames</em> in <em>Tk</em> group widgets</li>
+<li>The parent is sent as last argument, after optional labelled
+arguments</li>
+</ul>
 <div class="sourceCode" id="cb367"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb367-1"><a href="#cb367-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> top = Tk.openTk ()</span>
 <span id="cb367-2"><a href="#cb367-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -8359,25 +8384,35 @@ which is written in <em>C</em>.</p>
 <p>In OCaml, object fields are only visible to object methods, and
 methods are called with <code>#</code> syntax,
 e.g. <code>window#show ()</code>.</p>
-<p>The interaction with the application is reactive: - Our events are
-called signals in <em>GTk+</em> - Registering a notification is called
-connecting a signal handler,
+<p>The interaction with the application is reactive:</p>
+<ul>
+<li>Our events are called signals in <em>GTk+</em></li>
+<li>Registering a notification is called connecting a signal handler,
 e.g. <code>button#connect#clicked ~callback:hello</code> which takes
 <code>~callback:(unit -&gt; unit)</code> and returns
-<code>GtkSignal.id</code> - As with <em>Froc</em> notifications,
-multiple handlers can be attached - <em>GTk+</em> events are a subclass
-of signals related to more specific window events,
-e.g. <code>window#event#connect#delete ~callback:delete_event</code> -
-<em>GTk+</em> event callbacks take more info:
+<code>GtkSignal.id</code></li>
+<li>As with <em>Froc</em> notifications, multiple handlers can be
+attached</li>
+<li><em>GTk+</em> events are a subclass of signals related to more
+specific window events,
+e.g. <code>window#event#connect#delete ~callback:delete_event</code></li>
+<li><em>GTk+</em> event callbacks take more info:
 <code>~callback:(event -&gt; unit)</code> for some type
-<code>event</code></p>
+<code>event</code></li>
+</ul>
 <p>Automatic layout (aka. packing) seems less sophisticated than in
-<em>Tk</em>: - only horizontal and vertical boxes - therefore
-<code>~fill</code> is binary and <code>~anchor</code> is replaced by
-<code>~from</code> <code>`START</code> or <code>`END</code></p>
-<p>Automatic grid layout is called <code>table</code>: -
-<code>~fill</code> and <code>~expand</code> take <code>`X</code>,
-<code>`Y</code>, <code>`BOTH</code>, <code>`NONE</code></p>
+<em>Tk</em>:</p>
+<ul>
+<li>only horizontal and vertical boxes</li>
+<li>therefore <code>~fill</code> is binary and <code>~anchor</code> is
+replaced by <code>~from</code> <code>`START</code> or
+<code>`END</code></li>
+</ul>
+<p>Automatic grid layout is called <code>table</code>:</p>
+<ul>
+<li><code>~fill</code> and <code>~expand</code> take <code>`X</code>,
+<code>`Y</code>, <code>`BOTH</code>, <code>`NONE</code></li>
+</ul>
 <p>The <code>coerce</code> method casts the type of the object (in
 <em>Tk</em> there is <code>coe</code> function). Labels do not have a
 dedicated module. Widgets have setter methods <code>widget#set_X</code>
@@ -8410,18 +8445,19 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb370-1"><a hr
 <span id="cb370-13"><a href="#cb370-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> _ = b#connect#clicked</span>
 <span id="cb370-14"><a href="#cb370-14" aria-hidden="true" tabindex="-1"></a>        ~callback:(<span class="kw">fun</span> () -&gt; F.send op f) <span class="kw">in</span> b)) layout</span></code></pre></div>
 <p>Button layout, result notification, start application:</p>
-<pre><code>let delete_event _ = GMain.Main.quit (); false
-
-let () =
-  let _ = window#event#connect#delete ~callback:delete_event in
-  Array.iteri (fun column -&gt; Array.iteri (fun row button -&gt;
-    btn_frame#attach ~left:column ~top:row
-      ~fill:`BOTH ~expand:`BOTH (button#coerce))
-  ) buttons;
-  F.notify_e calc_e
-    (fun now -&gt; result#set_label (string_of_float now));
-  window#show ();
-  GMain.Main.main ()</code></pre>
+<div class="sourceCode" id="cb371"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb371-1"><a href="#cb371-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> delete_event _ = GMain.Main.quit (); <span class="kw">false</span></span>
+<span id="cb371-2"><a href="#cb371-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb371-3"><a href="#cb371-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb371-4"><a href="#cb371-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> _ = window#event#connect#delete ~callback:delete_event <span class="kw">in</span></span>
+<span id="cb371-5"><a href="#cb371-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Array</span>.iteri (<span class="kw">fun</span> column -&gt; <span class="dt">Array</span>.iteri (<span class="kw">fun</span> row button -&gt;</span>
+<span id="cb371-6"><a href="#cb371-6" aria-hidden="true" tabindex="-1"></a>    btn_frame#attach ~left:column ~top:row</span>
+<span id="cb371-7"><a href="#cb371-7" aria-hidden="true" tabindex="-1"></a>      ~fill:`BOTH ~expand:`BOTH (button#coerce))</span>
+<span id="cb371-8"><a href="#cb371-8" aria-hidden="true" tabindex="-1"></a>  ) buttons;</span>
+<span id="cb371-9"><a href="#cb371-9" aria-hidden="true" tabindex="-1"></a>  F.notify_e calc_e</span>
+<span id="cb371-10"><a href="#cb371-10" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">fun</span> now -&gt; result#set_label (<span class="dt">string_of_float</span> now));</span>
+<span id="cb371-11"><a href="#cb371-11" aria-hidden="true" tabindex="-1"></a>  window#show ();</span>
+<span id="cb371-12"><a href="#cb371-12" aria-hidden="true" tabindex="-1"></a>  GMain.Main.main ()</span></code></pre></div>
 <h3 id="exercises-8">10.9 Exercises</h3>
 <p><strong>Exercise 1:</strong> Introduce operators <span
 class="math inline">-, /</span> into the context rewriting “pull out
@@ -9212,7 +9248,7 @@ arguments.</p>
 polymorphic variants means <em>private rows</em>. We can conceive of
 open row types, e.g., <code>[&gt; \</code>Int of int | `String of
 string]<code>as using a *row variable*, e.g.,</code>’a`:</p>
-<p><code>[\</code>Int of int | `String of string | ’a]`</p>
+<pre><code>[`Int of int | `String of string | &#39;a]</code></pre>
 <p>and then of private row types as abstracting the row variable:</p>
 <pre><code>type &#39;row t = [`Int of int | `String of string | &#39;row]</code></pre>
 <p>But the actual formalization of private row types is more
@@ -9225,123 +9261,123 @@ complex.</p>
 dispatch on merging of sub-languages</li>
 </ul>
 <p><strong>Verdict:</strong> A clean solution, best place.</p>
-<div class="sourceCode" id="cb389"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb389-1"><a href="#cb389-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> var = [`Var <span class="kw">of</span> <span class="dt">string</span>]</span>
-<span id="cb389-2"><a href="#cb389-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-3"><a href="#cb389-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> eval_var subst (`Var s <span class="kw">as</span> v : var) =</span>
-<span id="cb389-4"><a href="#cb389-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">try</span> <span class="dt">List</span>.assoc s subst <span class="kw">with</span> <span class="dt">Not_found</span> -&gt; v</span>
-<span id="cb389-5"><a href="#cb389-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-6"><a href="#cb389-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a lambda =</span>
-<span id="cb389-7"><a href="#cb389-7" aria-hidden="true" tabindex="-1"></a>  [`Var <span class="kw">of</span> <span class="dt">string</span> | `Abs <span class="kw">of</span> <span class="dt">string</span> * &#39;a | `App <span class="kw">of</span> &#39;a * &#39;a]</span>
-<span id="cb389-8"><a href="#cb389-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-9"><a href="#cb389-9" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> Eval =</span>
-<span id="cb389-10"><a href="#cb389-10" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">type</span> <span class="dt">exp</span> <span class="kw">val</span> eval : (<span class="dt">string</span> * <span class="dt">exp</span>) <span class="dt">list</span> -&gt; <span class="dt">exp</span> -&gt; <span class="dt">exp</span> <span class="kw">end</span></span>
-<span id="cb389-11"><a href="#cb389-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-12"><a href="#cb389-12" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LF(X : Eval <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lambda] <span class="kw">as</span> &#39;a) =</span>
-<span id="cb389-13"><a href="#cb389-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb389-14"><a href="#cb389-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lambda</span>
-<span id="cb389-15"><a href="#cb389-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-16"><a href="#cb389-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> gensym = <span class="kw">let</span> n = <span class="dt">ref</span> <span class="dv">0</span> <span class="kw">in</span> <span class="kw">fun</span> () -&gt; <span class="dt">incr</span> n; <span class="st">&quot;_&quot;</span> ^ <span class="dt">string_of_int</span> !n</span>
-<span id="cb389-17"><a href="#cb389-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-18"><a href="#cb389-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst : <span class="dt">exp</span> -&gt; X.<span class="dt">exp</span> = <span class="kw">function</span></span>
-<span id="cb389-19"><a href="#cb389-19" aria-hidden="true" tabindex="-1"></a>    | #var <span class="kw">as</span> v -&gt; eval_var subst v</span>
-<span id="cb389-20"><a href="#cb389-20" aria-hidden="true" tabindex="-1"></a>    | `App (l1, l2) -&gt;</span>
-<span id="cb389-21"><a href="#cb389-21" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> l2&#39; = X.eval subst l2 <span class="kw">in</span></span>
-<span id="cb389-22"><a href="#cb389-22" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">match</span> X.eval subst l1 <span class="kw">with</span></span>
-<span id="cb389-23"><a href="#cb389-23" aria-hidden="true" tabindex="-1"></a>      | `Abs (s, body) -&gt;</span>
-<span id="cb389-24"><a href="#cb389-24" aria-hidden="true" tabindex="-1"></a>        X.eval [s, l2&#39;] body</span>
-<span id="cb389-25"><a href="#cb389-25" aria-hidden="true" tabindex="-1"></a>      | l1&#39; -&gt; `App (l1&#39;, l2&#39;))</span>
-<span id="cb389-26"><a href="#cb389-26" aria-hidden="true" tabindex="-1"></a>    | `Abs (s, l1) -&gt;</span>
-<span id="cb389-27"><a href="#cb389-27" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> s&#39; = gensym () <span class="kw">in</span></span>
-<span id="cb389-28"><a href="#cb389-28" aria-hidden="true" tabindex="-1"></a>      `Abs (s&#39;, X.eval ((s, `Var s&#39;)::subst) l1)</span>
-<span id="cb389-29"><a href="#cb389-29" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb389-30"><a href="#cb389-30" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> Lambda : (Eval <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = Lambda.<span class="dt">exp</span> lambda) =</span>
-<span id="cb389-31"><a href="#cb389-31" aria-hidden="true" tabindex="-1"></a>  LF(Lambda)</span>
-<span id="cb389-32"><a href="#cb389-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-33"><a href="#cb389-33" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> FreeVars =</span>
-<span id="cb389-34"><a href="#cb389-34" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">type</span> <span class="dt">exp</span> <span class="kw">val</span> freevars : <span class="dt">exp</span> -&gt; <span class="dt">string</span> <span class="dt">list</span> <span class="kw">end</span></span>
-<span id="cb389-35"><a href="#cb389-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-36"><a href="#cb389-36" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LFVF(X : FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lambda] <span class="kw">as</span> &#39;a) =</span>
-<span id="cb389-37"><a href="#cb389-37" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb389-38"><a href="#cb389-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lambda</span>
-<span id="cb389-39"><a href="#cb389-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-40"><a href="#cb389-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
-<span id="cb389-41"><a href="#cb389-41" aria-hidden="true" tabindex="-1"></a>    | `Var v -&gt; [v]</span>
-<span id="cb389-42"><a href="#cb389-42" aria-hidden="true" tabindex="-1"></a>    | `App (l1, l2) -&gt; X.freevars l1 @ X.freevars l2</span>
-<span id="cb389-43"><a href="#cb389-43" aria-hidden="true" tabindex="-1"></a>    | `Abs (s, l1) -&gt;</span>
-<span id="cb389-44"><a href="#cb389-44" aria-hidden="true" tabindex="-1"></a>      <span class="dt">List</span>.filter (<span class="kw">fun</span> v -&gt; v &lt;&gt; s) (X.freevars l1)</span>
-<span id="cb389-45"><a href="#cb389-45" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb389-46"><a href="#cb389-46" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> LambdaFV : (FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = LambdaFV.<span class="dt">exp</span> lambda) =</span>
-<span id="cb389-47"><a href="#cb389-47" aria-hidden="true" tabindex="-1"></a>  LFVF(LambdaFV)</span>
-<span id="cb389-48"><a href="#cb389-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb389-49"><a href="#cb389-49" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test1 = (`App (`Abs (<span class="st">&quot;x&quot;</span>, `Var <span class="st">&quot;x&quot;</span>), `Var <span class="st">&quot;y&quot;</span>) : Lambda.<span class="dt">exp</span>)</span>
-<span id="cb389-50"><a href="#cb389-50" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test = Lambda.eval [] test1</span>
-<span id="cb389-51"><a href="#cb389-51" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_test = LambdaFV.freevars test1</span></code></pre></div>
-<p>The arithmetic expression sub-language:</p>
 <div class="sourceCode" id="cb390"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb390-1"><a href="#cb390-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a expr =</span>
-<span id="cb390-2"><a href="#cb390-2" aria-hidden="true" tabindex="-1"></a>  [`Var <span class="kw">of</span> <span class="dt">string</span> | `Num <span class="kw">of</span> <span class="dt">int</span> | `Add <span class="kw">of</span> &#39;a * &#39;a | `Mult <span class="kw">of</span> &#39;a * &#39;a]</span>
-<span id="cb390-3"><a href="#cb390-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-4"><a href="#cb390-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> Operations =</span>
-<span id="cb390-5"><a href="#cb390-5" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">include</span> Eval <span class="kw">include</span> FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> := <span class="dt">exp</span> <span class="kw">end</span></span>
-<span id="cb390-6"><a href="#cb390-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-7"><a href="#cb390-7" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> EF(X : Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a expr] <span class="kw">as</span> &#39;a) =</span>
-<span id="cb390-8"><a href="#cb390-8" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb390-9"><a href="#cb390-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> expr</span>
-<span id="cb390-10"><a href="#cb390-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-11"><a href="#cb390-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map_expr f = <span class="kw">function</span></span>
-<span id="cb390-12"><a href="#cb390-12" aria-hidden="true" tabindex="-1"></a>    | #var <span class="kw">as</span> v -&gt; v</span>
-<span id="cb390-13"><a href="#cb390-13" aria-hidden="true" tabindex="-1"></a>    | `Num _ <span class="kw">as</span> n -&gt; n</span>
-<span id="cb390-14"><a href="#cb390-14" aria-hidden="true" tabindex="-1"></a>    | `Add (e1, e2) -&gt; `Add (f e1, f e2)</span>
-<span id="cb390-15"><a href="#cb390-15" aria-hidden="true" tabindex="-1"></a>    | `Mult (e1, e2) -&gt; `Mult (f e1, f e2)</span>
-<span id="cb390-16"><a href="#cb390-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-17"><a href="#cb390-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst (e : <span class="dt">exp</span>) : X.<span class="dt">exp</span> =</span>
-<span id="cb390-18"><a href="#cb390-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> map_expr (X.eval subst) e <span class="kw">with</span></span>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb390-1"><a href="#cb390-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> var = [`Var <span class="kw">of</span> <span class="dt">string</span>]</span>
+<span id="cb390-2"><a href="#cb390-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-3"><a href="#cb390-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> eval_var subst (`Var s <span class="kw">as</span> v : var) =</span>
+<span id="cb390-4"><a href="#cb390-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">try</span> <span class="dt">List</span>.assoc s subst <span class="kw">with</span> <span class="dt">Not_found</span> -&gt; v</span>
+<span id="cb390-5"><a href="#cb390-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-6"><a href="#cb390-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a lambda =</span>
+<span id="cb390-7"><a href="#cb390-7" aria-hidden="true" tabindex="-1"></a>  [`Var <span class="kw">of</span> <span class="dt">string</span> | `Abs <span class="kw">of</span> <span class="dt">string</span> * &#39;a | `App <span class="kw">of</span> &#39;a * &#39;a]</span>
+<span id="cb390-8"><a href="#cb390-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-9"><a href="#cb390-9" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> Eval =</span>
+<span id="cb390-10"><a href="#cb390-10" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">type</span> <span class="dt">exp</span> <span class="kw">val</span> eval : (<span class="dt">string</span> * <span class="dt">exp</span>) <span class="dt">list</span> -&gt; <span class="dt">exp</span> -&gt; <span class="dt">exp</span> <span class="kw">end</span></span>
+<span id="cb390-11"><a href="#cb390-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-12"><a href="#cb390-12" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LF(X : Eval <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lambda] <span class="kw">as</span> &#39;a) =</span>
+<span id="cb390-13"><a href="#cb390-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb390-14"><a href="#cb390-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lambda</span>
+<span id="cb390-15"><a href="#cb390-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-16"><a href="#cb390-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> gensym = <span class="kw">let</span> n = <span class="dt">ref</span> <span class="dv">0</span> <span class="kw">in</span> <span class="kw">fun</span> () -&gt; <span class="dt">incr</span> n; <span class="st">&quot;_&quot;</span> ^ <span class="dt">string_of_int</span> !n</span>
+<span id="cb390-17"><a href="#cb390-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-18"><a href="#cb390-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst : <span class="dt">exp</span> -&gt; X.<span class="dt">exp</span> = <span class="kw">function</span></span>
 <span id="cb390-19"><a href="#cb390-19" aria-hidden="true" tabindex="-1"></a>    | #var <span class="kw">as</span> v -&gt; eval_var subst v</span>
-<span id="cb390-20"><a href="#cb390-20" aria-hidden="true" tabindex="-1"></a>    | `Add (`Num m, `Num n) -&gt; `Num (m + n)</span>
-<span id="cb390-21"><a href="#cb390-21" aria-hidden="true" tabindex="-1"></a>    | `Mult (`Num m, `Num n) -&gt; `Num (m * n)</span>
-<span id="cb390-22"><a href="#cb390-22" aria-hidden="true" tabindex="-1"></a>    | e -&gt; e</span>
-<span id="cb390-23"><a href="#cb390-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-24"><a href="#cb390-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
-<span id="cb390-25"><a href="#cb390-25" aria-hidden="true" tabindex="-1"></a>    | `Var v -&gt; [v]</span>
-<span id="cb390-26"><a href="#cb390-26" aria-hidden="true" tabindex="-1"></a>    | `Num _ -&gt; []</span>
-<span id="cb390-27"><a href="#cb390-27" aria-hidden="true" tabindex="-1"></a>    | `Add (e1, e2) | `Mult (e1, e2) -&gt; X.freevars e1 @ X.freevars e2</span>
-<span id="cb390-28"><a href="#cb390-28" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb390-29"><a href="#cb390-29" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> Expr : (Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = Expr.<span class="dt">exp</span> expr) =</span>
-<span id="cb390-30"><a href="#cb390-30" aria-hidden="true" tabindex="-1"></a>  EF(Expr)</span>
-<span id="cb390-31"><a href="#cb390-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb390-32"><a href="#cb390-32" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test2 = (`Add (`Mult (`Num <span class="dv">3</span>, `Var <span class="st">&quot;x&quot;</span>), `Num <span class="dv">1</span>) : Expr.<span class="dt">exp</span>)</span>
-<span id="cb390-33"><a href="#cb390-33" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test2 = Expr.eval [<span class="st">&quot;x&quot;</span>, `Num <span class="dv">2</span>] test2</span>
-<span id="cb390-34"><a href="#cb390-34" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fvs_test2 = Expr.freevars test2</span></code></pre></div>
-<p>Merging the sub-languages:</p>
+<span id="cb390-20"><a href="#cb390-20" aria-hidden="true" tabindex="-1"></a>    | `App (l1, l2) -&gt;</span>
+<span id="cb390-21"><a href="#cb390-21" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> l2&#39; = X.eval subst l2 <span class="kw">in</span></span>
+<span id="cb390-22"><a href="#cb390-22" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">match</span> X.eval subst l1 <span class="kw">with</span></span>
+<span id="cb390-23"><a href="#cb390-23" aria-hidden="true" tabindex="-1"></a>      | `Abs (s, body) -&gt;</span>
+<span id="cb390-24"><a href="#cb390-24" aria-hidden="true" tabindex="-1"></a>        X.eval [s, l2&#39;] body</span>
+<span id="cb390-25"><a href="#cb390-25" aria-hidden="true" tabindex="-1"></a>      | l1&#39; -&gt; `App (l1&#39;, l2&#39;))</span>
+<span id="cb390-26"><a href="#cb390-26" aria-hidden="true" tabindex="-1"></a>    | `Abs (s, l1) -&gt;</span>
+<span id="cb390-27"><a href="#cb390-27" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> s&#39; = gensym () <span class="kw">in</span></span>
+<span id="cb390-28"><a href="#cb390-28" aria-hidden="true" tabindex="-1"></a>      `Abs (s&#39;, X.eval ((s, `Var s&#39;)::subst) l1)</span>
+<span id="cb390-29"><a href="#cb390-29" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb390-30"><a href="#cb390-30" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> Lambda : (Eval <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = Lambda.<span class="dt">exp</span> lambda) =</span>
+<span id="cb390-31"><a href="#cb390-31" aria-hidden="true" tabindex="-1"></a>  LF(Lambda)</span>
+<span id="cb390-32"><a href="#cb390-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-33"><a href="#cb390-33" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> FreeVars =</span>
+<span id="cb390-34"><a href="#cb390-34" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">type</span> <span class="dt">exp</span> <span class="kw">val</span> freevars : <span class="dt">exp</span> -&gt; <span class="dt">string</span> <span class="dt">list</span> <span class="kw">end</span></span>
+<span id="cb390-35"><a href="#cb390-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-36"><a href="#cb390-36" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LFVF(X : FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lambda] <span class="kw">as</span> &#39;a) =</span>
+<span id="cb390-37"><a href="#cb390-37" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb390-38"><a href="#cb390-38" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lambda</span>
+<span id="cb390-39"><a href="#cb390-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-40"><a href="#cb390-40" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
+<span id="cb390-41"><a href="#cb390-41" aria-hidden="true" tabindex="-1"></a>    | `Var v -&gt; [v]</span>
+<span id="cb390-42"><a href="#cb390-42" aria-hidden="true" tabindex="-1"></a>    | `App (l1, l2) -&gt; X.freevars l1 @ X.freevars l2</span>
+<span id="cb390-43"><a href="#cb390-43" aria-hidden="true" tabindex="-1"></a>    | `Abs (s, l1) -&gt;</span>
+<span id="cb390-44"><a href="#cb390-44" aria-hidden="true" tabindex="-1"></a>      <span class="dt">List</span>.filter (<span class="kw">fun</span> v -&gt; v &lt;&gt; s) (X.freevars l1)</span>
+<span id="cb390-45"><a href="#cb390-45" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb390-46"><a href="#cb390-46" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> LambdaFV : (FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = LambdaFV.<span class="dt">exp</span> lambda) =</span>
+<span id="cb390-47"><a href="#cb390-47" aria-hidden="true" tabindex="-1"></a>  LFVF(LambdaFV)</span>
+<span id="cb390-48"><a href="#cb390-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb390-49"><a href="#cb390-49" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test1 = (`App (`Abs (<span class="st">&quot;x&quot;</span>, `Var <span class="st">&quot;x&quot;</span>), `Var <span class="st">&quot;y&quot;</span>) : Lambda.<span class="dt">exp</span>)</span>
+<span id="cb390-50"><a href="#cb390-50" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test = Lambda.eval [] test1</span>
+<span id="cb390-51"><a href="#cb390-51" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_test = LambdaFV.freevars test1</span></code></pre></div>
+<p>The arithmetic expression sub-language:</p>
 <div class="sourceCode" id="cb391"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb391-1"><a href="#cb391-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a lexpr = [&#39;a lambda | &#39;a expr]</span>
-<span id="cb391-2"><a href="#cb391-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb391-3"><a href="#cb391-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LEF(X : Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lexpr] <span class="kw">as</span> &#39;a) =</span>
-<span id="cb391-4"><a href="#cb391-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb391-5"><a href="#cb391-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lexpr</span>
-<span id="cb391-6"><a href="#cb391-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> LambdaX = LF(X)</span>
-<span id="cb391-7"><a href="#cb391-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> LambdaFVX = LFVF(X)</span>
-<span id="cb391-8"><a href="#cb391-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> ExprX = EF(X)</span>
-<span id="cb391-9"><a href="#cb391-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb391-10"><a href="#cb391-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst : <span class="dt">exp</span> -&gt; X.<span class="dt">exp</span> = <span class="kw">function</span></span>
-<span id="cb391-11"><a href="#cb391-11" aria-hidden="true" tabindex="-1"></a>    | #LambdaX.<span class="dt">exp</span> <span class="kw">as</span> x -&gt; LambdaX.eval subst x</span>
-<span id="cb391-12"><a href="#cb391-12" aria-hidden="true" tabindex="-1"></a>    | #ExprX.<span class="dt">exp</span> <span class="kw">as</span> x -&gt; ExprX.eval subst x</span>
-<span id="cb391-13"><a href="#cb391-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb391-14"><a href="#cb391-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
-<span id="cb391-15"><a href="#cb391-15" aria-hidden="true" tabindex="-1"></a>    | #lambda <span class="kw">as</span> x -&gt; LambdaFVX.freevars x  <span class="co">(* Either of #lambda or #LambdaX.exp is fine *)</span></span>
-<span id="cb391-16"><a href="#cb391-16" aria-hidden="true" tabindex="-1"></a>    | #expr <span class="kw">as</span> x -&gt; ExprX.freevars x  <span class="co">(* Either of #expr or #ExprX.exp is fine *)</span></span>
-<span id="cb391-17"><a href="#cb391-17" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb391-18"><a href="#cb391-18" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> LExpr : (Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = LExpr.<span class="dt">exp</span> lexpr) =</span>
-<span id="cb391-19"><a href="#cb391-19" aria-hidden="true" tabindex="-1"></a>  LEF(LExpr)</span>
-<span id="cb391-20"><a href="#cb391-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb391-21"><a href="#cb391-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test3 =</span>
-<span id="cb391-22"><a href="#cb391-22" aria-hidden="true" tabindex="-1"></a>  (`App (`Abs (<span class="st">&quot;x&quot;</span>, `Add (`Mult (`Num <span class="dv">3</span>, `Var <span class="st">&quot;x&quot;</span>), `Num <span class="dv">1</span>)),</span>
-<span id="cb391-23"><a href="#cb391-23" aria-hidden="true" tabindex="-1"></a>         `Num <span class="dv">2</span>) : LExpr.<span class="dt">exp</span>)</span>
-<span id="cb391-24"><a href="#cb391-24" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test3 = LExpr.eval [] test3</span>
-<span id="cb391-25"><a href="#cb391-25" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_test3 = LExpr.freevars test3</span>
-<span id="cb391-26"><a href="#cb391-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_old_test = LExpr.eval [] (test2 :&gt; LExpr.<span class="dt">exp</span>)</span>
-<span id="cb391-27"><a href="#cb391-27" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_old_test = LExpr.freevars (test2 :&gt; LExpr.<span class="dt">exp</span>)</span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb391-1"><a href="#cb391-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a expr =</span>
+<span id="cb391-2"><a href="#cb391-2" aria-hidden="true" tabindex="-1"></a>  [`Var <span class="kw">of</span> <span class="dt">string</span> | `Num <span class="kw">of</span> <span class="dt">int</span> | `Add <span class="kw">of</span> &#39;a * &#39;a | `Mult <span class="kw">of</span> &#39;a * &#39;a]</span>
+<span id="cb391-3"><a href="#cb391-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-4"><a href="#cb391-4" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> Operations =</span>
+<span id="cb391-5"><a href="#cb391-5" aria-hidden="true" tabindex="-1"></a><span class="kw">sig</span> <span class="kw">include</span> Eval <span class="kw">include</span> FreeVars <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> := <span class="dt">exp</span> <span class="kw">end</span></span>
+<span id="cb391-6"><a href="#cb391-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-7"><a href="#cb391-7" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> EF(X : Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a expr] <span class="kw">as</span> &#39;a) =</span>
+<span id="cb391-8"><a href="#cb391-8" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb391-9"><a href="#cb391-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> expr</span>
+<span id="cb391-10"><a href="#cb391-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-11"><a href="#cb391-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map_expr f = <span class="kw">function</span></span>
+<span id="cb391-12"><a href="#cb391-12" aria-hidden="true" tabindex="-1"></a>    | #var <span class="kw">as</span> v -&gt; v</span>
+<span id="cb391-13"><a href="#cb391-13" aria-hidden="true" tabindex="-1"></a>    | `Num _ <span class="kw">as</span> n -&gt; n</span>
+<span id="cb391-14"><a href="#cb391-14" aria-hidden="true" tabindex="-1"></a>    | `Add (e1, e2) -&gt; `Add (f e1, f e2)</span>
+<span id="cb391-15"><a href="#cb391-15" aria-hidden="true" tabindex="-1"></a>    | `Mult (e1, e2) -&gt; `Mult (f e1, f e2)</span>
+<span id="cb391-16"><a href="#cb391-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-17"><a href="#cb391-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst (e : <span class="dt">exp</span>) : X.<span class="dt">exp</span> =</span>
+<span id="cb391-18"><a href="#cb391-18" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> map_expr (X.eval subst) e <span class="kw">with</span></span>
+<span id="cb391-19"><a href="#cb391-19" aria-hidden="true" tabindex="-1"></a>    | #var <span class="kw">as</span> v -&gt; eval_var subst v</span>
+<span id="cb391-20"><a href="#cb391-20" aria-hidden="true" tabindex="-1"></a>    | `Add (`Num m, `Num n) -&gt; `Num (m + n)</span>
+<span id="cb391-21"><a href="#cb391-21" aria-hidden="true" tabindex="-1"></a>    | `Mult (`Num m, `Num n) -&gt; `Num (m * n)</span>
+<span id="cb391-22"><a href="#cb391-22" aria-hidden="true" tabindex="-1"></a>    | e -&gt; e</span>
+<span id="cb391-23"><a href="#cb391-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-24"><a href="#cb391-24" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
+<span id="cb391-25"><a href="#cb391-25" aria-hidden="true" tabindex="-1"></a>    | `Var v -&gt; [v]</span>
+<span id="cb391-26"><a href="#cb391-26" aria-hidden="true" tabindex="-1"></a>    | `Num _ -&gt; []</span>
+<span id="cb391-27"><a href="#cb391-27" aria-hidden="true" tabindex="-1"></a>    | `Add (e1, e2) | `Mult (e1, e2) -&gt; X.freevars e1 @ X.freevars e2</span>
+<span id="cb391-28"><a href="#cb391-28" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb391-29"><a href="#cb391-29" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> Expr : (Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = Expr.<span class="dt">exp</span> expr) =</span>
+<span id="cb391-30"><a href="#cb391-30" aria-hidden="true" tabindex="-1"></a>  EF(Expr)</span>
+<span id="cb391-31"><a href="#cb391-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb391-32"><a href="#cb391-32" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test2 = (`Add (`Mult (`Num <span class="dv">3</span>, `Var <span class="st">&quot;x&quot;</span>), `Num <span class="dv">1</span>) : Expr.<span class="dt">exp</span>)</span>
+<span id="cb391-33"><a href="#cb391-33" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test2 = Expr.eval [<span class="st">&quot;x&quot;</span>, `Num <span class="dv">2</span>] test2</span>
+<span id="cb391-34"><a href="#cb391-34" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fvs_test2 = Expr.freevars test2</span></code></pre></div>
+<p>Merging the sub-languages:</p>
+<div class="sourceCode" id="cb392"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb392-1"><a href="#cb392-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a lexpr = [&#39;a lambda | &#39;a expr]</span>
+<span id="cb392-2"><a href="#cb392-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb392-3"><a href="#cb392-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LEF(X : Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = <span class="kw">private</span> [&gt; &#39;a lexpr] <span class="kw">as</span> &#39;a) =</span>
+<span id="cb392-4"><a href="#cb392-4" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb392-5"><a href="#cb392-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> <span class="dt">exp</span> = X.<span class="dt">exp</span> lexpr</span>
+<span id="cb392-6"><a href="#cb392-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> LambdaX = LF(X)</span>
+<span id="cb392-7"><a href="#cb392-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> LambdaFVX = LFVF(X)</span>
+<span id="cb392-8"><a href="#cb392-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> ExprX = EF(X)</span>
+<span id="cb392-9"><a href="#cb392-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb392-10"><a href="#cb392-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> eval subst : <span class="dt">exp</span> -&gt; X.<span class="dt">exp</span> = <span class="kw">function</span></span>
+<span id="cb392-11"><a href="#cb392-11" aria-hidden="true" tabindex="-1"></a>    | #LambdaX.<span class="dt">exp</span> <span class="kw">as</span> x -&gt; LambdaX.eval subst x</span>
+<span id="cb392-12"><a href="#cb392-12" aria-hidden="true" tabindex="-1"></a>    | #ExprX.<span class="dt">exp</span> <span class="kw">as</span> x -&gt; ExprX.eval subst x</span>
+<span id="cb392-13"><a href="#cb392-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb392-14"><a href="#cb392-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> freevars : <span class="dt">exp</span> -&gt; &#39;b = <span class="kw">function</span></span>
+<span id="cb392-15"><a href="#cb392-15" aria-hidden="true" tabindex="-1"></a>    | #lambda <span class="kw">as</span> x -&gt; LambdaFVX.freevars x  <span class="co">(* Either of #lambda or #LambdaX.exp is fine *)</span></span>
+<span id="cb392-16"><a href="#cb392-16" aria-hidden="true" tabindex="-1"></a>    | #expr <span class="kw">as</span> x -&gt; ExprX.freevars x  <span class="co">(* Either of #expr or #ExprX.exp is fine *)</span></span>
+<span id="cb392-17"><a href="#cb392-17" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb392-18"><a href="#cb392-18" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">rec</span> LExpr : (Operations <span class="kw">with</span> <span class="kw">type</span> <span class="dt">exp</span> = LExpr.<span class="dt">exp</span> lexpr) =</span>
+<span id="cb392-19"><a href="#cb392-19" aria-hidden="true" tabindex="-1"></a>  LEF(LExpr)</span>
+<span id="cb392-20"><a href="#cb392-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb392-21"><a href="#cb392-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test3 =</span>
+<span id="cb392-22"><a href="#cb392-22" aria-hidden="true" tabindex="-1"></a>  (`App (`Abs (<span class="st">&quot;x&quot;</span>, `Add (`Mult (`Num <span class="dv">3</span>, `Var <span class="st">&quot;x&quot;</span>), `Num <span class="dv">1</span>)),</span>
+<span id="cb392-23"><a href="#cb392-23" aria-hidden="true" tabindex="-1"></a>         `Num <span class="dv">2</span>) : LExpr.<span class="dt">exp</span>)</span>
+<span id="cb392-24"><a href="#cb392-24" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_test3 = LExpr.eval [] test3</span>
+<span id="cb392-25"><a href="#cb392-25" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_test3 = LExpr.freevars test3</span>
+<span id="cb392-26"><a href="#cb392-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e_old_test = LExpr.eval [] (test2 :&gt; LExpr.<span class="dt">exp</span>)</span>
+<span id="cb392-27"><a href="#cb392-27" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> fv_old_test = LExpr.freevars (test2 :&gt; LExpr.<span class="dt">exp</span>)</span></code></pre></div>
 <h3 id="parser-combinators">11.9 Parser Combinators</h3>
 <p>Large-scale parsing in OCaml is typically done using external
 languages OCamlLex and Menhir. But it is convenient to have parsers
@@ -9438,200 +9474,201 @@ the parsed string, and a state monad with the parsing position.</p>
 <h4 id="implementation-of-lazy-monad-plus">Implementation of
 lazy-monad-plus</h4>
 <p>First an operation from <code>MonadPlusOps</code>:</p>
-<div class="sourceCode" id="cb393"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb393-1"><a href="#cb393-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> msum_map f l =</span>
-<span id="cb393-2"><a href="#cb393-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.fold_left  <span class="co">(* Folding left reverses the apparent order of composition *)</span></span>
-<span id="cb393-3"><a href="#cb393-3" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">fun</span> acc a -&gt; mplus acc (<span class="kw">lazy</span> (f a))) mzero l  <span class="co">(* order from l is preserved *)</span></span></code></pre></div>
-<p>The implementation of the lazy-monad-plus using lazy lists:</p>
 <div class="sourceCode" id="cb394"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb394-1"><a href="#cb394-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a llist = LNil | LCons <span class="kw">of</span> &#39;a * &#39;a llist <span class="dt">Lazy</span>.t</span>
-<span id="cb394-2"><a href="#cb394-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb394-3"><a href="#cb394-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> ltake n = <span class="kw">function</span></span>
-<span id="cb394-4"><a href="#cb394-4" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) <span class="kw">when</span> n &gt; <span class="dv">1</span> -&gt; a::(ltake (n<span class="dv">-1</span>) (<span class="dt">Lazy</span>.force l))</span>
-<span id="cb394-5"><a href="#cb394-5" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) <span class="kw">when</span> n = <span class="dv">1</span> -&gt; [a]  <span class="co">(* Avoid forcing the tail if not needed *)</span></span>
-<span id="cb394-6"><a href="#cb394-6" aria-hidden="true" tabindex="-1"></a>  | _ -&gt; []</span>
-<span id="cb394-7"><a href="#cb394-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb394-8"><a href="#cb394-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lappend l1 l2 =</span>
-<span id="cb394-9"><a href="#cb394-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> l1 <span class="kw">with</span> LNil -&gt; <span class="dt">Lazy</span>.force l2</span>
-<span id="cb394-10"><a href="#cb394-10" aria-hidden="true" tabindex="-1"></a>  | LCons (hd, tl) -&gt; LCons (hd, <span class="kw">lazy</span> (lappend (<span class="dt">Lazy</span>.force tl) l2))</span>
-<span id="cb394-11"><a href="#cb394-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb394-12"><a href="#cb394-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lconcat_map f = <span class="kw">function</span></span>
-<span id="cb394-13"><a href="#cb394-13" aria-hidden="true" tabindex="-1"></a>  | LNil -&gt; LNil</span>
-<span id="cb394-14"><a href="#cb394-14" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) -&gt; lappend (f a) (<span class="kw">lazy</span> (lconcat_map f (<span class="dt">Lazy</span>.force l)))</span>
-<span id="cb394-15"><a href="#cb394-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb394-16"><a href="#cb394-16" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LListM = MonadPlus (<span class="kw">struct</span></span>
-<span id="cb394-17"><a href="#cb394-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a llist</span>
-<span id="cb394-18"><a href="#cb394-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> bind a b = lconcat_map b a</span>
-<span id="cb394-19"><a href="#cb394-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> return a = LCons (a, <span class="kw">lazy</span> LNil)</span>
-<span id="cb394-20"><a href="#cb394-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> mzero = LNil</span>
-<span id="cb394-21"><a href="#cb394-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> mplus = lappend</span>
-<span id="cb394-22"><a href="#cb394-22" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>)</span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb394-1"><a href="#cb394-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> msum_map f l =</span>
+<span id="cb394-2"><a href="#cb394-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.fold_left  <span class="co">(* Folding left reverses the apparent order of composition *)</span></span>
+<span id="cb394-3"><a href="#cb394-3" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">fun</span> acc a -&gt; mplus acc (<span class="kw">lazy</span> (f a))) mzero l  <span class="co">(* order from l is preserved *)</span></span></code></pre></div>
+<p>The implementation of the lazy-monad-plus using lazy lists:</p>
+<div class="sourceCode" id="cb395"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb395-1"><a href="#cb395-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a llist = LNil | LCons <span class="kw">of</span> &#39;a * &#39;a llist <span class="dt">Lazy</span>.t</span>
+<span id="cb395-2"><a href="#cb395-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb395-3"><a href="#cb395-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> ltake n = <span class="kw">function</span></span>
+<span id="cb395-4"><a href="#cb395-4" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) <span class="kw">when</span> n &gt; <span class="dv">1</span> -&gt; a::(ltake (n<span class="dv">-1</span>) (<span class="dt">Lazy</span>.force l))</span>
+<span id="cb395-5"><a href="#cb395-5" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) <span class="kw">when</span> n = <span class="dv">1</span> -&gt; [a]  <span class="co">(* Avoid forcing the tail if not needed *)</span></span>
+<span id="cb395-6"><a href="#cb395-6" aria-hidden="true" tabindex="-1"></a>  | _ -&gt; []</span>
+<span id="cb395-7"><a href="#cb395-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb395-8"><a href="#cb395-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lappend l1 l2 =</span>
+<span id="cb395-9"><a href="#cb395-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> l1 <span class="kw">with</span> LNil -&gt; <span class="dt">Lazy</span>.force l2</span>
+<span id="cb395-10"><a href="#cb395-10" aria-hidden="true" tabindex="-1"></a>  | LCons (hd, tl) -&gt; LCons (hd, <span class="kw">lazy</span> (lappend (<span class="dt">Lazy</span>.force tl) l2))</span>
+<span id="cb395-11"><a href="#cb395-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb395-12"><a href="#cb395-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lconcat_map f = <span class="kw">function</span></span>
+<span id="cb395-13"><a href="#cb395-13" aria-hidden="true" tabindex="-1"></a>  | LNil -&gt; LNil</span>
+<span id="cb395-14"><a href="#cb395-14" aria-hidden="true" tabindex="-1"></a>  | LCons (a, l) -&gt; lappend (f a) (<span class="kw">lazy</span> (lconcat_map f (<span class="dt">Lazy</span>.force l)))</span>
+<span id="cb395-15"><a href="#cb395-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb395-16"><a href="#cb395-16" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> LListM = MonadPlus (<span class="kw">struct</span></span>
+<span id="cb395-17"><a href="#cb395-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a llist</span>
+<span id="cb395-18"><a href="#cb395-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> bind a b = lconcat_map b a</span>
+<span id="cb395-19"><a href="#cb395-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> return a = LCons (a, <span class="kw">lazy</span> LNil)</span>
+<span id="cb395-20"><a href="#cb395-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> mzero = LNil</span>
+<span id="cb395-21"><a href="#cb395-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> mplus = lappend</span>
+<span id="cb395-22"><a href="#cb395-22" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span>)</span></code></pre></div>
 <h4 id="the-parsec-monad">The Parsec Monad</h4>
 <p>File <code>Parsec.ml</code>:</p>
-<div class="sourceCode" id="cb395"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb395-1"><a href="#cb395-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> Monad</span>
-<span id="cb395-2"><a href="#cb395-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb395-3"><a href="#cb395-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> PARSE = <span class="kw">sig</span></span>
-<span id="cb395-4"><a href="#cb395-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a backtracking_monad  <span class="co">(* Name for the underlying monad-plus *)</span></span>
-<span id="cb395-5"><a href="#cb395-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a parsing_state = <span class="dt">int</span> -&gt; (&#39;a * <span class="dt">int</span>) backtracking_monad  <span class="co">(* Processing state -- position *)</span></span>
-<span id="cb395-6"><a href="#cb395-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = <span class="dt">string</span> -&gt; &#39;a parsing_state  <span class="co">(* Reader for the parsed text *)</span></span>
-<span id="cb395-7"><a href="#cb395-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> MONAD_PLUS_OPS</span>
-<span id="cb395-8"><a href="#cb395-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (&lt;|&gt;) : &#39;a monad -&gt; &#39;a monad <span class="dt">Lazy</span>.t -&gt; &#39;a monad  <span class="co">(* A synonym for mplus *)</span></span>
-<span id="cb395-9"><a href="#cb395-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> run : &#39;a monad -&gt; &#39;a t</span>
-<span id="cb395-10"><a href="#cb395-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> runT : &#39;a monad -&gt; <span class="dt">string</span> -&gt; <span class="dt">int</span> -&gt; &#39;a backtracking_monad</span>
-<span id="cb395-11"><a href="#cb395-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> satisfy : (<span class="dt">char</span> -&gt; <span class="dt">bool</span>) -&gt; <span class="dt">char</span> monad  <span class="co">(* Consume a character of the specified class *)</span></span>
-<span id="cb395-12"><a href="#cb395-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> end_of_text : <span class="dt">unit</span> monad  <span class="co">(* Check for end of the processed text *)</span></span>
-<span id="cb395-13"><a href="#cb395-13" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb395-14"><a href="#cb395-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb395-15"><a href="#cb395-15" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseT (MP : MONAD_PLUS_OPS) :</span>
-<span id="cb395-16"><a href="#cb395-16" aria-hidden="true" tabindex="-1"></a>  PARSE <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a MP.monad =</span>
-<span id="cb395-17"><a href="#cb395-17" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb395-18"><a href="#cb395-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a backtracking_monad = &#39;a MP.monad</span>
-<span id="cb395-19"><a href="#cb395-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a parsing_state = <span class="dt">int</span> -&gt; (&#39;a * <span class="dt">int</span>) MP.monad</span>
-<span id="cb395-20"><a href="#cb395-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> M = <span class="kw">struct</span></span>
-<span id="cb395-21"><a href="#cb395-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> &#39;a t = <span class="dt">string</span> -&gt; &#39;a parsing_state</span>
-<span id="cb395-22"><a href="#cb395-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> return a = <span class="kw">fun</span> s p -&gt; MP.return (a, p)</span>
-<span id="cb395-23"><a href="#cb395-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> bind m b = <span class="kw">fun</span> s p -&gt;</span>
-<span id="cb395-24"><a href="#cb395-24" aria-hidden="true" tabindex="-1"></a>      MP.bind (m s p) (<span class="kw">fun</span> (a, p&#39;) -&gt; b a s p&#39;)</span>
-<span id="cb395-25"><a href="#cb395-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> mzero = <span class="kw">fun</span> _ p -&gt; MP.mzero</span>
-<span id="cb395-26"><a href="#cb395-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> mplus ma mb = <span class="kw">fun</span> s p -&gt;</span>
-<span id="cb395-27"><a href="#cb395-27" aria-hidden="true" tabindex="-1"></a>      MP.mplus (ma s p) (<span class="kw">lazy</span> (<span class="dt">Lazy</span>.force mb s p))</span>
-<span id="cb395-28"><a href="#cb395-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">end</span></span>
-<span id="cb395-29"><a href="#cb395-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> M</span>
-<span id="cb395-30"><a href="#cb395-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> MonadPlusOps(M)</span>
-<span id="cb395-31"><a href="#cb395-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;|&gt;) ma mb = mplus ma mb</span>
-<span id="cb395-32"><a href="#cb395-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> runT m s p = MP.lift <span class="dt">fst</span> (m s p)</span>
-<span id="cb395-33"><a href="#cb395-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> satisfy f s p =</span>
-<span id="cb395-34"><a href="#cb395-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> p &lt; <span class="dt">String</span>.length s &amp;&amp; f s.[p]  <span class="co">(* Consuming a character means accessing it *)</span></span>
-<span id="cb395-35"><a href="#cb395-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">then</span> MP.return (s.[p], p + <span class="dv">1</span>) <span class="kw">else</span> MP.mzero  <span class="co">(* and advancing the parsing position *)</span></span>
-<span id="cb395-36"><a href="#cb395-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> end_of_text s p =</span>
-<span id="cb395-37"><a href="#cb395-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> p &gt;= <span class="dt">String</span>.length s <span class="kw">then</span> MP.return ((), p) <span class="kw">else</span> MP.mzero</span>
-<span id="cb395-38"><a href="#cb395-38" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
-<h4 id="additional-parser-operations">Additional Parser Operations</h4>
 <div class="sourceCode" id="cb396"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb396-1"><a href="#cb396-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> PARSE_OPS = <span class="kw">sig</span></span>
-<span id="cb396-2"><a href="#cb396-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> PARSE</span>
-<span id="cb396-3"><a href="#cb396-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> many : &#39;a monad -&gt; &#39;a <span class="dt">list</span> monad</span>
-<span id="cb396-4"><a href="#cb396-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> opt : &#39;a monad -&gt; &#39;a <span class="dt">option</span> monad</span>
-<span id="cb396-5"><a href="#cb396-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (?|) : &#39;a monad -&gt; &#39;a <span class="dt">option</span> monad</span>
-<span id="cb396-6"><a href="#cb396-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> seq : &#39;a monad -&gt; &#39;b monad <span class="dt">Lazy</span>.t -&gt; (&#39;a * &#39;b) monad  <span class="co">(* Exercise: why laziness here? *)</span></span>
-<span id="cb396-7"><a href="#cb396-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (&lt;*&gt;) : &#39;a monad -&gt; &#39;b monad <span class="dt">Lazy</span>.t -&gt; (&#39;a * &#39;b) monad  <span class="co">(* Synonym for seq *)</span></span>
-<span id="cb396-8"><a href="#cb396-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> lowercase : <span class="dt">char</span> monad</span>
-<span id="cb396-9"><a href="#cb396-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> uppercase : <span class="dt">char</span> monad</span>
-<span id="cb396-10"><a href="#cb396-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> digit : <span class="dt">char</span> monad</span>
-<span id="cb396-11"><a href="#cb396-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> alpha : <span class="dt">char</span> monad</span>
-<span id="cb396-12"><a href="#cb396-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> alphanum : <span class="dt">char</span> monad</span>
-<span id="cb396-13"><a href="#cb396-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> literal : <span class="dt">string</span> -&gt; <span class="dt">unit</span> monad  <span class="co">(* Consume characters of the given string *)</span></span>
-<span id="cb396-14"><a href="#cb396-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (<span class="st">&lt;&lt;&gt;) : string -&gt; &#39;a monad -&gt; &#39;a monad  (* Prefix and postfix keywords *)</span></span>
-<span id="cb396-15"><a href="#cb396-15" aria-hidden="true" tabindex="-1"></a><span class="st">  val (&lt;&gt;&gt;</span>) : &#39;a monad -&gt; <span class="dt">string</span> -&gt; &#39;a monad</span>
-<span id="cb396-16"><a href="#cb396-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb396-17"><a href="#cb396-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb396-18"><a href="#cb396-18" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseOps (R : MONAD_PLUS_OPS)</span>
-<span id="cb396-19"><a href="#cb396-19" aria-hidden="true" tabindex="-1"></a>  (P : PARSE <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a R.monad) :</span>
-<span id="cb396-20"><a href="#cb396-20" aria-hidden="true" tabindex="-1"></a>  PARSE_OPS <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a R.monad =</span>
-<span id="cb396-21"><a href="#cb396-21" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
-<span id="cb396-22"><a href="#cb396-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> P</span>
-<span id="cb396-23"><a href="#cb396-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> many p =</span>
-<span id="cb396-24"><a href="#cb396-24" aria-hidden="true" tabindex="-1"></a>    (perform</span>
-<span id="cb396-25"><a href="#cb396-25" aria-hidden="true" tabindex="-1"></a>        r &lt;-- p; rs &lt;-- many p; return (r::rs))</span>
-<span id="cb396-26"><a href="#cb396-26" aria-hidden="true" tabindex="-1"></a>    ++ <span class="kw">lazy</span> (return [])</span>
-<span id="cb396-27"><a href="#cb396-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> opt p = (p &gt;&gt;= (<span class="kw">fun</span> x -&gt; return (<span class="dt">Some</span> x))) ++ <span class="kw">lazy</span> (return <span class="dt">None</span>)</span>
-<span id="cb396-28"><a href="#cb396-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (?|) p = opt p</span>
-<span id="cb396-29"><a href="#cb396-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> seq p q = perform</span>
-<span id="cb396-30"><a href="#cb396-30" aria-hidden="true" tabindex="-1"></a>      x &lt;-- p; y &lt;-- <span class="dt">Lazy</span>.force q; return (x, y)</span>
-<span id="cb396-31"><a href="#cb396-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;*&gt;) p q = seq p q</span>
-<span id="cb396-32"><a href="#cb396-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> lowercase = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;a&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;z&#39;</span>)</span>
-<span id="cb396-33"><a href="#cb396-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> uppercase = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;A&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;Z&#39;</span>)</span>
-<span id="cb396-34"><a href="#cb396-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> digit = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;0&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;9&#39;</span>)</span>
-<span id="cb396-35"><a href="#cb396-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> alpha = lowercase ++ <span class="kw">lazy</span> uppercase</span>
-<span id="cb396-36"><a href="#cb396-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> alphanum = alpha ++ <span class="kw">lazy</span> digit</span>
-<span id="cb396-37"><a href="#cb396-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> literal l =</span>
-<span id="cb396-38"><a href="#cb396-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">rec</span> loop pos =</span>
-<span id="cb396-39"><a href="#cb396-39" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> pos = <span class="dt">String</span>.length l <span class="kw">then</span> return ()</span>
-<span id="cb396-40"><a href="#cb396-40" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> satisfy (<span class="kw">fun</span> c -&gt; c = l.[pos]) &gt;&gt;- loop (pos + <span class="dv">1</span>) <span class="kw">in</span></span>
-<span id="cb396-41"><a href="#cb396-41" aria-hidden="true" tabindex="-1"></a>    loop <span class="dv">0</span></span>
-<span id="cb396-42"><a href="#cb396-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (<span class="st">&lt;&lt;&gt;) bra p = literal bra &gt;&gt;</span>- p</span>
-<span id="cb396-43"><a href="#cb396-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;&gt;&gt;) p ket = p &gt;&gt;= (<span class="kw">fun</span> x -&gt; literal ket &gt;&gt;- return x)</span>
-<span id="cb396-44"><a href="#cb396-44" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb396-1"><a href="#cb396-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> Monad</span>
+<span id="cb396-2"><a href="#cb396-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb396-3"><a href="#cb396-3" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> PARSE = <span class="kw">sig</span></span>
+<span id="cb396-4"><a href="#cb396-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a backtracking_monad  <span class="co">(* Name for the underlying monad-plus *)</span></span>
+<span id="cb396-5"><a href="#cb396-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a parsing_state = <span class="dt">int</span> -&gt; (&#39;a * <span class="dt">int</span>) backtracking_monad  <span class="co">(* State: position *)</span></span>
+<span id="cb396-6"><a href="#cb396-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = <span class="dt">string</span> -&gt; &#39;a parsing_state  <span class="co">(* Reader for the parsed text *)</span></span>
+<span id="cb396-7"><a href="#cb396-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> MONAD_PLUS_OPS</span>
+<span id="cb396-8"><a href="#cb396-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (&lt;|&gt;) : &#39;a monad -&gt; &#39;a monad <span class="dt">Lazy</span>.t -&gt; &#39;a monad  <span class="co">(* A synonym for mplus *)</span></span>
+<span id="cb396-9"><a href="#cb396-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> run : &#39;a monad -&gt; &#39;a t</span>
+<span id="cb396-10"><a href="#cb396-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> runT : &#39;a monad -&gt; <span class="dt">string</span> -&gt; <span class="dt">int</span> -&gt; &#39;a backtracking_monad</span>
+<span id="cb396-11"><a href="#cb396-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> satisfy : (<span class="dt">char</span> -&gt; <span class="dt">bool</span>) -&gt; <span class="dt">char</span> monad  <span class="co">(* Consume a character of the class *)</span></span>
+<span id="cb396-12"><a href="#cb396-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> end_of_text : <span class="dt">unit</span> monad  <span class="co">(* Check for end of the processed text *)</span></span>
+<span id="cb396-13"><a href="#cb396-13" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb396-14"><a href="#cb396-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb396-15"><a href="#cb396-15" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseT (MP : MONAD_PLUS_OPS) :</span>
+<span id="cb396-16"><a href="#cb396-16" aria-hidden="true" tabindex="-1"></a>  PARSE <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a MP.monad =</span>
+<span id="cb396-17"><a href="#cb396-17" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb396-18"><a href="#cb396-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a backtracking_monad = &#39;a MP.monad</span>
+<span id="cb396-19"><a href="#cb396-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a parsing_state = <span class="dt">int</span> -&gt; (&#39;a * <span class="dt">int</span>) MP.monad</span>
+<span id="cb396-20"><a href="#cb396-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> M = <span class="kw">struct</span></span>
+<span id="cb396-21"><a href="#cb396-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">type</span> &#39;a t = <span class="dt">string</span> -&gt; &#39;a parsing_state</span>
+<span id="cb396-22"><a href="#cb396-22" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> return a = <span class="kw">fun</span> s p -&gt; MP.return (a, p)</span>
+<span id="cb396-23"><a href="#cb396-23" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> bind m b = <span class="kw">fun</span> s p -&gt;</span>
+<span id="cb396-24"><a href="#cb396-24" aria-hidden="true" tabindex="-1"></a>      MP.bind (m s p) (<span class="kw">fun</span> (a, p&#39;) -&gt; b a s p&#39;)</span>
+<span id="cb396-25"><a href="#cb396-25" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> mzero = <span class="kw">fun</span> _ p -&gt; MP.mzero</span>
+<span id="cb396-26"><a href="#cb396-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> mplus ma mb = <span class="kw">fun</span> s p -&gt;</span>
+<span id="cb396-27"><a href="#cb396-27" aria-hidden="true" tabindex="-1"></a>      MP.mplus (ma s p) (<span class="kw">lazy</span> (<span class="dt">Lazy</span>.force mb s p))</span>
+<span id="cb396-28"><a href="#cb396-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">end</span></span>
+<span id="cb396-29"><a href="#cb396-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> M</span>
+<span id="cb396-30"><a href="#cb396-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> MonadPlusOps(M)</span>
+<span id="cb396-31"><a href="#cb396-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;|&gt;) ma mb = mplus ma mb</span>
+<span id="cb396-32"><a href="#cb396-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> runT m s p = MP.lift <span class="dt">fst</span> (m s p)</span>
+<span id="cb396-33"><a href="#cb396-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> satisfy f s p =</span>
+<span id="cb396-34"><a href="#cb396-34" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> p &lt; <span class="dt">String</span>.length s &amp;&amp; f s.[p]  <span class="co">(* Consuming a character means accessing it *)</span></span>
+<span id="cb396-35"><a href="#cb396-35" aria-hidden="true" tabindex="-1"></a>    <span class="kw">then</span> MP.return (s.[p], p + <span class="dv">1</span>) <span class="kw">else</span> MP.mzero  <span class="co">(* and advancing the parsing position *)</span></span>
+<span id="cb396-36"><a href="#cb396-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> end_of_text s p =</span>
+<span id="cb396-37"><a href="#cb396-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> p &gt;= <span class="dt">String</span>.length s <span class="kw">then</span> MP.return ((), p) <span class="kw">else</span> MP.mzero</span>
+<span id="cb396-38"><a href="#cb396-38" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<h4 id="additional-parser-operations">Additional Parser Operations</h4>
+<div class="sourceCode" id="cb397"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb397-1"><a href="#cb397-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> PARSE_OPS = <span class="kw">sig</span></span>
+<span id="cb397-2"><a href="#cb397-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> PARSE</span>
+<span id="cb397-3"><a href="#cb397-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> many : &#39;a monad -&gt; &#39;a <span class="dt">list</span> monad</span>
+<span id="cb397-4"><a href="#cb397-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> opt : &#39;a monad -&gt; &#39;a <span class="dt">option</span> monad</span>
+<span id="cb397-5"><a href="#cb397-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (?|) : &#39;a monad -&gt; &#39;a <span class="dt">option</span> monad</span>
+<span id="cb397-6"><a href="#cb397-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> seq : &#39;a monad -&gt; &#39;b monad <span class="dt">Lazy</span>.t -&gt; (&#39;a * &#39;b) monad  <span class="co">(* Exercise: why lazy here? *)</span></span>
+<span id="cb397-7"><a href="#cb397-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (&lt;*&gt;) : &#39;a monad -&gt; &#39;b monad <span class="dt">Lazy</span>.t -&gt; (&#39;a * &#39;b) monad  <span class="co">(* Synonym for seq *)</span></span>
+<span id="cb397-8"><a href="#cb397-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> lowercase : <span class="dt">char</span> monad</span>
+<span id="cb397-9"><a href="#cb397-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> uppercase : <span class="dt">char</span> monad</span>
+<span id="cb397-10"><a href="#cb397-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> digit : <span class="dt">char</span> monad</span>
+<span id="cb397-11"><a href="#cb397-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> alpha : <span class="dt">char</span> monad</span>
+<span id="cb397-12"><a href="#cb397-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> alphanum : <span class="dt">char</span> monad</span>
+<span id="cb397-13"><a href="#cb397-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> literal : <span class="dt">string</span> -&gt; <span class="dt">unit</span> monad  <span class="co">(* Consume characters of the given string *)</span></span>
+<span id="cb397-14"><a href="#cb397-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> (<span class="st">&lt;&lt;&gt;) : string -&gt; &#39;a monad -&gt; &#39;a monad  (* Prefix and postfix keywords *)</span></span>
+<span id="cb397-15"><a href="#cb397-15" aria-hidden="true" tabindex="-1"></a><span class="st">  val (&lt;&gt;&gt;</span>) : &#39;a monad -&gt; <span class="dt">string</span> -&gt; &#39;a monad</span>
+<span id="cb397-16"><a href="#cb397-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb397-17"><a href="#cb397-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb397-18"><a href="#cb397-18" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseOps (R : MONAD_PLUS_OPS)</span>
+<span id="cb397-19"><a href="#cb397-19" aria-hidden="true" tabindex="-1"></a>  (P : PARSE <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a R.monad) :</span>
+<span id="cb397-20"><a href="#cb397-20" aria-hidden="true" tabindex="-1"></a>  PARSE_OPS <span class="kw">with</span> <span class="kw">type</span> &#39;a backtracking_monad := &#39;a R.monad =</span>
+<span id="cb397-21"><a href="#cb397-21" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb397-22"><a href="#cb397-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">include</span> P</span>
+<span id="cb397-23"><a href="#cb397-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> many p =</span>
+<span id="cb397-24"><a href="#cb397-24" aria-hidden="true" tabindex="-1"></a>    (perform</span>
+<span id="cb397-25"><a href="#cb397-25" aria-hidden="true" tabindex="-1"></a>        r &lt;-- p; rs &lt;-- many p; return (r::rs))</span>
+<span id="cb397-26"><a href="#cb397-26" aria-hidden="true" tabindex="-1"></a>    ++ <span class="kw">lazy</span> (return [])</span>
+<span id="cb397-27"><a href="#cb397-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> opt p = (p &gt;&gt;= (<span class="kw">fun</span> x -&gt; return (<span class="dt">Some</span> x))) ++ <span class="kw">lazy</span> (return <span class="dt">None</span>)</span>
+<span id="cb397-28"><a href="#cb397-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (?|) p = opt p</span>
+<span id="cb397-29"><a href="#cb397-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> seq p q = perform</span>
+<span id="cb397-30"><a href="#cb397-30" aria-hidden="true" tabindex="-1"></a>      x &lt;-- p; y &lt;-- <span class="dt">Lazy</span>.force q; return (x, y)</span>
+<span id="cb397-31"><a href="#cb397-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;*&gt;) p q = seq p q</span>
+<span id="cb397-32"><a href="#cb397-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> lowercase = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;a&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;z&#39;</span>)</span>
+<span id="cb397-33"><a href="#cb397-33" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> uppercase = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;A&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;Z&#39;</span>)</span>
+<span id="cb397-34"><a href="#cb397-34" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> digit = satisfy (<span class="kw">fun</span> c -&gt; c &gt;= <span class="ch">&#39;0&#39;</span> &amp;&amp; c &lt;= <span class="ch">&#39;9&#39;</span>)</span>
+<span id="cb397-35"><a href="#cb397-35" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> alpha = lowercase ++ <span class="kw">lazy</span> uppercase</span>
+<span id="cb397-36"><a href="#cb397-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> alphanum = alpha ++ <span class="kw">lazy</span> digit</span>
+<span id="cb397-37"><a href="#cb397-37" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> literal l =</span>
+<span id="cb397-38"><a href="#cb397-38" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> <span class="kw">rec</span> loop pos =</span>
+<span id="cb397-39"><a href="#cb397-39" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> pos = <span class="dt">String</span>.length l <span class="kw">then</span> return ()</span>
+<span id="cb397-40"><a href="#cb397-40" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> satisfy (<span class="kw">fun</span> c -&gt; c = l.[pos]) &gt;&gt;- loop (pos + <span class="dv">1</span>) <span class="kw">in</span></span>
+<span id="cb397-41"><a href="#cb397-41" aria-hidden="true" tabindex="-1"></a>    loop <span class="dv">0</span></span>
+<span id="cb397-42"><a href="#cb397-42" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (<span class="st">&lt;&lt;&gt;) bra p = literal bra &gt;&gt;</span>- p</span>
+<span id="cb397-43"><a href="#cb397-43" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> (&lt;&gt;&gt;) p ket = p &gt;&gt;= (<span class="kw">fun</span> x -&gt; literal ket &gt;&gt;- return x)</span>
+<span id="cb397-44"><a href="#cb397-44" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <h3 id="parser-combinators-tying-the-recursive-knot">11.11 Parser
 Combinators: Tying the Recursive Knot</h3>
 <p>File <code>PluginBase.ml</code>:</p>
-<div class="sourceCode" id="cb397"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb397-1"><a href="#cb397-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseM =</span>
-<span id="cb397-2"><a href="#cb397-2" aria-hidden="true" tabindex="-1"></a>  Parsec.ParseOps (Monad.LListM) (Parsec.ParseT (Monad.LListM))</span>
-<span id="cb397-3"><a href="#cb397-3" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> ParseM</span>
-<span id="cb397-4"><a href="#cb397-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb397-5"><a href="#cb397-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> grammar_rules : (<span class="dt">int</span> monad -&gt; <span class="dt">int</span> monad) <span class="dt">list</span> <span class="dt">ref</span> = <span class="dt">ref</span> []</span>
-<span id="cb397-6"><a href="#cb397-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb397-7"><a href="#cb397-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> get_language () : <span class="dt">int</span> monad =</span>
-<span id="cb397-8"><a href="#cb397-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> <span class="dt">result</span> =</span>
-<span id="cb397-9"><a href="#cb397-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lazy</span></span>
-<span id="cb397-10"><a href="#cb397-10" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">List</span>.fold_left</span>
-<span id="cb397-11"><a href="#cb397-11" aria-hidden="true" tabindex="-1"></a>         (<span class="kw">fun</span> acc lang -&gt; acc &lt;|&gt; <span class="kw">lazy</span> (lang (<span class="dt">Lazy</span>.force <span class="dt">result</span>)))</span>
-<span id="cb397-12"><a href="#cb397-12" aria-hidden="true" tabindex="-1"></a>          mzero !grammar_rules) <span class="kw">in</span></span>
-<span id="cb397-13"><a href="#cb397-13" aria-hidden="true" tabindex="-1"></a>  perform r &lt;-- <span class="dt">Lazy</span>.force <span class="dt">result</span>; end_of_text; return r  <span class="co">(* Ensure we parse the whole text *)</span></span></code></pre></div>
+<div class="sourceCode" id="cb398"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb398-1"><a href="#cb398-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ParseM =</span>
+<span id="cb398-2"><a href="#cb398-2" aria-hidden="true" tabindex="-1"></a>  Parsec.ParseOps (Monad.LListM) (Parsec.ParseT (Monad.LListM))</span>
+<span id="cb398-3"><a href="#cb398-3" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> ParseM</span>
+<span id="cb398-4"><a href="#cb398-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-5"><a href="#cb398-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> grammar_rules : (<span class="dt">int</span> monad -&gt; <span class="dt">int</span> monad) <span class="dt">list</span> <span class="dt">ref</span> = <span class="dt">ref</span> []</span>
+<span id="cb398-6"><a href="#cb398-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb398-7"><a href="#cb398-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> get_language () : <span class="dt">int</span> monad =</span>
+<span id="cb398-8"><a href="#cb398-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> <span class="dt">result</span> =</span>
+<span id="cb398-9"><a href="#cb398-9" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lazy</span></span>
+<span id="cb398-10"><a href="#cb398-10" aria-hidden="true" tabindex="-1"></a>      (<span class="dt">List</span>.fold_left</span>
+<span id="cb398-11"><a href="#cb398-11" aria-hidden="true" tabindex="-1"></a>         (<span class="kw">fun</span> acc lang -&gt; acc &lt;|&gt; <span class="kw">lazy</span> (lang (<span class="dt">Lazy</span>.force <span class="dt">result</span>)))</span>
+<span id="cb398-12"><a href="#cb398-12" aria-hidden="true" tabindex="-1"></a>          mzero !grammar_rules) <span class="kw">in</span></span>
+<span id="cb398-13"><a href="#cb398-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span>* r = <span class="dt">Lazy</span>.force <span class="dt">result</span> <span class="kw">in</span></span>
+<span id="cb398-14"><a href="#cb398-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span>* () = end_of_text <span class="kw">in</span> return r  <span class="co">(* Ensure we parse the whole text *)</span></span></code></pre></div>
 <h3 id="parser-combinators-dynamic-code-loading">11.12 Parser
 Combinators: Dynamic Code Loading</h3>
 <p>File <code>PluginRun.ml</code>:</p>
-<div class="sourceCode" id="cb398"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb398-1"><a href="#cb398-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> load_plug fname : <span class="dt">unit</span> =</span>
-<span id="cb398-2"><a href="#cb398-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fname = Dynlink.adapt_filename fname <span class="kw">in</span></span>
-<span id="cb398-3"><a href="#cb398-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> <span class="dt">Sys</span>.file_exists fname <span class="kw">then</span></span>
-<span id="cb398-4"><a href="#cb398-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">try</span> Dynlink.loadfile fname</span>
-<span id="cb398-5"><a href="#cb398-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">with</span></span>
-<span id="cb398-6"><a href="#cb398-6" aria-hidden="true" tabindex="-1"></a>    | (Dynlink.<span class="dt">Error</span> err) <span class="kw">as</span> e -&gt;</span>
-<span id="cb398-7"><a href="#cb398-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">ERROR loading plugin: %s</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
-<span id="cb398-8"><a href="#cb398-8" aria-hidden="true" tabindex="-1"></a>        (Dynlink.error_message err);</span>
-<span id="cb398-9"><a href="#cb398-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">raise</span> e</span>
-<span id="cb398-10"><a href="#cb398-10" aria-hidden="true" tabindex="-1"></a>    | e -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Unknow error while loading plugin</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
-<span id="cb398-11"><a href="#cb398-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">else</span> (</span>
-<span id="cb398-12"><a href="#cb398-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Plugin file %s does not exist</span><span class="ch">\n</span><span class="st">%!&quot;</span> fname;</span>
-<span id="cb398-13"><a href="#cb398-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">exit</span> (<span class="dv">-1</span>))</span>
-<span id="cb398-14"><a href="#cb398-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb398-15"><a href="#cb398-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb398-16"><a href="#cb398-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">for</span> i = <span class="dv">2</span> <span class="kw">to</span> <span class="dt">Array</span>.length <span class="dt">Sys</span>.argv - <span class="dv">1</span> <span class="kw">do</span></span>
-<span id="cb398-17"><a href="#cb398-17" aria-hidden="true" tabindex="-1"></a>    load_plug <span class="dt">Sys</span>.argv.(i) <span class="kw">done</span>;</span>
-<span id="cb398-18"><a href="#cb398-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> lang = PluginBase.get_language () <span class="kw">in</span></span>
-<span id="cb398-19"><a href="#cb398-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="dt">result</span> =</span>
-<span id="cb398-20"><a href="#cb398-20" aria-hidden="true" tabindex="-1"></a>    Monad.LListM.run</span>
-<span id="cb398-21"><a href="#cb398-21" aria-hidden="true" tabindex="-1"></a>      (PluginBase.ParseM.runT lang <span class="dt">Sys</span>.argv.(<span class="dv">1</span>) <span class="dv">0</span>) <span class="kw">in</span></span>
-<span id="cb398-22"><a href="#cb398-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> Monad.ltake <span class="dv">1</span> <span class="dt">result</span> <span class="kw">with</span></span>
-<span id="cb398-23"><a href="#cb398-23" aria-hidden="true" tabindex="-1"></a>  | [] -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Parse error</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
-<span id="cb398-24"><a href="#cb398-24" aria-hidden="true" tabindex="-1"></a>  | r::_ -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Result: %d</span><span class="ch">\n</span><span class="st">%!&quot;</span> r</span></code></pre></div>
+<div class="sourceCode" id="cb399"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb399-1"><a href="#cb399-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> load_plug fname : <span class="dt">unit</span> =</span>
+<span id="cb399-2"><a href="#cb399-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fname = Dynlink.adapt_filename fname <span class="kw">in</span></span>
+<span id="cb399-3"><a href="#cb399-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">if</span> <span class="dt">Sys</span>.file_exists fname <span class="kw">then</span></span>
+<span id="cb399-4"><a href="#cb399-4" aria-hidden="true" tabindex="-1"></a>    <span class="kw">try</span> Dynlink.loadfile fname</span>
+<span id="cb399-5"><a href="#cb399-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">with</span></span>
+<span id="cb399-6"><a href="#cb399-6" aria-hidden="true" tabindex="-1"></a>    | (Dynlink.<span class="dt">Error</span> err) <span class="kw">as</span> e -&gt;</span>
+<span id="cb399-7"><a href="#cb399-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">ERROR loading plugin: %s</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
+<span id="cb399-8"><a href="#cb399-8" aria-hidden="true" tabindex="-1"></a>        (Dynlink.error_message err);</span>
+<span id="cb399-9"><a href="#cb399-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">raise</span> e</span>
+<span id="cb399-10"><a href="#cb399-10" aria-hidden="true" tabindex="-1"></a>    | e -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Unknow error while loading plugin</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
+<span id="cb399-11"><a href="#cb399-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">else</span> (</span>
+<span id="cb399-12"><a href="#cb399-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Plugin file %s does not exist</span><span class="ch">\n</span><span class="st">%!&quot;</span> fname;</span>
+<span id="cb399-13"><a href="#cb399-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">exit</span> (<span class="dv">-1</span>))</span>
+<span id="cb399-14"><a href="#cb399-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb399-15"><a href="#cb399-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb399-16"><a href="#cb399-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">for</span> i = <span class="dv">2</span> <span class="kw">to</span> <span class="dt">Array</span>.length <span class="dt">Sys</span>.argv - <span class="dv">1</span> <span class="kw">do</span></span>
+<span id="cb399-17"><a href="#cb399-17" aria-hidden="true" tabindex="-1"></a>    load_plug <span class="dt">Sys</span>.argv.(i) <span class="kw">done</span>;</span>
+<span id="cb399-18"><a href="#cb399-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> lang = PluginBase.get_language () <span class="kw">in</span></span>
+<span id="cb399-19"><a href="#cb399-19" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="dt">result</span> =</span>
+<span id="cb399-20"><a href="#cb399-20" aria-hidden="true" tabindex="-1"></a>    Monad.LListM.run</span>
+<span id="cb399-21"><a href="#cb399-21" aria-hidden="true" tabindex="-1"></a>      (PluginBase.ParseM.runT lang <span class="dt">Sys</span>.argv.(<span class="dv">1</span>) <span class="dv">0</span>) <span class="kw">in</span></span>
+<span id="cb399-22"><a href="#cb399-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> Monad.ltake <span class="dv">1</span> <span class="dt">result</span> <span class="kw">with</span></span>
+<span id="cb399-23"><a href="#cb399-23" aria-hidden="true" tabindex="-1"></a>  | [] -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Parse error</span><span class="ch">\n</span><span class="st">%!&quot;</span></span>
+<span id="cb399-24"><a href="#cb399-24" aria-hidden="true" tabindex="-1"></a>  | r::_ -&gt; <span class="dt">Printf</span>.printf <span class="st">&quot;</span><span class="ch">\n</span><span class="st">Result: %d</span><span class="ch">\n</span><span class="st">%!&quot;</span> r</span></code></pre></div>
 <h3 id="parser-combinators-toy-example">11.13 Parser Combinators: Toy
 Example</h3>
 <p>File <code>Plugin1.ml</code>:</p>
-<div class="sourceCode" id="cb399"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb399-1"><a href="#cb399-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> PluginBase.ParseM</span>
-<span id="cb399-2"><a href="#cb399-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> digit_of_char d = <span class="dt">int_of_char</span> d - <span class="dt">int_of_char</span> <span class="ch">&#39;0&#39;</span></span>
-<span id="cb399-3"><a href="#cb399-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb399-4"><a href="#cb399-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> number _ =  <span class="co">(* Numbers: N := D N | D where D is digits *)</span></span>
-<span id="cb399-5"><a href="#cb399-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> num =</span>
-<span id="cb399-6"><a href="#cb399-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lazy</span> (  (perform</span>
-<span id="cb399-7"><a href="#cb399-7" aria-hidden="true" tabindex="-1"></a>                d &lt;-- digit;</span>
-<span id="cb399-8"><a href="#cb399-8" aria-hidden="true" tabindex="-1"></a>                (n, b) &lt;-- <span class="dt">Lazy</span>.force num;</span>
-<span id="cb399-9"><a href="#cb399-9" aria-hidden="true" tabindex="-1"></a>                return (digit_of_char d * b + n, b * <span class="dv">10</span>))</span>
-<span id="cb399-10"><a href="#cb399-10" aria-hidden="true" tabindex="-1"></a>      &lt;|&gt; <span class="kw">lazy</span> (digit &gt;&gt;= (<span class="kw">fun</span> d -&gt; return (digit_of_char d, <span class="dv">10</span>)))) <span class="kw">in</span></span>
-<span id="cb399-11"><a href="#cb399-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Lazy</span>.force num &gt;&gt;| <span class="dt">fst</span></span>
-<span id="cb399-12"><a href="#cb399-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb399-13"><a href="#cb399-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> addition lang =  <span class="co">(* Addition rule: S -&gt; (S + S) *)</span></span>
-<span id="cb399-14"><a href="#cb399-14" aria-hidden="true" tabindex="-1"></a>  perform  <span class="co">(* Requiring a parenthesis ( turns the rule into non-left-recursive *)</span></span>
-<span id="cb399-15"><a href="#cb399-15" aria-hidden="true" tabindex="-1"></a>    literal <span class="st">&quot;(&quot;</span>; n1 &lt;-- lang; literal <span class="st">&quot;+&quot;</span>; n2 &lt;-- lang; literal <span class="st">&quot;)&quot;</span>;</span>
-<span id="cb399-16"><a href="#cb399-16" aria-hidden="true" tabindex="-1"></a>    return (n1 + n2)</span>
-<span id="cb399-17"><a href="#cb399-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb399-18"><a href="#cb399-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb399-19"><a href="#cb399-19" aria-hidden="true" tabindex="-1"></a>  PluginBase.(grammar_rules := number :: addition :: !grammar_rules)</span></code></pre></div>
-<p>File <code>Plugin2.ml</code>:</p>
 <div class="sourceCode" id="cb400"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb400-1"><a href="#cb400-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> PluginBase.ParseM</span>
-<span id="cb400-2"><a href="#cb400-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb400-3"><a href="#cb400-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> multiplication lang =  <span class="co">(* Multiplication rule: S -&gt; (S * S) *)</span></span>
-<span id="cb400-4"><a href="#cb400-4" aria-hidden="true" tabindex="-1"></a>  perform</span>
-<span id="cb400-5"><a href="#cb400-5" aria-hidden="true" tabindex="-1"></a>    literal <span class="st">&quot;(&quot;</span>; n1 &lt;-- lang; literal <span class="st">&quot;*&quot;</span>; n2 &lt;-- lang; literal <span class="st">&quot;)&quot;</span>;</span>
-<span id="cb400-6"><a href="#cb400-6" aria-hidden="true" tabindex="-1"></a>    return (n1 * n2)</span>
-<span id="cb400-7"><a href="#cb400-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb400-8"><a href="#cb400-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb400-9"><a href="#cb400-9" aria-hidden="true" tabindex="-1"></a>  PluginBase.(grammar_rules := multiplication :: !grammar_rules)</span></code></pre></div>
+<span id="cb400-2"><a href="#cb400-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> digit_of_char d = <span class="dt">int_of_char</span> d - <span class="dt">int_of_char</span> <span class="ch">&#39;0&#39;</span></span>
+<span id="cb400-3"><a href="#cb400-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb400-4"><a href="#cb400-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> number _ =  <span class="co">(* Numbers: N := D N | D where D is digits *)</span></span>
+<span id="cb400-5"><a href="#cb400-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> num =</span>
+<span id="cb400-6"><a href="#cb400-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lazy</span> (  (perform</span>
+<span id="cb400-7"><a href="#cb400-7" aria-hidden="true" tabindex="-1"></a>                d &lt;-- digit;</span>
+<span id="cb400-8"><a href="#cb400-8" aria-hidden="true" tabindex="-1"></a>                (n, b) &lt;-- <span class="dt">Lazy</span>.force num;</span>
+<span id="cb400-9"><a href="#cb400-9" aria-hidden="true" tabindex="-1"></a>                return (digit_of_char d * b + n, b * <span class="dv">10</span>))</span>
+<span id="cb400-10"><a href="#cb400-10" aria-hidden="true" tabindex="-1"></a>      &lt;|&gt; <span class="kw">lazy</span> (digit &gt;&gt;= (<span class="kw">fun</span> d -&gt; return (digit_of_char d, <span class="dv">10</span>)))) <span class="kw">in</span></span>
+<span id="cb400-11"><a href="#cb400-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">Lazy</span>.force num &gt;&gt;| <span class="dt">fst</span></span>
+<span id="cb400-12"><a href="#cb400-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb400-13"><a href="#cb400-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> addition lang =  <span class="co">(* Addition rule: S -&gt; (S + S) *)</span></span>
+<span id="cb400-14"><a href="#cb400-14" aria-hidden="true" tabindex="-1"></a>  perform  <span class="co">(* Requiring a parenthesis ( turns the rule into non-left-recursive *)</span></span>
+<span id="cb400-15"><a href="#cb400-15" aria-hidden="true" tabindex="-1"></a>    literal <span class="st">&quot;(&quot;</span>; n1 &lt;-- lang; literal <span class="st">&quot;+&quot;</span>; n2 &lt;-- lang; literal <span class="st">&quot;)&quot;</span>;</span>
+<span id="cb400-16"><a href="#cb400-16" aria-hidden="true" tabindex="-1"></a>    return (n1 + n2)</span>
+<span id="cb400-17"><a href="#cb400-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb400-18"><a href="#cb400-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb400-19"><a href="#cb400-19" aria-hidden="true" tabindex="-1"></a>  PluginBase.(grammar_rules := number :: addition :: !grammar_rules)</span></code></pre></div>
+<p>File <code>Plugin2.ml</code>:</p>
+<div class="sourceCode" id="cb401"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb401-1"><a href="#cb401-1" aria-hidden="true" tabindex="-1"></a><span class="kw">open</span> PluginBase.ParseM</span>
+<span id="cb401-2"><a href="#cb401-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb401-3"><a href="#cb401-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> multiplication lang =  <span class="co">(* Multiplication rule: S -&gt; (S * S) *)</span></span>
+<span id="cb401-4"><a href="#cb401-4" aria-hidden="true" tabindex="-1"></a>  perform</span>
+<span id="cb401-5"><a href="#cb401-5" aria-hidden="true" tabindex="-1"></a>    literal <span class="st">&quot;(&quot;</span>; n1 &lt;-- lang; literal <span class="st">&quot;*&quot;</span>; n2 &lt;-- lang; literal <span class="st">&quot;)&quot;</span>;</span>
+<span id="cb401-6"><a href="#cb401-6" aria-hidden="true" tabindex="-1"></a>    return (n1 * n2)</span>
+<span id="cb401-7"><a href="#cb401-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb401-8"><a href="#cb401-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb401-9"><a href="#cb401-9" aria-hidden="true" tabindex="-1"></a>  PluginBase.(grammar_rules := multiplication :: !grammar_rules)</span></code></pre></div>
 <h3 id="exercises-9">11.14 Exercises</h3>
 <p><strong>Exercise 1:</strong> Implement the <code>string_of_</code>
 functions or methods, covering all data cases, corresponding to the
