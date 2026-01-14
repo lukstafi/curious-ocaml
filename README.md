@@ -19,7 +19,7 @@ header-includes:
 
 ### 1.1 In the Beginning there was Logos
 
-Let's start by reviewing the logical connectives you may have encountered. What logical connectives do you know?
+What logical connectives do you know? Before we write any code, let us take a step back and think about logic itself. The connectives listed below form the foundation of reasoning, and as we will discover, they also form the foundation of programming.
 
 | $\top$ | $\bot$ | $\wedge$ | $\vee$ | $\rightarrow$ |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@ Let's start by reviewing the logical connectives you may have encountered. What 
 | "trivial" | "impossible" | $a$ and $b$ | $a$ or $b$ | $a$ gives $b$ |
 |   | shouldn't get | got both | got at least one | given $a$, we get $b$ |
 
-How can we define them? Think in terms of *derivation trees*:
+How can we define these connectives precisely? The key insight is to think in terms of *derivation trees*. A derivation tree shows how we arrive at conclusions from premises, building up knowledge step by step:
 
 $$
 \frac{
@@ -37,17 +37,19 @@ $$
 {\text{final conclusion}}
 $$
 
-We define connectives by providing rules for using them. For example, a rule $\frac{a \; b}{c}$ matches parts of the tree that have two premises, represented by variables $a$ and $b$, and have any conclusion, represented by variable $c$.
+We define connectives by providing rules for using them. For example, a rule $\frac{a \; b}{c}$ matches parts of the tree that have two premises, represented by variables $a$ and $b$, and have any conclusion, represented by variable $c$. These variables act as placeholders that can match any proposition.
 
-**Design principle:** Try to use only the connective you define in its definition.
+**Design principle:** When defining a connective, we try to use only that connective in its definition. This keeps definitions self-contained and avoids circular dependencies between connectives.
 
 ### 1.2 Rules for Logical Connectives
 
-**Introduction rules** say how to *produce* a connective.
+Each logical connective comes with two kinds of rules:
 
-**Elimination rules** say how to *use* it.
+**Introduction rules** tell us how to *produce* or *construct* a connective. If you want to prove "A and B", the introduction rule tells you what you need: proofs of both A and B.
 
-Text in parentheses is comments. Letters are variables that can stand for anything.
+**Elimination rules** tell us how to *use* or *consume* a connective. If you already have "A and B", the elimination rules tell you what you can get from it: either A or B (your choice).
+
+In the table below, text in parentheses provides informal commentary. Letters like $a$, $b$, and $c$ are variables that can stand for any proposition.
 
 | Connective | Introduction Rules | Elimination Rules |
 |------------|-------------------|-------------------|
@@ -59,15 +61,17 @@ Text in parentheses is comments. Letters are variables that can stand for anythi
 
 #### Notation for Hypothetical Derivations
 
-The notation $\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted.
+The notation $\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted. The square brackets around $a$ indicate that this is a *hypothetical* assumption, not something we have actually established. The superscript $x$ is a label that helps us track which assumption gets "discharged" when we complete the derivation.
 
-For example, we can derive "sunny $\rightarrow$ happy" by showing that *assuming* it's sunny, we can derive happiness:
+This is the key to proving implications: to prove "if A then B", we temporarily assume A and show we can derive B. For example, we can derive "sunny $\rightarrow$ happy" by showing that *assuming* it is sunny, we can derive happiness:
 
 $$
 \frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
 $$
 
-Such assumptions can only be used in the matched subtree! But they can be used several times. For example, if someone's mood is more difficult to influence:
+Notice how the assumption "sunny" (marked with $x$) appears at the top of the derivation tree. We use this assumption to derive "go outdoor", then "playing", and finally "happy". Once we complete the derivation, the assumption is *discharged*: we no longer need to assume it is sunny because we have established the conditional "sunny $\rightarrow$ happy".
+
+A crucial point: such assumptions can only be used within the matched subtree! However, they can be used *multiple times* within that subtree. For example, if someone's mood is more difficult to influence and requires multiple sunny conditions:
 
 $$
 \frac{\frac{
@@ -76,11 +80,15 @@ $$
 }{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
 $$
 
+In this more complex derivation, the assumption "sunny" (labeled $x$) is used three times: once to derive "go outdoor", and twice more in deriving "nice view". All three uses are valid because they occur within the same hypothetical subtree.
+
 #### Reasoning by Cases
 
-The elimination rule for disjunction represents **reasoning by cases**.
+The elimination rule for disjunction deserves special attention because it represents **reasoning by cases**, one of the most fundamental proof techniques.
 
-How can we use the fact that it is sunny $\vee$ cloudy (but not rainy)?
+Suppose we know "A or B" is true, but we do not know which one. How can we still derive a conclusion C? We must show that C follows *regardless* of which alternative holds. In other words, we need to prove: (1) assuming A, we can derive C, and (2) assuming B, we can derive C. Since one of A or B must be true, and both lead to C, we can conclude C.
+
+Here is a concrete example: How can we use the fact that it is sunny $\vee$ cloudy (but not rainy)?
 
 $$
 \frac{
@@ -90,129 +98,166 @@ $$
 }{\text{no-umbrella}} \text{ using } x, y
 $$
 
-We know that it will be sunny or cloudy (by watching the weather forecast). If it will be sunny, we won't need an umbrella. If it will be cloudy, we won't need an umbrella. Therefore, we won't need an umbrella.
+We know that it will be sunny or cloudy (by watching the weather forecast). Now we reason by cases: *If* it will be sunny, we will not need an umbrella. *If* it will be cloudy, we will not need an umbrella. Since one of these must be the case, and both lead to the same conclusion, we can confidently say: we will not need an umbrella.
 
 #### Reasoning by Induction
 
-We need one more kind of rule to do serious math: **reasoning by induction** (somewhat similar to reasoning by cases). Example rule for induction on natural numbers:
+We need one more kind of rule to do serious math: **reasoning by induction**. This rule is somewhat similar to reasoning by cases, but instead of considering a finite number of alternatives, it allows us to prove properties that hold for infinitely many cases, such as all natural numbers.
+
+Here is the example rule for induction on natural numbers:
 
 $$
 \frac{p(0) \quad \genfrac{}{}{0pt}{}{[p(x)]^x}{\vdots \; p(x+1)}}{p(n)} \text{ by induction, using } x
 $$
 
-We get property $p$ for any natural number $n$, provided we can:
-1. Establish $p(0)$ (the base case)
-2. Show that assuming $p(x)$ holds, we can derive $p(x+1)$ (the inductive step)
+This rule says: we get property $p$ for *any* natural number $n$, provided we can do two things:
 
-Here $x$ is a unique variable—we cannot substitute a particular number for it because we write "using $x$" on the side.
+1. **Base case:** Establish $p(0)$, that is, prove the property holds for zero.
+2. **Inductive step:** Show that *assuming* $p(x)$ holds for some arbitrary $x$, we can derive $p(x+1)$. This assumption $p(x)$ is called the *induction hypothesis*.
+
+Here $x$ is a unique variable representing an arbitrary natural number. We cannot substitute a particular number for it because we write "using $x$" on the side, indicating that the derivation works for any choice of $x$.
+
+The power of induction lies in this: once we have the base case and the inductive step, we have implicitly covered *all* natural numbers. Starting from $p(0)$, we can derive $p(1)$, then $p(2)$, then $p(3)$, and so on, reaching any natural number $n$ we wish.
 
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at a remarkable connection between logic and programming—the **Curry-Howard correspondence** (also known as "propositions as types"). This deep correspondence shows that proofs in logic directly correspond to programs in typed programming languages!
+We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry-Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. This deep correspondence reveals that logical proofs and computer programs are, in a precise sense, the same thing!
 
-The following table shows how logical connectives correspond to programming constructs:
+Under this correspondence:
+- **Propositions** (logical statements) correspond to **types**
+- **Proofs** (derivations showing a proposition is true) correspond to **programs** (expressions of a given type)
+- **Introduction rules** correspond to **constructors** (ways to build values)
+- **Elimination rules** correspond to **destructors** (ways to use values)
 
-| Logic | Type | Expression |
-|-------|------|------------|
-| $\top$ | `unit` | `()` |
-| $\bot$ | `'a` | `raise` |
-| $\wedge$ | `*` | `(,)` |
-| $\vee$ | `|` | `match` |
-| $\rightarrow$ | `->` | `fun` |
-| induction | — | `rec` |
+This is not merely an analogy. The formal rules for logic and the formal rules for type checking are *identical*. When you write a well-typed program, you are simultaneously constructing a proof!
+
+The following table shows how each logical connective corresponds to a programming construct in OCaml:
+
+| Logic | Type | Expression | Intuition |
+|-------|------|------------|-----------|
+| $\top$ | `unit` | `()` | The trivially true proposition; the type with exactly one value |
+| $\bot$ | `'a` | `raise` | Falsehood; a type with no values (exceptions escape normal typing) |
+| $\wedge$ | `*` | `(,)` | Conjunction corresponds to pairs: having both A and B |
+| $\vee$ | `\|` | `match` | Disjunction corresponds to variants: having either A or B |
+| $\rightarrow$ | `->` | `fun` | Implication corresponds to functions: given A, produce B |
+| induction | - | `rec` | Inductive proofs correspond to recursive functions |
+
+Let us now see the precise typing rules for each OCaml construct, presented in the same style as our logical rules:
 
 **Typing rules for OCaml constructs:**
 
 - **Unit (truth):** $\frac{}{\texttt{()} : \texttt{unit}}$
 
-- **Exception (falsehood):** $\frac{\text{oops!}}{\texttt{raise exn} : c}$ — can produce any type
+  The unit value `()` always has type `unit`. This is like $\top$ in logic: we can always produce it without any premises.
+
+- **Exception (falsehood):** $\frac{\text{oops!}}{\texttt{raise exn} : c}$ can produce any type
+
+  The `raise` expression can have *any* type $c$. This corresponds to the principle of "explosion" in logic: from falsehood, anything follows. In practice, `raise` never actually produces a value; it transfers control to an exception handler. The type system allows it to have any type because the expression will never complete normally.
 
 - **Pair (conjunction):**
   - Introduction: $\frac{s : a \quad t : b}{(s, t) : a * b}$
   - Elimination: $\frac{p : a * b}{\texttt{fst}~p : a}$ and $\frac{p : a * b}{\texttt{snd}~p : b}$
 
+  To construct a pair, you need both components. To use a pair, you can extract either component. This mirrors conjunction perfectly: to prove "A and B", you need proofs of both; given "A and B", you can conclude either A or B.
+
 - **Variant (disjunction):**
   - Introduction: $\frac{s : a}{\texttt{A}(s) : \texttt{A of}~a~|~\texttt{B of}~b}$
   - Elimination (match): given $t$ of variant type and branches for each case, produce result $c$
+
+  To construct a variant, you only need one of the alternatives. To use a variant, you must handle *all* possible cases (pattern matching). This mirrors disjunction: to prove "A or B", you only need one; to use "A or B", you must consider both possibilities.
 
 - **Function (implication):**
   - Introduction: $\frac{\genfrac{}{}{0pt}{}{[x : a]}{e : b}}{\texttt{fun}~x \to e : a \to b}$
   - Elimination (application): $\frac{f : a \to b \quad t : a}{f~t : b}$
 
+  To construct a function, you assume you have an input of type $a$ (the parameter $x$) and show how to produce a result of type $b$. To use a function, you apply it to an argument. This mirrors implication: to prove "A implies B", assume A and derive B; given "A implies B" and A, conclude B.
+
 - **Recursion (induction):** $\frac{\genfrac{}{}{0pt}{}{[x : a]}{e : a}}{\texttt{rec}~x = e : a}$
+
+  In recursion, the function being defined can refer to itself. This corresponds to induction: we can use the property we are trying to prove (the induction hypothesis) in the inductive step.
 
 #### 1.3.1 Definitions
 
-Writing out expressions and types repetitively is tedious: we need definitions.
+Writing out expressions and types repetitively quickly becomes tedious. More importantly, without definitions we cannot give names to our concepts, making code harder to understand and maintain. This is why we need definitions.
 
 **Type definitions** are written: `type ty =` some type.
 
-- Writing `A(s) : A of a | B of b` in the table was cheating. Usually we have to define the type and then use it. For example, using `int` for $a$ and `string` for $b$:
+- Writing `A(s) : A of a | B of b` in the table above was a simplification. In practice, we usually have to define the type first and then use it. For example, using `int` for $a$ and `string` for $b$:
   ```ocaml
   type int_string_choice = A of int | B of string
   ```
   This allows us to write `A(s) : int_string_choice`.
 
-- Without the type definition, it is difficult to know what other variants there are when one *infers* (i.e., "guesses", computes) the type!
+- Why do we need to define variant types? The key reason is *type inference*. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist.
 
-- In OCaml we can write `` `A(s) : [`A of a | `B of b] ``. With "`` ` ``" variants (polymorphic variants), OCaml does guess what other variants there are. These types are interesting, but we will not focus on them in this book.
+- OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, but we will not focus on them in this book.
 
-- Tuple elements don't need labels because we always know at which position a tuple element stands. But having labels makes code more clear, so we can define a *record type*:
+- Tuple elements do not need labels because we always know at which position a tuple element stands: the first element is first, the second is second, and so on. However, having labels makes code much clearer, especially when tuples have many components or components of the same type. For this reason, we can define a *record type*:
   ```ocaml
   type int_string_record = {a: int; b: string}
   ```
   and create its values: `{a = 7; b = "Mary"}`.
 
-- We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`.
+- We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
 
 #### 1.3.2 Expression Definitions
 
-The recursive expression `rec x = e` in the table was cheating: `rec` (usually called `fix` in theory) cannot appear alone in OCaml! It must be part of a definition.
+The recursive expression `rec x = e` that appeared in our table was a simplification: `rec` (usually called `fix` in programming language theory) cannot appear alone in OCaml! It must always be part of a `let` definition.
 
-**Definitions for expressions** are introduced by rules a bit more complex:
+This brings us to **expression definitions**, which let us give names to values. The typing rules for definitions are a bit more complex than what we have seen so far:
 
 $$
 \frac{e_1 : a \quad \frac{[x : a]}{e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
 $$
 
-(Note that this rule is the same as introducing and eliminating $\rightarrow$.)
+This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry-Howard correspondence.
 
-For recursive definitions:
+For recursive definitions, we need an additional rule:
 
 $$
 \frac{\frac{[x : a]}{e_1 : a} \quad \frac{[x : a]}{e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b}
 $$
 
-We will cover what is missing in the above rules when we discuss **polymorphism**.
+Notice the crucial difference: in the recursive case, $x$ can appear in $e_1$ itself! This is what allows functions to call themselves. The name $x$ is visible both in its own definition ($e_1$) and in the body that uses the definition ($e_2$).
+
+These rules are slightly simplified. The full rules involve a concept called **polymorphism**, which we will cover in a later chapter. Polymorphism explains how the same function can work with different types.
 
 #### 1.3.3 Scoping Rules
 
-- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session.
+Understanding *scope*—where names are visible—is essential for reading and writing OCaml programs.
 
-- **`let`-`in` definitions** for expressions: `let x = e1 in e2` are *local*—$x$ is only visible in $e_2$. But **`let` definitions** without `in` are global: placing `let x = e1` at the top-level makes $x$ visible from after $e_1$ till the end of the source file or interactive session.
+- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session. You cannot define a type inside a function.
 
-- In the interactive session (toplevel/REPL), we mark the end of a top-level "sentence" with `;;`—this is unnecessary in source files.
+- **`let`-`in` definitions** for expressions: `let x = e1 in e2` are *local*—the name $x$ is only visible within $e_2$. Once you exit the `in` part, $x$ no longer exists. This is useful for temporary values that should not pollute the global namespace.
+
+- **`let` definitions** without `in` are global: placing `let x = e1` at the top-level makes $x$ visible from after $e_1$ till the end of the source file or interactive session. This is how you define functions and values that the rest of your program can use.
+
+- In the interactive session (toplevel/REPL), we mark the end of a top-level "sentence" with `;;`. This tells OCaml "I am done typing, please evaluate this." In source files compiled by the build system, `;;` is unnecessary because the end of each definition is clear from context.
 
 #### 1.3.4 Operators
 
-Operators like `+`, `*`, `<`, `=` are names of functions. Just like other names, you can use operator names for your own functions:
+Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there is nothing magical about operators; they are ordinary functions that happen to have special characters in their names and can be used in infix position (between their arguments).
+
+Just like other names, you can define your own operators:
 
 ```ocaml
 let (+:) a b = String.concat "" [a; b];;  (* Special way of defining *)
 "Alpha" +: "Beta";;  (* but normal way of using operators *)
 ```
 
-Notice the asymmetry: we use a *special* syntax for defining operators (with parentheses) but the *normal* infix syntax for using them.
+Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".
 
-Operators in OCaml are **not overloaded**. This means that every type needs its own set of operators:
+An important feature of OCaml is that operators are **not overloaded**. This means that a single operator cannot work for multiple types. Each type needs its own set of operators:
 - `+`, `*`, `/` work for integers
 - `+.`, `*.`, `/.` work for floating point numbers
 
-**Exception:** Comparisons `<`, `=`, etc. work for all values other than functions.
+This design choice makes type inference simpler and more predictable. When you see `x + y`, OCaml knows immediately that `x` and `y` must be integers.
+
+**Exception:** The comparison operators `<`, `=`, `<=`, `>=`, `<>` do work for all values other than functions. These are called *polymorphic comparisons*.
 
 ### 1.4 Exercises
 
-Exercises from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey.
+The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
 1. Assume that we execute the following assignment statements:
    ```ocaml
@@ -270,9 +315,11 @@ Exercises from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas
 
 *Algebraic Data Types and some curious analogies*
 
+In this chapter, we will deepen our understanding of OCaml's type system by working through type inference examples by hand. Then we will explore algebraic data types---a cornerstone of functional programming that allows us to define rich, structured data. Along the way, we will discover a surprising and beautiful connection between these types and ordinary polynomials from high-school algebra.
+
 ### 2.1 A Glimpse at Type Inference
 
-For a refresher, let's apply the type inference rules introduced in Chapter 1 to some simple examples. We'll start with the identity function `fun x -> x`. In the derivations below, $[?]$ means "dunno yet" (type unknown).
+For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means "dunno yet" (type unknown).
 
 We begin with an incomplete derivation:
 
@@ -292,7 +339,7 @@ $$
 \frac{\frac{\,}{\texttt{x} : a}^x}{\texttt{fun x -> x} : a \rightarrow a}
 $$
 
-Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it:
+Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
 
 ```ocaml
 # fun x -> x;;
@@ -301,7 +348,9 @@ Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introdu
 
 #### A More Complex Example
 
-Let us try `fun x -> x+1`, which is the same as `fun x -> ((+) x) 1` (try it in OCaml!). We will use the notation $[?\alpha]$ to mean "type unknown yet, but the same as in other places marked $[?\alpha]$."
+Now let us try something that will constrain the types more: `fun x -> x+1`. This is the same as `fun x -> ((+) x) 1` (try it in OCaml to verify!). The addition operator forces specific types upon us.
+
+We will use the notation $[?\alpha]$ to mean "type unknown yet, but the same as in other places marked $[?\alpha]$." This notation helps us track how constraints propagate through the derivation.
 
 Starting the derivation and applying $\rightarrow$ introduction:
 
@@ -335,19 +384,23 @@ $$
 
 #### 2.1.1 Curried Form
 
-When there are several arrows "on the same depth" in a function type, it means that the function returns a function. For example, `(+) : int -> int -> int` is just a shorthand for `(+) : int -> (int -> int)`. This is very different from:
+When there are several arrows "on the same depth" in a function type, it means that the function returns a function. For example, `(+) : int -> int -> int` is just a shorthand for `(+) : int -> (int -> int)`. The arrow associates to the right, so we can omit the parentheses.
+
+This is very different from:
 
 $$
 \texttt{fun f -> (f 1) + 1} : (\texttt{int} \rightarrow \texttt{int}) \rightarrow \texttt{int}
 $$
 
-In the first case, `(+)` is a function that takes an integer and returns a function from integers to integers. In the second case, we have a function that takes a function as an argument.
+In the first case, `(+)` is a function that takes an integer and returns a function from integers to integers. In the second case, we have a function that takes a function as an argument---a *higher-order function*. The parentheses around `int -> int` are essential here; without them, the meaning would be completely different.
 
-For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What expanded form does `((+) 1)` correspond to exactly (computationally)?
+This style of defining multi-argument functions, where each function takes one argument and returns another function expecting the remaining arguments, is called *curried form* (named after logician Haskell Curry). It enables a powerful technique called *partial application*.
+
+For example, instead of writing `(fun x -> x+1)`, we can simply write `((+) 1)`. Here we apply `(+)` to just one argument, getting back a function that adds 1 to its input. What expanded form does `((+) 1)` correspond to exactly (computationally)?
 
 *Think about it before reading on...*
 
-It corresponds to `fun y -> 1 + y`.
+It corresponds to `fun y -> 1 + y`. We have "baked in" the first argument, and the resulting function waits for the second.
 
 We will become more familiar with functions returning functions when we study the *lambda calculus* in a later chapter.
 
@@ -359,7 +412,7 @@ In Chapter 1, we learned about the `unit` type and variant types like:
 type int_string_choice = A of int | B of string
 ```
 
-We also covered tuple types, record types, and type definitions. Let us now explore these concepts more deeply.
+We also covered tuple types, record types, and type definitions. Now let us explore these concepts more deeply, building up to the powerful notion of *algebraic data types*.
 
 #### Variants Without Arguments
 
@@ -369,24 +422,30 @@ Variants do not have to carry arguments. Instead of writing `A of unit`, we can 
 type color = Red | Green | Blue
 ```
 
-**A subtle point about OCaml:** In OCaml, variants take multiple arguments rather than taking tuples as arguments. This means `A of int * string` is different from `A of (int * string)`. The first takes two separate arguments, while the second takes a single tuple argument. This distinction is usually not important unless you encounter situations where it matters.
+This defines a type with exactly three possible values---no more, no less. The compiler knows this, which enables exhaustive pattern matching checks.
+
+**A subtle point about OCaml:** In OCaml, variants take multiple arguments rather than taking tuples as arguments. This means `A of int * string` is different from `A of (int * string)`. The first takes two separate arguments, while the second takes a single tuple argument. This distinction is usually not important---until you get bitten by it in some corner case! For most purposes, you can ignore it.
 
 #### Recursive Type Definitions
 
-Type definitions can be recursive! This allows us to define data structures of arbitrary size:
+Here is where things get really interesting: type definitions can be recursive! This allows us to define data structures of arbitrary size using a finite definition:
 
 ```ocaml
 type int_list = Empty | Cons of int * int_list
 ```
 
-Let us see what values inhabit `int_list`:
-- `Empty` represents the empty list
+Let us see what values inhabit `int_list`. The definition tells us there are two ways to build an `int_list`:
+- `Empty` represents the empty list---a list with no elements
 - `Cons (5, Empty)` is a list containing just 5
 - `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13
 
-The built-in type `bool` can be viewed as if it were defined as `type bool = true | false`. Similarly, `int` can be thought of as a very large variant: `type int = 0 | -1 | 1 | -2 | 2 | ...`
+Notice how `Cons` takes an integer and another `int_list`, allowing us to chain together as many elements as we like. This recursive structure is the essence of how functional languages represent unbounded data.
+
+The built-in type `bool` can be viewed as if it were defined as `type bool = true | false`---just a variant with two constructors. Similarly, `int` can be thought of as a very large variant: `type int = 0 | -1 | 1 | -2 | 2 | ...` (though of course the compiler implements it more efficiently!)
 
 #### Parametric Type Definitions
+
+Our `int_list` type only works with integers. But what if we want a list of strings? Or a list of booleans? We would have to define separate types for each, duplicating the same structure.
 
 Type definitions can be *parametric* with respect to the types of their components. This allows us to define generic data structures that work with any element type. For example, a list of elements of arbitrary type:
 
@@ -394,14 +453,18 @@ Type definitions can be *parametric* with respect to the types of their componen
 type 'elem list = Empty | Cons of 'elem * 'elem list
 ```
 
+The `'elem` is a *type parameter*---a placeholder that gets filled in when we use the type. We can have a `string list`, an `int list`, or even an `int list list` (a list of lists of integers).
+
 Several conventions and syntax rules apply to parametric types:
 
 - Type variables must start with `'`, but since OCaml will not remember the names we give, it is customary to use the names OCaml uses: `'a`, `'b`, `'c`, `'d`, etc.
 
-- The OCaml syntax places the type parameter before the type name, mimicking English word order. A silly example:
+- The OCaml syntax places the type parameter before the type name, mimicking English word order. A silly example that reads almost like English:
   ```ocaml
   type 'white_color dog = Dog of 'white_color
   ```
+
+  This defines a "white-color dog" type---the syntax reads naturally!
 
 - With multiple parameters, OCaml uses parentheses:
   ```ocaml
@@ -412,7 +475,11 @@ Several conventions and syntax rules apply to parametric types:
 
   And Haskell syntax: `data Choice a b = Left a | Right b`
 
+  Different languages have different conventions, but the underlying concept is the same.
+
 ### 2.3 Syntactic Bread and Sugar
+
+OCaml provides various syntactic conveniences---sometimes called *syntactic sugar*---that make code more pleasant to write and read. Let us survey the most important ones.
 
 #### Constructor Naming
 
@@ -422,34 +489,40 @@ Names of variants, called *constructors*, must start with a capital letter. If w
 type my_bool = True | False
 ```
 
-Only constructors and module names can start with capital letters in OCaml. *Modules* are organizational units (like "shelves") containing related values. For example, the `List` module provides operations on lists, including `List.map` and `List.filter`.
+Only constructors and module names can start with capital letters in OCaml. Everything else (values, functions, type names) must start with a lowercase letter. This convention makes it easy to distinguish constructors at a glance.
+
+*Modules* are organizational units (like "shelves") containing related values. For example, the `List` module provides operations on lists, including `List.map` and `List.filter`. We will learn more about modules in later chapters.
 
 #### Accessing Record Fields
 
-We can use dot notation to access record fields: `record.field`. For example, if we have `let person = {name="Alice"; age=30}`, we can write `person.name` to get `"Alice"`.
+Did we mention that we can use dot notation to access record fields? The syntax `record.field` extracts a field value. For example, if we have `let person = {name="Alice"; age=30}`, we can write `person.name` to get `"Alice"`.
 
 #### Function Definition Shortcuts
 
-Several syntactic shortcuts make function definitions more concise:
+Several syntactic shortcuts make function definitions more concise. These are worth memorizing, as you will see them constantly in OCaml code:
 
-- `fun x y -> e` stands for `fun x -> fun y -> e`. Note that `fun x -> fun y -> e` parses as `fun x -> (fun y -> e)`.
+- `fun x y -> e` stands for `fun x -> fun y -> e`. Note that `fun x -> fun y -> e` parses as `fun x -> (fun y -> e)`. This shorthand aligns with curried form---we can write multi-argument functions without nesting `fun` expressions.
 
-- `function A x -> e1 | B y -> e2` stands for `fun p -> match p with A x -> e1 | B y -> e2`. The general form is: `function PATTERN-MATCHING` stands for `fun v -> match v with PATTERN-MATCHING`.
+- `function A x -> e1 | B y -> e2` stands for `fun p -> match p with A x -> e1 | B y -> e2`. The general form is: `function PATTERN-MATCHING` stands for `fun v -> match v with PATTERN-MATCHING`. This is handy when you want to immediately pattern-match on a function's argument.
 
-- `let f ARGS = e` is a shorthand for `let f = fun ARGS -> e`.
+- `let f ARGS = e` is a shorthand for `let f = fun ARGS -> e`. This is probably the most common way to define functions in practice.
 
 ### 2.4 Pattern Matching
 
-Recall that we introduced `fst` and `snd` as means to access elements of a pair. But what about larger tuples? The fundamental way to access any tuple uses the `match` construct. In fact, `fst` and `snd` can easily be defined using pattern matching:
+Pattern matching is one of the most powerful features of OCaml and similar languages. It lets us examine the structure of data and extract components in a single, elegant construct.
+
+Recall that we introduced `fst` and `snd` as means to access elements of a pair. But what about larger tuples? There is no built-in `thd` for the third element. The fundamental way to access any tuple---or any algebraic data type---uses the `match` construct. In fact, `fst` and `snd` can easily be defined using pattern matching:
 
 ```ocaml
 let fst = fun p -> match p with (a, b) -> a
 let snd = fun p -> match p with (a, b) -> b
 ```
 
+The pattern `(a, b)` *destructures* the pair, binding its first component to `a` and its second to `b`. We then return whichever component we want.
+
 #### Matching on Records
 
-Pattern matching also works with records:
+Pattern matching also works with records, letting us extract multiple fields at once:
 
 ```ocaml
 type person = {name: string; surname: string; age: int}
@@ -459,11 +532,18 @@ let greet_person () =
   with {name=n; surname=sn; age=a} -> "Hi " ^ sn ^ "!"
 ```
 
+Here we match against a record pattern, binding each field to a variable. Note that we bind `name` to `n`, `surname` to `sn`, and `age` to `a`---then use `sn` in the greeting.
+
 #### Understanding Patterns
 
-The left-hand sides of `->` in `match` expressions are called **patterns**. Patterns describe the structure of values we want to match against.
+The left-hand sides of `->` in `match` expressions are called **patterns**. Patterns describe the structure of values we want to match against. They can include:
+- Constants (like `1`, `"hello"`, or `true`)
+- Variables (which bind to the matched value)
+- Constructors (like `None`, `Some x`, or `Cons (h, t)`)
+- Tuples and records
+- Nested combinations of all the above
 
-Patterns can be nested, allowing us to match complex structures:
+Patterns can be nested to arbitrary depth, allowing us to match complex structures in one go:
 
 ```ocaml
 match Some (5, 7) with
@@ -471,20 +551,26 @@ match Some (5, 7) with
 | Some (x, y) -> "sum: " ^ string_of_int (x+y)
 ```
 
+Here `Some (x, y)` is a nested pattern: we match `Some` of *something*, and that something must be a pair, whose components we bind to `x` and `y`.
+
 #### Simple Patterns and Wildcards
 
-A pattern can simply bind the entire value without destructuring. Writing `match f x with v -> ...` is the same as `let v = f x in ...`.
+A pattern can simply bind the entire value without destructuring. Writing `match f x with v -> ...` is the same as `let v = f x in ...`. This is occasionally useful when you want the syntax of `match` but do not need to take the value apart.
 
-When we do not need a value in a pattern, it is good practice to use the underscore `_`, which is a wildcard (not a variable):
+When we do not need a value in a pattern, it is good practice to use the underscore `_`, which is a *wildcard*. The wildcard matches anything but does not bind it to a name. This signals to the reader (and the compiler) that we are intentionally ignoring that part:
 
 ```ocaml
 let fst (a, _) = a
 let snd (_, b) = b
 ```
 
+Using `_` instead of an unused variable name avoids compiler warnings about unused bindings.
+
 #### Pattern Linearity
 
-A variable can only appear once in a pattern. This property is called *linearity*. However, we can add conditions to patterns using `when`, so linearity is not a limitation:
+A variable can only appear once in a pattern. This property is called *linearity*. You might think this is a limitation---what if we want to check that two parts of a structure are equal? We cannot write `(x, x)` to match pairs with equal components.
+
+However, we can add conditions to patterns using `when`, so linearity is not really a limitation in practice:
 
 ```ocaml
 let describe_point p =
@@ -493,7 +579,9 @@ let describe_point p =
   | _ -> "off-diag"
 ```
 
-Here is a more elaborate example:
+The `when` clause acts as a guard: the pattern matches only if both the structure matches *and* the condition is true.
+
+Here is a more elaborate example showing how to implement a comparison function:
 
 ```ocaml
 let compare a b = match a, b with
@@ -502,13 +590,15 @@ let compare a b = match a, b with
   | _ -> 1
 ```
 
+Notice how we match against the tuple `(a, b)` in different ways, using guards to distinguish the cases.
+
 #### Partial Record Patterns
 
-We can skip unused fields of a record in a pattern. Only the fields we care about need to be mentioned.
+We can skip unused fields of a record in a pattern. Only the fields we care about need to be mentioned. This keeps patterns concise and means we do not have to update every pattern when we add a new field to a record type.
 
 #### Or-Patterns
 
-We can compress patterns by using `|` inside a single pattern to match multiple alternatives:
+We can compress patterns by using `|` inside a single pattern to match multiple alternatives. This is different from having multiple pattern clauses---it lets us share a single right-hand side for several patterns:
 
 ```ocaml
 type month =
@@ -528,9 +618,11 @@ match day with
   | _ -> "Work day"
 ```
 
+The pattern `Sat | Sun` matches either `Sat` or `Sun`. This is much cleaner than writing two separate clauses with the same right-hand side.
+
 #### Named Patterns with `as`
 
-We use `(pattern as v)` to name a nested pattern, binding the matched value to `v`:
+Sometimes we want to both destructure a value *and* keep a reference to the whole thing (or some intermediate part). We use `(pattern as v)` to name a nested pattern, binding the matched value to `v`:
 
 ```
 match day with
@@ -540,15 +632,23 @@ match day with
   | _ -> None
 ```
 
-This example shows the `as` keyword binding the matched weekday to `wday` for use in the expression on the right side of the arrow.
+This example demonstrates several features working together:
+- An or-pattern matches any weekday from Monday to Friday
+- The `as wday` clause binds the matched weekday to the variable `wday`
+- A `when` guard checks that it is not Christmas Eve
+- The bound variable `wday` is then used in the expression `get_plan wday`
+
+This combination of features makes OCaml's pattern matching remarkably expressive.
 
 ### 2.5 Interpreting Algebraic Data Types as Polynomials
 
-Let us explore a curious analogy between algebraic data types and polynomials. We translate data types to mathematical expressions by:
+Now we come to one of the most delightful aspects of algebraic data types: they really are *algebraic* in a precise mathematical sense. Let us explore a curious analogy between types and polynomials that turns out to be surprisingly deep.
 
-- Replacing `|` (variant choice) with $+$
-- Replacing `*` (tuple product) with $\times$
-- Treating record types as tuple types (erasing field names and translating `;` as $\times$)
+The translation from types to mathematical expressions works as follows:
+
+- Replace `|` (variant choice) with $+$ (addition)
+- Replace `*` (tuple product) with $\times$ (multiplication)
+- Treat record types as tuple types (erasing field names and translating `;` as $\times$)
 
 We also need translations for some special types:
 
@@ -556,19 +656,19 @@ We also need translations for some special types:
   ```ocaml
   type void
   ```
-  (Yes, this is its complete definition, with no `= something` part.) Translate it as $0$.
+  (Yes, this is its complete definition, with no `= something` part.) Since no values can be constructed, it represents emptiness---translate it as $0$.
 
-- The **unit type** translates as $1$. Since variants without arguments behave like variants `of unit`, translate them as $1$ as well.
+- The **unit type** has exactly one value, so translate it as $1$. Since variants without arguments behave like variants `of unit`, translate them as $1$ as well.
 
-- The **bool type** translates as $2$.
+- The **bool type** has exactly two values (`true` and `false`), so translate it as $2$.
 
-- Types like `int`, `string`, `float`, and type parameters translate as variables.
+- Types like `int`, `string`, `float`, and type parameters are treated as variables. We do not care about their exact number of values; we just give them symbolic names like $x$, $y$, etc.
 
 - Defined types translate according to their definitions (substituting variables as necessary).
 
 Give a name to the type being defined (representing a function of the introduced variables). Now interpret the result as an ordinary numeric polynomial! (Or a "rational function" if recursively defined.)
 
-Let us have some fun with this translation.
+This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
 
 #### Example: Date Type
 
@@ -576,9 +676,11 @@ Let us have some fun with this translation.
 type date = {year: int; month: int; day: int}
 ```
 
-Translating to a polynomial (using $x$ for `int`):
+A date is a record with three `int` fields. Translating to a polynomial (using $x$ for `int`):
 
 $$D = x \times x \times x = x^3$$
+
+The cube makes sense: a date is essentially a triple of integers.
 
 #### Example: Option Type
 
@@ -588,9 +690,11 @@ The built-in option type is defined as:
 type 'a option = None | Some of 'a
 ```
 
-Translating:
+Translating (using $x$ for the type parameter `'a`):
 
 $$O = 1 + x$$
+
+This reads as: an option is either nothing (1) or something of type $x$. The polynomial $1 + x$ is beautifully simple!
 
 #### Example: List Type
 
@@ -598,9 +702,11 @@ $$O = 1 + x$$
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
-Translating (where $L$ represents the list type):
+Translating (where $L$ represents the list type itself, and $x$ represents the element type):
 
 $$L = 1 + x \cdot L$$
+
+This is a recursive equation! A list is either empty ($1$) or an element times another list ($x \cdot L$). If you solve this equation algebraically, you get $L = \frac{1}{1-x} = 1 + x + x^2 + x^3 + \ldots$, which corresponds to: a list is either empty, or has one element, or has two elements, etc.
 
 #### Example: Binary Tree Type
 
@@ -612,11 +718,13 @@ Translating:
 
 $$T = 1 + x \cdot T \cdot T = 1 + x \cdot T^2$$
 
+A binary tree is either a tip ($1$) or a node containing a value and two subtrees ($x \cdot T^2$).
+
 #### Type Isomorphisms
 
-When translations of two types are equal according to the laws of high-school algebra, the types are *isomorphic*. This means there exist bijective (one-to-one and onto) functions between them.
+Here is the remarkable payoff: when translations of two types are equal according to the laws of high-school algebra, the types are *isomorphic*. This means there exist bijective (one-to-one and onto) functions between them---you can convert from one type to the other and back without losing any information.
 
-Let us manipulate the binary tree polynomial:
+Let us play with the binary tree polynomial and see where algebra takes us:
 
 $$
 \begin{aligned}
@@ -628,12 +736,16 @@ T &= 1 + x \cdot T^2 \\
 \end{aligned}
 $$
 
-Now let us translate the resulting expression back to a type:
+Each step uses standard algebraic manipulations: substituting $T = 1 + xT^2$, expanding, factoring, and rearranging. The result is a different but algebraically equivalent expression.
+
+Now let us translate this resulting expression back to a type:
 
 ```ocaml
 type repr =
   (int * (int * btree * btree * btree option) option) option
 ```
+
+Reading the polynomial $1 + x \cdot (1 + x \cdot T^2 \cdot (1 + T))$ from outside in: we have an option (the outermost $1 + \ldots$), whose `Some` case contains an `int` times another option, and so on.
 
 The challenge is to find isomorphism functions with signatures:
 
@@ -642,11 +754,11 @@ val iso1 : btree -> repr
 val iso2 : repr -> btree
 ```
 
-These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for all representations `r`, `iso1 (iso2 r) = r`.
+These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for all representations `r`, `iso1 (iso2 r) = r`. Can you write them?
 
 #### My First (Failed) Attempt
 
-Here is my first attempt:
+Here is my first attempt, trying to guess the pattern directly:
 
 ```
 # let iso1 (t : btree) : repr =
@@ -663,11 +775,13 @@ Here is an example of a value that is not matched:
 Node (_, Tip, Node (_, _, _))
 ```
 
-I forgot about one case! It seems difficult to guess the solution directly. Have you found it on your first try?
+I forgot about one case! The case `Node (_, Tip, Node (_, _, _))`---a node with an empty left subtree and non-empty right subtree---was not covered. It seems difficult to guess the solution directly when trying to map the complex final form all at once.
+
+Have you found it on your first try? If so, congratulations! Most people do not. This illustrates an important principle: complex transformations are easier to get right when broken into smaller steps.
 
 #### Breaking Down the Problem
 
-Let us divide the task into smaller steps corresponding to intermediate points in the polynomial transformation:
+Let us divide the task into smaller steps corresponding to intermediate points in the polynomial transformation. Instead of jumping from $T = 1 + xT^2$ directly to the final form, we will introduce intermediate types for each algebraic step:
 
 ```ocaml
 type ('a, 'b) choice = Left of 'a | Right of 'b
@@ -711,29 +825,35 @@ let iso1 (t : btree) : repr =
   step3r (step2r (step1r t))
 ```
 
+Each step function handles one small transformation, and the compiler verifies that our pattern matching is exhaustive. No more missed cases!
+
 **Exercise:** Define `step1l`, `step2l`, `step3l`, and `iso2`.
 
-*Hint:* Now it's straightforward---each step is the inverse of its corresponding forward step!
+*Hint:* Now it is straightforward---each step is simply the inverse of its corresponding forward step. The left-going functions undo what the right-going functions do.
 
 #### Take-Home Lessons
 
-1. **Design for validity:** Try to define data structures so that only meaningful information can be represented---as long as it does not overcomplicate the data structures. Avoid catch-all clauses when defining functions. The compiler will then tell you if you have forgotten about a case.
+This exploration of type isomorphisms teaches us two valuable principles:
 
-2. **Divide and conquer:** Break solutions into small steps so that each step can be easily understood and verified.
+1. **Design for validity:** Try to define data structures so that only meaningful information can be represented---as long as it does not overcomplicate the data structures. Avoid catch-all clauses when defining functions. The compiler will then tell you if you have forgotten about a case. The exhaustiveness checker is your friend.
+
+2. **Divide and conquer:** Break solutions into small steps so that each step can be easily understood and verified. When I tried to write `iso1` directly, I made a mistake. When I broke it into three simple steps, each step was obviously correct, and composing them gave the right answer.
 
 ### 2.6 Differentiating Algebraic Data Types
 
-Of course, you might object that the pompous title is wrong---we will differentiate the translated polynomials, not the types themselves. But what sense does this make?
+Of course, you might object that the pompous title is wrong---we will differentiate the translated polynomials, not the types themselves. Fair enough! But what sense does differentiating a type's polynomial make?
 
-It turns out that taking the partial derivative of a polynomial (translated from a data type), when translated back, gives a type representing how to change one occurrence of a value corresponding to the variable with respect to which we differentiated. In other words, the derivative represents a "context" or "hole" in the data structure.
+It turns out that taking the partial derivative of a polynomial (translated from a data type), when translated back, gives a type representing a "one-hole context"---a data structure with one piece missing. This missing piece corresponds to the variable with respect to which we differentiated. The derivative tells us: "Here are all the ways to point at one element of this type."
 
 #### Example: Differentiating the Date Type
+
+Let us start with our familiar date type:
 
 ```ocaml
 type date = {year: int; month: int; day: int}
 ```
 
-The translation:
+The translation and its derivative:
 
 $$
 \begin{aligned}
@@ -742,14 +862,19 @@ D &= x \cdot x \cdot x = x^3 \\
 \end{aligned}
 $$
 
-We could have left it as $3 \cdot x \cdot x$, but expanding shows the structure more clearly. Translating back to a type:
+We could have left it as $3 \cdot x \cdot x$, but expanding it as a sum shows the structure more clearly. The derivative $3x^2$ says: there are three ways to "point at" an `int` in a date, and each way leaves two other `int`s behind.
+
+Translating the expanded form back to a type:
 
 ```ocaml
 type date_deriv =
   Year of int * int | Month of int * int | Day of int * int
 ```
 
-Each variant represents a "hole" at a different position: `Year` means the year field is missing (and we have the month and day), and so on.
+Each variant represents a "hole" at a different position:
+- `Year (m, d)` means the year field is the hole (and we have the month `m` and day `d`)
+- `Month (y, d)` means the month field is the hole (and we have year `y` and day `d`)
+- `Day (y, m)` means the day field is the hole
 
 Now we can define functions to introduce and eliminate this derivative type:
 
@@ -767,11 +892,13 @@ List.map (date_integr 7)
   (date_deriv {year=2012; month=2; day=14})
 ```
 
-The `date_deriv` function produces all contexts (one for each field), and `date_integr` fills in a hole with a new value.
+The `date_deriv` function produces all contexts (one for each field)---it "differentiates" a date into a list of one-hole contexts. The `date_integr` function fills in a hole with a new value---it "integrates" by putting a value back into the context. Notice how the naming follows the calculus analogy!
+
+The example above takes the date February 14, 2012, produces three contexts (one for each field), and then fills each hole with the number 7, producing three modified dates.
 
 #### Example: Differentiating Binary Trees
 
-Let us tackle the more challenging case of binary trees:
+Now let us tackle the more challenging case of binary trees:
 
 ```ocaml
 type btree = Tip | Node of int * btree * btree
@@ -786,9 +913,12 @@ T &= 1 + x \cdot T^2 \\
 \end{aligned}
 $$
 
-The derivative is recursive! This makes sense: a context in a tree is either at the current node ($T \cdot T$, the two subtrees) or somewhere below ($2 \cdot x \cdot T \cdot \frac{\partial T}{\partial x}$, choosing left or right, with the node value, the other subtree, and a deeper context).
+Something interesting happened: the derivative is recursive! It refers to itself via $\frac{\partial T}{\partial x}$. This makes perfect sense when you think about it:
 
-Instead of translating $2$ as `bool`, we introduce a more descriptive type:
+- $T \cdot T$ represents pointing at the root: the hole is at the current node, and we have the two subtrees.
+- $2 \cdot x \cdot T \cdot \frac{\partial T}{\partial x}$ represents pointing deeper in the tree: we choose left or right (the factor of 2), remember the current node's value ($x$), keep the other subtree ($T$), and then have a context in the chosen subtree ($\frac{\partial T}{\partial x}$).
+
+Instead of translating $2$ as `bool`, we introduce a more descriptive type to make the code clearer:
 
 ```ocaml
 type btree_dir = LeftBranch | RightBranch
@@ -798,14 +928,16 @@ type btree_deriv =
   | Below of btree_dir * int * btree * btree_deriv
 ```
 
-(You might someday hear about *zippers*---they are "inverted" relative to our type, with the hole coming first.)
+The `Here` constructor means the hole is at the current position, and we have the left and right subtrees. The `Below` constructor means we go down one level, remembering which direction we went, the value at the node we passed, and the subtree we did not enter.
+
+(You might someday hear about *zippers*---they are "inverted" relative to our type. In a zipper, the hole comes first, and the context trails behind. Both representations are useful in different situations.)
 
 **Exercise:** Write a function that takes a number and a `btree_deriv`, and builds a `btree` by putting the number into the "hole" in `btree_deriv`.
 
 <details>
 <summary>Solution</summary>
 
-The integration function fills the hole with a value:
+The integration function fills the hole with a value. It must be recursive because the derivative type is recursive---we may need to descend through multiple `Below` constructors before reaching the `Here` where the hole actually is:
 
 ```ocaml
 let rec btree_integr n = function
@@ -816,15 +948,17 @@ let rec btree_integr n = function
     Node (m, ltree, btree_integr n deriv)
 ```
 
+When we reach `Here`, we create a node with the new value `n` and the two subtrees. When we see `Below`, we reconstruct the node we passed through and recursively integrate into the appropriate subtree.
+
 </details>
 
 ### 2.7 Exercises
 
-#### Exercise 1
+#### Exercise 1: Designing Valid Data Structures
 
 *Due to Yaron Minsky.*
 
-Consider a datatype to store internet connection information. The time `when_initiated` marks the start of connecting and is not needed after the connection is established (it is only used to decide whether to give up trying to connect). The ping information is available for established connections but not straight away.
+This exercise practices the principle of "making invalid states unrepresentable." Consider a datatype to store internet connection information. The time `when_initiated` marks the start of connecting and is not needed after the connection is established (it is only used to decide whether to give up trying to connect). The ping information is available for established connections but not straight away.
 
 ```
 type connectionstate = Connecting | Connected | Disconnected
@@ -842,11 +976,15 @@ type connectioninfo = {
 
 (The types `Time.t` and `Inetaddr.t` come from the *Core* library. You can replace them with `float` and `Unix.inet_addr`. Load the Unix library in the interactive toplevel with `#load "unix.cma";;`.)
 
-Rewrite the type definitions so that the datatype will contain only reasonable combinations of information.
+The problem with this design is that it allows many nonsensical combinations: a `Connecting` state with ping information, a `Disconnected` state with a session ID, etc. The optional fields (all those `option` types) make it unclear which fields are valid in which states.
 
-#### Exercise 2
+Rewrite the type definitions so that the datatype will contain only reasonable combinations of information. Use separate record types for each connection state, with only the fields that make sense for that state.
 
-In OCaml, functions can have labeled arguments and optional arguments (parameters with default values that can be omitted). Labels can differ from the names of argument values:
+#### Exercise 2: Labeled and Optional Arguments
+
+In OCaml, functions can have labeled arguments and optional arguments (parameters with default values that can be omitted). This exercise explores these features.
+
+Labels can differ from the names of argument values:
 
 ```ocaml
 let f ~meaningfulname:n = n + 1
@@ -896,37 +1034,43 @@ let test_foo () =
   foo ?bar 7
 ```
 
-1. Observe the types that functions with labeled and optional arguments have. Come up with coding style guidelines for when to use labeled arguments.
+1. Observe the types that functions with labeled and optional arguments have. Come up with coding style guidelines for when to use labeled arguments. When might they improve readability? When might they be overkill?
 
-2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two arguments are given, and raise an exception otherwise. Load the graphics library with `#load "graphics.cma";;`. Use `invalid_arg`, `Graphics.open_graph`, and `Graphics.draw_rect`.
+2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two of the three arguments are given (since any two determine the third), and raise an exception otherwise. Load the graphics library with `#load "graphics.cma";;`. Use `invalid_arg`, `Graphics.open_graph`, and `Graphics.draw_rect`.
 
-3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it.
+3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it. This tests your understanding of how optional arguments work at the type level.
 
-#### Exercise 3
+#### Exercise 3: Type Inference Practice
 
 *From a past exam.*
+
+These exercises help you internalize how type inference works. Try to work them out by hand before checking with the OCaml toplevel.
 
 1. Give the (most general) types of the following expressions, either by guessing or by inferring by hand:
    1. `let double f y = f (f y) in fun g x -> double (g x)`
    2. `let rec tails l = match l with [] -> [] | x::xs -> xs::tails xs in fun l -> List.combine l (tails l)`
 
-2. Give example expressions that have the following types (without using type constraints):
+2. Give example expressions that have the following types (without using type constraints). There are many possible answers for each:
    1. `(int -> int) -> bool`
    2. `'a option -> 'a list`
 
-#### Exercise 4
+#### Exercise 4: Types as Exponents
 
 We have seen that algebraic data types can be related to analytic functions (the subset definable from polynomials via recursion)---by literally interpreting sum types (variant types) as sums and product types (tuple and record types) as products. We can extend this interpretation to function types by interpreting $a \rightarrow b$ as $b^a$ (i.e., $b$ to the power of $a$). Note that the $b^a$ notation is actually used to denote functions in set theory.
 
-1. Translate $a^{b + cd}$ and $a^b \cdot (a^c)^d$ into OCaml types, using any distinct types for $a, b, c, d$, and using `type ('a,'b) choice = Left of 'a | Right of 'b` for $+$. Write the bijection function in both directions.
+This interpretation makes sense: a function from a set with $a$ elements to a set with $b$ elements is choosing, for each of the $a$ inputs, one of $b$ outputs---giving $b^a$ possible functions.
 
-2. Come up with a type `'t exp` that shares with the exponential function the following property: $\frac{\partial \exp(t)}{\partial t} = \exp(t)$, where we translate a derivative of a type as a context (i.e., the type with a "hole"), as in this chapter. Explain why your answer is correct. *Hint:* in computer science, our logarithms are mostly base 2.
+1. Translate $a^{b + cd}$ and $a^b \cdot (a^c)^d$ into OCaml types, using any distinct types for $a, b, c, d$, and using `type ('a,'b) choice = Left of 'a | Right of 'b` for $+$. Write the bijection functions in both directions. Verify algebraically that $a^{b + cd} = a^b \cdot (a^c)^d$ using the laws of exponents.
+
+2. Come up with a type `'t exp` that shares with the exponential function the following property: $\frac{\partial \exp(t)}{\partial t} = \exp(t)$, where we translate a derivative of a type as a context (i.e., the type with a "hole"), as in this chapter. In other words, the derivative of the type should be isomorphic to the type itself! Explain why your answer is correct. *Hint:* in computer science, our logarithms are mostly base 2.
 
 *Further reading:* [Algebraic Type Systems - Combinatorial Species](http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html)
 
-#### Exercise 5 (Homework)
+#### Exercise 5 (Homework): Finding Contexts
 
 Write a function `btree_deriv_at` that takes a predicate over integers (i.e., a function `f: int -> bool`) and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position for which the predicate returns true. It should return a `btree_deriv option`, with `None` if the predicate does not hold for any node.
+
+This function lets you "search" a tree and get back a context pointing to the found element. Think about what order you want to search in (pre-order, in-order, or post-order) and what "first" means in that context.
 
 
 ## Chapter 3: Computation
@@ -938,15 +1082,17 @@ Write a function `btree_deriv_at` that takes a predicate over integers (i.e., a 
 - "Using, Understanding and Unraveling the OCaml Language" by Didier Remy, Chapter 1
 - "The OCaml system" manual, the tutorial part, Chapter 1
 
+In this chapter, we explore how functional programs actually execute. We will learn how to reason about computation step by step using *reduction semantics*, and discover important optimization techniques like *tail call optimization* that make functional programming practical. Along the way, we will encounter our first taste of *continuation passing style*, a powerful programming technique that will reappear throughout this book.
+
 ### 3.1 Function Composition
 
-The usual way function composition is defined in mathematics is "backward"---the notation follows the convention of mathematical function application:
+Function composition is one of the most fundamental operations in functional programming. It allows us to build complex transformations by combining simpler functions. The usual way function composition is defined in mathematics is "backward"---the notation follows the convention of mathematical function application:
 
 $$
 (f \circ g)(x) = f(g(x))
 $$
 
-This means that when we write $f \circ g$, we first apply $g$ and then apply $f$ to the result. Here is how this is expressed in different functional programming languages:
+This means that when we write $f \circ g$, we first apply $g$ and then apply $f$ to the result. The function written on the left is applied last---hence the term "backward" composition. Here is how this is expressed in different functional programming languages:
 
 | Language | Definition |
 |----------|-----------|
@@ -961,36 +1107,38 @@ This backward composition looks like function application but needs fewer parent
 let iso2 = step1l -| step2l -| step3l
 ```
 
-A more natural definition of function composition is "forward" composition, which follows the order in which computation actually proceeds:
+While backward composition matches traditional mathematical notation, many programmers find a "forward" composition more intuitive. Forward composition follows the order in which computation actually proceeds---data flows from left to right, matching how we typically read code in most programming languages:
 
 | Language | Definition |
 |----------|-----------|
 | OCaml | `let (\|-) f g x = g (f x)` |
 | F# | `let (>>) f g x = g (f x)` |
 
-With forward composition, data flows from left to right, matching how we typically read code:
+With forward composition, you can read a pipeline of transformations in the natural order:
 
 ```
 let iso1 = step1r |- step2r |- step3r
 ```
 
+Here, the data first passes through `step1r`, then the result goes to `step2r`, and finally to `step3r`. This "pipeline" style of programming is particularly popular in languages like F# and has influenced the design of many modern programming languages.
+
 #### Partial Application
 
-Both composition examples above use **partial application**. Recall from the previous chapter that `((+) 1)` is a function that adds 1 to its argument. Partial application occurs when we do not pass all the arguments a function needs; the result is a function that requires the remaining arguments.
+Both composition examples above rely on **partial application**, a technique we introduced in the previous chapter. Recall that `((+) 1)` is a function that adds 1 to its argument---we have provided only one of the two arguments that `(+)` requires. Partial application occurs whenever we supply fewer arguments than a function expects; the result is a new function that waits for the remaining arguments.
 
-In the composition `step1r |- step2r |- step3r`, each `stepNr` function is partially applied. The composition operator `(|-)` takes two functions `f` and `g` and returns a new function that first applies `f`, then applies `g` to the result.
+Consider the composition `step1r |- step2r |- step3r`. How exactly does partial application come into play here? The composition operator `(|-)` is defined as `let (|-) f g x = g (f x)`, which means it takes *three* arguments: two functions `f` and `g`, and a value `x`. When we write `step1r |- step2r`, we are partially applying `(|-)` with just two arguments. The result is a function that still needs the final argument `x`.
 
-*How is partial application used in the composition examples above?*
+*Exercise:* Think about the types involved. If `step1r` has type `'a -> 'b` and `step2r` has type `'b -> 'c`, what is the type of `step1r |- step2r`?
 
 #### Power Function
 
-Now we define iterated function composition:
+Now we define iterated function composition---applying a function to itself repeatedly. This is written mathematically as:
 
 $$
 f^n(x) := \underbrace{(f \circ \cdots \circ f)}_{n \text{ times}}(x)
 $$
 
-In OCaml, we first define the backward composition operator, then use it in `power`:
+In other words, $f^0$ is the identity function, $f^1 = f$, $f^2 = f \circ f$, and so on. In OCaml, we first define the backward composition operator, then use it to implement `power`:
 
 ```ocaml
 let (-|) f g x = f (g x)
@@ -999,27 +1147,45 @@ let rec power f n =
   if n <= 0 then (fun x -> x) else f -| power f (n-1)
 ```
 
-When `n <= 0`, we return the identity function. Otherwise, we compose `f` with `power f (n-1)`, which gives us one more application of `f`.
+When `n <= 0`, we return the identity function `fun x -> x`. Otherwise, we compose `f` with `power f (n-1)`, which gives us one more application of `f`. Notice how elegantly this definition expresses the mathematical concept---we are literally composing `f` with itself `n` times.
+
+This `power` function is surprisingly versatile. For example, we can use it to define addition in terms of the successor function:
+
+```
+let add n = power ((+) 1) n
+```
+
+Here `add 5 7` would compute $7 + 1 + 1 + 1 + 1 + 1 = 12$. We could even define multiplication:
+
+```
+let mult k n = power ((+) k) n 0
+```
+
+This computes $0 + k + k + \ldots + k$ (adding $k$ a total of $n$ times), giving us $k \times n$. While not the most efficient implementation, these examples show how higher-order functions like `power` can express fundamental mathematical operations.
 
 #### Numerical Derivative
 
-Using `power`, we can define a numerical approximation of the derivative:
+A beautiful application of `power` is computing higher-order derivatives. First, let us define a numerical approximation of the derivative using the standard finite difference formula:
 
 ```ocaml
 let derivative dx f = fun x -> (f(x +. dx) -. f(x)) /. dx
 ```
 
-This definition emphasizes that `derivative dx f` is itself a function of `x` (where the intent to use with two arguments is stressed). We can write it more concisely as:
+This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x)$ when `dx` is small. Notice the explicit `fun x -> ...` syntax, which emphasizes that `derivative dx f` is itself a function---we are transforming a function `f` into its derivative function.
+
+We can write the same definition more concisely using OCaml's curried function syntax:
 
 ```ocaml
 let derivative dx f x = (f(x +. dx) -. f(x)) /. dx
 ```
 
-Note that OCaml uses different operators for floating-point arithmetic. We have `(+): int -> int -> int` for integers, so we cannot use `+` with floating-point numbers. Instead, operators followed by a dot work on `float` values: `+.`, `-.`, `*.`, `/.`.
+Both definitions are equivalent, but the first makes the "function returning a function" structure more explicit, while the second is more compact.
+
+**A note on OCaml's numeric operators:** OCaml uses different operators for floating-point arithmetic than for integers. The type of `(+)` is `int -> int -> int`, so we cannot use `+` with `float` values. Instead, operators followed by a dot work on `float` numbers: `+.`, `-.`, `*.`, and `/.`. This might seem inconvenient at first, but it catches type errors at compile time and avoids the implicit conversions that cause subtle bugs in other languages.
 
 #### Computing Higher-Order Derivatives
 
-With `power` and `derivative`, we can easily compute higher-order derivatives:
+Now comes the payoff. With `power` and `derivative`, we can elegantly compute higher-order derivatives:
 
 ```ocaml
 let pi = 4.0 *. atan 1.0
@@ -1027,15 +1193,21 @@ let sin''' = (power (derivative 1e-5) 3) sin;;
 sin''' pi
 ```
 
-Here `sin'''` is the third derivative of sine. The result should be approximately $-\cos(\pi) = 1$ (with some numerical error due to the finite difference approximation).
+Here `sin'''` is the third derivative of sine. The expression `(power (derivative 1e-5) 3)` creates a function that applies the derivative operation three times---exactly what we need for the third derivative.
+
+Mathematically, the third derivative of $\sin(x)$ is $-\cos(x)$, so `sin''' pi` should give us $-\cos(\pi) = 1$. The actual result will be close to 1, with some numerical error due to the finite difference approximation (the error compounds with each derivative we take).
+
+This example demonstrates the power of treating functions as first-class values. We have built a general-purpose derivative operator and combined it with our `power` function to create an $n$th-derivative calculator---all in just a few lines of code.
 
 ### 3.2 Evaluation Rules (Reduction Semantics)
 
-To understand how OCaml programs compute their results, we need to formalize the evaluation process. This section presents **reduction semantics**, which describes computation as a series of rewriting steps.
+So far, we have written OCaml programs and observed their results, but we have not precisely described *how* those results are computed. To understand how OCaml programs execute, we need to formalize the evaluation process. This section presents **reduction semantics** (also called *operational semantics*), which describes computation as a series of rewriting steps that transform expressions until we reach a final value.
+
+Understanding reduction semantics is valuable for several reasons. It helps us predict what our programs will do, reason about their efficiency, and understand subtle behaviors like infinite loops and non-termination. The ideas here also form the foundation for understanding more advanced topics like type systems and program verification.
 
 #### Expressions
 
-Programs consist of **expressions**. Here is the grammar of expressions for a simplified version of OCaml:
+Programs consist of **expressions**. Here is the grammar of expressions for a simplified version of OCaml (we omit some features for clarity):
 
 $$
 \begin{array}{lcll}
@@ -1055,21 +1227,21 @@ p & := & x & \text{pattern variables} \\
 \end{array}
 $$
 
-**Arity** means how many arguments something requires (and for tuples, the length of the tuple).
+**Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
 
 #### The `fix` Primitive
 
-To simplify our presentation of recursion, we use a primitive `fix` to define a limited form of `let rec`:
+Our grammar above includes functions defined with `fun`, but what about recursive functions defined with `let rec`? To keep our semantics simple, we introduce a primitive `fix` that captures the essence of recursion:
 
 $$
 \texttt{let rec } f \; x = e_1 \texttt{ in } e_2 \equiv \texttt{let } f = \texttt{fix (fun } f \; x \texttt{ -> } e_1 \texttt{) in } e_2
 $$
 
-The `fix` primitive captures the essence of recursion: it takes a function that expects to receive itself as an argument and produces a fixed point---a function that, when called, behaves as if it had access to itself.
+The `fix` primitive is a *fixpoint combinator*. It takes a function that expects to receive "itself" as its first argument and produces a function that, when called, behaves as if it has access to itself for recursive calls. This might seem mysterious now, but we will see exactly how it works when we examine its reduction rule below.
 
 #### Values
 
-Expressions evaluate (i.e., compute) to **values**. Values are expressions that cannot be reduced further:
+Expressions evaluate (i.e., compute) to **values**. Values are expressions that cannot be reduced further---they are the "final answers" of computation:
 
 $$
 \begin{array}{lcll}
@@ -1079,72 +1251,90 @@ v & := & \texttt{fun } x \texttt{ -> } a & \text{(defined) functions} \\
 \end{array}
 $$
 
-Note that functions are values: `fun x -> x + 1` is already fully evaluated. Partially applied primitives like `(+) 3` are also values---they are waiting for more arguments.
+Note that functions are values: `fun x -> x + 1` is already fully evaluated---there is nothing more to compute until the function is applied to an argument. Similarly, constructed values like `Some 42` or `(1, 2, 3)` are values when all their components are values.
+
+Partially applied primitives like `(+) 3` are also values. The expression `(+) 3` has received one argument but needs another before it can compute a sum. Until that second argument arrives, there is nothing more to do, so `(+) 3` is a value.
 
 #### Substitution
 
-To **substitute** a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every occurrence of $x$ in $a$ is replaced by $v$.
+The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every occurrence of $x$ in $a$ is replaced by $v$.
 
-In the actual implementation, the value $v$ is not duplicated in memory. Instead, OCaml uses references or closures to share the value efficiently.
+For example, if $a$ is the expression `x + x * y` and we substitute 3 for `x`, we get `3 + 3 * y`. In our notation: `(x + x * y)[x := 3] = 3 + 3 * y`.
+
+**Implementation note:** Although we describe substitution as "replacing" variables with values, the actual implementation in OCaml does not duplicate the value $v$ in memory each time it appears. Instead, OCaml uses closures and sharing to ensure that values are stored once and referenced wherever needed. This is both more efficient and essential for handling recursive data structures.
 
 #### Reduction Rules (Redexes)
 
-Reduction (i.e., computation) proceeds by finding reducible expressions called **redexes** and applying reduction rules. Here are the fundamental redexes:
+Now we can describe how computation actually proceeds. Reduction works by finding reducible expressions called **redexes** (short for "reducible expressions") and applying reduction rules that rewrite them into simpler forms. We write $e_1 \rightsquigarrow e_2$ to mean "expression $e_1$ reduces to expression $e_2$ in one step."
+
+Here are the fundamental reduction rules:
 
 **Function application (beta reduction):**
 $$
 (\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]
 $$
 
-When we apply a function to a value, we substitute the value for the parameter in the function body.
+This is the most important rule. When we apply a function `fun x -> a` to a value $v$, we substitute $v$ for the parameter $x$ throughout the function body $a$. This rule is traditionally called "beta reduction" in the lambda calculus literature.
+
+For example: `(fun x -> x + 1) 5` $\rightsquigarrow$ `5 + 1` $\rightsquigarrow$ `6`.
 
 **Let binding:**
 $$
 \texttt{let } x = v \texttt{ in } a \rightsquigarrow a[x := v]
 $$
 
-A let binding with a value substitutes that value into the body.
+A let binding works similarly: once the bound expression has been evaluated to a value $v$, we substitute it into the body. Notice that `let x = e in a` is essentially equivalent to `(fun x -> a) e`---both bind $x$ to the result of evaluating $e$ within the expression $a$.
 
 **Primitive application:**
 $$
 f^n \; v_1 \; \cdots \; v_n \rightsquigarrow f(v_1, \ldots, v_n)
 $$
 
-When a primitive receives all its arguments, it computes the result. Here $f(v_1, \ldots, v_n)$ denotes the actual result of the primitive operation.
+When a primitive (like `+` or `*`) receives all the arguments it needs (determined by its arity $n$), it computes the result. Here $f(v_1, \ldots, v_n)$ denotes the actual result of the primitive operation---for example, `(+) 2 3` $\rightsquigarrow$ `5`.
 
 **Pattern matching with a variable pattern:**
 $$
 \texttt{match } v \texttt{ with } x \texttt{ -> } a \texttt{ | } \cdots \rightsquigarrow a[x := v]
 $$
 
+A variable pattern always matches, binding the entire value to the variable.
+
 **Pattern matching with a non-matching constructor:**
 $$
 \frac{C_1 \neq C_2}{\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm}
 $$
 
-If the constructor does not match, we try the next pattern.
+If the constructor in the value ($C_1$) does not match the constructor in the pattern ($C_2$), we skip this branch and try the remaining patterns ($pm$). This is how OCaml searches through pattern match cases from top to bottom.
 
 **Pattern matching with a matching constructor:**
 $$
 \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_1^n(x_1, \ldots, x_n) \texttt{ -> } a \texttt{ | } \cdots \rightsquigarrow a[x_1 := v_1; \ldots; x_n := v_n]
 $$
 
-If the constructor matches, we substitute all the bound values.
+If the constructor matches, we substitute all the values from inside the constructor for the corresponding pattern variables. For example, `match Some 42 with Some x -> x + 1 | None -> 0` reduces to `42 + 1` because `Some` matches `Some` and we substitute 42 for `x`.
 
-If $n = 0$, then $C_1^n(v_1, \ldots, v_n)$ stands for simply $C_1^0$, a constructor with no arguments. We omit the more complex cases of nested pattern matching.
+If $n = 0$, then $C_1^n(v_1, \ldots, v_n)$ stands for simply $C_1^0$, a constructor with no arguments (like `None` or `[]`). We omit the more complex cases of nested pattern matching for brevity.
 
 #### Rule Variables
 
-In these rules, the metavariables have specific meanings:
-- $x$ matches any expression or pattern variable
-- $a, a_1, \ldots, a_n$ match any expression
-- $v, v_1, \ldots, v_n$ match any value
+In these rules, we use *metavariables*---placeholders that can be replaced with actual expressions. Understanding them is key to applying the rules:
 
-To apply a rule, find substitutions for these metavariables that make the left-hand side match your expression. The right-hand side (with the same substitutions) is the reduced expression.
+- $x$ matches any variable name (like `foo`, `n`, or `result`)
+- $a, a_1, \ldots, a_n$ match any expression (not necessarily a value)
+- $v, v_1, \ldots, v_n$ match any *value* (expressions that are fully evaluated)
+
+To apply a rule, find substitutions for these metavariables that make the left-hand side of the rule match your expression. Then the right-hand side (with the same substitutions applied) gives you the reduced expression.
+
+For example, to apply the beta reduction rule to `(fun n -> n * 2) 5`:
+1. Match `fun x -> a` with `fun n -> n * 2`, giving us $x = \texttt{n}$ and $a = \texttt{n * 2}$
+2. Match $v$ with `5`
+3. The right-hand side $a[x := v]$ becomes `(n * 2)[n := 5]` which equals `5 * 2`
 
 #### Evaluation Context Rules
 
-The rules above only apply when the arguments are already values. We also need rules that allow evaluation of subexpressions. If $a_i \rightsquigarrow a_i'$, then:
+The reduction rules above only apply when the arguments are already values. But what if we have `(fun x -> x + 1) (2 + 3)`? The argument `2 + 3` is not a value, so we cannot directly apply beta reduction. We need rules that tell us evaluation can proceed inside subexpressions.
+
+If $a_i \rightsquigarrow a_i'$ (meaning $a_i$ can take a reduction step), then:
 
 $$
 \begin{array}{lcl}
@@ -1156,11 +1346,11 @@ C^n(a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n(a_1, \ldots, a_i', \
 \end{array}
 $$
 
-These rules say that:
-- In an application, either the function or the argument can be evaluated (in arbitrary order)
-- In a constructor, any argument can be evaluated
-- In a let binding, the bound expression is evaluated before the body
-- In a match, the scrutinee is evaluated before matching
+These rules describe *where* reduction can happen:
+- In a function application $a_1 \; a_2$, either the function ($a_1$) or the argument ($a_2$) can be evaluated. The two rules allow evaluation in arbitrary order---this gives the implementation flexibility in how it schedules computation.
+- In a constructor application, any argument can be evaluated.
+- In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
+- In a match expression, the scrutinee (the expression being matched) must be evaluated before pattern matching can proceed.
 
 #### The `fix` Rule
 
@@ -1170,19 +1360,29 @@ $$
 \texttt{fix}^2 \; v_1 \; v_2 \rightsquigarrow v_1 \; (\texttt{fix}^2 \; v_1) \; v_2
 $$
 
-Because `fix` is a binary primitive (arity 2), the expression $(\texttt{fix}^2 \; v_1)$ is already a value (a partially applied primitive). This means it will not be further evaluated until it is applied inside $v_1$. This delayed evaluation is what makes recursion work without infinite loops.
+This rule is subtle but powerful. Let us unpack it:
+
+1. `fix` is a binary primitive (arity 2), meaning it needs two arguments before it computes.
+2. When we apply `fix` to two values $v_1$ and $v_2$, it "unrolls" one level of recursion by calling $v_1$ with two arguments: `(fix v1)` (which represents "the recursive function itself") and $v_2$ (the actual argument to the recursive call).
+3. Because `fix` has arity 2, the expression `(fix v1)` is a *partially applied primitive*---and partially applied primitives are values! This is crucial: it means `(fix v1)` will not be evaluated further until it is applied to another argument inside $v_1$.
+
+This delayed evaluation is what prevents infinite loops. If `(fix v1)` were evaluated immediately, we would get an infinite chain of expansions. Instead, evaluation only continues when the recursive function actually makes a recursive call.
 
 #### Practice
 
-**Exercise:** Compute some simple programs by hand using these rules. For example, trace the evaluation of:
+The best way to understand reduction semantics is to work through examples by hand. Trace the evaluation of these expressions step by step:
 
-```ocaml
-let double x = x + x in double 3
-```
+**Exercise 1:** Evaluate `let double x = x + x in double 3`
+
+**Exercise 2:** Evaluate `(fun f -> fun x -> f (f x)) (fun y -> y + 1) 0`
+
+**Exercise 3:** Define the factorial function using `fix` and trace the evaluation of `factorial 3`
 
 ### 3.3 Symbolic Derivation Example
 
-Let us see the reduction rules in action with a more complex example. Consider the symbolic expression evaluator from `Lec3.ml`:
+Let us see the reduction rules in action with a more substantial example. We will build a small computer algebra system that can represent mathematical expressions symbolically, evaluate them, and even compute their derivatives symbolically.
+
+Consider the symbolic expression type from `Lec3.ml`:
 
 ```ocaml
 type expression =
@@ -1206,7 +1406,9 @@ let rec eval env exp =
   | Quot(f, g) -> eval env f /. eval env g
 ```
 
-We can also define symbolic differentiation:
+The `expression` type represents mathematical expressions as a tree structure. Each constructor corresponds to a different kind of expression: constants, variables, and the four basic arithmetic operations. The `eval` function takes an environment `env` (a list of variable-value pairs) and recursively evaluates an expression to a floating-point number.
+
+We can also define *symbolic differentiation*---computing the derivative of an expression without evaluating it numerically:
 
 ```ocaml
 let rec deriv exp dv =
@@ -1220,7 +1422,14 @@ let rec deriv exp dv =
                        Prod(g, g))
 ```
 
-For convenience, let us define some operators and variables:
+The `deriv` function implements the standard rules of calculus:
+- The derivative of a constant is 0.
+- The derivative of the variable we are differentiating with respect to is 1; any other variable is treated as a constant (derivative 0).
+- The sum and difference rules: $(f + g)' = f' + g'$ and $(f - g)' = f' - g'$.
+- The product rule: $(f \cdot g)' = f \cdot g' + f' \cdot g$.
+- The quotient rule: $(f / g)' = (f' \cdot g - f \cdot g') / g^2$.
+
+For convenience, let us define some operators and variables so we can write expressions more naturally:
 
 ```ocaml
 let x = Var "x"
@@ -1232,14 +1441,16 @@ let (/:) f g = Quot (f, g)
 let (!:) i = Const i
 ```
 
-Now consider evaluating the expression `3x + 2y + x^2 y` at $x = 1, y = 2$:
+These custom operators (ending in `:`) let us write symbolic expressions that look almost like regular mathematical notation.
+
+Now let us evaluate the expression $3x + 2y + x^2 y$ at $x = 1, y = 2$:
 
 ```ocaml
 let example = !:3.0 *: x +: !:2.0 *: y +: x *: x *: y
 let env = ["x", 1.0; "y", 2.0]
 ```
 
-When we trace the evaluation, we can see the recursive structure of the computation:
+When we trace the evaluation using OCaml's `#trace` directive, we can see the recursive structure of the computation unfold:
 
 ```
 eval_1_2 <-- 3.00 * x + 2.00 * y + x * x * y
@@ -1271,69 +1482,79 @@ eval_1_2 --> 9.
 - : float = 9.
 ```
 
-The indentation levels in this trace correspond to **stack frames**---the runtime structures that store the state of each function call. This brings us to an important optimization technique.
+The arrows `<--` and `-->` show function calls and returns, respectively. Each level of indentation represents a nested function call. These indentation levels correspond to **stack frames**---the runtime structures that store the state of each function call. Each time `eval_1_2` is called recursively, a new stack frame is created to remember where to return and what computation remains.
+
+The final result is $3 \cdot 1 + 2 \cdot 2 + 1 \cdot 1 \cdot 2 = 3 + 4 + 2 = 9$, as expected.
+
+This trace visualization brings us to an important question: what happens when we have very deep recursion? This leads us to our next topic.
 
 ### 3.4 Tail Calls and Tail Recursion
 
-Excuse me for not defining what a *function call* is... Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. The trace above illustrates this: each level of indentation represents a new stack frame.
+The call stack is finite, and each recursive call typically adds a new frame to it. This means that deeply recursive functions can exhaust the stack and crash---a notorious problem known as "stack overflow." Fortunately, functional language implementations have a trick to avoid this problem in many cases.
+
+Excuse me for not formally defining what a *function call* is... Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. A stack frame stores the local variables, the return address (where to continue after the function returns), and other bookkeeping information. The trace in the previous section illustrates this: each level of indentation represents a new stack frame.
 
 #### What is a Tail Call?
 
-A **tail call** is a function call that is performed last when computing a function---there is nothing more to do after the call returns. For example, in:
+The key insight is that not all function calls require a new stack frame. A **tail call** is a function call that is performed as the very last action when computing a function---there is nothing more to do after the call returns except to return that value. For example:
 
 ```
 let f x = g (x + 1)
 ```
 
-The call to `g` is a tail call because after `g` returns, `f` immediately returns that value.
+The call to `g` is a tail call. Once `g` returns some value, `f` simply returns that same value---no further computation is needed.
 
-In contrast, in:
+In contrast:
 
 ```
 let f x = 1 + g x
 ```
 
-The call to `g` is *not* a tail call because after `g` returns, we still need to add 1 to the result.
+The call to `g` is *not* a tail call. After `g` returns, we still need to add 1 to the result before `f` can return. This means we need to remember to do the addition, which requires keeping the stack frame around.
 
 #### Tail Call Optimization
 
-Functional language compilers (including OCaml's) recognize tail calls and optimize them. Instead of creating a new stack frame, they reuse the current frame by performing a "jump" to the called function. This means tail calls use constant stack space.
+Functional language compilers (including OCaml's) recognize tail calls and optimize them by performing **tail call optimization** (TCO). Instead of creating a new stack frame, the compiler generates code that reuses the current frame by performing a "jump" to the called function. This means tail calls use constant stack space, no matter how deep the call chain goes.
+
+This optimization is not just a nice-to-have; it is *essential* for functional programming. Without TCO, many natural recursive algorithms would be impractical because they would overflow the stack on moderately large inputs.
 
 #### Tail Recursive Functions
 
-A function is **tail recursive** if it calls itself (and any mutually recursive functions it depends on) only using tail calls.
+A function is **tail recursive** if all of its recursive calls (including calls to mutually recursive functions it depends on) are tail calls.
 
-Tail recursive functions often use special **accumulator** arguments that store intermediate computation results. In a non-tail-recursive function, these intermediate results would be values of subexpressions stored on the stack.
+Writing tail recursive functions requires a shift in thinking. Instead of building up the result as recursive calls return, we build it up as we *make* the calls. This typically requires an extra **accumulator** argument that carries the partial result through the recursion.
 
-The key insight is that the accumulated result is computed in "reverse order"---while climbing up the recursion (making calls) rather than while descending (returning from calls).
+The key insight is that with an accumulator, results are computed in "reverse order"---we do the work while climbing *into* the recursion (making calls) rather than while climbing *out* (returning from calls).
 
 #### Example: Counting
 
-Compare these two counting functions:
+Let us see this in action with a simple counting function. Compare these two versions:
 
 ```ocaml
 let rec count n =
   if n <= 0 then 0 else 1 + (count (n-1))
 ```
 
-This is *not* tail recursive because after the recursive call returns, we still need to add 1.
+This version is *not* tail recursive. Look at the recursive case: after `count (n-1)` returns, we still need to add 1 to the result. Each recursive call must remember to do this addition, consuming a stack frame.
+
+Now compare with the tail recursive version:
 
 ```ocaml
 let rec count_tcall acc n =
   if n <= 0 then acc else count_tcall (acc+1) (n-1)
 ```
 
-This *is* tail recursive: the recursive call is the last thing the function does.
+Here, the recursive call `count_tcall (acc+1) (n-1)` is the very last thing the function does---its result becomes our result directly. The accumulator `acc` carries the running count: we add 1 to it *before* the recursive call rather than *after* it returns. To count to 1000000, we call `count_tcall 0 1000000`.
 
 #### Example: Building Lists
 
-Let us see a more dramatic example:
+The counting example does not really show the practical impact because the numbers are so small. Let us see a more dramatic example with lists:
 
 ```ocaml
 let rec unfold n = if n <= 0 then [] else n :: unfold (n-1)
 ```
 
-This function builds a list counting down from `n`. It is not tail recursive because after the recursive call, we must cons `n` onto the result.
+This function builds a list counting down from `n` to 1. It is not tail recursive because after the recursive call `unfold (n-1)` returns, we must cons `n` onto the front of the result.
 
 ```
 # unfold 100000;;
@@ -1343,14 +1564,16 @@ This function builds a list counting down from `n`. It is not tail recursive bec
 Stack overflow during evaluation (looping recursion?).
 ```
 
-With a million elements, we run out of stack space! Now consider the tail-recursive version:
+With 100,000 elements, it works. But with a million elements, we run out of stack space and the program crashes! This is a serious problem for practical programming.
+
+Now consider the tail-recursive version:
 
 ```ocaml
 let rec unfold_tcall acc n =
   if n <= 0 then acc else unfold_tcall (n::acc) (n-1)
 ```
 
-The accumulator `acc` collects the list as we go. Note that the list is built in reverse order:
+The accumulator `acc` collects the list as we go. We cons each element onto the accumulator *before* the recursive call. However, there is a catch: because we are building the list as we descend into the recursion (rather than as we return), the list comes out in reverse order:
 
 ```
 # unfold_tcall [] 100000;;
@@ -1360,17 +1583,17 @@ The accumulator `acc` collects the list as we go. Note that the list is built in
 - : int list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; ...]
 ```
 
-The tail-recursive version handles a million elements with no problem.
+The tail-recursive version handles a million elements effortlessly. The trade-off is that we get `[1; 2; 3; ...]` instead of `[1000000; 999999; ...]`. If we need the original order, we could reverse the result at the end (which is an O(n) operation but uses only constant stack space).
 
 #### A Challenge: Tree Depth
 
-Is it possible to find the depth of a tree using a tail-recursive function?
+Not all recursive functions can be easily converted to tail recursive form. Consider this problem: can we find the depth of a binary tree using a tail-recursive function?
 
 ```ocaml
 type btree = Tip | Node of int * btree * btree
 ```
 
-The naive approach:
+Here is the natural recursive approach:
 
 ```ocaml
 let rec depth tree = match tree with
@@ -1378,15 +1601,21 @@ let rec depth tree = match tree with
   | Node(_, left, right) -> 1 + max (depth left) (depth right)
 ```
 
-This is not tail recursive: after both recursive calls, we still need to compute `1 + max ...`. The challenge is that we have *two* recursive calls, and we cannot simply use an accumulator.
+This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A simple accumulator will not work---we cannot proceed with one subtree until we know the result of the other.
+
+This seems like an impossible situation. How can we make a function tail recursive when it inherently needs to explore two branches? The answer involves a technique called *continuation passing style*, which we explore in the next section.
 
 #### Note on Lazy Languages
 
-The issue of tail recursion is more complex for **lazy** programming languages like Haskell. In a lazy language, the cons operation `(:)` does not immediately evaluate its arguments, so building a list with `n :: unfold (n-1)` does not consume stack space in the same way.
+The issue of tail recursion is more nuanced for **lazy** programming languages like Haskell. In a lazy language, expressions are only evaluated when their values are actually needed. The cons operation `(:)` does not immediately evaluate its arguments---it just builds a "promise" to compute them later.
+
+This means that building a list with `n : unfold (n-1)` does not consume stack space in the same way as in OCaml. The `unfold (n-1)` is not evaluated immediately; it is just stored as an unevaluated expression (called a "thunk"). Stack space is only consumed later, when you actually traverse the list. This gives lazy languages different performance characteristics and trade-offs.
 
 ### 3.5 First Encounter of Continuation Passing Style
 
-We can solve the tree depth problem using **Continuation Passing Style (CPS)**. The key idea is to postpone doing actual work until the very last moment by passing around a "continuation"---a function that represents "what to do next."
+We can solve the tree depth problem using **Continuation Passing Style (CPS)**. This is a powerful technique that transforms programs in a surprising way: instead of returning values, functions receive an extra argument---a *continuation*---that tells them what to do with their result.
+
+The key idea is to postpone doing actual work until the very last moment by passing around a continuation---a function that represents "what to do next with this result."
 
 ```ocaml
 let rec depth_cps tree k = match tree with
@@ -1399,57 +1628,86 @@ let rec depth_cps tree k = match tree with
 let depth tree = depth_cps tree (fun d -> d)
 ```
 
-Let us understand how this works:
+Let us understand how this works step by step:
 
-1. The function takes an extra parameter `k`, called the **continuation**. It represents what to do with the final result.
+1. **The continuation parameter:** The function takes an extra parameter `k`, called the **continuation**. Instead of returning a value directly, `depth_cps` will call `k` with its result. You can think of `k` as meaning "and then do this with the answer."
 
-2. In the `Tip` case, we call the continuation with the depth 0.
+2. **The base case (`Tip`):** When we reach a leaf, the depth is 0. Instead of returning 0, we call `k 0`---"give 0 to whoever is waiting for our answer."
 
-3. In the `Node` case, we recursively compute the depth of the left subtree, passing a continuation that:
-   - Receives the left depth `dleft`
-   - Then recursively computes the depth of the right subtree, passing a continuation that:
-     - Receives the right depth `dright`
-     - Finally calls the original continuation with `1 + max dleft dright`
+3. **The recursive case (`Node`):** This is where CPS shines. We need to compute depths of both subtrees and combine them. Here is how we do it:
+   - First, recursively compute the depth of the left subtree. But instead of waiting for the result, we pass a continuation: `fun dleft -> ...`
+   - This continuation says "when you have the left depth (call it `dleft`), then..."
+   - ...compute the depth of the right subtree, passing another continuation: `fun dright -> ...`
+   - This inner continuation says "when you have the right depth (call it `dright`), then..."
+   - ...finally call the original continuation `k` with the combined result `1 + max dleft dright`
 
-4. The wrapper function passes the identity function `fun d -> d` as the initial continuation.
+4. **The wrapper function:** To use `depth_cps`, we need to provide an initial continuation. We pass the identity function `fun d -> d`, which just returns whatever it receives. This is the "final consumer" of the result.
 
-The magic is that each recursive call is now a tail call! The "work" of computing `1 + max dleft dright` is captured in the continuation closures, which are allocated on the heap rather than the stack.
+The magic is that *every recursive call is now a tail call*! Look carefully: `depth_cps left (...)` is the last thing the function does in that branch---everything else is inside the continuation, which will be called later.
 
-However, this does not completely solve the stack overflow problem---we are trading stack space for heap space (storing the continuation closures). For very deep trees, we might still run out of memory. True solutions involve trampolining or iterative approaches with explicit stacks.
+Where does the "pending work" go? Instead of being stored on the call stack, it is captured in the continuation closures. These closures are allocated on the heap. We have traded stack space for heap space.
 
-CPS is a powerful technique that appears throughout functional programming. We will encounter it again when studying monads and advanced control flow.
+**Important caveat:** This does not completely solve the stack overflow problem---we are just moving the problem from the stack to the heap. For very deep trees, the continuation closures can grow very large, potentially exhausting memory. True solutions for extreme cases involve techniques like *trampolining* (returning control to a loop) or using explicit data structures to represent the pending work. Nevertheless, CPS is often more space-efficient than direct recursion, and it is a fundamental technique that appears throughout functional programming.
+
+We will encounter CPS again when studying monads and advanced control flow, where it provides the foundation for powerful abstractions.
 
 ### 3.6 Exercises
 
-**Exercise 1:** By "traverse a tree" below we mean: write a function that takes a tree and returns a list of values in the nodes of the tree.
+These exercises will help you practice the concepts from this chapter: function composition, reduction semantics, tail recursion, and continuation passing style.
 
-1. Write a function (of type `btree -> int list`) that traverses a binary tree in **prefix order**---first the value stored in a node, then values in all nodes to the left, then values in all nodes to the right.
+**Exercise 1: Tree Traversals**
 
-2. Write a traversal in **infix order**---first values in all nodes to the left, then the value stored in the node, then values in all nodes to the right (so it is "left-to-right" order).
+By "traverse a tree" below we mean: write a function that takes a tree and returns a list of values in the nodes of the tree. Use the `btree` type defined earlier.
 
-3. Write a traversal in **breadth-first order**---first values in shallower nodes before deeper nodes.
+1. Write a function (of type `btree -> int list`) that traverses a binary tree in **prefix order** (also called *preorder*)---first the value stored in a node, then values in all nodes to the left, then values in all nodes to the right.
 
-**Exercise 2:** Turn the function from Exercise 1 (prefix or infix traversal) into continuation passing style.
+2. Write a traversal in **infix order** (also called *inorder*)---first values in all nodes to the left, then the value stored in the node, then values in all nodes to the right. For a binary search tree, this would give you the elements in sorted order.
 
-**Exercise 3:** Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a predicate over integers and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position for which the predicate returns true.
+3. Write a traversal in **breadth-first order** (also called *level order*)---visit all nodes at depth 0, then all nodes at depth 1, and so on. Hint: you will need an auxiliary data structure (a queue) to keep track of nodes to visit.
 
-**Exercise 4:** Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
+**Exercise 2: CPS Transformation**
 
-- Write a `simplify_once` function that performs a single step of simplification.
-- Wrap it using a general `fixpoint` function that performs an operation until a **fixed point** is reached: given $f$ and $x$, it computes $f^n(x)$ such that $f^n(x) = f^{n+1}(x)$.
+Turn the function from Exercise 1 (prefix or infix traversal) into continuation passing style. Compare the structure of your CPS version to the original. What are the trade-offs?
 
-**Exercise 5:** Write two sorting algorithms working on lists: merge sort and quicksort.
+**Exercise 3: Tree Derivatives Revisited**
 
-1. **Merge sort** splits the list roughly in half, sorts the parts recursively, and merges the sorted parts into the sorted result.
+Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a predicate over integers and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position (using your chosen traversal order) for which the predicate returns true.
 
-2. **Quicksort** splits the list into elements smaller than and greater than (or equal to) the first element, sorts the parts recursively, and concatenates them.
+**Exercise 4: Expression Simplification**
+
+Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
+
+Some simplifications to consider:
+- $0 + x = x$ and $x + 0 = x$
+- $0 \cdot x = 0$ and $x \cdot 0 = 0$
+- $1 \cdot x = x$ and $x \cdot 1 = x$
+- $x - 0 = x$
+- $x / 1 = x$
+
+Approach this in two steps:
+1. Write a `simplify_once` function that performs a single "pass" of simplification over the expression tree.
+2. Wrap it using a general `fixpoint` function that performs an operation until a **fixed point** is reached: given $f$ and $x$, it computes $f^n(x)$ such that $f^n(x) = f^{n+1}(x)$ (i.e., applying $f$ one more time does not change the result).
+
+Why do we need iteration to a fixed point rather than a single pass?
+
+**Exercise 5: Sorting Algorithms**
+
+Write two sorting algorithms working on lists: merge sort and quicksort.
+
+1. **Merge sort** splits the list roughly in half, sorts the parts recursively, and merges the sorted parts into the sorted result. You will need a helper function to merge two sorted lists.
+
+2. **Quicksort** splits the list into elements smaller than and greater-than-or-equal-to the first element (the "pivot"), sorts the parts recursively, and concatenates them.
+
+Which of these algorithms can be implemented in a tail-recursive manner? What about the helper functions (merge, partition)?
 
 
 ## Chapter 4: Functions
 
 *Programming in untyped lambda-calculus*
 
-This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We begin with a review of computation by hand using our reduction semantics, then introduce the lambda-calculus notation and show how to encode fundamental data types---booleans, pairs, and natural numbers---using only functions. The chapter concludes with an examination of recursion through fixpoint combinators and practical considerations for avoiding infinite loops in eager evaluation.
+This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We embark on a fascinating journey that reveals a surprising truth: every computation can be expressed using nothing but functions. No numbers, no booleans, no data structures---just functions all the way down.
+
+We begin with a review of computation by hand using our reduction semantics, then introduce the lambda-calculus notation and show how to encode fundamental data types---booleans, pairs, and natural numbers---using only functions. The chapter concludes with an examination of recursion through fixpoint combinators and practical considerations for avoiding infinite loops in eager evaluation.
 
 **References:**
 
@@ -1458,9 +1716,9 @@ This chapter explores the theoretical foundations of functional programming thro
 
 ### 4.1 Review: Computation by Hand
 
-Before diving into the lambda-calculus, let us work through a complete example of evaluation using the reduction rules from Chapter 3. This exercise reinforces our understanding of how computation proceeds and prepares us for the more abstract setting of lambda-calculus.
+Before diving into the lambda-calculus, let us work through a complete example of evaluation using the reduction rules from Chapter 3. Computing a larger, recursive program by hand will solidify our understanding of how computation proceeds step by step and prepare us for the more abstract setting of lambda-calculus.
 
-Recall that we use `fix` instead of `let rec` to simplify rules for recursion. Also remember our syntactic conventions: `fun x y -> e` stands for `fun x -> (fun y -> e)`, and so forth.
+Recall that we use `fix` instead of `let rec` to simplify our rules for recursion. Also remember our syntactic conventions: `fun x y -> e` stands for `fun x -> (fun y -> e)`, and so forth.
 
 Consider the following recursive `length` function applied to a two-element list:
 
@@ -1574,13 +1832,13 @@ We obtain the result: `2`.
 
 ### 4.2 Language and Rules of the Untyped Lambda-Calculus
 
-The lambda-calculus, introduced by Alonzo Church in the 1930s, is a minimal formal system for expressing computation. To work with it, we first simplify our language:
+The lambda-calculus, introduced by Alonzo Church in the 1930s, is a minimal formal system for expressing computation. It may seem surprising that such a stripped-down language can be computationally complete, but that is precisely what we will demonstrate in this chapter. To work with lambda-calculus, we first simplify our language in several ways:
 
-1. **Forget about types.** In pure lambda-calculus, there is no type system constraining which terms can be combined.
+1. **Forget about types.** In pure lambda-calculus, there is no type system constraining which terms can be combined. Any function can be applied to any argument---including itself!
 
-2. **Introduce notation.** We write $\lambda x.a$ for `fun x -> a`, and $\lambda xy.a$ for `fun x y -> a`, and so forth.
+2. **Introduce notation.** We write $\lambda x.a$ for `fun x -> a`, and $\lambda xy.a$ for `fun x y -> a`, and so forth. This notation is more compact and traditional in the literature.
 
-3. **Reduce to essentials.** We keep only functions (lambda abstractions) and variables---no constructors, no built-in primitives.
+3. **Reduce to essentials.** We keep only functions (lambda abstractions) and variables---no constructors, no built-in primitives. Everything else will be *encoded* using functions.
 
 The core reduction rule of lambda-calculus is called **$\beta$-reduction**:
 
@@ -1588,15 +1846,15 @@ $$(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$$
 
 Note that this rule is more general than the one we use for OCaml evaluation. In our OCaml semantics, we require the argument to be a value: $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$. The general $\beta$-reduction rule allows substituting any expression, not just values.
 
-Lambda-calculus also uses **$\alpha$-conversion** (bound variable renaming), or equivalent techniques, to avoid **variable capture**---the unintended binding of free variables during substitution. We will explore $\beta$-reduction further in the chapter on laziness.
+Lambda-calculus also uses **$\alpha$-conversion** (bound variable renaming), or equivalent techniques, to avoid **variable capture**---the unintended binding of free variables during substitution. We will explore the implications of $\beta$-reduction more deeply in the chapter on laziness.
 
-Why is $\beta$-reduction more general than our evaluation rule? Consider the expression $(\lambda x. x) \; ((\lambda y. y) \; z)$. With $\beta$-reduction, we could reduce the outer application first, obtaining $((\lambda y. y) \; z)$. Our evaluation rule would require first reducing the argument to a value.
+Why is $\beta$-reduction more general than our evaluation rule? Consider the expression $(\lambda x. x) \; ((\lambda y. y) \; z)$. With $\beta$-reduction, we could reduce the outer application first, obtaining $((\lambda y. y) \; z)$. Our evaluation rule would require first reducing the argument to a value---but here `z` is a free variable, not a value, so we would be stuck!
 
 ### 4.3 Booleans
 
-Alonzo Church introduced lambda-calculus to encode logic. There are multiple ways to encode various sorts of data in lambda-calculus, though not all of them work well in a typed setting---the straightforward encode/decode functions may not type-check.
+Alonzo Church originally introduced lambda-calculus as a foundation for logic, seeking to encode logical reasoning in a purely computational form. There are multiple ways to encode various sorts of data in lambda-calculus, though not all of them work well in a typed setting---the straightforward encode/decode functions may not type-check for some encodings.
 
-The **Church encoding** of booleans represents truth values as selector functions:
+The key insight behind the **Church encoding** of booleans is to represent truth values as *selector functions*. Think about what a boolean fundamentally does: it chooses between two alternatives. So we define:
 
 - **True** selects the first argument: `c_true` $= \lambda xy.x$
 - **False** selects the second argument: `c_false` $= \lambda xy.y$
@@ -1608,11 +1866,11 @@ let c_true = fun x y -> x   (* "True" is projection on the first argument *)
 let c_false = fun x y -> y  (* And "false" on the second argument *)
 ```
 
-Logical conjunction can be defined as:
+Once we have booleans as selectors, logical operations become elegant. Logical conjunction can be defined as:
 
 $$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
 
-The logic is: if `x` is true, return `y` (so the result is true only if both are true); if `x` is false, return false immediately.
+The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and returns false immediately without even looking at `y`.
 
 ```ocaml
 let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
@@ -1626,30 +1884,34 @@ reduces to:
 
 $$(\lambda xy.x) \; (\lambda xy.x) \; \texttt{c\_false}$$
 
-which gives us $\lambda xy.x$ = `c_true`. For any other combination involving `c_false`, the result is `c_false`.
+which gives us $\lambda xy.x$ = `c_true`. You can verify that for any other combination involving `c_false`, the result is `c_false`.
 
-To verify our encodings in OCaml, we need encode and decode functions:
+To verify our encodings in OCaml, we need encode and decode functions. The decoder works by applying our Church boolean to the actual OCaml values `true` and `false`:
 
 ```ocaml
 let encode_bool b = if b then c_true else c_false
 let decode_bool c = c true false  (* Test the functions in the toplevel *)
 ```
 
-**Exercise:** Define `c_or` and `c_not` yourself!
+**Exercise:** Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
 
 ### 4.4 If-then-else and Pairs
 
-From now on, we will use OCaml syntax for our lambda-calculus programs. An important observation is that our encoded booleans already implement conditional selection:
+From now on, we will use OCaml syntax for our lambda-calculus programs. This makes it easier to experiment with our encodings in the toplevel.
+
+An important observation is that our encoded booleans already implement conditional selection:
 
 ```ocaml
 let if_then_else = fun b -> b  (* Booleans select the argument! *)
 ```
 
-Since `c_true` returns its first argument and `c_false` returns its second, `if_then_else b then_branch else_branch` simply applies `b` to the two branches. Remember to play with these functions in the toplevel to build intuition.
+Wait---`if_then_else` is just the identity function? Yes! Since `c_true` returns its first argument and `c_false` returns its second, `if_then_else b then_branch else_branch` simply applies `b` to the two branches. The boolean *is* the conditional. This is one of the elegant surprises of Church encoding.
+
+Remember to play with these functions in the toplevel to build intuition. Try expressions like `if_then_else c_true "yes" "no"` and see what happens.
 
 #### Pairs
 
-Pairs (ordered tuples of two elements) can be encoded similarly:
+Pairs (ordered tuples of two elements) can be encoded using a similar idea. The key insight is that a pair needs to "remember" two values and provide them when asked. We can achieve this by creating a function that holds onto both values and waits for a selector to choose between them:
 
 ```ocaml
 let c_pair m n = fun x -> x m n  (* We couple things *)
@@ -1657,7 +1919,7 @@ let c_first = fun p -> p c_true  (* by passing them together *)
 let c_second = fun p -> p c_false  (* Check that it works! *)
 ```
 
-A pair is a function that, when given a selector, applies that selector to both components. To extract the first component, we pass `c_true` (which selects the first argument); to extract the second, we pass `c_false`.
+A pair is a function that, when given a selector, applies that selector to both components. To extract the first component, we pass `c_true` (which selects the first argument); to extract the second, we pass `c_false`. Verify for yourself that `c_first (c_pair a b)` reduces to `a`!
 
 For verification:
 
@@ -1676,7 +1938,7 @@ let c_triple l m n = fun x -> x l m n
 
 ### 4.5 Pair-Encoded Natural Numbers
 
-Our first encoding of natural numbers uses nested pairs. The representation is based on the depth of nested pairs whose rightmost leaf is the identity function $\lambda x.x$ and whose left elements are `c_false`.
+Now we come to encoding numbers---a crucial test of whether functions alone can represent all data. Our first encoding of natural numbers uses nested pairs. The representation is based on the depth of nested pairs whose rightmost leaf is the identity function $\lambda x.x$ and whose left elements are `c_false`.
 
 ```ocaml
 let pn0 = fun x -> x           (* Start with the identity function *)
@@ -1686,11 +1948,17 @@ let pn_pred = fun x -> x c_false  (* Extract the nested number *)
 let pn_is_zero = fun x -> x c_true  (* Check if it's the base case *)
 ```
 
-The number 0 is represented as the identity function. The number 1 is `c_pair c_false pn0`, the number 2 is `c_pair c_false (c_pair c_false pn0)`, and so on. The `pn_is_zero` function works because:
-- For `pn0`, applying it to `c_true` gives `c_true` (since `pn0` is the identity).
-- For any successor, applying `c_pair c_false n` to `c_true` applies the pair to `c_true`, which selects `c_false`.
+The number 0 is represented as the identity function. The number 1 is `c_pair c_false pn0`, the number 2 is `c_pair c_false (c_pair c_false pn0)`, and so on. Think of it as a stack of pairs, where the height of the stack represents the number.
 
-We program in untyped lambda-calculus as an exercise, and we need encoding/decoding to verify our exercises. Using `Obj.magic` to bypass the type system for encoding/decoding is "fair game":
+How do `pn_pred` and `pn_is_zero` work? Let us think through this carefully:
+- The identity function `pn0`, when applied to any argument, returns that argument.
+- A successor `c_pair c_false n` is a function waiting for a selector; applying it to `c_false` selects the second component (the predecessor), while applying it to `c_true` selects the first component (`c_false`).
+
+So `pn_is_zero` applies the number to `c_true`:
+- For `pn0`, we get `c_true` back (since `pn0` is the identity)---the number is zero!
+- For any successor, we get `c_false` back (the first component of the pair)---the number is not zero!
+
+We program in untyped lambda-calculus as an exercise, and we need encoding/decoding to verify our work. Since these encodings do not type-check cleanly in OCaml, using `Obj.magic` to bypass the type system for encoding/decoding is "fair game":
 
 ```ocaml
 let rec encode_pnat n =                (* We use Obj.magic to forget types *)
@@ -1703,7 +1971,9 @@ let rec decode_pnat pn =               (* these functions are straightforward! *
 
 ### 4.6 Church Numerals
 
-Do you remember our function `power f n` from Chapter 3? We will use a similar idea for a different representation of numbers. **Church numerals** represent a natural number $n$ as a function that applies its first argument $n$ times to its second argument:
+Do you remember our function `power f n` from Chapter 3 that composed a function with itself `n` times? We will use a similar idea for a different, and historically important, representation of numbers.
+
+**Church numerals** represent a natural number $n$ as a function that applies its first argument $n$ times to its second argument:
 
 ```ocaml
 let cn0 = fun f x -> x        (* The same as c_false *)
@@ -1712,7 +1982,9 @@ let cn2 = fun f x -> f (f x)
 let cn3 = fun f x -> f (f (f x))
 ```
 
-This is the original Alonzo Church encoding. The number $n$ is represented as $\lambda fx. f^n(x)$, where $f^n$ denotes $n$-fold composition.
+This is the original Alonzo Church encoding, and it is remarkably elegant. The number $n$ is represented as $\lambda fx. f^n(x)$, where $f^n$ denotes $n$-fold composition. A number literally *is* the act of doing something $n$ times!
+
+Notice that `cn0` is the same as `c_false`---zero applications of `f` just returns `x`.
 
 The successor function adds one more application of `f`:
 
@@ -1720,9 +1992,9 @@ The successor function adds one more application of `f`:
 let cn_succ = fun n f x -> f (n f x)
 ```
 
-**Exercise:** Define addition, multiplication, comparing to zero, and the predecessor function "-1" for Church numerals.
+**Exercise:** Define addition, multiplication, and comparing to zero for Church numerals. Also try to define the predecessor function "-1".
 
-It turns out even Alonzo Church could not define predecessor right away! His student Stephen Kleene eventually found it. Try to make some progress before looking at the solution below.
+It turns out even Alonzo Church could not define predecessor right away! The story goes that his student Stephen Kleene figured it out while at the dentist. Try to make some progress on addition and multiplication first (they are not too hard), and then attempt predecessor before looking at the solution below.
 
 ```ocaml
 let (-|) f g x = f (g x)  (* Backward composition operator *)
@@ -1744,13 +2016,15 @@ let cn_prev n =
       (fun z -> z)            (* We've built a "machine" not results -- start the machine *)
 ```
 
-The predecessor function is ingenious. It builds up a chain of functions that, when "started" with the identity, yields $n-1$ applications of `f`. The key insight is to delay the actual application of `f` and skip the first one.
+Addition is intuitive: to add $n$ and $m$, we first apply `f` $m$ times (giving us `m f x`), then apply `f` $n$ more times. Multiplication is even more clever: we apply the operation "apply `f` $m$ times" $n$ times, which computes $m \times n$ applications of `f`.
 
-`cn_is_zero` is left as an exercise.
+The predecessor function is ingenious and worth studying carefully. The challenge is that Church numerals only know how to apply `f` more times, not fewer. Kleene's insight was to build up a chain of functions that, when "started" with the identity, yields $n-1$ applications of `f`. The key is to delay the actual application of `f` and skip the first one.
+
+`cn_is_zero` is left as an exercise. Hint: what happens when you apply zero to a function that always returns `c_false` and start with `c_true`?
 
 #### Tracing `cn_prev cn3`
 
-Let us trace through `decode_cnat (cn_prev cn3)`:
+The predecessor function is tricky enough that it is worth tracing through a complete example. Let us trace through `decode_cnat (cn_prev cn3)` to see how it computes 2 from 3:
 
 $$\Downarrow$$
 
@@ -1837,7 +2111,7 @@ $$\Downarrow$$
 
 ### 4.7 Recursion: Fixpoint Combinators
 
-In lambda-calculus, recursion is achieved through **fixpoint combinators**---lambda terms that compute fixed points of functions.
+We have seen how to encode data in lambda-calculus, but how do we encode *computation*, especially recursive computation? In lambda-calculus, there is no `let rec` or any built-in notion of a function referring to itself. Instead, recursion is achieved through **fixpoint combinators**---remarkable lambda terms that compute fixed points of functions.
 
 #### Turing's Fixpoint Combinator
 
@@ -1887,9 +2161,11 @@ N &= \texttt{fix} \; F \\
 \end{aligned}
 $$
 
+The lambda-terms we have seen above are **fixpoint combinators**---the means within lambda-calculus to perform recursion without any special recursive binding constructs.
+
 #### The Problem with the First Two Combinators
 
-What is the problem with Turing's and Curry's combinators? Consider what happens when we try to evaluate $\Theta F$:
+What is the problem with Turing's and Curry's combinators in a practical programming language? Consider what happens when we try to evaluate $\Theta F$:
 
 $$
 \begin{aligned}
@@ -1902,7 +2178,7 @@ $$
 
 Recall the distinction between *expressions* and *values* from Chapter 3 on Computation. The reduction rule for lambda-calculus is meant to determine which expressions are considered "equal"---it is highly *non-deterministic*, while on a computer, computation needs to go one way or another.
 
-Using the general reduction rule of lambda-calculus, for a recursive definition, it is always possible to find an infinite reduction sequence. This means a naive lambda-calculus compiler could legitimately generate infinite loops for all recursive definitions!
+Using the general reduction rule of lambda-calculus, for a recursive definition, it is always possible to find an infinite reduction sequence. Why? Because we can always choose to reduce the recursive call first, which generates another recursive call, and so on forever. This means a naive lambda-calculus compiler could legitimately generate infinite loops for all recursive definitions---which would not be very useful!
 
 Therefore, we need more specific rules. Most languages use **call-by-value** (also called **eager** evaluation):
 
@@ -1937,15 +2213,15 @@ $$
 
 #### Why "Fixpoint"?
 
-If you examine our derivations, you will see they establish $x = f(x)$. Such values $x$ are called **fixpoints** of $f$. An arithmetic function can have several fixpoints---for example, $f(x) = x^2$ has fixpoints 0 and 1---or no fixpoints, such as $f(x) = x + 1$.
+If you examine our derivations, you will see they establish $x = f(x)$. Such values $x$ are called **fixpoints** of $f$. An arithmetic function can have several fixpoints---for example, $f(x) = x^2$ has fixpoints 0 and 1 (since $0^2 = 0$ and $1^2 = 1$)---or no fixpoints, such as $f(x) = x + 1$ (since $x + 1 \neq x$ for all $x$).
 
-When you define a function (or another object) by recursion, it has similar meaning: the name appears on both sides of the equality. In lambda-calculus, functions like $\Theta$ and $\mathbf{Y}$ take *any* function as an argument and return its fixpoint.
+When you define a function (or another object) by recursion, it has a similar meaning: the name appears on both sides of the equality. For example, `fact n = if n = 0 then 1 else n * fact (n-1)` has `fact` on both sides. In lambda-calculus, functions like $\Theta$ and $\mathbf{Y}$ take *any* function as an argument and return its fixpoint.
 
 We turn a specification of a recursive object into a definition by solving it with respect to the recurring name: deriving $x = f(x)$ where $x$ is the recurring name. We then have $x = \texttt{fix}(f)$.
 
 #### Deriving Factorial
 
-Let us walk through this for the factorial function. We omit the prefix `cn_` (could be `pn_` if using pair-encoded numbers) and shorten `if_then_else` to `if_t_e`:
+Let us walk through this process step by step for the factorial function. This will show how to transform a recursive specification into a proper definition using `fix`. We omit the prefix `cn_` (could be `pn_` if using pair-encoded numbers) and shorten `if_then_else` to `if_t_e`:
 
 $$
 \begin{aligned}
@@ -1956,21 +2232,22 @@ $$
 \end{aligned}
 $$
 
-The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables.
+The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
 
-**Exercise:** Compute `fact cn2`.
+**Exercise:** Compute `fact cn2` by hand, tracing through the reduction steps.
 
-**Exercise:** What does `fix (fun x -> cn_succ x)` mean?
+**Exercise:** What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate it? Think about whether there is any value `x` such that `x = cn_succ x`.
 
 ### 4.8 Encoding Lists and Trees
 
-A **list** is either empty (often called `Empty` or `Nil`) or consists of an element followed by another list (the "tail"), called `Cons`.
+Now that we have numbers and recursion, we can encode more complex data structures. The pattern we have seen with booleans and pairs extends naturally to algebraic data types like lists and trees.
 
-Define:
-- `nil` $= \lambda xy.y$
-- `cons` $H \; T = \lambda xy. x \; H \; T$
+A **list** is either empty (often called `Empty` or `Nil`) or consists of an element followed by another list (the "tail"), called `Cons`. Since lists have two variants, we encode them with two-argument selector functions:
 
-To add numbers stored inside a list:
+- `nil` $= \lambda xy.y$ (select the second argument, like `c_false`)
+- `cons` $H \; T = \lambda xy. x \; H \; T$ (apply the first argument to head and tail)
+
+With these definitions, we can write a function to add all numbers stored inside a list:
 
 $$\texttt{addlist} \; l = l \; (\lambda ht. \texttt{cn\_add} \; h \; (\texttt{addlist} \; t)) \; \texttt{cn0}$$
 
@@ -1978,11 +2255,12 @@ To make a proper definition, we apply $\texttt{fix}$ to the solution of the abov
 
 $$\texttt{addlist} = \texttt{fix} \; (\lambda fl. l \; (\lambda ht. \texttt{cn\_add} \; h \; (f \; t)) \; \texttt{cn0})$$
 
-For **trees**, let us use a different form of binary trees: instead of keeping elements in inner nodes, we keep elements in leaves.
+For **trees**, let us use a different form of binary trees than we have seen before: instead of keeping elements in inner nodes, we will keep elements in leaves. This is sometimes called an "external" tree structure.
 
-Define:
-- `leaf` $n = \lambda xy. x \; n$
-- `node` $L \; R = \lambda xy. y \; L \; R$
+Again, we have two variants, so we use two-argument selector functions:
+
+- `leaf` $n = \lambda xy. x \; n$ (apply first argument to the element)
+- `node` $L \; R = \lambda xy. y \; L \; R$ (apply second argument to left and right subtrees)
 
 To add numbers stored inside a tree:
 
@@ -2015,15 +2293,17 @@ decode_cnat
 
 #### The General Pattern
 
-Observe a regularity: when we encode a variant type with $n$ variants, for each variant we define a function that takes $n$ arguments.
+If you look back at our encodings, you will observe a consistent pattern: when we encode a variant type with $n$ variants, for each variant we define a function that takes $n$ arguments.
 
 If the $k$th variant $C_k$ has $m_k$ parameters, then the function $c_k$ that encodes it has the form:
 
 $$C_k(v_1, \ldots, v_{m_k}) \sim c_k \; v_1 \; \ldots \; v_{m_k} = \lambda x_1 \ldots x_n. x_k \; v_1 \; \ldots \; v_{m_k}$$
 
-The encoded variants serve as shallow pattern matching with guaranteed exhaustiveness: the $k$th argument corresponds to the $k$th branch of pattern matching.
+The encoded variants serve as shallow pattern matching with guaranteed exhaustiveness: the $k$th argument corresponds to the $k$th branch of pattern matching. This is exactly how `match` works in OCaml, but encoded purely with functions!
 
 ### 4.9 Looping Recursion
+
+We have been coding in untyped lambda-calculus and verifying our code works in OCaml. But there is a subtle trap we must be aware of when combining lambda-calculus encodings with OCaml's eager evaluation.
 
 Let us return to pair-encoded numbers and define addition:
 
@@ -2038,13 +2318,15 @@ decode_pnat (pn_add pn3 pn3);;
 
 Oops... OCaml says: `Stack overflow during evaluation (looping recursion?).`
 
-What went wrong? Nothing as far as lambda-calculus is concerned. But OCaml (and F#) always compute arguments before calling a function. By definition of `fix`, `f` corresponds to recursively calling `pn_add`. Therefore, `(pn_succ (f (pn_pred m) n))` will be evaluated regardless of what `(pn_is_zero m)` returns!
+What went wrong? Nothing as far as lambda-calculus is concerned---the definition is mathematically correct. But OCaml (and F#) always compute arguments before calling a function. This is the *eager* evaluation strategy we discussed earlier. By definition of `fix`, `f` corresponds to recursively calling `pn_add`. Therefore, `(pn_succ (f (pn_pred m) n))` will be evaluated regardless of what `(pn_is_zero m)` returns!
 
-Why do `addlist` and `addtree` work? Because their recursive calls are "guarded" by corresponding `fun`. What is inside of `fun` is not computed immediately---only when the function is applied to argument(s).
+In other words, even when `m` is zero and we should return `n`, OCaml first tries to compute the "else" branch, which makes a recursive call, which computes its "else" branch, and so on forever.
+
+Why do `addlist` and `addtree` work? Look at them carefully: their recursive calls are "guarded" by corresponding `fun`. The expression `(fun h t -> cn_add h (f t))` does not immediately call `f`---it creates a function that will call `f` only when that function is applied to arguments. What is inside of `fun` is not computed immediately---only when the function is applied to argument(s).
 
 To avoid looping recursion, you need to guard all recursive calls. Besides putting them inside `fun`, in OCaml or F# you can also put them in branches of a `match` clause, as long as one of the branches does not have unguarded recursive calls.
 
-The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value:
+The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value. This delays the evaluation of both branches until the boolean has selected one of them:
 
 ```
 let id x = x
@@ -2063,9 +2345,13 @@ decode_pnat (pn_add pn3 pn3);;
 decode_pnat (pn_add pn3 pn7);;
 ```
 
-In OCaml or F# we would typically guard by `fun () ->` and then apply to `()`, but we do not have datatypes like `unit` in pure lambda-calculus.
+Now the recursive call is wrapped in `fun x ->`, so it is not evaluated until `if_then_else` selects the second branch and applies it to `id`. When `m` is zero, the first branch `(fun x -> n)` is selected and applied to `id`, giving us `n` without ever touching the recursive call.
+
+In OCaml or F# we would typically guard by `fun () ->` and then apply to `()`, but we do not have datatypes like `unit` in pure lambda-calculus, so we use `id` as our dummy value.
 
 ### 4.10 Exercises
+
+The following exercises will help solidify your understanding of lambda-calculus encodings. For each exercise involving lambda-calculus, test your implementation by encoding some inputs, applying your function, and decoding the result.
 
 **Exercise 1:** Define (implement) and test on a couple of examples functions corresponding to or computing:
 
@@ -2103,7 +2389,7 @@ Rather than writing a lambda-term using the encodings that we have learnt, just 
 - For example, in exercise (a), write a function `let rec for_to f beg_i end_i s = ...` where `f` takes arguments `i` ranging from `beg_i` to `end_i`, state `s` at given step, and returns state `s` at next step; the `for_to` function returns the state after the last step.
 - And in exercise (c), write a function `let rec while_do p f s = ...` where both `p` and `f` take state `s` at given step, and if `p s` returns true, then `f s` is computed to obtain state at next step; the `while_do` function returns the state after the last step.
 
-Do not use the imperative features of OCaml and F#!
+Do not use the imperative features of OCaml and F#! This exercise demonstrates that imperative control flow can be encoded purely functionally by threading state through function calls.
 
 Although we will not cover imperative features in this course, it is instructive to see the implementation using them, to better understand what is actually required of a solution to Exercise 3:
 
@@ -2152,37 +2438,37 @@ let repeat_until p f s =
 
 ## Chapter 5: Polymorphism and Abstract Data Types
 
-This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We examine the formal mechanics of type inference and then apply these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in red-black trees.
+This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We begin by examining how type inference actually works -- the process by which OCaml determines types for your code. Then we explore parametric types and show how they enable polymorphic functions to work with data of any shape. The second half of the chapter introduces algebraic specifications, the mathematical foundation for describing data structures, and applies these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in the elegant red-black tree.
 
 *If you see any error in this chapter, please let us know!*
 
 ### 5.1 Type Inference
 
-We have seen the rules that govern the assignment of types to expressions, but how does OCaml guess what types to use, and when no correct types exist? The answer is that it solves equations.
+We have seen the rules that govern the assignment of types to expressions, but how does OCaml actually guess what types to use? And how does it know when no correct types exist? The answer lies in a beautiful algorithm: OCaml solves equations. When you write code, the type checker generates a set of equations that must hold for the program to be well-typed, and then it solves those equations to discover the types.
 
 #### 5.1.1 Variables: Unknowns and Parameters
 
-Variables in type inference play two distinct roles: they can be *unknowns* (standing for a specific but not-yet-determined type) or *parameters* (standing for any type whatsoever).
+Variables in type inference play two distinct roles, and understanding this distinction is crucial for mastering OCaml's type system. A type variable can be either an *unknown* (standing for a specific but not-yet-determined type) or a *parameter* (standing for any type whatsoever).
 
-Consider the following example:
+Consider this example:
 
 ```ocaml
 # let f = List.hd;;
 val f : 'a list -> 'a = <fun>
 ```
 
-Here `'a` is a parameter: it can become any type. Mathematically we write: $f : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha$ -- the quantified type is called a *type scheme*.
+Here `'a` is a *parameter*: it can become any type. When you use `f` with a list of integers, `'a` becomes `int`; when you use it with a list of strings, `'a` becomes `string`. Mathematically we write: $f : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha$ -- the quantified type is called a *type scheme*. The $\forall$ symbol indicates that this type works "for all" choices of $\alpha$.
 
-In contrast:
+In contrast, consider this example:
 
 ```ocaml
 # let x = ref [];;
 val x : '_weak1 list ref = {contents = []}
 ```
 
-Here `'_a` is an unknown. It stands for a particular type like `float` or `int -> int`, but OCaml just doesn't know the type yet. OCaml only reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to functional programming.
+Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to purely functional programming.
 
-When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help: writing `let f x = expr x` instead of `let f = expr`. For example:
+When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help. This technique involves writing `let f x = expr x` instead of `let f = expr`, essentially adding an extra parameter that gets immediately applied. For example:
 
 ```ocaml
 # let f = List.append [];;
@@ -2191,17 +2477,17 @@ val f : '_weak2 list -> '_weak2 list = <fun>
 val f : 'a list -> 'a list = <fun>
 ```
 
-In the second definition, the eta-expanded form allows full generalization.
+In the second definition, the eta-expanded form `let f l = List.append [] l` allows full generalization, giving us a truly polymorphic function that can work with lists of any type.
 
 #### 5.1.2 Type Environments
 
-A *type environment* specifies what names (corresponding to parameters and definitions) are available for an expression because they were introduced above it, and it specifies their types.
+Before diving into the equation-solving process, we need to understand how the type checker keeps track of what names are available. A *type environment* specifies what names (corresponding to parameters and definitions) are available for an expression because they were introduced above it, and it specifies their types. Think of it as a dictionary that maps variable names to their types at any given point in your program.
 
 #### 5.1.3 Solving Type Equations
 
-Type inference solves equations over unknowns. The central question is: "What has to hold so that $e : \tau$ in type environment $\Gamma$?"
+Type inference works by solving equations over unknowns. The central question the algorithm asks is: "What has to hold so that $e : \tau$ in type environment $\Gamma$?" The answer takes the form of equations that constrain the possible types.
 
-The process works as follows:
+Let us walk through how the algorithm handles different expression forms:
 
 - If, for example, $f : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha \in \Gamma$, then for $f : \tau$ we introduce $\gamma \ \text{list} \rightarrow \gamma = \tau$ for some fresh unknown $\gamma$.
 
@@ -2211,23 +2497,25 @@ The process works as follows:
 
 - The case $\text{let} \ x = e_1 \ \text{in} \ e_2 : \tau$ is different. One approach is to *first* solve the equations that we get by asking for $e_1 : \beta$, for some fresh unknown $\beta$. Let us say a solution $\beta = \tau_\beta$ has been found, $\alpha_1 \ldots \alpha_n \beta_1 \ldots \beta_m$ are the remaining unknowns in $\tau_\beta$, and $\alpha_1 \ldots \alpha_n$ are all that do not appear in $\Gamma$. Then we ask for $e_2 : \tau$ in environment $\{x : \forall \alpha_1 \ldots \alpha_n . \tau_\beta\} \cup \Gamma$.
 
-- Remember that whenever we establish a solution $\beta = \tau_\beta$ to an unknown $\beta$, it takes effect everywhere!
+- Remember that whenever we establish a solution $\beta = \tau_\beta$ to an unknown $\beta$, it takes effect everywhere! The substitution propagates through all the equations, potentially triggering further unifications.
 
-- To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown $\beta$ and ask for $e : \beta$ (in $\Gamma$).
+- To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown $\beta$ and ask for $e : \beta$ (in $\Gamma$). The algorithm then generates and solves equations until either a solution is found or a contradiction reveals a type error.
 
 #### 5.1.4 Polymorphism
 
-The "top-level" definitions for which the system infers types with variables are called *polymorphic*, which informally means "working with different shapes of data". This kind of polymorphism is called *parametric polymorphism*, since the types have parameters. A different kind of polymorphism is provided by object-oriented programming languages (sometimes called *subtype polymorphism* or *ad-hoc polymorphism*).
+The "top-level" definitions for which the system infers types with variables are called *polymorphic*, which informally means "working with different shapes of data." A polymorphic function like `List.hd` can operate on lists containing any type of element -- the function itself doesn't care what the elements are, only that it's working with a list.
+
+This kind of polymorphism is called *parametric polymorphism*, since the types have parameters. The term "parametric" emphasizes that the same code works uniformly for all type instantiations. A different kind of polymorphism is provided by object-oriented programming languages (sometimes called *subtype polymorphism* or *ad-hoc polymorphism*), where different code may execute depending on the runtime type of objects.
 
 ### 5.2 Parametric Types
 
-Polymorphic functions shine when used with polymorphic data types. Consider:
+Polymorphic functions truly shine when used with polymorphic data types. The combination of the two is what makes ML-family languages so expressive. Consider this definition of our own list type:
 
 ```ocaml
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
-We define lists that can store elements of any type `'a`. Now:
+We define lists that can store elements of any type `'a`. The type parameter `'a` acts as a placeholder that gets filled in when we create actual lists. Now we can write functions that work on these lists:
 
 ```ocaml
 # let tail l =
@@ -2237,21 +2525,21 @@ We define lists that can store elements of any type `'a`. Now:
 val tail : 'a my_list -> 'a my_list = <fun>
 ```
 
-This is a polymorphic function: it works for lists with elements of any type.
+This is a polymorphic function: it works for lists with elements of any type. Whether we have a list of integers, strings, or even lists of lists, the same `tail` function handles them all.
 
-A *parametric type* like `'a my_list` *is not* itself a data type but a family of data types: `bool my_list`, `int my_list`, etc. *are* different types. We say that the type `int my_list` *instantiates* the parametric type `'a my_list`.
+A crucial point to understand: a *parametric type* like `'a my_list` *is not* itself a data type but rather a *family* of data types. The types `bool my_list`, `int my_list`, etc. *are* different types -- you cannot mix elements of different types in a single list. We say that the type `int my_list` *instantiates* the parametric type `'a my_list`.
 
 #### 5.2.1 Multiple Type Parameters
 
-In OCaml, the syntax is a bit confusing: type parameters precede the type name. For example:
+Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
 
 ```ocaml
 type ('a, 'b) choice = Left of 'a | Right of 'b
 ```
 
-This type has two parameters. Mathematically we would write $\text{choice}(\alpha, \beta)$.
+This type has two parameters and represents a value that is either something of type `'a` (wrapped in `Left`) or something of type `'b` (wrapped in `Right`). Mathematically we would write $\text{choice}(\alpha, \beta)$.
 
-Functions do not have to be polymorphic:
+Not all functions that use parametric types need to be polymorphic. A function may constrain the type parameters to specific types:
 
 ```ocaml
 # let get_int c =
@@ -2261,29 +2549,35 @@ Functions do not have to be polymorphic:
 val get_int : (int, bool) choice -> int = <fun>
 ```
 
+Here, the pattern matching on `Left i` and `Right b` with arithmetic operations constrains the type to `(int, bool) choice`.
+
 #### 5.2.2 Syntax in Other Languages
 
-In F#, we provide parameters (when more than one) after the type name:
+Different functional languages have different syntactic conventions for type parameters. In F#, we provide parameters (when more than one) after the type name, using angle brackets:
 
 ```fsharp
 type choice<'a,'b> = Left of 'a | Right of 'b
 ```
 
-In Haskell, we provide type parameters similarly to function arguments:
+In Haskell, the syntax is arguably the cleanest -- we provide type parameters similarly to function arguments, separated by spaces:
 
 ```haskell
 data Choice a b = Left a | Right b
 ```
 
+Despite the syntactic differences, the underlying concept of parametric polymorphism is the same across all these languages.
+
 ### 5.3 Type Inference, Formally
 
-A statement that an expression has a type in an environment is called a *type judgement*. For environment $\Gamma = \{x : \forall \alpha_1 \ldots \alpha_n . \tau_x ; \ldots\}$, expression $e$ and type $\tau$ we write:
+Now we present a more formal treatment of type inference. A statement that an expression has a type in an environment is called a *type judgement*. For environment $\Gamma = \{x : \forall \alpha_1 \ldots \alpha_n . \tau_x ; \ldots\}$, expression $e$ and type $\tau$ we write:
 
 $$\Gamma \vdash e : \tau$$
 
-We will derive the equations in one go using $[\![ \cdot ]\!]$, to be solved later. Besides equations we will need to manage introduced variables, using existential quantification.
+This notation reads: "In environment $\Gamma$, expression $e$ has type $\tau$." The turnstile symbol $\vdash$ can be thought of as "entails" or "proves."
 
-For local definitions we require remembering what constraints should hold when the definition is used. Therefore we extend *type schemes* in the environment to: $\Gamma = \{x : \forall \beta_1 \ldots \beta_m [\exists \alpha_1 \ldots \alpha_n . D] . \tau_x ; \ldots\}$ where $D$ are equations -- keeping the variables $\alpha_1 \ldots \alpha_n$ introduced while deriving $D$ in front. A simpler form would be enough: $\Gamma = \{x : \forall \beta [\exists \alpha_1 \ldots \alpha_n . D] . \beta ; \ldots\}$
+We will derive all the constraint equations in one go using the notation $[\![ \cdot ]\!]$, to be solved later by unification. Besides equations we will need to manage introduced variables, using existential quantification to express that "there exists some type variable satisfying these constraints."
+
+For local definitions we require remembering what constraints should hold when the definition is used. Therefore we extend *type schemes* in the environment to: $\Gamma = \{x : \forall \beta_1 \ldots \beta_m [\exists \alpha_1 \ldots \alpha_n . D] . \tau_x ; \ldots\}$ where $D$ are equations -- keeping the variables $\alpha_1 \ldots \alpha_n$ introduced while deriving $D$ in front. A simpler form would be sufficient: $\Gamma = \{x : \forall \beta [\exists \alpha_1 \ldots \alpha_n . D] . \beta ; \ldots\}$
 
 The formal constraint generation rules are:
 
@@ -2331,7 +2625,9 @@ By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some len
 
 #### 5.3.1 Polymorphic Recursion
 
-Note the limited polymorphism of `let rec f = ...` -- we cannot use `f` polymorphically in its definition. In modern OCaml we can bypass the problem if we provide the type of `f` upfront:
+There is an interesting limitation in standard type inference for recursive functions. Note the limited polymorphism of `let rec f = ...` -- we cannot use `f` polymorphically within its own definition. Why? Because when type-checking the body of a recursive definition, we don't yet know the final type of `f`, so we must treat it as having a single, unknown type.
+
+In modern OCaml we can bypass this limitation if we provide the type of `f` upfront:
 
 ```
 let rec f : 'a. 'a -> 'a list = ...
@@ -2339,9 +2635,11 @@ let rec f : 'a. 'a -> 'a list = ...
 
 where `'a. 'a -> 'a list` stands for $\forall \alpha . \alpha \rightarrow \alpha \ \text{list}$.
 
-Using the recursively defined function with different types in its definition is called *polymorphic recursion*. It is most useful together with *irregular recursive datatypes* where the recursive use has different type arguments than the actual parameters.
+Using the recursively defined function with different types in its definition is called *polymorphic recursion*. It is most useful together with *irregular recursive datatypes* -- data structures where the recursive use has different type arguments than the actual parameters. These "nested" or "non-uniform" datatypes enable some remarkably elegant data structures.
 
 ##### Example: A List Alternating Between Two Types of Elements
+
+Here is a fascinating example: a list that alternates between two different types of elements. Notice how the recursive occurrence swaps the type parameters:
 
 ```ocaml
 type ('x, 'o) alterning =
@@ -2363,9 +2661,11 @@ let it = to_choice_list
   (One (1, One ("o", One (2, One ("oo", Stop)))))
 ```
 
-Notice how the recursive call to `to_list` swaps `o2a` and `x2a` -- this is necessary because the alternating structure swaps the type parameters at each level.
+Notice how the recursive call to `to_list` swaps `o2a` and `x2a` -- this is necessary because the alternating structure swaps the type parameters at each level. The polymorphic recursion annotation `'x 'o 'a.` tells OCaml that we need to use `to_list` at different type instantiations within its own definition.
 
 ##### Example: Data-Structural Bootstrapping
+
+Here is another powerful example of polymorphic recursion: a sequence data structure that stores elements in exponentially increasing chunks. This technique, known as *data-structural bootstrapping*, achieves logarithmic-time random access -- much faster than standard lists which require linear time.
 
 ```ocaml
 type 'a seq =
@@ -2374,12 +2674,14 @@ type 'a seq =
   | One of 'a * ('a * 'a) seq
 ```
 
-We store a list of elements in exponentially increasing chunks:
+The key insight is that this type is *non-uniform*: the recursive occurrences use `('a * 'a) seq` rather than `'a seq`. This means that as we go deeper into the structure, elements get paired together, effectively doubling the "width" at each level. We store a list of elements in exponentially increasing chunks:
 
 ```ocaml
 let example =
   One (0, One ((1,2), Zero (One ((((3,4),(5,6)), ((7,8),(9,10))), Nil))))
 ```
+
+The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
 
 ```ocaml
 let rec cons : 'a. 'a -> 'a seq -> 'a seq =  (* Appending an element to the *)
@@ -2393,32 +2695,38 @@ let rec lookup : 'a. int -> 'a seq -> 'a =
   | _, Nil -> raise Not_found                 (* Rather than returning None : 'a option *)
   | 0, One (x, _) -> x                        (* we raise exception, for convenience. *)
   | i, One (_, ps) -> lookup (i-1) (Zero ps)
-  | i, Zero ps ->                             (* Random-Access lookup works *)
+  | i, Zero ps ->                             (* Random-access lookup works *)
       let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster than *)
       if i mod 2 = 0 then x else y            (* in standard lists. *)
 ```
 
+The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.
+
 ### 5.4 Algebraic Specification
 
-The way we introduce a data structure, like complex numbers or strings, in mathematics is by specifying an *algebraic structure*.
+Now we turn to a fundamental question in computer science: how do we formally describe what a data structure *is* and what it should *do*? The mathematical answer is *algebraic specification*.
 
-Algebraic structures consist of a set (or several sets, for so-called *multisorted* algebras) and a bunch of functions (also known as operations) over this set (or sets).
+The way we introduce a data structure, like complex numbers or strings, in mathematics is by specifying an *algebraic structure*. This approach gives us a precise language for describing data structures independent of any particular implementation.
 
-A *signature* is a rough description of an algebraic structure: it provides *sorts* -- names for the sets (in the multisorted case) -- and names of the functions-operations together with their arity (and what sorts of arguments they take).
+Algebraic structures consist of a set (or several sets, for so-called *multisorted* algebras) and a bunch of functions (also known as operations) over this set (or sets). Think of integers with addition and multiplication, or strings with concatenation and character access.
+
+A *signature* is a rough description of an algebraic structure: it provides *sorts* -- names for the sets (in the multisorted case) -- and names of the functions-operations together with their arity (and what sorts of arguments they take). A signature tells us what operations exist, but not how they behave.
 
 We select a class of algebraic structures by providing axioms that have to hold. We will call such classes *algebraic specifications*. In mathematics, a rusty name for some algebraic specifications is a *variety*; a more modern name is *algebraic category*.
 
-Algebraic structures correspond to "implementations" and signatures to "interfaces" in programming languages. We will say that an algebraic structure *implements* an algebraic specification when all axioms of the specification hold in the structure. All algebraic specifications are implemented by multiple structures!
+Here is the key connection to programming: algebraic structures correspond to "implementations" and signatures to "interfaces" in programming languages. We will say that an algebraic structure *implements* an algebraic specification when all axioms of the specification hold in the structure. An important point: all algebraic specifications are implemented by multiple structures! This is precisely what we want -- it gives us the freedom to choose different implementations with different performance characteristics while maintaining the same interface.
 
-We say that an algebraic structure does not have *junk* when all its elements (i.e., elements in the sets corresponding to sorts) can be built using operations in its signature.
+We say that an algebraic structure does not have *junk* when all its elements (i.e., elements in the sets corresponding to sorts) can be built using operations in its signature. Junk-free structures are "minimal" in some sense -- they contain only the values that can be constructed using the provided operations.
 
 We allow parametric types as sorts. In that case, strictly speaking, we define a family of algebraic specifications (a different specification for each instantiation of the parametric type).
 
 #### 5.4.1 Algebraic Specifications: Examples
 
-An algebraic specification can also use an earlier specification. In "impure" languages like OCaml and F# we allow that the result of any operation be an $\text{error}$. In Haskell we could use `Maybe`.
+Let us look at some concrete examples to make these abstract ideas tangible. An algebraic specification can also use an earlier specification, building up complexity layer by layer. In "impure" languages like OCaml and F# we allow that the result of any operation be an $\text{error}$. In Haskell we would use `Maybe` to explicitly model potential failure.
 
 **Specification $\text{nat}_p$ (bounded natural numbers):**
+
+This specification describes natural numbers that wrap around at some bound $p$ (like machine integers):
 
 | $\text{nat}_p$ |
 |----------------|
@@ -2435,7 +2743,11 @@ An algebraic specification can also use an earlier specification. In "impure" la
 | $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{\text{less than } p \text{ times}} \neq 0$ |
 | $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{p \text{ times}} = 0$ |
 
+The axioms define how addition and multiplication work recursively, and the last two axioms capture the bounded nature: applying $\text{succ}$ less than $p$ times never gives zero, but exactly $p$ times wraps around to zero.
+
 **Specification $\text{string}_p$ (bounded strings):**
+
+This specification describes strings with a maximum length $p$:
 
 | $\text{string}_p$ |
 |-------------------|
@@ -2453,9 +2765,13 @@ An algebraic specification can also use an earlier specification. In "impure" la
 | $(\text{``}c\text{''} \hat{\ } s)[\text{succ}(n)] = s[n]$ |
 | `""`$[n] = \text{error}$ |
 
+The axioms specify that concatenation is associative, that the empty string is an identity for concatenation, that exceeding the length limit produces an error, and that indexing works by stripping characters from the front.
+
 ### 5.5 Homomorphisms
 
-Homomorphisms are mappings between algebraic structures with the same signature that preserve operations.
+When do two implementations of the same specification "behave the same"? The mathematical answer involves *homomorphisms* -- structure-preserving mappings between algebraic structures.
+
+Homomorphisms are mappings between algebraic structures with the same signature that preserve operations. Intuitively, if you apply an operation and then map, you get the same result as mapping first and then applying the corresponding operation.
 
 A *homomorphism* from algebraic structure $(A, \{f^A, g^A, \ldots\})$ to $(B, \{f^B, g^B, \ldots\})$ is a function $h : A \rightarrow B$ such that:
 - $h(f^A(a_1, \ldots, a_{n_f})) = f^B(h(a_1), \ldots, h(a_{n_f}))$ for all $(a_1, \ldots, a_{n_f})$
@@ -2464,11 +2780,15 @@ A *homomorphism* from algebraic structure $(A, \{f^A, g^A, \ldots\})$ to $(B, \{
 
 Two algebraic structures are *isomorphic* if there are homomorphisms $h_1 : A \rightarrow B$, $h_2 : B \rightarrow A$ from one to the other and back, that when composed in any order form identity: $\forall (b \in B) \ h_1(h_2(b)) = b$ and $\forall (a \in A) \ h_2(h_1(a)) = a$.
 
-An algebraic specification whose all implementations without junk are isomorphic is called "*monomorphic*". We usually only add axioms that really matter to us to the specification, so that the implementations have room for optimization. For this reason, the resulting specifications will often not be monomorphic in the above sense.
+An algebraic specification whose all implementations without junk are isomorphic is called "*monomorphic*". This means the specification pins down the structure so precisely that there's essentially only one way to implement it (up to isomorphism).
+
+We usually only add axioms that really matter to us to the specification, so that the implementations have room for optimization. For this reason, the resulting specifications will often not be monomorphic in the above sense -- and that's intentional! A non-monomorphic specification allows for multiple genuinely different implementations, which may have different performance characteristics.
 
 ### 5.6 Example: Maps
 
-A *map* (also called dictionary or associative array) associates keys with values. Here is an algebraic specification:
+Now let us look at a practical example that will guide the rest of this chapter. A *map* (also called dictionary or associative array) associates keys with values. This is one of the most fundamental data structures in programming -- think of Python's dictionaries, Java's `HashMap`, or OCaml's `Map` module.
+
+Here is an algebraic specification that captures the essential behavior of maps:
 
 | $(\alpha, \beta) \ \text{map}$ |
 |--------------------------------|
@@ -2490,11 +2810,15 @@ A *map* (also called dictionary or associative array) associates keys with value
 | $\text{find}(k, \text{remove}(k_2, m)) = v \wedge k \neq k_2 \Leftrightarrow \text{find}(k, m) = v \wedge k \neq k_2$ |
 | $\text{remove}(k, \text{empty}) = \text{empty}$ |
 
+The axioms capture the intuitive behavior: adding a key-value pair makes that key findable, removing a key makes it unfindable, and operations on different keys don't interfere with each other. Notice how the specification says nothing about *how* the map is implemented -- only about *what* behavior it must exhibit.
+
 ### 5.7 Modules and Interfaces (Signatures): Syntax
 
-In the ML family of languages, structures are given names by **module** bindings, and signatures are types of modules. From outside of a structure or signature, we refer to the values or types it provides with a dot notation: `Module.value`.
+How do we express algebraic specifications in OCaml? The answer is the *module system*. In the ML family of languages, structures are given names by **module** bindings, and signatures are types of modules. From outside of a structure or signature, we refer to the values or types it provides with a dot notation: `Module.value`.
 
-Module (and module type) names have to start with a capital letter (in ML languages). Since modules and module types have names, there is a tradition to name the central type of a signature (the one that is "specified" by the signature), for brevity, `t`. Module types are often named with "all-caps" (all letters upper case).
+Module (and module type) names have to start with a capital letter (in ML languages). Since modules and module types have names, there is a convention to name the central type of a signature (the one that is "specified" by the signature), for brevity, `t`. Module types are often named with "all-caps" (all letters upper case).
+
+Here is how we translate our map specification into an OCaml module signature:
 
 ```ocaml
 module type MAP = sig
@@ -2516,9 +2840,11 @@ module ListMap : MAP = struct
 end
 ```
 
+The `ListMap` module implements `MAP` using OCaml's built-in list functions for association lists. The type annotation `: MAP` after the module name tells OCaml to check that the implementation provides everything the signature requires, and hides any additional details.
+
 ### 5.8 Implementing Maps: Association Lists
 
-Let's now build an implementation of maps from the ground up. The most straightforward implementation... might not be what you expected:
+Let us now build an implementation of maps from the ground up, exploring different approaches and their trade-offs. The most straightforward implementation... might not be what you expected:
 
 ```ocaml
 module TrivialMap : MAP = struct
@@ -2550,9 +2876,11 @@ module TrivialMap : MAP = struct
 end
 ```
 
-This "trivial" implementation simply records all operations as a log. The `add` and `remove` operations are $O(1)$, but `member` and `find` must traverse the entire history.
+This "trivial" implementation is quite clever in its own way: it simply records all operations as a log! The data structure itself is a history of everything that has been done to it. The `add` and `remove` operations are $O(1)$ -- they just prepend a new node. However, `member` and `find` must traverse the entire history to determine the current state, giving them $O(n)$ complexity where $n$ is the number of operations performed.
 
-Here is an implementation based on association lists, i.e., on lists of key-value pairs:
+This implementation illustrates an important point: there are many ways to satisfy the same specification, with very different performance characteristics.
+
+Here is a more conventional implementation based on association lists, i.e., on lists of key-value pairs without the `Remove` constructor:
 
 ```ocaml
 module MyListMap : MAP = struct
@@ -2586,15 +2914,17 @@ module MyListMap : MAP = struct
 end
 ```
 
+This implementation maintains the invariant that each key appears at most once in the structure. The `add` function replaces an existing key's value rather than creating a duplicate, and `remove` actually removes the key-value pair. All operations are still $O(n)$ in the worst case, but the structure stays cleaner.
+
 ### 5.9 Implementing Maps: Binary Search Trees
 
-Binary search trees are binary trees with elements stored at the interior nodes, such that elements to the left of a node are smaller than, and elements to the right bigger than, elements within a node.
+Can we do better than linear time? Yes, by using a smarter data structure. Binary search trees are binary trees with elements stored at the interior nodes, such that elements to the left of a node are smaller than, and elements to the right bigger than, elements within a node. This ordering property is what makes them efficient.
 
-For maps, we store key-value pairs as elements in binary search trees, and compare the elements by keys alone.
+For maps, we store key-value pairs as elements in binary search trees, and compare the elements by keys alone. The tree structure allows us to use "divide-and-conquer" to search for the value associated with a key.
 
-On average, binary search trees are fast because they use "divide-and-conquer" to search for the value associated with a key ($O(\log n)$ complexity). In the worst case, however, they reduce to association lists.
+On average, binary search trees are fast -- $O(\log n)$ complexity for all operations. At each node, we can eliminate half the remaining elements from consideration. However, in the worst case (when keys are inserted in sorted order), the tree degenerates into a linked list and operations become $O(n)$.
 
-The simple polymorphic signature for maps is only possible with implementations based on some total order of keys because OCaml has polymorphic comparison (and equality) operators. These operators work on elements of most types, but not on functions. They may not work in a way you would want though! Our signature for polymorphic maps is not the standard approach because of the problem of needing the order of keys; it is just to keep things simple.
+A note on our design: the simple polymorphic signature for maps is only possible because OCaml provides polymorphic comparison (and equality) operators that work on elements of most types (but not on functions). These operators may not behave as you expect for all types! Our signature for polymorphic maps is not the standard approach because of this limitation; it is just to keep things simple for pedagogical purposes.
 
 ```ocaml
 module BTreeMap : MAP = struct
@@ -2644,42 +2974,52 @@ module BTreeMap : MAP = struct
 end
 ```
 
+The `member` and `find` functions use the "divide-and-conquer" strategy: compare the target key with the key at the current node, and recursively search in the appropriate subtree. The `add` function searches the tree in the same way but copies every node along the path to create the new tree (since we're using immutable data structures).
+
+The `remove` function is trickier. When removing a node with two children, we need to replace it with another value that maintains the ordering property. The `split_rightmost` helper function finds and removes the rightmost (largest) element from a subtree -- this element is guaranteed to be smaller than everything in the right subtree and larger than everything remaining in the left subtree, making it the perfect replacement.
+
 ### 5.10 Implementing Maps: Red-Black Trees
+
+The fatal weakness of ordinary binary search trees is that they can become unbalanced. If keys arrive in sorted order, each insertion adds a node at the bottom of a long chain, and we lose the logarithmic performance guarantee. How can we maintain balance automatically?
 
 This section is based on Wikipedia's [Red-black tree article](http://en.wikipedia.org/wiki/Red-black_tree), Chris Okasaki's "Purely Functional Data Structures" and Matt Might's excellent blog post on [red-black tree deletion](http://matt.might.net/articles/red-black-delete/).
 
 Binary search trees are good when we encounter keys in random order, because the cost of operations is limited by the depth of the tree which is small relative to the number of nodes... unless the tree grows unbalanced achieving large depth (which means there are sibling subtrees of vastly different sizes on some path).
 
-To remedy this, we *rebalance* the tree while building it -- i.e., while adding elements.
+To remedy this, we *rebalance* the tree while building it -- i.e., while adding elements. The key insight is to detect when the tree is becoming unbalanced and perform local rotations to restore balance.
 
 In *red-black trees* we achieve balance by:
-1. Remembering one of two colors with each node
-2. Keeping the same length of each root-to-leaf path if only black nodes are counted
+1. Remembering one of two colors (red or black) with each node
+2. Keeping the same number of black nodes on every path from the root to a leaf
 3. Not allowing a red node to have a red child
 
-This way the depth is at most twice the depth of a perfectly balanced tree with the same number of nodes.
+These invariants together guarantee that the tree cannot become too unbalanced: the depth is at most twice the depth of a perfectly balanced tree with the same number of nodes. Why? The "black height" (number of black nodes on any root-to-leaf path) is the same everywhere, and red nodes can only appear between black nodes, so the longest path can have at most twice as many nodes as the shortest.
 
 #### 5.10.1 B-trees of Order 4 (2-3-4 Trees)
 
-How can we have perfectly balanced trees without worrying about having $2^k - 1$ elements? **2-3-4 trees** can store from 1 to 3 elements in each node and have 2 to 4 subtrees correspondingly. Lots of freedom!
+To understand where red-black trees come from, it helps to first understand 2-3-4 trees (also known as B-trees of order 4).
 
-A 2-node contains one element and has two children. A 3-node contains two elements and has three children. A 4-node contains three elements and has four children.
+How can we have perfectly balanced trees without worrying about having exactly $2^k - 1$ elements? The answer is to allow variable-width nodes. **2-3-4 trees** can store from 1 to 3 elements in each node and have 2 to 4 subtrees correspondingly. This flexibility lets us maintain perfect balance!
 
-To insert "25" into a 2-3-4 tree, we descend right, but if we encounter a full node (4-node), we move the middle element up and split the remaining elements. This maintains balance at all times.
+- A **2-node** contains one element and has two children
+- A **3-node** contains two elements and has three children
+- A **4-node** contains three elements and has four children
 
-To represent a 2-3-4 tree as a binary tree with one element per node, we color the middle element of a 4-node, or the first element of a 2-/3-node, black and make it the parent of its neighbor elements, and make them parents of the original subtrees. This correspondence provides the intuition behind red-black trees.
+To insert into a 2-3-4 tree, we descend toward the appropriate leaf position. But if we encounter a full node (4-node) along the way, we "split" it: move the middle element up to the parent and split the remaining two elements into separate 2-nodes. This maintains perfect balance at all times -- all leaves are at the same depth.
+
+The remarkable fact is that red-black trees are just a clever way to represent 2-3-4 trees as binary trees! To represent a 2-3-4 tree as a binary tree with one element per node, we color the "primary" element of each node black (the middle element of a 4-node, or the first element of a 2-/3-node) and make it the parent of its neighbor elements colored red. The red elements then become parents of the original subtrees. This correspondence provides the deep intuition behind red-black trees: the colors encode the structure of the underlying 2-3-4 tree.
 
 #### 5.10.2 Red-Black Trees, Without Deletion
 
-Red-black trees maintain two invariants:
+Now let us implement red-black trees in OCaml. Red-black trees maintain two invariants:
 
-**Invariant 1.** No red node has a red child.
+**Invariant 1.** No red node has a red child. (No two consecutive red nodes on any path.)
 
-**Invariant 2.** Every path from the root to an empty node contains the same number of black nodes.
+**Invariant 2.** Every path from the root to an empty node contains the same number of black nodes. (The "black height" is uniform.)
 
-First we implement red-black tree based sets without deletion. The implementation proceeds almost exactly like for unbalanced binary search trees; we only need to restore invariants.
+For simplicity, we first implement red-black tree based *sets* (not maps) without deletion. The implementation proceeds almost exactly like for unbalanced binary search trees; we only need to add code to restore the invariants after each insertion.
 
-By keeping balance at each step of constructing a node, it is enough to check locally (around the root of the subtree). For an understandable implementation of deletion, we need to introduce more colors -- see Matt Might's post.
+The beautiful insight of Okasaki's approach is that by keeping balance at each step of constructing a node, it is enough to check *locally* (around the root of the subtree) whether a violation has occurred. We never need to examine the entire tree. For an understandable implementation of deletion, we need to introduce more colors -- see Matt Might's post for details.
 
 ```ocaml
 type color = R | B
@@ -2715,7 +3055,15 @@ let insert x s =
   | E -> failwith "insert: impossible"
 ```
 
-The `balance` function handles four cases where a red-red violation occurs (a red node with a red child). In each case, we restructure the tree to eliminate the violation while maintaining the binary search tree property. All four cases produce the same balanced result: a red root with two black children.
+The `balance` function is the heart of the algorithm. It handles four cases where a red-red violation occurs (a red node with a red child). The four cases correspond to different positions of the violation:
+- A red left child with a red left grandchild
+- A red left child with a red right grandchild
+- A red right child with a red left grandchild
+- A red right child with a red right grandchild
+
+In each case, we perform a "rotation" that restructures the tree to eliminate the violation while maintaining the binary search tree property. Remarkably, all four cases produce the same balanced result: a red root with two black children, with the subtrees `a`, `b`, `c`, `d` properly distributed.
+
+The `insert` function works like insertion into an ordinary binary search tree, but calls `balance` after each recursive step to fix any violations that may have been introduced. New nodes are always created red (which might create a red-red violation that `balance` will fix). At the very end, we color the root black -- this can never create a violation and ensures the root is always black.
 
 ### Exercises
 
@@ -5909,10 +6257,12 @@ end
 
 #### The State Monad
 
+The state monad threads a piece of mutable state through a computation without actually using mutation. The key insight is that a stateful computation can be represented as a *function* from the current state to a pair of (result, new state):
+
 ```ocaml env=ch8
 module StateM (Store : sig type t end) : sig
   type store = Store.t
-  type 'a t = store -> 'a * store  (* Pass the current store value to get the next value *)
+  type 'a t = store -> 'a * store  (* A stateful computation *)
   include MONAD_OPS
   include STATE with type 'a t := 'a monad
                  and type store := store
@@ -5921,17 +6271,19 @@ end = struct
   type store = Store.t
   module M = struct
     type 'a t = store -> 'a * store
-    let return a = fun s -> a, s     (* Keep the current value unchanged *)
+    let return a = fun s -> a, s     (* Return value, keep state unchanged *)
     let bind m b = fun s -> let a, s' = m s in b a s'
-  end                          (* To bind two steps, pass the value after first step *)
-  include M                          (* to the second step *)
+  end                          (* Run m, then pass result and new state to b *)
+  include M
   include MonadOps(M)
-  let get = fun s -> s, s            (* Keep the value unchanged but put it in monad *)
-  let put s' = fun _ -> (), s'       (* Change the value; a throwaway in monad *)
+  let get = fun s -> s, s            (* Return the current state *)
+  let put s' = fun _ -> (), s'       (* Replace the state, return unit *)
 end
 ```
 
-The state monad is useful to hide passing-around of a "current" value. Here is an example that renames variables in lambda-terms to eliminate potential name clashes:
+The `bind` operation sequences two stateful computations: it runs the first one with the initial state, then passes both the result and the new state to the second computation.
+
+The state monad is useful to hide the threading of a "current" value through a computation. Here is an example that renames variables in lambda-terms to eliminate potential name clashes (alpha-conversion):
 
 ```ocaml skip
 type term =
@@ -5972,19 +6324,21 @@ let rec alpha_conv = function
    (Lam ("x5", App (Lam ("x6", App (Var "y", Var "x6")), Var "x5")), (7, [])) *)
 ```
 
-Note: This does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
+The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
+
+Note: This alpha-conversion does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
 
 ### 8.12 Monad Transformers
 
-Sometimes we need merits of multiple monads at the same time, e.g., monads `AM` and `BM`. The straightforward idea is to nest one monad within another: either `'a AM.monad BM.monad` or `'a BM.monad AM.monad`. But we want a monad that has operations of both `AM` and `BM`.
+Sometimes we need the capabilities of multiple monads at the same time. For example, we might want both state (to track information) and non-determinism (to explore choices). The straightforward idea is to nest one monad within another: either `'a AM.monad BM.monad` or `'a BM.monad AM.monad`. But this does not work well -- we want a single monad that has operations of *both* `AM` and `BM`.
 
-It turns out that the straightforward approach does not lead to operations with the meaning we want. A **monad transformer** `AT` takes a monad `BM` and turns it into a monad `AT(BM)` which actually wraps around `BM` on both sides. `AT(BM)` has operations of both monads.
+The solution is a **monad transformer**. A monad transformer `AT` takes a monad `BM` and produces a new monad `AT(BM)` that has operations of both. The transformed monad wraps around `BM` in a specific way to make the operations interact correctly.
 
-We will develop a monad transformer `StateT` which adds state to a monad-plus. The resulting monad has all: `return`, `bind`, `mzero`, `mplus`, `put`, `get`, and their supporting general-purpose functions.
+We will develop a monad transformer `StateT` which adds state to any monad-plus. The resulting monad has all the operations: `return`, `bind`, `mzero`, `mplus`, `put`, `get`, and all their derived functions.
 
-We need monad transformers in OCaml because "monads are contagious": although we have built-in state and exceptions, we need to use monadic state and exceptions when we are inside a monad. This is the reason Lwt is both a concurrency and an exception monad.
+Why do we need monad transformers in OCaml? Because "monads are contagious": although we have built-in state and exceptions, we need to use *monadic* state and exceptions when we are inside a monad. For example, using OCaml's native `ref` cells inside a list monad would give the wrong semantics for backtracking. This is also why Lwt is both a concurrency monad and an exception monad -- it needs monadic exceptions to interact correctly with its concurrency model.
 
-The state monad uses `let x = a in ...` for binding. The transformed monad uses `M.bind` (or `M.let*`) instead:
+To understand how the transformer works, let us compare the regular state monad with the transformed version. The regular state monad uses ordinary OCaml binding:
 
 ```
 type 'a state = store -> ('a * store)
@@ -5993,18 +6347,24 @@ let return (a : 'a) : 'a state =
   fun s -> (a, s)
 
 let bind (u : 'a state) (f : 'a -> 'b state) : 'b state =
-  fun s -> (fun (a, s') -> f a s') (u s)
+  fun s -> let (a, s') = u s in f a s'
+```
 
+The transformed version wraps everything in the underlying monad `M`:
+
+```
 (* Monad M transformed to add state, in pseudo-code: *)
 type 'a stateT(M) = store -> ('a * store) M
-(* notice this is not an ('a M) state *)
+(* Note: this is store -> ('a * store) M, not ('a M) state *)
 
 let return (a : 'a) : 'a stateT(M) =
-  fun s -> M.return (a, s)           (* Rather than returning, M.return *)
+  fun s -> M.return (a, s)           (* Use M.return instead of just returning *)
 
 let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
-  fun s -> M.bind (u s) (fun (a, s') -> f a s')  (* Rather than let-binding, M.bind *)
+  fun s -> M.bind (u s) (fun (a, s') -> f a s')  (* Use M.bind instead of let *)
 ```
+
+The key insight is that the result type is `('a * store) M` -- the result and state are wrapped *together* in the underlying monad. This ensures that backtracking (in a monad-plus) correctly restores the state.
 
 #### State Transformer Implementation
 
@@ -6037,7 +6397,7 @@ end
 
 #### Backtracking with State
 
-Using the state transformer with our puzzle solver:
+Now we can combine backtracking with state for our puzzle solver. The state tracks which cells have been visited, eaten, and how many islands we have found. The monad-plus structure handles the backtracking when a choice leads to a dead end:
 
 ```ocaml skip
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
@@ -6139,29 +6499,31 @@ let find_to_eat a b c d =
 
 ### 8.13 Probabilistic Programming
 
-Using a random number generator, we can define procedures that produce various output. This is **not functional** -- mathematical functions have a deterministic result for fixed arguments.
+Using a random number generator, we can define procedures that produce various outputs. This is **not functional** in the mathematical sense -- mathematical functions have deterministic results for fixed arguments.
 
-Similarly to how we can "simulate" (mutable) variables with state monad and non-determinism with list monad, we can "simulate" random computation with a probability monad.
+Just as we can "simulate" mutable variables with the state monad and non-determinism with the list monad, we can "simulate" random computation with a **probability monad**. But the probability monad is more than just randomized computation -- it lets us *reason* about probabilities. We can ask questions like "what is the probability of this outcome?" or "what is the distribution of possible results?"
 
-The probability monad class means much more than having randomized computation. We can ask questions about probabilities of results. Monad instances can make tradeoffs of efficiency vs. accuracy (exact vs. approximate probabilities).
+Different monad implementations make different tradeoffs:
+- **Exact distribution**: Track all possible outcomes and their probabilities precisely
+- **Sampling (Monte Carlo)**: Approximate probabilities by running many random trials
 
 #### The Probability Monad
 
-The essential functions for the probability monad class are `choose` and `distrib`. Remaining functions could be defined in terms of these but are provided by each instance for efficiency.
+The essential functions for the probability monad class are `choose` (for making probabilistic choices) and `distrib` (for extracting the probability distribution). Other operations could be defined in terms of these but are provided by each instance for efficiency.
 
-Inside-monad operations:
+**Inside-monad operations** (building probabilistic computations):
 
-- `choose : float -> 'a monad -> 'a monad -> 'a monad`: `choose p a b` represents an event or distribution which is `a` with probability $p$ and is `b` with probability $1-p$.
-- `pick : ('a * float) list -> 'a monad`: A result from the provided distribution over values. The argument must be a probability distribution: positive values summing to 1.
-- `uniform : 'a list -> 'a monad`: Uniform distribution over given values.
-- `flip : float -> bool monad`: Equal to `choose p (return true) (return false)`.
-- `coin : bool monad`: Equal to `flip 0.5`.
+- `choose : float -> 'a monad -> 'a monad -> 'a monad`: `choose p a b` represents an event which is `a` with probability $p$ and `b` with probability $1-p$.
+- `pick : ('a * float) list -> 'a monad`: Draw a result from a given probability distribution. The argument must be a valid distribution: positive probabilities summing to 1.
+- `uniform : 'a list -> 'a monad`: Uniform distribution -- each element equally likely.
+- `flip : float -> bool monad`: A biased coin: `true` with probability `p`, `false` otherwise.
+- `coin : bool monad`: A fair coin: `flip 0.5`.
 
-Outside-monad operations:
+**Outside-monad operations** (querying probabilistic computations):
 
-- `prob : ('a -> bool) -> 'a monad -> float`: Returns the probability that the predicate holds.
-- `distrib : 'a monad -> ('a * float) list`: Returns the distribution of probabilities over the resulting values.
-- `access : 'a monad -> 'a`: Samples a random result from the distribution -- **non-functional** behavior.
+- `prob : ('a -> bool) -> 'a monad -> float`: Returns the probability that a predicate holds.
+- `distrib : 'a monad -> ('a * float) list`: Returns the full distribution of probabilities over outcomes.
+- `access : 'a monad -> 'a`: Samples a random result from the distribution -- this is **non-functional** behavior (different calls may return different results).
 
 ```ocaml env=ch8
 module type PROBABILITY = sig
@@ -6264,7 +6626,9 @@ end
 
 #### Example: The Monty Hall Problem
 
-In search of a new car, the player picks a door, say 1. The game host then opens one of the other doors, say 3, to reveal a goat and offers to let the player pick door 2 instead of door 1.
+The Monty Hall problem is a famous probability puzzle. In search of a new car, the player picks a door, say 1. The game host (who knows what is behind each door) then opens one of the other doors, say 3, to reveal a goat and offers to let the player switch to door 2 instead of door 1. Should the player switch?
+
+Most people's intuition says it does not matter, but let us compute the actual probabilities:
 
 ```ocaml skip
 module MontyHall (P : PROBABILITY) = struct
@@ -6294,18 +6658,20 @@ module MontySimul = MontyHall (Sampling1000)
    - : (bool * float) list = [(true, 0.666...); (false, 0.333...)] *)
 ```
 
-The famous result: switching doubles your chances of winning!
+The famous result: switching doubles your chances of winning! Counter-intuitively, the host's choice of which door to open gives you information -- by switching, you are betting that your initial choice was wrong (which it is 2/3 of the time).
 
 #### Conditional Probabilities
 
-Wouldn't it be nice to have a monad-plus rather than just a monad? We could use `guard` for conditional probabilities!
+So far we have computed unconditional probabilities. But what if we want to answer questions like "given that X happened, what is the probability of Y?" This is a conditional probability $P(Y|X)$.
+
+Wouldn't it be nice to have a monad-plus rather than just a monad? Then we could use `guard` for conditional probabilities!
 
 To compute $P(A|B)$:
 1. Compute what is needed for both $A$ and $B$
 2. Guard $B$
 3. Return $A$
 
-For the exact distribution monad, we just need to allow intermediate distributions to be unnormalized (sum to less than 1). For the sampling monad, we use rejection sampling (though `mplus` has no straightforward correct implementation).
+For the exact distribution monad, we allow intermediate distributions to be *unnormalized* (probabilities sum to less than 1) and normalize at the end. For the sampling monad, we use *rejection sampling*: generate samples and discard those that do not satisfy the condition (though `mplus` has no straightforward correct implementation in this approach).
 
 ```ocaml skip
 module type COND_PROBAB = sig
@@ -6446,15 +6812,23 @@ module BurglarySimul = Burglary (Sampling2000)
 
 ### 8.14 Lightweight Cooperative Threads
 
-The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a`, and resumes computing `b` only once the result `x` is known.
+Running multiple tasks asynchronously can hide I/O latency and utilize multi-core architectures. Traditional operating system threads are "heavyweight" -- they have significant overhead for context switching and memory. **Lightweight threads** are managed by the application rather than the OS, allowing many concurrent tasks with lower overhead.
 
-For concurrency, we need to "suppress" this sequentiality. We introduce:
+Lightweight threads can be:
+- **Preemptive**: The scheduler interrupts running threads to switch between them
+- **Cooperative**: Threads voluntarily give up control at specific points (like I/O operations)
+
+**Lwt** is a popular OCaml library for lightweight cooperative threads, implemented as a monad. The monadic structure ensures that thread switching happens at well-defined points (whenever you use `let*`), making the code easier to reason about.
+
+The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a`, and only resumes computing `b` once the result `x` is known.
+
+For concurrency, we need to "suppress" this sequentiality. We introduce a parallel bind:
 
 ```
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-where `parallel a b (fun x y -> c)` does not wait for `a` to be computed before it can start computing `b`.
+With `parallel a b (fun x y -> c)`, computations `a` and `b` can proceed concurrently. The continuation `c` runs once both results are available.
 
 If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
 
@@ -6468,11 +6842,15 @@ c x y
 
 #### Fine-Grained vs. Coarse-Grained Concurrency
 
-Under **fine-grained** concurrency, every `bind` is suspended and computation moves to other threads. It comes back to complete the `bind` before running threads created since the `bind` was suspended.
+There are two approaches to when threads switch:
 
-Under **coarse-grained** concurrency, computation is only suspended when requested via a `suspend` (often called `yield`) operation. Library operations that need to wait for an event or completion of I/O should call `suspend` internally.
+**Fine-grained** concurrency suspends at every `bind`. The scheduler runs other threads and comes back to complete the `bind` before running threads created since the suspension. This gives maximum interleaving but has higher overhead.
+
+**Coarse-grained** concurrency only suspends when explicitly requested via a `suspend` (often called `yield`) operation. Library operations that need to wait for I/O should call `suspend` internally. This is more efficient but requires careful placement of suspension points.
 
 #### Thread Monad Signatures
+
+The thread monad extends the basic monad with parallel composition:
 
 ```ocaml env=ch8
 module type THREADS = sig
@@ -6521,6 +6899,8 @@ end
 
 #### Cooperative Thread Implementation
 
+The implementation uses a mutable state to track thread progress. Each thread is in one of three states: completed (`Return`), waiting (`Sleep` with a list of callbacks to invoke when done), or forwarded to another thread (`Link`):
+
 ```ocaml skip
 module Cooperative = Threads(struct
   type 'a state =
@@ -6528,7 +6908,7 @@ module Cooperative = Threads(struct
     | Sleep of ('a -> unit) list       (* When thread returns, wake up waiters *)
     | Link of 'a t                     (* A link to the actual thread *)
   and 'a t = {mutable state : 'a state}  (* State of the thread can change *)
-                                       (* -- it can return, or more waiters can be added *)
+                                       (* -- it can return, or more waiters added *)
   let rec find t =                     (* Union-find style link chasing *)
     match t.state with
     | Link t -> find t
@@ -6595,6 +6975,8 @@ end)
 
 #### Testing the Thread Implementation
 
+Let us test the implementation with two threads that each print a sequence of numbers:
+
 ```ocaml skip
 module TTest (T : THREAD_OPS) = struct
   open T
@@ -6628,7 +7010,9 @@ let test =
    val test : unit = () *)
 ```
 
-The output shows that the threads interleave their execution, with each `bind` causing a context switch.
+The output shows that the threads interleave their execution beautifully: A(5), B(4), A(4), B(3), and so on. Each `bind` (the `let*`) causes a context switch to the other thread. This is fine-grained concurrency in action.
+
+The key insight is that monadic structure gives us precise control over concurrency. Every `let*` is a potential suspension point, making the code's behavior predictable and debuggable -- a significant advantage over preemptive threading where context switches can happen anywhere.
 
 ### 8.15 Exercises
 
@@ -7596,57 +7980,60 @@ The initial value `(0., sample time)` uses `sample`, but this is evaluated *once
 
 ### 10.7 Direct Control
 
-Real-world behaviors often are *state machines*, going through several stages. We do not have declarative means for it yet. For example, consider baking recipes: *1. Preheat the oven. 2. Put flour, sugar, eggs into a bowl. 3. Spoon the mixture.* etc.
+The declarative style of FRP is elegant for continuous behaviors, but real-world interactions are often *state machines* that proceed through distinct stages. Consider a recipe: *1. Preheat the oven. 2. Put flour, sugar, eggs into a bowl. 3. Mix well. 4. Pour into pan.* Each step must complete before the next begins. How do we express this kind of sequential, staged behavior in FRP?
 
-We want a *flow* to be able to proceed through events: when the first event arrives we remember its result and wait for the next event, disregarding any further arrivals of the first event! Therefore *Froc* constructs like mapping an event (`map`) or attaching a notification to a behavior change (`bind b1 (fun v1 -> notify_b ~now:false b2 (fun v2 -> ...))`) will not work.
+We want a *flow* that can proceed through events in sequence: when the first event arrives, we remember its result, and then wait for the next event. Crucially, we *ignore* any further occurrences of the first event after we have moved on. Standard FRP constructs like mapping events or attaching notifications do not give us this "move forward and never look back" semantics.
 
-We also want to be able to repeat or loop a flow, but starting from the notification of the first event that happens after the notification of the last event.
+We also want to be able to *repeat* or *loop* a flow. But the loop should restart from the notification of the first event that arrives *after* the previous iteration completed -- not from events that happened during the previous iteration.
 
-`next e` is an event propagating only the first occurrence of `e`. This will be the basis of our `await` function.
+The key primitive is `next e`, an event that propagates only the *first* occurrence of `e` and then goes silent. This will be the basis of our `await` function.
 
-The whole flow should be cancellable from outside at any time.
+Additionally, the whole flow should be *cancellable* from outside at any time -- for instance, when the user quits the application.
 
-A flow is a kind of a *lightweight thread* as in the end of Chapter 8; we will make it a monad. It only "stores" a non-unit value when it `await`s an event. But it has a primitive to `emit` values. We actually implement *coarse-grained* threads (Chapter 8 exercise 11), with `await` in the role of `suspend`.
+If this sounds familiar, it should: a flow is essentially a *lightweight thread* as we discussed at the end of Chapter 8. We will make it a monad. Unlike general threads, a flow only "stores" a non-unit value when it is suspended waiting for an event (via `await`). But it has a primitive to `emit` values. We are actually implementing *coarse-grained* threads (Chapter 8 exercise 11), with `await` playing the role of `suspend`.
 
-We build a module `Flow` with monadic type `('a, 'b) flow` "storing" `'b` and emitting `'a`:
+We build a module `Flow` with monadic type `('a, 'b) flow`. The type has two parameters: `'a` is the type of values we emit (output), and `'b` is the type of values we store (the result of awaited events):
 
 ```ocaml skip
 type ('a, 'b) flow
-type cancellable  (* A handle to cancel a flow (stop further computation) *)
-val noop_flow : ('a, unit) flow  (* Same as return () *)
-val return : 'b -> ('a, 'b) flow  (* Completed flow *)
-val await : 'b Froc.event -> ('a, 'b) flow  (* Wait and store event: *)
-val bind :  (* the principled way to input *)
+type cancellable  (* Handle to cancel a flow and stop further computation *)
+
+val noop_flow : ('a, unit) flow  (* Do nothing, same as return () *)
+val return : 'b -> ('a, 'b) flow  (* Immediately completed flow with result 'b *)
+val await : 'b Froc.event -> ('a, 'b) flow  (* Suspend until event fires *)
+val bind :   (* Sequential composition of flows *)
   ('a, 'b) flow -> ('b -> ('a, 'c) flow) -> ('a, 'c) flow
-val emit : 'a -> ('a, unit) flow  (* The principled way to output *)
-val cancel : cancellable -> unit
-val repeat :  (* Loop the given flow and store the stop event *)
+val emit : 'a -> ('a, unit) flow  (* Output a value *)
+val cancel : cancellable -> unit  (* Cancel a running flow *)
+val repeat :  (* Loop until the 'until' event fires; return that event's value *)
   ?until:'a Froc.event -> ('b, unit) flow -> ('b, 'a) flow
-val event_flow :
+val event_flow :   (* Turn a flow into an event that fires on each emit *)
   ('a, unit) flow -> 'a Froc.event * cancellable
-val behavior_flow :  (* The initial value of a behavior and a flow to update it *)
+val behavior_flow :  (* Turn a flow into a behavior; initial value + flow to update *)
   'a -> ('a, unit) flow -> 'a Froc.behavior * cancellable
-val is_cancelled : cancellable -> bool
+val is_cancelled : cancellable -> bool  (* Check if flow was cancelled *)
 ```
 
 #### Implementation Details
 
-We follow our (or *Lwt*) implementation of lightweight threads, adapting it to the need of cancelling flows:
+The implementation follows our lightweight threads from Chapter 8 (or the *Lwt* library), adapted for the needs of cancellation:
 
 ```ocaml skip
 module F = Froc
 type 'a result =
-  | Return of 'a  (* Notifications to cancel when cancelled *)
-  | Sleep of ('a -> unit) list * F.cancel ref list
-  | Cancelled
-  | Link of 'a state
+  | Return of 'a  (* Completed with value *)
+  | Sleep of ('a -> unit) list * F.cancel ref list  (* Waiting for wakeup *)
+  | Cancelled  (* Flow was cancelled *)
+  | Link of 'a state  (* Indirection to another state *)
 and 'a state = {mutable state : 'a result}
-type cancellable = unit state
+type cancellable = unit state  (* Handle to check/trigger cancellation *)
 ```
 
-Functions `find`, `wakeup`, `connect` are as in Chapter 8 (but connecting to cancelled thread cancels the other thread).
+The `Sleep` state holds both waiters (callbacks to invoke when a result arrives) and a list of *Froc* cancel handles (for cancelling event notifications if the flow is cancelled).
 
-Our monad is actually a reader monad over the result state. The reader supplies the `emit` function:
+Functions `find`, `wakeup`, `connect` are similar to Chapter 8, with the addition that connecting to a cancelled flow cancels the other flow as well.
+
+The key insight is that our flow monad is actually a *reader monad* layered over the state. The reader environment supplies the `emit` function:
 
 ```ocaml skip
 type ('a, 'b) flow = ('a -> unit) -> 'b state
@@ -7680,10 +8067,12 @@ let await t = fun emit ->
 
 #### Example: Drawing Shapes
 
-The scene is a list of shapes, the first shape is open:
+Let us see flows in action with a simple drawing program. The user draws shapes by pressing and dragging the mouse; releasing the mouse closes the current shape and starts a new one.
+
+The scene is a list of shapes, where the first shape is "open" (still being drawn) and the rest are closed:
 
 ```ocaml skip
-type scene = (int * int) list list
+type scene = (int * int) list list  (* First element is the open shape *)
 
 let draw sc =
   let open Graphics in
@@ -7691,51 +8080,51 @@ let draw sc =
   (match sc with
   | [] -> ()
   | opn :: cld ->
-    draw_poly_line (Array.of_list opn);
-    List.iter (fill_poly -| Array.of_list) cld);
+    draw_poly_line (Array.of_list opn);  (* Draw open shape as line *)
+    List.iter (fill_poly -| Array.of_list) cld);  (* Fill closed shapes *)
   synchronize ()
 ```
 
-We build a flow and turn it into a behavior to animate:
+Now we build the drawing flow. Notice how naturally we can express the sequential logic: wait for button press, then repeatedly add points until button release, then start over:
 
 ```ocaml skip
 let painter =
-  let cld = ref [] in  (* Global state of painter *)
-  repeat (perform
-      await mbutton_pressed;  (* Start when button down *)
-      let opn = ref [] in
-      repeat (perform
-          mpos <-- await mouse_move;  (* Add next position to line *)
-          emit (opn := mpos :: !opn; !opn :: !cld))
-        ~until:mbutton_released;  (* Start new shape *)
-      emit (cld := !opn :: !cld; opn := []; [] :: !cld))
+  let cld = ref [] in  (* Accumulated closed shapes *)
+  repeat (perform  (* Outer loop: one shape per iteration *)
+      await mbutton_pressed;  (* Wait for mouse button down *)
+      let opn = ref [] in     (* Points in current shape *)
+      repeat (perform  (* Inner loop: points in one shape *)
+          mpos <-- await mouse_move;  (* Wait for mouse movement *)
+          emit (opn := mpos :: !opn; !opn :: !cld))  (* Emit updated scene *)
+        ~until:mbutton_released;  (* Exit inner loop on button release *)
+      emit (cld := !opn :: !cld; opn := []; [] :: !cld))  (* Close shape *)
 
 let painter, cancel_painter = behavior_flow [] painter
-let () = reactimate painter
+let () = reactimate painter  (* Run the animation *)
 ```
 
 #### Flows and State
 
-Global state and thread-local state can be used with lightweight threads, but pay attention to semantics -- which computations are inside the monad and which while building the initial monadic value.
+Global state and thread-local state can both be used with flows, but you must pay careful attention to *when* expressions are evaluated. The key question is: is this computation *inside* the monad (executed when the flow runs), or is it executed *while building* the initial monadic value (executed once at setup time)?
 
-Side effects hidden in `return` and `emit` arguments are not inside the monad. For example, if in the "first line" of a loop effects are executed only at the start of the loop -- but if after bind ("below first line" of a loop), at each step of the loop:
+Side effects hidden in `return` and `emit` *arguments* are evaluated immediately when constructing the flow, not when the flow runs. This leads to a subtle distinction:
 
 ```ocaml skip
 let f =
   repeat (
-      let* () = emit (Printf.printf "[0]\n%!"; '0') in
-      let* () = await aas in
-      let* () = emit (Printf.printf "[1]\n%!"; '1') in
-      let* () = () <-- await bs in
+      let* () = emit (Printf.printf "[0]\n%!"; '0') in  (* The printf runs NOW *)
+      let* () = await aas in  (* Suspend until 'a' event *)
+      let* () = emit (Printf.printf "[1]\n%!"; '1') in  (* Printf after resume *)
+      let* () = await bs in
       let* () = emit (Printf.printf "[2]\n%!"; '2') in
-      let* () = () <-- await cs in
+      let* () = await cs in
       let* () = emit (Printf.printf "[3]\n%!"; '3') in
       let* () = await ds in
       emit (Printf.printf "[4]\n%!"; '4'))
 
 let e, cancel_e = event_flow f
 let () =
-  F.notify_e e (fun c -> Printf.printf "flow: %c\n%!" c) in
+  F.notify_e e (fun c -> Printf.printf "flow: %c\n%!" c);
   Printf.printf "notification installed\n%!"
 
 let () =
@@ -7743,52 +8132,60 @@ let () =
   F.send a (); F.send b (); F.send c (); F.send d ()
 ```
 
-The output demonstrates the execution order:
-- `[0]` -- Only printed once, when building the loop
-- `notification installed` -- Only installed after the first flow event sent
-- `event: a` -- Event notification
-- `[1]` -- Second emit computed after first await returns
-- `flow: 1` -- Emitted signal
-- ... and so on through the loop iterations
+The output demonstrates this subtle timing:
+
+- `[0]` -- Printed only *once*, when building the loop (not inside the monad!)
+- `notification installed` -- Notification set up
+- `event: a` -- First event fires
+- `[1]` -- Now inside the monad, after first await returns
+- `flow: 1` -- Emitted value
+- ... continues through the remaining events and loop iterations
+
+The key insight: `[0]` is in the *first line* of the loop before any `await`, so it is evaluated when constructing the `repeat` expression. The `Printf.printf` in subsequent `emit` calls is after a bind (after an `await`), so it runs each time that point in the flow is reached.
 
 ### 10.8 Graphical User Interfaces
 
-In-depth discussion of GUIs is beyond the scope of this course. We only cover what is needed for an example reactive program with direct control.
+An in-depth discussion of GUIs is beyond the scope of this course. However, GUIs are a natural application of FRP and flows, so we will cover enough to build a complete example: a calculator.
 
-We demonstrate two libraries: *LablTk* based on optional labelled arguments (discussed in Chapter 2 exercise 2) and polymorphic variants, and *LablGTk* additionally based on objects. We will learn more about objects and polymorphic variants in the next chapter.
+We demonstrate two OCaml GUI libraries. *LablTk* (based on the Tk toolkit from Tcl) uses optional labelled arguments (discussed in Chapter 2 exercise 2) and polymorphic variants. *LablGTk* (based on GTK+) additionally uses objects. We will learn more about objects and polymorphic variants in the next chapter.
 
 #### Calculator Flow
 
-We represent the mechanics of the calculator directly as a flow:
+The calculator is a perfect example of a state machine with sequential stages. We represent its mechanics directly as a flow:
 
 ```ocaml skip
-let digits, digit = F.make_event ()
-let ops, op = F.make_event ()
-let dots, dot = F.make_event ()
+let digits, digit = F.make_event ()  (* Events for digit button presses *)
+let ops, op = F.make_event ()        (* Events for operator button presses *)
+let dots, dot = F.make_event ()      (* Event for decimal point (exercise) *)
 
 let calc =
-  (* We need two state variables for two arguments of calculation *)
-  let f = ref (fun x -> x) and now = ref 0.0 in  (* but we *)
-  repeat (         (* remember the older argument in partial application *)
-      let* op = repeat (    (* Enter the digits of a number (on later turns *)
-            let* d = await digits in  (* starting from the second digit) *)
-            emit (now := 10. *. !now +. d; !now))
-        ~until:ops in                 (* until operator button is pressed *)
+  (* Two state variables: current number and pending operation *)
+  let f = ref (fun x -> x) and now = ref 0.0 in
+  repeat (
+      (* Phase 1: Enter digits of a number *)
+      let* op = repeat (
+            let* d = await digits in  (* Wait for digit press *)
+            emit (now := 10. *. !now +. d; !now))  (* Build up number *)
+        ~until:ops in  (* Until operator button is pressed *)
+      (* Phase 2: Apply pending operation, store new operator *)
       let* () = emit (now := !f !now; f := op !now; !now) in
-      (* Compute the result and "store away" the operator *)
+      (* Phase 3: Allow user to change operator before entering next number *)
       let* d = repeat
         (let* op = await ops in return (f := op !now))
-        ~until:digits in  (* The user can pick a different operator *)
-      emit (now := d; !now))  (* Reset the state to a new number *)
+        ~until:digits in  (* Until they start entering the next number *)
+      (* Phase 4: Reset for the new number *)
+      emit (now := d; !now))
 
-let calc_e, cancel_calc = event_flow calc  (* Notifies display update *)
+let calc_e, cancel_calc = event_flow calc  (* Event notifies display update *)
 ```
+
+Notice how the flow structure directly mirrors the user interaction pattern: enter a number, press an operator, optionally change your mind about the operator, enter another number, and so on.
 
 #### Tk: LablTk
 
-Widget toolkit *Tk* is known from the *Tcl* language.
+The *Tk* widget toolkit originated with the Tcl language and is known for its simplicity. *LablTk* provides OCaml bindings using labelled arguments.
 
-Layout of the calculator -- common across GUIs:
+First, we define the layout of our calculator buttons -- this part is the same regardless of which GUI toolkit we use:
 
 ```ocaml skip
 let layout = [|
@@ -7799,19 +8196,21 @@ let layout = [|
 |]
 ```
 
-Key concepts:
+Each entry is a pair of the button label and its action: `` `Di d`` means send digit `d`, `` `O f`` means send operator function `f`, and `` `Dot`` means send the decimal point event (handling this is left as an exercise).
 
-- Every *widget* (window gadget) has a parent in which it is located
-- *Buttons* have action associated with pressing them, *labels* just provide information, *entries* (aka. *edit* fields) are for entering info from keyboard
+Key GUI concepts in Tk:
+
+- Every *widget* (window gadget) has a *parent* widget in which it is located
+- *Buttons* have an action (callback function) invoked when pressed; *labels* just display information; *entries* (text fields) allow keyboard input
 - Actions are *callback* functions passed as the `~command` argument
-- *Frames* in *Tk* group widgets
-- The parent is sent as last argument, after optional labelled arguments
+- *Frames* group related widgets together
+- The parent widget is passed as the last argument, after optional labelled arguments
 
 ```ocaml skip
-let top = Tk.openTk ()
+let top = Tk.openTk ()  (* Open the main window *)
 
 let btn_frame =
-  Frame.create ~relief:`Groove ~borderwidth:2 top
+  Frame.create ~relief:`Groove ~borderwidth:2 top  (* Container for buttons *)
 
 let buttons =
   Array.map (Array.map (function
@@ -7820,75 +8219,74 @@ let buttons =
         ~command:(fun () -> F.send dot ()) btn_frame
     | text, `Di d ->
       Button.create ~text
-        ~command:(fun () -> F.send digit d) btn_frame
+        ~command:(fun () -> F.send digit d) btn_frame  (* Send digit event *)
     | text, `O f ->
       Button.create ~text
-        ~command:(fun () -> F.send op f) btn_frame)) layout
+        ~command:(fun () -> F.send op f) btn_frame))  (* Send operator event *)
+    layout
 
-let result = Label.create ~text:"0" ~relief:`Sunken top
+let result = Label.create ~text:"0" ~relief:`Sunken top  (* Result display *)
 ```
 
-GUI toolkits have layout algorithms, so we only need to tell which widgets hang together and whether they should fill all available space etc. -- via `pack`, or `grid` for "rectangular" organization:
+GUI toolkits provide layout algorithms, so we only specify *which* widgets go together and *how* they should fill space. Tk offers `pack` for sequential layout and `grid` for table-like organization:
 
-- `~fill:` the allocated space in `` `X``, `` `Y``, `` `Both`` or `` `None`` axes
-- `~expand:` maximally how much space is allocated or only as needed
-- `~anchor:` allows to glue a widget in particular direction (`` `Center``, `` `E``, `` `Ne`` etc.)
-- The `grid` packing flexibility: `~columnspan` and `~rowspan`
-- `configure` functions accept the same arguments as `create` but change existing widgets
+Common layout options:
+
+- `~fill:` how the widget fills allocated space: `` `X``, `` `Y``, `` `Both`` or `` `None``
+- `~expand:` whether to request extra space (`true`) or only what is needed (`false`)
+- `~anchor:` glue the widget to a direction: `` `Center``, `` `E``, `` `Ne``, etc.
+- `grid` also supports `~columnspan` and `~rowspan` for multi-cell widgets
+- `configure` functions change existing widgets using the same arguments as `create`
 
 ```ocaml skip
 let () =
   Wm.title_set top "Calculator";
-  Tk.pack [result] ~side:`Top ~fill:`X;
-  Tk.pack [btn_frame] ~side:`Bottom ~expand:true;
+  Tk.pack [result] ~side:`Top ~fill:`X;  (* Result at top, fills width *)
+  Tk.pack [btn_frame] ~side:`Bottom ~expand:true;  (* Buttons below *)
   Array.iteri (fun column -> Array.iteri (fun row button ->
-    Tk.grid ~column ~row [button])) buttons;
+    Tk.grid ~column ~row [button])) buttons;  (* Grid layout for buttons *)
   Wm.geometry_set top "200x200";
+  (* Connect Froc event to update the display *)
   F.notify_e calc_e
     (fun now ->
       Label.configure ~text:(string_of_float now) result);
-  Tk.mainLoop ()
+  Tk.mainLoop ()  (* Enter the GUI event loop *)
 ```
 
 #### GTk+: LablGTk
 
-*LablGTk* is built as an object-oriented layer over a low-level layer of functions interfacing with the *GTk+* library, which is written in *C*.
+*LablGTk* provides OCaml bindings for the *GTk+* library (written in C). Unlike LablTk, it uses an object-oriented interface: widgets are objects, and operations are method calls.
 
-In OCaml, object fields are only visible to object methods, and methods are called with `#` syntax, e.g. `window#show ()`.
+In OCaml's object system, fields are only visible to the object's own methods, and methods are called with `#` syntax: e.g., `window#show ()`.
 
-The interaction with the application is reactive:
+GTk+ has its own reactive event system (confusingly, GTk+ uses "signal" where we say "event"):
 
-- Our events are called signals in *GTk+*
-- Registering a notification is called connecting a signal handler, e.g. `button#connect#clicked ~callback:hello` which takes `~callback:(unit -> unit)` and returns `GtkSignal.id`
-- As with *Froc* notifications, multiple handlers can be attached
-- *GTk+* events are a subclass of signals related to more specific window events, e.g. `window#event#connect#delete ~callback:delete_event`
-- *GTk+* event callbacks take more info: `~callback:(event -> unit)` for some type `event`
+- Registering a callback is called *connecting a signal handler*: `button#connect#clicked ~callback:hello` takes `~callback:(unit -> unit)` and returns a `GtkSignal.id`
+- Multiple handlers can be attached to the same signal, just like *Froc* notifications
+- GTk+ *events* (note: different from signals) relate to window-system events: `window#event#connect#delete ~callback:delete_event`
+- Event callbacks receive more information: `~callback:(event -> unit)` for some event type
 
-Automatic layout (aka. packing) seems less sophisticated than in *Tk*:
+GTk+ layout is simpler than Tk's:
 
-- only horizontal and vertical boxes
-- therefore `~fill` is binary and `~anchor` is replaced by `~from` `` `START`` or `` `END``
+- Only horizontal (`hbox`) and vertical (`vbox`) boxes are available
+- Grid layout is called `table`, with `~fill` and `~expand` taking `` `X``, `` `Y``, `` `BOTH``, `` `NONE``
 
-Automatic grid layout is called `table`:
+A few API differences: `coerce` is a method that casts widget types (Tk uses a `coe` function). Labels do not have a dedicated module. Widget properties are set via `widget#set_X` methods rather than a single `configure` function.
 
-- `~fill` and `~expand` take `` `X``, `` `Y``, `` `BOTH``, `` `NONE``
-
-The `coerce` method casts the type of the object (in *Tk* there is `coe` function). Labels do not have a dedicated module. Widgets have setter methods `widget#set_X` (instead of a single `configure` function in *Tk*).
-
-Setup:
+Here is the GTk+ version of our calculator. First, setting up the window and layout:
 
 ```ocaml skip
-let _ = GtkMain.Main.init ()
+let _ = GtkMain.Main.init ()  (* Initialize GTk+ *)
 let window =
   GWindow.window ~width:200 ~height:200 ~title:"Calculator" ()
-let top = GPack.vbox ~packing:window#add ()
-let result = GMisc.label ~text:"0" ~packing:top#add ()
+let top = GPack.vbox ~packing:window#add ()  (* Vertical box container *)
+let result = GMisc.label ~text:"0" ~packing:top#add ()  (* Result display *)
 let btn_frame =
   GPack.table ~rows:(Array.length layout)
-   ~columns:(Array.length layout.(0)) ~packing:top#add ()
+   ~columns:(Array.length layout.(0)) ~packing:top#add ()  (* Button grid *)
 ```
 
-Button actions:
+Creating the buttons and connecting their click handlers to *Froc* events:
 
 ```ocaml skip
 let buttons =
@@ -7907,21 +8305,22 @@ let buttons =
         ~callback:(fun () -> F.send op f) in b)) layout
 ```
 
-Button layout, result notification, start application:
+Finally, we attach buttons to the grid, connect the result notification, and start the application:
 
 ```ocaml skip
-let delete_event _ = GMain.Main.quit (); false
+let delete_event _ = GMain.Main.quit (); false  (* Handle window close *)
 
 let () =
   let _ = window#event#connect#delete ~callback:delete_event in
   Array.iteri (fun column -> Array.iteri (fun row button ->
     btn_frame#attach ~left:column ~top:row
-      ~fill:`BOTH ~expand:`BOTH (button#coerce))
+      ~fill:`BOTH ~expand:`BOTH (button#coerce))  (* Attach to grid *)
   ) buttons;
+  (* Connect Froc event to update the display *)
   F.notify_e calc_e
     (fun now -> result#set_label (string_of_float now));
-  window#show ();
-  GMain.Main.main ()
+  window#show ();  (* Make window visible *)
+  GMain.Main.main ()  (* Enter the GTk+ event loop *)
 ```
 
 ### 10.9 Exercises
