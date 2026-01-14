@@ -16,7 +16,7 @@ val concat : string -> string list -> string
 
 First, we need to convert numbers into strings:
 
-```ocaml
+```ocaml env=ch6
 let rec strings_of_ints = function
   | [] -> []
   | hd::tl -> string_of_int hd :: strings_of_ints tl
@@ -26,7 +26,7 @@ let comma_sep_ints = String.concat ", " -| strings_of_ints
 
 Similarly, to sort strings from shortest to longest, we first compute lengths:
 
-```ocaml
+```ocaml env=ch6
 let rec strings_lengths = function
   | [] -> []
   | hd::tl -> (String.length hd, hd) :: strings_lengths tl
@@ -36,7 +36,7 @@ let by_size = List.sort compare -| strings_lengths
 
 Notice the common structure in `strings_of_ints` and `strings_lengths`: both transform each element of a list independently. We can extract this pattern into a generic function called `map`:
 
-```ocaml
+```ocaml env=ch6
 let rec list_map f = function
   | [] -> []
   | hd::tl -> f hd :: list_map f tl
@@ -44,7 +44,7 @@ let rec list_map f = function
 
 Now we can rewrite our functions more concisely:
 
-```ocaml
+```ocaml env=ch6
 let comma_sep_ints =
   String.concat ", " -| list_map string_of_int
 
@@ -56,7 +56,7 @@ let by_size =
 
 Consider summing elements of a list:
 
-```ocaml
+```ocaml env=ch6
 let rec balance = function
   | [] -> 0
   | hd::tl -> hd + balance tl
@@ -64,7 +64,7 @@ let rec balance = function
 
 Or multiplying elements:
 
-```ocaml
+```ocaml env=ch6
 let rec total_ratio = function
   | [] -> 1.
   | hd::tl -> hd *. total_ratio tl
@@ -72,7 +72,7 @@ let rec total_ratio = function
 
 The pattern is the same: we combine each element with the result of processing the rest of the list. This is the **fold** operation:
 
-```ocaml
+```ocaml env=ch6
 let rec list_fold f base = function
   | [] -> base
   | hd::tl -> f hd (list_fold f base tl)
@@ -89,7 +89,7 @@ The key insight is that `map` alters the *contents* of data without changing its
 
 Let us investigate tail-recursive functions. Consider reversing a list:
 
-```ocaml
+```ocaml env=ch6
 let rec list_rev acc = function
   | [] -> acc
   | hd::tl -> list_rev (hd::acc) tl
@@ -97,7 +97,7 @@ let rec list_rev acc = function
 
 Or computing an average:
 
-```ocaml
+```ocaml env=ch6
 let rec average (sum, tot) = function
   | [] when tot = 0. -> 0.
   | [] -> sum /. tot
@@ -106,7 +106,7 @@ let rec average (sum, tot) = function
 
 The pattern here is different from `fold_right`. We process elements from left to right, accumulating a result:
 
-```ocaml
+```ocaml env=ch6
 let rec fold_left f accu = function
   | [] -> accu
   | a::l -> fold_left f (f accu a) l
@@ -114,7 +114,7 @@ let rec fold_left f accu = function
 
 With `fold_left`, hiding the accumulator is straightforward:
 
-```ocaml
+```ocaml env=ch6
 let list_rev l =
   fold_left (fun t h -> h::t) [] l
 
@@ -138,14 +138,14 @@ The "backward" structure of `fold_left`:
 
 List filtering is naturally expressed using `fold_right`:
 
-```ocaml
+```ocaml env=ch6
 let list_filter p l =
   List.fold_right (fun h t -> if p h then h::t else t) l []
 ```
 
 A tail-recursive map that returns elements in reverse order:
 
-```ocaml
+```ocaml env=ch6
 let list_rev_map f l =
   List.fold_left (fun t h -> f h :: t) [] l
 ```
@@ -156,7 +156,7 @@ let list_rev_map f l =
 
 Mapping binary trees is straightforward:
 
-```ocaml
+```ocaml env=ch6
 type 'a btree = Empty | Node of 'a * 'a btree * 'a btree
 
 let rec bt_map f = function
@@ -172,7 +172,7 @@ The `map` and `fold` functions we consider here preserve/respect the structure o
 
 The most general form of `fold` for binary trees processes each element together with partial results from subtrees:
 
-```ocaml
+```ocaml env=ch6
 let rec bt_fold f base = function
   | Empty -> base
   | Node (e, l, r) ->
@@ -181,7 +181,7 @@ let rec bt_fold f base = function
 
 Examples:
 
-```ocaml
+```ocaml env=ch6
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
 let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 ```
@@ -190,7 +190,7 @@ let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 
 To demonstrate map and fold for more complex structures, we recall the expression type from Chapter 3:
 
-```ocaml
+```ocaml env=ch6
 type expression =
     Const of float
   | Var of string
@@ -202,7 +202,7 @@ type expression =
 
 The multitude of cases makes the datatype harder to work with. Fortunately, *or-patterns* help:
 
-```ocaml
+```ocaml env=ch6
 let rec vars = function
   | Const _ -> []
   | Var x -> [x]
@@ -212,7 +212,7 @@ let rec vars = function
 
 Mapping and folding must be specialized for each case. We pack behaviors into records:
 
-```ocaml
+```ocaml env=ch6
 type expression_map = {
   map_const : float -> expression;
   map_var : string -> expression;
@@ -235,7 +235,7 @@ type 'a expression_fold = {
 
 We define standard behaviors that can be tailored for specific uses:
 
-```ocaml
+```ocaml env=ch6
 let identity_map = {
   map_const = (fun c -> Const c);
   map_var = (fun x -> Var x);
@@ -255,7 +255,7 @@ let make_fold op base = {
 
 The actual `map` and `fold` functions:
 
-```ocaml
+```ocaml env=ch6
 let rec expr_map emap = function
   | Const c -> emap.map_const c
   | Var x -> emap.map_var x
@@ -275,7 +275,7 @@ let rec expr_fold efold = function
 
 Using the `{record with field = value}` syntax to customize behaviors:
 
-```ocaml
+```ocaml env=ch6
 let prime_vars = expr_map
   {identity_map with map_var = fun x -> Var (x ^ "'")}
 
@@ -304,7 +304,7 @@ In 1977/78, John Backus designed **FP**, the first *function-level programming* 
 
 For function-level programming, we need combinators like these from *OCaml Batteries*:
 
-```ocaml
+```ocaml env=ch6
 let const x _ = x
 let ( |- ) f g x = g (f x)          (* forward composition *)
 let ( -| ) f g x = f (g x)          (* backward composition *)
@@ -319,7 +319,7 @@ let uncurry f (x,y) = f x y
 
 The flow of computation can be viewed as a circuit where results of nodes (functions) connect to further nodes as inputs. We represent cross-sections of the circuit as tuples of intermediate values.
 
-```ocaml
+```ocaml env=ch6
 let print2 c i =
   let a = Char.escaped c in
   let b = string_of_int i in
@@ -328,7 +328,7 @@ let print2 c i =
 
 In point-free style:
 
-```ocaml
+```ocaml env=ch6
 let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
@@ -337,13 +337,13 @@ Since we usually pass arguments one at a time rather than in tuples, we need `un
 
 Another approach uses function composition, `flip`, and the **S** combinator:
 
-```ocaml
+```ocaml env=ch6
 let s x y z = x z (y z)
 ```
 
 Example: transforming a filter-map function step by step:
 
-```ocaml
+```ocaml env=ch6
 let func2 f g l = List.filter f (List.map g l)
 (* Using composition: *)
 let func2 f g = (-|) (List.filter f) (List.map g)
@@ -361,7 +361,7 @@ Mathematics has notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
 
 In OCaml, we do not have a universal addition operator:
 
-```ocaml
+```ocaml env=ch6
 let rec i_sum_fromto f a b =
   if a > b then 0
   else f a + i_sum_fromto f (a+1) b
@@ -376,7 +376,7 @@ let pi2_over6 =
 
 The natural generalization:
 
-```ocaml
+```ocaml env=ch6
 let rec op_fromto op base f a b =
   if a > b then base
   else op (f a) (op_fromto op base f (a+1) b)
@@ -390,7 +390,7 @@ $$f(A) = \bigcup_{p \in A} f(p)$$
 
 This translates to a useful list operation with union as append:
 
-```ocaml
+```ocaml env=ch6
 let rec concat_map f = function
   | [] -> []
   | a::l -> f a @ concat_map f l
@@ -398,7 +398,7 @@ let rec concat_map f = function
 
 More efficiently (tail-recursive):
 
-```ocaml
+```ocaml env=ch6
 let concat_map f l =
   let rec cmap_f accu = function
     | [] -> accu
@@ -408,7 +408,7 @@ let concat_map f l =
 
 #### All Subsequences of a List
 
-```ocaml
+```ocaml env=ch6
 let rec subseqs l =
   match l with
     | [] -> [[]]
@@ -419,7 +419,7 @@ let rec subseqs l =
 
 Tail-recursively:
 
-```ocaml
+```ocaml env=ch6
 let rec rmap_append f accu = function
   | [] -> accu
   | a::l -> rmap_append f (f a :: accu) l
@@ -432,6 +432,26 @@ let rec subseqs l =
       rmap_append (fun px -> x::px) pxs pxs
 ```
 
+#### Permutations and Choices
+
+To generate all permutations, we interleave each element into all positions:
+
+```ocaml env=ch6
+let rec interleave x = function
+  | [] -> [[x]]
+  | y::ys -> (x::y::ys) :: List.map (fun zs -> y::zs) (interleave x ys)
+
+let rec perms = function
+  | [] -> [[]]
+  | x::xs -> concat_map (interleave x) (perms xs)
+```
+
+For the Countdown problem, we need all non-empty subsequences with all their permutations:
+
+```ocaml env=ch6
+let choices l = concat_map perms (List.filter ((<>) []) (subseqs l))
+```
+
 ### 6.6 Grouping and Map-Reduce
 
 It is often useful to organize values by some property.
@@ -440,7 +460,7 @@ It is often useful to organize values by some property.
 
 First, we collect elements from an association list by key:
 
-```ocaml
+```ocaml env=ch6
 let collect l =
   match List.sort (fun x y -> compare (fst x) (fst y)) l with
   | [] -> []                                (* Start with associations sorted by key *)
@@ -455,7 +475,7 @@ let collect l =
 
 Now we can group by an arbitrary property:
 
-```ocaml
+```ocaml env=ch6
 let group_by p l = collect (List.map (fun e -> p e, e) l)
 ```
 
@@ -463,7 +483,7 @@ let group_by p l = collect (List.map (fun e -> p e, e) l)
 
 To process results like SQL aggregate operations, we add **reduction**:
 
-```ocaml
+```ocaml env=ch6
 let aggregate_by p red base l =
   let ags = group_by p l in
   List.map (fun (k, vs) -> k, List.fold_right red vs base) ags
@@ -471,7 +491,7 @@ let aggregate_by p red base l =
 
 Using the **feed-forward** (pipe) operator `let ( |> ) x f = f x`:
 
-```ocaml
+```ocaml env=ch6
 let aggregate_by p redf base l =
   group_by p l
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
@@ -479,7 +499,7 @@ let aggregate_by p redf base l =
 
 Often it is easier to extract the property upfront. Since we first map elements into key-value pairs, we call this `map_reduce`:
 
-```ocaml
+```ocaml env=ch6
 let map_reduce mapf redf base l =
   List.map mapf l
   |> collect
@@ -490,7 +510,7 @@ let map_reduce mapf redf base l =
 
 Sometimes we have multiple sources of information:
 
-```ocaml
+```ocaml env=ch6
 let concat_reduce mapf redf base l =
   concat_map mapf l
   |> collect
@@ -499,7 +519,7 @@ let concat_reduce mapf redf base l =
 
 Computing a merged histogram of documents:
 
-```ocaml
+```ocaml env=ch6
 let histogram documents =
   let mapf doc =
     Str.split (Str.regexp "[ \t.,;]+") doc
@@ -509,7 +529,7 @@ let histogram documents =
 
 Computing an inverted index:
 
-```ocaml
+```ocaml env=ch6
 let cons hd tl = hd::tl
 
 let inverted_index documents =
@@ -519,18 +539,9 @@ let inverted_index documents =
   concat_reduce mapf cons [] documents
 ```
 
-A simple "search engine":
+Set intersection is computed using `intersect` for sets represented as sorted lists:
 
-```ocaml
-let search index words =
-  match List.map (flip List.assoc index) words with
-  | [] -> []
-  | idx::idcs -> List.fold_left intersect idx idcs
-```
-
-where `intersect` computes intersection of sets represented as sorted lists:
-
-```ocaml
+```ocaml env=ch6
 let intersect xs ys =                       (* Sets as sorted lists *)
   let rec aux acc = function
     | [], _ | _, [] -> acc
@@ -542,11 +553,20 @@ let intersect xs ys =                       (* Sets as sorted lists *)
   List.rev (aux [] (xs, ys))
 ```
 
+A simple "search engine":
+
+```ocaml env=ch6
+let search index words =
+  match List.map (flip List.assoc index) words with
+  | [] -> []
+  | idx::idcs -> List.fold_left intersect idx idcs
+```
+
 ### 6.7 Higher-Order Functions for the Option Type
 
 Operating on optional values:
 
-```ocaml
+```ocaml env=ch6
 let map_option f = function
   | None -> None
   | Some e -> f e
@@ -554,7 +574,7 @@ let map_option f = function
 
 Mapping over a list and filtering out failures:
 
-```ocaml
+```ocaml env=ch6
 let rec map_some f = function
   | [] -> []
   | e::l -> match f e with
@@ -564,7 +584,7 @@ let rec map_some f = function
 
 Tail-recursively:
 
-```ocaml
+```ocaml env=ch6
 let map_some f l =
   let rec maps_f accu = function
     | [] -> accu
@@ -590,7 +610,7 @@ There are 780 solutions for this example. Changing the target to 831 gives an ex
 
 #### Data Types
 
-```ocaml
+```ocaml env=ch6
 type op = Add | Sub | Mul | Div
 
 let apply op x y =
@@ -630,7 +650,7 @@ let solution e ns n =
 
 Splitting a list into two non-empty parts:
 
-```ocaml
+```ocaml env=ch6
 let split l =
   let rec aux lhs acc = function
     | [] | [_] -> []
@@ -643,13 +663,13 @@ let split l =
 
 We introduce an operator for working with multiple data sources:
 
-```ocaml
+```ocaml env=ch6
 let ( |-> ) x f = concat_map f x
 ```
 
 Generating all expressions from a list of numbers:
 
-```ocaml
+```ocaml env=ch6
 let combine l r =                           (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
@@ -665,7 +685,7 @@ let rec exprs = function
 
 Finding solutions:
 
-```ocaml
+```ocaml env=ch6
 let guard n =
   List.filter (fun e -> eval e = Some n)
 
@@ -678,7 +698,7 @@ let solutions ns n =
 
 We memorize values with expressions as pairs `(e, eval e)`, so only valid subexpressions are generated:
 
-```ocaml
+```ocaml env=ch6
 let combine' (l, x) (r, y) =
   [Add; Sub; Mul; Div]
   |> List.filter (fun o -> valid o x y)
@@ -704,7 +724,7 @@ let solutions' ns n =
 
 Strengthening the validity predicate to account for commutativity and identity:
 
-```ocaml
+```ocaml env=ch6
 let valid op x y =
   match op with
   | Add -> x <= y
@@ -723,7 +743,7 @@ Given a honeycomb with some cells initially marked black, mark additional cells 
 
 #### Representing the Honeycomb
 
-```ocaml
+```ocaml skip
 type cell = int * int                       (* Cartesian coordinates *)
 
 module CellSet =                            (* Store cells in sets *)
@@ -742,7 +762,7 @@ let cellset_of_list l =                     (* List to set, inverse of CellSet.e
 
 **Neighborhood:** Each cell (x, y) has up to 6 neighbors:
 
-```ocaml
+```ocaml skip
 let neighbors n eaten (x, y) =
   List.filter
     (inside_board n eaten)
@@ -752,7 +772,7 @@ let neighbors n eaten (x, y) =
 
 **Building the honeycomb:**
 
-```ocaml
+```ocaml skip
 let even x = x mod 2 = 0
 
 let inside_board n eaten (x, y) =
@@ -763,7 +783,7 @@ let inside_board n eaten (x, y) =
 let honey_cells n eaten =
   fromto (-2*n) (2*n) |-> (fun x ->
     fromto (-n) n |-> (fun y ->
-     guard (inside_board n eaten)
+     pred_guard (inside_board n eaten)
         (x, y)))
 ```
 
@@ -771,7 +791,7 @@ let honey_cells n eaten =
 
 We walk through each island counting cells depth-first:
 
-```ocaml
+```ocaml skip
 let check_correct n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -808,7 +828,7 @@ let check_correct n island_size num_islands empty_cells =
 
 When processing lists with potentially multiple results per step, we need `concat_fold`:
 
-```ocaml
+```ocaml env=ch6
 let rec concat_fold f a = function
   | [] -> [a]
   | x::xs ->
@@ -823,7 +843,7 @@ We transform the testing code into generation code by:
 - Returning results in a list (empty list = no solutions)
 - At each neighbor, trying both eating and keeping
 
-```ocaml
+```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -868,7 +888,7 @@ The main rule: **fail (drop solution candidates) as early as possible**.
 
 We guard both choices (eating and keeping) and track how much honey needs to be eaten:
 
-```ocaml
+```ocaml env=ch6
 type state = {
   been_size: int;                           (* Honey cells in current island *)
   been_islands: int;                        (* Islands visited so far *)

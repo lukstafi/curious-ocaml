@@ -6,7 +6,7 @@ This chapter explores one of functional programming's most powerful abstractions
 
 Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The brute-force generation of expressions looked like this:
 
-```ocaml
+```ocaml env=ch8
 let combine l r =
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
@@ -22,7 +22,7 @@ let rec exprs = function
 
 And the generate-and-test scheme used:
 
-```ocaml
+```ocaml env=ch8
 let guard p e = if p e then [e] else []
 
 let solutions ns n =
@@ -33,7 +33,7 @@ let solutions ns n =
 
 We introduced the operator `|->` defined as:
 
-```ocaml
+```ocaml env=ch8
 let ( |-> ) x f = concat_map f x
 ```
 
@@ -121,7 +121,7 @@ OCaml 5 introduced **binding operators** that provide a clean, native syntax for
 
 For the list monad, we define these binding operators:
 
-```ocaml
+```ocaml env=ch8
 let ( let* ) x f = concat_map f x      (* bind *)
 let ( let+ ) x f = List.map f x        (* map/fmap *)
 let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
@@ -167,7 +167,7 @@ let solutions ns n =
 
 For a general guard check function, we define:
 
-```ocaml
+```ocaml env=ch8
 let guard p = if p then [()] else []
 ```
 
@@ -191,7 +191,7 @@ A monad is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at leas
 
 With OCaml 5's binding operators, we define `let*` as an alias for `bind`:
 
-```ocaml
+```ocaml env=ch8
 let bind a b = concat_map b a
 let return x = [x]
 let ( let* ) = bind
@@ -205,7 +205,7 @@ let solutions ns n =
 
 Why does `guard` look this way? Let us examine:
 
-```ocaml
+```ocaml env=ch8
 let fail = []
 let guard p = if p then return () else fail
 ```
@@ -217,7 +217,7 @@ Steps in monadic computation are composed with `let*` (or `>>=`, like `|->` for 
 
 Throwing away the binding argument is common. With binding operators, we can use `let* () = ...` or `let* _ = ...`:
 
-```ocaml
+```ocaml env=ch8
 let (>>=) a b = bind a b
 let (>>) m f = m >>= (fun _ -> f)
 ```
@@ -251,7 +251,7 @@ $$
 
 You should verify that these laws hold for our list monad:
 
-```ocaml
+```ocaml env=ch8
 let bind a b = concat_map b a
 let return x = [x]
 ```
@@ -301,7 +301,7 @@ $$
 
 The list type has a natural monad and monoid structure:
 
-```ocaml
+```ocaml env=ch8
 let mzero = []
 let mplus = (@)
 let bind a b = concat_map b a
@@ -310,7 +310,7 @@ let return a = [a]
 
 We can define in any monad-plus:
 
-```ocaml
+```ocaml env=ch8
 let fail = mzero
 let failwith _ = fail
 let (++) = mplus
@@ -322,7 +322,7 @@ let guard p = if p then return () else fail
 
 We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
 
-```ocaml
+```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -463,7 +463,7 @@ A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with 
 
 Finally, we can pass around modules in normal functions using first-class modules:
 
-```ocaml
+```ocaml env=ch8
 module type T = sig val g : int -> int end
 
 let f mod_v x =
@@ -486,7 +486,7 @@ A monad is a **quarantine container**:
 - We can put something into the container with `return`
 - We can operate on it, but the result needs to stay in the container
 
-```ocaml
+```ocaml env=ch8
 let lift f m =
   let* x = m in
   return (f x)
@@ -495,7 +495,7 @@ let lift f m =
 
 - We can deactivate-unwrap the quarantine container but only when it is in another container so the quarantine is not broken
 
-```ocaml
+```ocaml env=ch8
 let join m =
   let* x = m in
   x
@@ -536,7 +536,7 @@ When an expression is spread over a monad, its computation can be monitored or a
 
 To implement a monad, we need to provide the implementation type, `return`, and `bind` operations.
 
-```ocaml
+```ocaml env=ch8
 module type MONAD = sig
   type 'a t
   val return : 'a -> 'a t
@@ -548,7 +548,7 @@ Alternatively, we could start from `return`, `lift`, and `join` operations.
 
 Based on just these two operations, we can define a suite of general-purpose functions:
 
-```ocaml
+```ocaml env=ch8
 module type MONAD_OPS = sig
   type 'a monad
   include MONAD with type 'a t := 'a monad
@@ -591,7 +591,7 @@ end
 
 We make the monad "safe" by keeping its type abstract, but `run` exposes "what really happened":
 
-```ocaml
+```ocaml env=ch8
 module Monad (M : MONAD) : sig
   include MONAD_OPS
   val run : 'a monad -> 'a M.t
@@ -605,7 +605,7 @@ end
 
 The monad-plus class has many implementations. They need to provide `mzero` and `mplus`:
 
-```ocaml
+```ocaml env=ch8
 module type MONAD_PLUS = sig
   include MONAD
   val mzero : 'a t
@@ -643,7 +643,7 @@ end
 
 We also need a class for computations with state:
 
-```ocaml
+```ocaml env=ch8
 module type STATE = sig
   type store
   type 'a t
@@ -658,7 +658,7 @@ end
 
 Heavy laziness notation? Try a monad (with access):
 
-```ocaml
+```ocaml env=ch8
 module LazyM = Monad (struct
   type 'a t = 'a Lazy.t
   let bind a b = lazy (Lazy.force (b (Lazy.force a)))
@@ -672,7 +672,7 @@ let laccess m = Lazy.force (LazyM.run m)
 
 Our resident list monad (monad-plus):
 
-```ocaml
+```ocaml env=ch8
 module ListM = MonadPlus (struct
   type 'a t = 'a list
   let bind a b = concat_map b a
@@ -686,7 +686,7 @@ end)
 
 The Countdown module can be parameterized by any monad-plus:
 
-```ocaml
+```ocaml env=ch8
 module Countdown (M : MONAD_PLUS_OPS) = struct
   open M  (* Open the module to make monad operations visible *)
 
@@ -764,7 +764,7 @@ end
 
 Let us measure execution times:
 
-```ocaml
+```ocaml env=ch8
 let time f =
   let tbeg = Unix.gettimeofday () in
   let res = f () in
@@ -774,7 +774,7 @@ let time f =
 
 With the list monad:
 
-```ocaml
+```ocaml env=ch8
 module ListCountdown = Countdown (ListM)
 let test1 () = ListM.run (ListCountdown.solutions [1;3;7;10;25;50] 765)
 let t1, sol1 = time test1
@@ -784,7 +784,7 @@ let t1, sol1 = time test1
 
 What if we want only one solution? Laziness to the rescue! We define an "odd lazy list":
 
-```ocaml
+```ocaml env=ch8
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
@@ -815,7 +815,7 @@ Testing shows that the odd lazy list still takes about the same time to even get
 
 The **option monad** does not help either:
 
-```ocaml
+```ocaml env=ch8
 module OptionM = MonadPlus (struct
   type 'a t = 'a option
   let bind a b =
@@ -832,7 +832,7 @@ Our lazy list type is not lazy enough. Whenever we "make" a choice with `a ++ b`
 
 We need **even lazy lists** (our `llist` above are called "odd lazy lists"):
 
-```ocaml
+```ocaml env=ch8
 type 'a lazy_list = 'a lazy_list_ Lazy.t
 and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
 
@@ -870,7 +870,7 @@ Now the first solution takes considerably less time than all solutions. The next
 
 Built-in non-functional exceptions in OCaml are more efficient and more flexible. However, monadic exceptions are safer than standard exceptions in situations like multi-threading. The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad.
 
-```ocaml
+```ocaml env=ch8
 module ExceptionM (Excn : sig type t end) : sig
   type excn = Excn.t
   type 'a t = OK of 'a | Bad of excn
@@ -898,7 +898,7 @@ end
 
 #### The State Monad
 
-```ocaml
+```ocaml env=ch8
 module StateM (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> 'a * store  (* Pass the current store value to get the next value *)
@@ -922,7 +922,7 @@ end
 
 The state monad is useful to hide passing-around of a "current" value. Here is an example that renames variables in lambda-terms to eliminate potential name clashes:
 
-```ocaml
+```ocaml skip
 type term =
   | Var of string
   | Lam of string * term
@@ -997,7 +997,7 @@ let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
 
 #### State Transformer Implementation
 
-```ocaml
+```ocaml env=ch8
 module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
   type store = Store.t
   type 'a t = store -> ('a * store) MP.monad
@@ -1028,7 +1028,7 @@ end
 
 Using the state transformer with our puzzle solver:
 
-```ocaml
+```ocaml skip
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   type state = {
     been_size : int;
@@ -1152,7 +1152,7 @@ Outside-monad operations:
 - `distrib : 'a monad -> ('a * float) list`: Returns the distribution of probabilities over the resulting values.
 - `access : 'a monad -> 'a`: Samples a random result from the distribution -- **non-functional** behavior.
 
-```ocaml
+```ocaml env=ch8
 module type PROBABILITY = sig
   include MONAD_OPS
   val choose : float -> 'a monad -> 'a monad -> 'a monad
@@ -1168,7 +1168,7 @@ end
 
 Helper functions:
 
-```ocaml
+```ocaml skip
 let total dist =
   List.fold_left (fun a (_,b) -> a +. b) 0. dist
 
@@ -1190,7 +1190,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 #### Exact Distribution Monad
 
-```ocaml
+```ocaml skip
 module DistribM : PROBABILITY = struct
   module M = struct           (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
@@ -1219,7 +1219,7 @@ end
 
 #### Sampling Monad
 
-```ocaml
+```ocaml skip
 module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   module M = struct                      (* Parameterized by how many samples *)
     type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
@@ -1255,7 +1255,7 @@ end
 
 In search of a new car, the player picks a door, say 1. The game host then opens one of the other doors, say 3, to reveal a goat and offers to let the player pick door 2 instead of door 1.
 
-```ocaml
+```ocaml skip
 module MontyHall (P : PROBABILITY) = struct
   open P
   type door = A | B | C
@@ -1296,7 +1296,7 @@ To compute $P(A|B)$:
 
 For the exact distribution monad, we just need to allow intermediate distributions to be unnormalized (sum to less than 1). For the sampling monad, we use rejection sampling (though `mplus` has no straightforward correct implementation).
 
-```ocaml
+```ocaml skip
 module type COND_PROBAB = sig
   include PROBABILITY
   include MONAD_PLUS_OPS with type 'a monad := 'a monad
@@ -1391,7 +1391,7 @@ Probability tables:
 - $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
 - $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
 
-```ocaml
+```ocaml skip
 module Burglary (P : COND_PROBAB) = struct
   open P
   type what_happened =
@@ -1463,7 +1463,7 @@ Under **coarse-grained** concurrency, computation is only suspended when request
 
 #### Thread Monad Signatures
 
-```ocaml
+```ocaml env=ch8
 module type THREADS = sig
   include MONAD
   val parallel :
@@ -1510,7 +1510,7 @@ end
 
 #### Cooperative Thread Implementation
 
-```ocaml
+```ocaml skip
 module Cooperative = Threads(struct
   type 'a state =
     | Return of 'a                     (* The thread has returned *)
@@ -1584,7 +1584,7 @@ end)
 
 #### Testing the Thread Implementation
 
-```ocaml
+```ocaml skip
 module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
@@ -1644,7 +1644,7 @@ Find all answers to the puzzle using a list comprehension. The comprehension wil
 
 **Exercise 4.** Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
 
-```ocaml
+```ocaml skip
 type 'a tree = Empty | Leaf of 'a | T of 'a tree * 'a tree
 
 module TreeM = MonadPlus (struct
@@ -1662,7 +1662,7 @@ end)
 
 **Exercise 6.** Why is the following monad-plus not lazy enough?
 
-```ocaml
+```ocaml skip
 let rec badappend l1 l2 =
   match l1 with lazy LazNil -> l2
   | lazy (LazCons (hd, tl)) ->

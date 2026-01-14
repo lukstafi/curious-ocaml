@@ -1,4 +1,4 @@
-(* Chapter 8 prelude - Monads and related utilities *)
+(* Chapter 8 prelude - minimal operators and Countdown types *)
 
 (* Basic utilities *)
 let flip f x y = f y x
@@ -9,24 +9,13 @@ let const x _ = x
 let (-|) f g x = f (g x)
 let (|-) f g x = g (f x)
 
-(* concat_map: map then flatten - use stdlib version *)
+(* concat_map: use stdlib version *)
 let concat_map = List.concat_map
-
-(* Binding operators for the list monad (OCaml 5 style) *)
-let ( let* ) x f = concat_map f x      (* bind *)
-let ( let+ ) x f = List.map f x        (* map/fmap *)
-let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
-let ( and+ ) = ( and* )
-let return x = [x]
-let fail = []
 
 (* The |-> operator for multiple data sources *)
 let ( |-> ) x f = concat_map f x
 
-(* Range function *)
-let rec from_to a b = if a > b then [] else a :: from_to (a + 1) b
-
-(* Countdown problem types from chapter 6 *)
+(* Countdown problem types from chapter 6 - needed for opening examples *)
 type op = Add | Sub | Mul | Div
 
 let apply op x y =
@@ -57,10 +46,6 @@ let rec eval = function
       if valid o x y then Some (apply o x y)
       else None))
 
-let rec values = function
-  | Val n -> [n]
-  | App (_, l, r) -> values l @ values r
-
 (* Subsequences *)
 let rec subs = function
   | [] -> [[]]
@@ -88,24 +73,44 @@ let split l =
       aux lhs ((List.rev lhs, rhs)::acc) rhs in
   aux [] [] l
 
-(* Combine two expressions using each operator *)
-let combine l r =
-  List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
-
-(* Generate all expressions from numbers *)
-let rec exprs = function
+(* List difference - needed for probability examples *)
+let rec list_diff l1 l2 =
+  match l1 with
   | [] -> []
-  | [n] -> [Val n]
-  | ns ->
-    split ns |-> (fun (ls, rs) ->
-      exprs ls |-> (fun l ->
-        exprs rs |-> (fun r ->
-          combine l r)))
+  | x::xs ->
+    if List.mem x l2 then list_diff xs (List.filter ((<>) x) l2)
+    else x :: list_diff xs l2
 
-(* Guard function for filtering *)
-let guard pred = List.filter pred
+(* Honey Islands types and functions - needed for backtracking examples *)
+type cell = int * int
 
-(* Find all solutions *)
-let solutions ns n =
-  choices ns |-> (fun ns' ->
-    exprs ns' |> guard (fun e -> eval e = Some n))
+module CellSet =
+  Set.Make (struct type t = cell let compare = compare end)
+
+let cellset_of_list l =
+  List.fold_right CellSet.add l CellSet.empty
+
+let even x = x mod 2 = 0
+
+(* Range function *)
+let rec fromto a b = if a > b then [] else a :: fromto (a + 1) b
+
+(* Guard function for filtering - single element version *)
+let pred_guard pred x = if pred x then [x] else []
+
+let inside_board n eaten (x, y) =
+  even x = even y && abs y <= n &&
+  abs x + abs y <= 2*n &&
+  not (CellSet.mem (x, y) eaten)
+
+let neighbors n eaten (x, y) =
+  List.filter
+    (inside_board n eaten)
+    [x-1,y-1; x+1,y-1; x+2,y;
+     x+1,y+1; x-1,y+1; x-2,y]
+
+let honey_cells n eaten =
+  fromto (-2*n) (2*n) |-> (fun x ->
+    fromto (-n) n |-> (fun y ->
+     pred_guard (inside_board n eaten)
+        (x, y)))
