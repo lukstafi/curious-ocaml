@@ -24,7 +24,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 | F# | `let (<<) f g x = f (g x)` |
 | Haskell | `(.) f g = \x -> f (g x)` |
 
-This backward composition looks like function application but needs fewer parentheses. Recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms. Using backward composition, we could write:
+This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
 
 ```
 let iso2 = step1l -| step2l -| step3l
@@ -48,6 +48,8 @@ let iso1 = step1r |- step2r |- step3r
 Both composition examples above use **partial application**. Recall from the previous chapter that `((+) 1)` is a function that adds 1 to its argument. Partial application occurs when we do not pass all the arguments a function needs; the result is a function that requires the remaining arguments.
 
 In the composition `step1r |- step2r |- step3r`, each `stepNr` function is partially applied. The composition operator `(|-)` takes two functions `f` and `g` and returns a new function that first applies `f`, then applies `g` to the result.
+
+*How is partial application used in the composition examples above?*
 
 #### Power Function
 
@@ -76,7 +78,7 @@ Using `power`, we can define a numerical approximation of the derivative:
 let derivative dx f = fun x -> (f(x +. dx) -. f(x)) /. dx
 ```
 
-This definition emphasizes that `derivative dx f` is itself a function of `x`. We can write it more concisely as:
+This definition emphasizes that `derivative dx f` is itself a function of `x` (where the intent to use with two arguments is stressed). We can write it more concisely as:
 
 ```ocaml
 let derivative dx f x = (f(x +. dx) -. f(x)) /. dx
@@ -342,7 +344,7 @@ The indentation levels in this trace correspond to **stack frames**---the runtim
 
 ### 3.4 Tail Calls and Tail Recursion
 
-Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. The trace above illustrates this: each level of indentation represents a new stack frame.
+Excuse me for not defining what a *function call* is... Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. The trace above illustrates this: each level of indentation represents a new stack frame.
 
 #### What is a Tail Call?
 

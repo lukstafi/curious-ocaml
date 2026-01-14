@@ -2,6 +2,8 @@
 
 This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We examine the formal mechanics of type inference and then apply these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in red-black trees.
 
+*If you see any error in this chapter, please let us know!*
+
 ### 5.1 Type Inference
 
 We have seen the rules that govern the assignment of types to expressions, but how does OCaml guess what types to use, and when no correct types exist? The answer is that it solves equations.
@@ -26,7 +28,7 @@ In contrast:
 val x : '_weak1 list ref = {contents = []}
 ```
 
-Here `'_a` is an unknown. It stands for a particular type like `float` or `int -> int`, but OCaml just does not yet know which type. OCaml only reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not central to functional programming.
+Here `'_a` is an unknown. It stands for a particular type like `float` or `int -> int`, but OCaml just doesn't know the type yet. OCaml only reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to functional programming.
 
 When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help: writing `let f x = expr x` instead of `let f = expr`. For example:
 
@@ -364,7 +366,7 @@ end
 
 ### 5.8 Implementing Maps: Association Lists
 
-Let us now build an implementation of maps from the ground up. The most straightforward implementation... might not be what you expected:
+Let's now build an implementation of maps from the ground up. The most straightforward implementation... might not be what you expected:
 
 ```ocaml
 module TrivialMap : MAP = struct

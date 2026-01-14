@@ -4,7 +4,7 @@
 
 ### 1.1 In the Beginning there was Logos
 
-What logical connectives do you know?
+Let's start by reviewing the logical connectives you may have encountered. What logical connectives do you know?
 
 | $\top$ | $\bot$ | $\wedge$ | $\vee$ | $\rightarrow$ |
 |---|---|---|---|---|
@@ -93,7 +93,9 @@ Here $x$ is a unique variable—we cannot substitute a particular number for it 
 
 ### 1.3 Logos was Programmed in OCaml
 
-There is a deep correspondence between logic and programming, known as the **Curry-Howard correspondence** (or "propositions as types"). The following table shows how logical connectives correspond to programming constructs:
+We now arrive at a remarkable connection between logic and programming—the **Curry-Howard correspondence** (also known as "propositions as types"). This deep correspondence shows that proofs in logic directly correspond to programs in typed programming languages!
+
+The following table shows how logical connectives correspond to programming constructs:
 
 | Logic | Type | Expression |
 |-------|------|------------|
@@ -181,12 +183,11 @@ We will cover what is missing in the above rules when we discuss **polymorphism*
 Operators like `+`, `*`, `<`, `=` are names of functions. Just like other names, you can use operator names for your own functions:
 
 ```ocaml
-let (+:) a b = String.concat "" [a; b]  (* Special way of defining *)
+let (+:) a b = String.concat "" [a; b];;  (* Special way of defining *)
+"Alpha" +: "Beta";;  (* but normal way of using operators *)
 ```
 
-```ocaml
-"Alpha" +: "Beta"  (* but normal way of using operators *)
-```
+Notice the asymmetry: we use a *special* syntax for defining operators (with parentheses) but the *normal* infix syntax for using them.
 
 Operators in OCaml are **not overloaded**. This means that every type needs its own set of operators:
 - `+`, `*`, `/` work for integers

@@ -4,7 +4,7 @@
 
 ### 2.1 A Glimpse at Type Inference
 
-For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`. In the derivations below, $[?]$ means "type unknown yet."
+For a refresher, let's apply the type inference rules introduced in Chapter 1 to some simple examples. We'll start with the identity function `fun x -> x`. In the derivations below, $[?]$ means "dunno yet" (type unknown).
 
 We begin with an incomplete derivation:
 
@@ -75,7 +75,11 @@ $$
 
 In the first case, `(+)` is a function that takes an integer and returns a function from integers to integers. In the second case, we have a function that takes a function as an argument.
 
-For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What expanded form does `((+) 1)` correspond to exactly (computationally)? It corresponds to `fun y -> 1 + y`.
+For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What expanded form does `((+) 1)` correspond to exactly (computationally)?
+
+*Think about it before reading on...*
+
+It corresponds to `fun y -> 1 + y`.
 
 We will become more familiar with functions returning functions when we study the *lambda calculus* in a later chapter.
 
@@ -140,7 +144,7 @@ Several conventions and syntax rules apply to parametric types:
 
   And Haskell syntax: `data Choice a b = Left a | Right b`
 
-### 2.3 Syntactic Conventions
+### 2.3 Syntactic Bread and Sugar
 
 #### Constructor Naming
 
@@ -372,9 +376,9 @@ val iso2 : repr -> btree
 
 These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for all representations `r`, `iso1 (iso2 r) = r`.
 
-#### A First Attempt
+#### My First (Failed) Attempt
 
-Here is a first (failed) attempt:
+Here is my first attempt:
 
 ```
 # let iso1 (t : btree) : repr =
@@ -391,7 +395,7 @@ Here is an example of a value that is not matched:
 Node (_, Tip, Node (_, _, _))
 ```
 
-We forgot about one case! It seems difficult to guess the solution directly.
+I forgot about one case! It seems difficult to guess the solution directly. Have you found it on your first try?
 
 #### Breaking Down the Problem
 
@@ -439,7 +443,9 @@ let iso1 (t : btree) : repr =
   step3r (step2r (step1r t))
 ```
 
-Defining `step1l`, `step2l`, `step3l`, and `iso2` is now straightforward---each step is the inverse of its corresponding forward step.
+**Exercise:** Define `step1l`, `step2l`, `step3l`, and `iso2`.
+
+*Hint:* Now it's straightforward---each step is the inverse of its corresponding forward step!
 
 #### Take-Home Lessons
 
@@ -449,7 +455,7 @@ Defining `step1l`, `step2l`, `step3l`, and `iso2` is now straightforward---each 
 
 ### 2.6 Differentiating Algebraic Data Types
 
-The title might seem strange---we will differentiate the translated polynomials, not the types themselves. But what sense does this make?
+Of course, you might object that the pompous title is wrong---we will differentiate the translated polynomials, not the types themselves. But what sense does this make?
 
 It turns out that taking the partial derivative of a polynomial (translated from a data type), when translated back, gives a type representing how to change one occurrence of a value corresponding to the variable with respect to which we differentiated. In other words, the derivative represents a "context" or "hole" in the data structure.
 
@@ -526,6 +532,11 @@ type btree_deriv =
 
 (You might someday hear about *zippers*---they are "inverted" relative to our type, with the hole coming first.)
 
+**Exercise:** Write a function that takes a number and a `btree_deriv`, and builds a `btree` by putting the number into the "hole" in `btree_deriv`.
+
+<details>
+<summary>Solution</summary>
+
 The integration function fills the hole with a value:
 
 ```ocaml
@@ -536,6 +547,8 @@ let rec btree_integr n = function
   | Below (RightBranch, m, ltree, deriv) ->
     Node (m, ltree, btree_integr n deriv)
 ```
+
+</details>
 
 ### 2.7 Exercises
 
