@@ -3636,25 +3636,25 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb120-1"><a hr
 <span id="cb120-3"><a href="#cb120-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb120-4"><a href="#cb120-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = Empty</span>
 <span id="cb120-5"><a href="#cb120-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb120-6"><a href="#cb120-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> member k m =                           <span class="co">(* &quot;Divide and conquer&quot; search through the tree. *)</span></span>
+<span id="cb120-6"><a href="#cb120-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> member k m =                    <span class="co">(* &quot;Divide and conquer&quot; search through the tree. *)</span></span>
 <span id="cb120-7"><a href="#cb120-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span></span>
 <span id="cb120-8"><a href="#cb120-8" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; <span class="kw">false</span></span>
 <span id="cb120-9"><a href="#cb120-9" aria-hidden="true" tabindex="-1"></a>    | T (_, k2, _, _) <span class="kw">when</span> k = k2 -&gt; <span class="kw">true</span></span>
 <span id="cb120-10"><a href="#cb120-10" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, _, _) <span class="kw">when</span> k &lt; k2 -&gt; member k m1</span>
 <span id="cb120-11"><a href="#cb120-11" aria-hidden="true" tabindex="-1"></a>    | T (_, _, _, m2) -&gt; member k m2</span>
 <span id="cb120-12"><a href="#cb120-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb120-13"><a href="#cb120-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> add k v m =                            <span class="co">(* Searches the tree in the same way as member *)</span></span>
-<span id="cb120-14"><a href="#cb120-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                                 <span class="co">(* but copies every node along the way. *)</span></span>
+<span id="cb120-13"><a href="#cb120-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> add k v m =                     <span class="co">(* Searches the tree in the same way as member *)</span></span>
+<span id="cb120-14"><a href="#cb120-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                          <span class="co">(* but copies every node along the way. *)</span></span>
 <span id="cb120-15"><a href="#cb120-15" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; T (Empty, k, v, Empty)</span>
 <span id="cb120-16"><a href="#cb120-16" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, _, m2) <span class="kw">when</span> k = k2 -&gt; T (m1, k, v, m2)</span>
 <span id="cb120-17"><a href="#cb120-17" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, v2, m2) <span class="kw">when</span> k &lt; k2 -&gt; T (add k v m1, k2, v2, m2)</span>
 <span id="cb120-18"><a href="#cb120-18" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, v2, m2) -&gt; T (m1, k2, v2, add k v m2)</span>
 <span id="cb120-19"><a href="#cb120-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb120-20"><a href="#cb120-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> split_rightmost m =                    <span class="co">(* A helper function, it does not belong *)</span></span>
-<span id="cb120-21"><a href="#cb120-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                                 <span class="co">(* to the &quot;exported&quot; signature. *)</span></span>
+<span id="cb120-20"><a href="#cb120-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> split_rightmost m =             <span class="co">(* A helper function, it does not belong *)</span></span>
+<span id="cb120-21"><a href="#cb120-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                          <span class="co">(* to the &quot;exported&quot; signature. *)</span></span>
 <span id="cb120-22"><a href="#cb120-22" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; <span class="dt">raise</span> <span class="dt">Not_found</span></span>
-<span id="cb120-23"><a href="#cb120-23" aria-hidden="true" tabindex="-1"></a>    | T (Empty, k, v, Empty) -&gt; k, v, Empty      <span class="co">(* We remove one element, *)</span></span>
-<span id="cb120-24"><a href="#cb120-24" aria-hidden="true" tabindex="-1"></a>    | T (m1, k, v, m2) -&gt;                        <span class="co">(* the one that is on the bottom right. *)</span></span>
+<span id="cb120-23"><a href="#cb120-23" aria-hidden="true" tabindex="-1"></a>    | T (Empty, k, v, Empty) -&gt; k, v, Empty   <span class="co">(* We remove one element, *)</span></span>
+<span id="cb120-24"><a href="#cb120-24" aria-hidden="true" tabindex="-1"></a>    | T (m1, k, v, m2) -&gt;                 <span class="co">(* the one that is on the bottom right. *)</span></span>
 <span id="cb120-25"><a href="#cb120-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> rk, rv, rm = split_rightmost m2 <span class="kw">in</span></span>
 <span id="cb120-26"><a href="#cb120-26" aria-hidden="true" tabindex="-1"></a>        rk, rv, T (m1, k, v, rm)</span>
 <span id="cb120-27"><a href="#cb120-27" aria-hidden="true" tabindex="-1"></a></span>
@@ -3733,31 +3733,31 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb121-1"><a hr
 <span id="cb121-3"><a href="#cb121-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb121-4"><a href="#cb121-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> empty = E</span>
 <span id="cb121-5"><a href="#cb121-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb121-6"><a href="#cb121-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> member x m =                           <span class="co">(* Like in unbalanced binary search tree. *)</span></span>
+<span id="cb121-6"><a href="#cb121-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> member x m =                     <span class="co">(* Like in unbalanced binary search tree. *)</span></span>
 <span id="cb121-7"><a href="#cb121-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> m <span class="kw">with</span></span>
 <span id="cb121-8"><a href="#cb121-8" aria-hidden="true" tabindex="-1"></a>  | E -&gt; <span class="kw">false</span></span>
 <span id="cb121-9"><a href="#cb121-9" aria-hidden="true" tabindex="-1"></a>  | T (_, _, y, _) <span class="kw">when</span> x = y -&gt; <span class="kw">true</span></span>
 <span id="cb121-10"><a href="#cb121-10" aria-hidden="true" tabindex="-1"></a>  | T (_, a, y, _) <span class="kw">when</span> x &lt; y -&gt; member x a</span>
 <span id="cb121-11"><a href="#cb121-11" aria-hidden="true" tabindex="-1"></a>  | T (_, _, _, b) -&gt; member x b</span>
 <span id="cb121-12"><a href="#cb121-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb121-13"><a href="#cb121-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> balance = <span class="kw">function</span>                         <span class="co">(* Restoring the invariants. *)</span></span>
-<span id="cb121-14"><a href="#cb121-14" aria-hidden="true" tabindex="-1"></a>  | B, T (R, T (R,a,x,b), y, c), z, d          <span class="co">(* On next figure: left, *)</span></span>
-<span id="cb121-15"><a href="#cb121-15" aria-hidden="true" tabindex="-1"></a>  | B, T (R, a, x, T (R,b,y,c)), z, d          <span class="co">(* top, *)</span></span>
-<span id="cb121-16"><a href="#cb121-16" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, T (R,b,y,c), z, d)          <span class="co">(* bottom, *)</span></span>
-<span id="cb121-17"><a href="#cb121-17" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, b, y, T (R,c,z,d))          <span class="co">(* right, *)</span></span>
+<span id="cb121-13"><a href="#cb121-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> balance = <span class="kw">function</span>                   <span class="co">(* Restoring the invariants. *)</span></span>
+<span id="cb121-14"><a href="#cb121-14" aria-hidden="true" tabindex="-1"></a>  | B, T (R, T (R,a,x,b), y, c), z, d    <span class="co">(* On next figure: left, *)</span></span>
+<span id="cb121-15"><a href="#cb121-15" aria-hidden="true" tabindex="-1"></a>  | B, T (R, a, x, T (R,b,y,c)), z, d    <span class="co">(* top, *)</span></span>
+<span id="cb121-16"><a href="#cb121-16" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, T (R,b,y,c), z, d)    <span class="co">(* bottom, *)</span></span>
+<span id="cb121-17"><a href="#cb121-17" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, b, y, T (R,c,z,d))    <span class="co">(* right, *)</span></span>
 <span id="cb121-18"><a href="#cb121-18" aria-hidden="true" tabindex="-1"></a>      -&gt; T (R, T (B,a,x,b), y, T (B,c,z,d))    <span class="co">(* center tree. *)</span></span>
 <span id="cb121-19"><a href="#cb121-19" aria-hidden="true" tabindex="-1"></a>  | color, a, x, b -&gt; T (color, a, x, b)       <span class="co">(* We allow red-red violation for now. *)</span></span>
 <span id="cb121-20"><a href="#cb121-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb121-21"><a href="#cb121-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> insert x s =</span>
-<span id="cb121-22"><a href="#cb121-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> ins = <span class="kw">function</span>                       <span class="co">(* Like in unbalanced binary search tree, *)</span></span>
-<span id="cb121-23"><a href="#cb121-23" aria-hidden="true" tabindex="-1"></a>    | E -&gt; T (R, E, x, E)                      <span class="co">(* but fix violation above created node. *)</span></span>
+<span id="cb121-22"><a href="#cb121-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> ins = <span class="kw">function</span>                 <span class="co">(* Like in unbalanced binary search tree, *)</span></span>
+<span id="cb121-23"><a href="#cb121-23" aria-hidden="true" tabindex="-1"></a>    | E -&gt; T (R, E, x, E)                <span class="co">(* but fix violation above created node. *)</span></span>
 <span id="cb121-24"><a href="#cb121-24" aria-hidden="true" tabindex="-1"></a>    | T (color, a, y, b) <span class="kw">as</span> s -&gt;</span>
 <span id="cb121-25"><a href="#cb121-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">if</span> x &lt; y <span class="kw">then</span> balance (color, ins a, y, b)</span>
 <span id="cb121-26"><a href="#cb121-26" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> <span class="kw">if</span> x &gt; y <span class="kw">then</span> balance (color, a, y, ins b)</span>
 <span id="cb121-27"><a href="#cb121-27" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> s</span>
 <span id="cb121-28"><a href="#cb121-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span></span>
-<span id="cb121-29"><a href="#cb121-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> ins s <span class="kw">with</span>                             <span class="co">(* We could still have red-red violation at root, *)</span></span>
-<span id="cb121-30"><a href="#cb121-30" aria-hidden="true" tabindex="-1"></a>  | T (_, a, y, b) -&gt; T (B, a, y, b)           <span class="co">(* fixed by coloring it black. *)</span></span>
+<span id="cb121-29"><a href="#cb121-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> ins s <span class="kw">with</span>                       <span class="co">(* We could still have red-red violation at root, *)</span></span>
+<span id="cb121-30"><a href="#cb121-30" aria-hidden="true" tabindex="-1"></a>  | T (_, a, y, b) -&gt; T (B, a, y, b)     <span class="co">(* fixed by coloring it black. *)</span></span>
 <span id="cb121-31"><a href="#cb121-31" aria-hidden="true" tabindex="-1"></a>  | E -&gt; <span class="dt">failwith</span> <span class="st">&quot;insert: impossible&quot;</span></span></code></pre></div>
 <p>The <code>balance</code> function handles four cases where a red-red
 violation occurs (a red node with a red child). In each case, we
@@ -5377,26 +5377,26 @@ Second part
 Document First part Second part</code></pre>
 <h4 id="straightforward-solution">7.9.1 Straightforward Solution</h4>
 <div class="sourceCode" id="cb230"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb230-1"><a href="#cb230-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pretty w d =                            <span class="co">(* Allowed width of line w. *)</span></span>
-<span id="cb230-2"><a href="#cb230-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> width = <span class="kw">function</span>                  <span class="co">(* Total length of subdocument. *)</span></span>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb230-1"><a href="#cb230-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pretty w d =                     <span class="co">(* Allowed width of line w. *)</span></span>
+<span id="cb230-2"><a href="#cb230-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> width = <span class="kw">function</span>           <span class="co">(* Total length of subdocument. *)</span></span>
 <span id="cb230-3"><a href="#cb230-3" aria-hidden="true" tabindex="-1"></a>    | Text z -&gt; <span class="dt">String</span>.length z</span>
 <span id="cb230-4"><a href="#cb230-4" aria-hidden="true" tabindex="-1"></a>    | Line -&gt; <span class="dv">1</span></span>
 <span id="cb230-5"><a href="#cb230-5" aria-hidden="true" tabindex="-1"></a>    | Cat (d1, d2) -&gt; width d1 + width d2</span>
 <span id="cb230-6"><a href="#cb230-6" aria-hidden="true" tabindex="-1"></a>    | Group d -&gt; width d <span class="kw">in</span></span>
-<span id="cb230-7"><a href="#cb230-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> <span class="dt">format</span> f r = <span class="kw">function</span>             <span class="co">(* Remaining space r. *)</span></span>
+<span id="cb230-7"><a href="#cb230-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> <span class="dt">format</span> f r = <span class="kw">function</span>      <span class="co">(* Remaining space r. *)</span></span>
 <span id="cb230-8"><a href="#cb230-8" aria-hidden="true" tabindex="-1"></a>    | Text z -&gt; z, r - <span class="dt">String</span>.length z</span>
-<span id="cb230-9"><a href="#cb230-9" aria-hidden="true" tabindex="-1"></a>    | Line <span class="kw">when</span> f -&gt; <span class="st">&quot; &quot;</span>, r<span class="dv">-1</span>               <span class="co">(* If not f then line breaks. *)</span></span>
+<span id="cb230-9"><a href="#cb230-9" aria-hidden="true" tabindex="-1"></a>    | Line <span class="kw">when</span> f -&gt; <span class="st">&quot; &quot;</span>, r<span class="dv">-1</span>        <span class="co">(* If not f then line breaks. *)</span></span>
 <span id="cb230-10"><a href="#cb230-10" aria-hidden="true" tabindex="-1"></a>    | Line -&gt; <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>, w</span>
 <span id="cb230-11"><a href="#cb230-11" aria-hidden="true" tabindex="-1"></a>    | Cat (d1, d2) -&gt;</span>
 <span id="cb230-12"><a href="#cb230-12" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> s1, r = <span class="dt">format</span> f r d1 <span class="kw">in</span></span>
 <span id="cb230-13"><a href="#cb230-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> s2, r = <span class="dt">format</span> f r d2 <span class="kw">in</span></span>
-<span id="cb230-14"><a href="#cb230-14" aria-hidden="true" tabindex="-1"></a>      s1 ^ s2, r                            <span class="co">(* If following group fits, then without line breaks. *)</span></span>
+<span id="cb230-14"><a href="#cb230-14" aria-hidden="true" tabindex="-1"></a>      s1 ^ s2, r                     <span class="co">(* If following group fits, then without line breaks. *)</span></span>
 <span id="cb230-15"><a href="#cb230-15" aria-hidden="true" tabindex="-1"></a>    | Group d -&gt; <span class="dt">format</span> (f || width d &lt;= r) r d <span class="kw">in</span></span>
 <span id="cb230-16"><a href="#cb230-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">fst</span> (<span class="dt">format</span> <span class="kw">false</span> w d)</span></code></pre></div>
 <h4 id="stream-based-solution">7.9.2 Stream-Based Solution</h4>
 <p>Working with a stream of nodes:</p>
 <div class="sourceCode" id="cb231"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb231-1"><a href="#cb231-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) doc_e =                       <span class="co">(* Annotated nodes, special for group beginning. *)</span></span>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb231-1"><a href="#cb231-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) doc_e =                <span class="co">(* Annotated nodes, special for group beginning. *)</span></span>
 <span id="cb231-2"><a href="#cb231-2" aria-hidden="true" tabindex="-1"></a>  TE <span class="kw">of</span> &#39;a * <span class="dt">string</span> | LE <span class="kw">of</span> &#39;a | GBeg <span class="kw">of</span> &#39;b | GEnd <span class="kw">of</span> &#39;a</span></code></pre></div>
 <p>Normalize a subdocument – remove empty groups:</p>
 <div class="sourceCode" id="cb232"><pre
@@ -5456,50 +5456,52 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb235-1"><a hr
 <p>That’s waiting too long! We can stop waiting when the width of a
 group exceeds the line limit. <code>GBeg</code> will not store end of
 group when it is irrelevant:</p>
-<pre><code>type grp_pos = Pos of int | Too_far
-
-let rec grends w grstack =
-  let flush tail =                          (* When the stack exceeds width w, *)
-    yield_all                               (* flush it -- yield everything in it. *)
-      (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in                               (* Above: concatenate in rev. with prep before each part. *)
-  Await (function
-  | TE (curp, _) | LE curp as e -&gt;
-    (match grstack with                     (* Remember beginning of groups in the stack. *)
-    | [] -&gt; Yield (e, grends w [])
-    | (begp, _)::_ when curp-begp &gt; w -&gt;
-      flush (Yield (e, grends w []))
-    | (begp, gr)::grs -&gt; grends w ((begp, e::gr)::grs))
-  | GBeg begp -&gt; grends w ((begp, [])::grstack)
-  | GEnd endp as e -&gt;
-    match grstack with                      (* No longer fail when the stack is empty -- *)
-    | [] -&gt; Yield (e, grends w [])          (* could have been flushed. *)
-    | (begp, _)::_ when endp-begp &gt; w -&gt;
-      flush (Yield (e, grends w []))
-    | [_, gr] -&gt;                            (* If width not exceeded, *)
-      yield_all                             (* work as before optimization. *)
-        (GBeg (Pos endp)::List.rev (GEnd endp::gr))
-        (grends w [])
-    | (_, gr)::(par_begp, par)::grs -&gt;
-      let par =
-        GEnd endp::gr @ [GBeg (Pos endp)] @ par in
-      grends w ((par_begp, par)::grs))
-
-let grends w = grends w []                  (* Initial stack is empty. *)</code></pre>
+<div class="sourceCode" id="cb236"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb236-1"><a href="#cb236-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> grp_pos = Pos <span class="kw">of</span> <span class="dt">int</span> | Too_far</span>
+<span id="cb236-2"><a href="#cb236-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb236-3"><a href="#cb236-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> grends w grstack =</span>
+<span id="cb236-4"><a href="#cb236-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="dt">flush</span> tail =                   <span class="co">(* When the stack exceeds width w, *)</span></span>
+<span id="cb236-5"><a href="#cb236-5" aria-hidden="true" tabindex="-1"></a>    yield_all                        <span class="co">(* flush it -- yield everything in it. *)</span></span>
+<span id="cb236-6"><a href="#cb236-6" aria-hidden="true" tabindex="-1"></a>      (rev_concat_map ~prep:(GBeg Too_far) <span class="dt">snd</span> grstack)</span>
+<span id="cb236-7"><a href="#cb236-7" aria-hidden="true" tabindex="-1"></a>      tail <span class="kw">in</span>                        <span class="co">(* Above: concatenate in rev. with prep before each part. *)</span></span>
+<span id="cb236-8"><a href="#cb236-8" aria-hidden="true" tabindex="-1"></a>  Await (<span class="kw">function</span></span>
+<span id="cb236-9"><a href="#cb236-9" aria-hidden="true" tabindex="-1"></a>  | TE (curp, _) | LE curp <span class="kw">as</span> e -&gt;</span>
+<span id="cb236-10"><a href="#cb236-10" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">match</span> grstack <span class="kw">with</span>              <span class="co">(* Remember beginning of groups in the stack. *)</span></span>
+<span id="cb236-11"><a href="#cb236-11" aria-hidden="true" tabindex="-1"></a>    | [] -&gt; Yield (e, grends w [])</span>
+<span id="cb236-12"><a href="#cb236-12" aria-hidden="true" tabindex="-1"></a>    | (begp, _)::_ <span class="kw">when</span> curp-begp &gt; w -&gt;</span>
+<span id="cb236-13"><a href="#cb236-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">flush</span> (Yield (e, grends w []))</span>
+<span id="cb236-14"><a href="#cb236-14" aria-hidden="true" tabindex="-1"></a>    | (begp, gr)::grs -&gt; grends w ((begp, e::gr)::grs))</span>
+<span id="cb236-15"><a href="#cb236-15" aria-hidden="true" tabindex="-1"></a>  | GBeg begp -&gt; grends w ((begp, [])::grstack)</span>
+<span id="cb236-16"><a href="#cb236-16" aria-hidden="true" tabindex="-1"></a>  | GEnd endp <span class="kw">as</span> e -&gt;</span>
+<span id="cb236-17"><a href="#cb236-17" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> grstack <span class="kw">with</span>               <span class="co">(* No longer fail when the stack is empty -- *)</span></span>
+<span id="cb236-18"><a href="#cb236-18" aria-hidden="true" tabindex="-1"></a>    | [] -&gt; Yield (e, grends w [])   <span class="co">(* could have been flushed. *)</span></span>
+<span id="cb236-19"><a href="#cb236-19" aria-hidden="true" tabindex="-1"></a>    | (begp, _)::_ <span class="kw">when</span> endp-begp &gt; w -&gt;</span>
+<span id="cb236-20"><a href="#cb236-20" aria-hidden="true" tabindex="-1"></a>      <span class="dt">flush</span> (Yield (e, grends w []))</span>
+<span id="cb236-21"><a href="#cb236-21" aria-hidden="true" tabindex="-1"></a>    | [_, gr] -&gt;                     <span class="co">(* If width not exceeded, *)</span></span>
+<span id="cb236-22"><a href="#cb236-22" aria-hidden="true" tabindex="-1"></a>      yield_all                      <span class="co">(* work as before optimization. *)</span></span>
+<span id="cb236-23"><a href="#cb236-23" aria-hidden="true" tabindex="-1"></a>        (GBeg (Pos endp)::<span class="dt">List</span>.rev (GEnd endp::gr))</span>
+<span id="cb236-24"><a href="#cb236-24" aria-hidden="true" tabindex="-1"></a>        (grends w [])</span>
+<span id="cb236-25"><a href="#cb236-25" aria-hidden="true" tabindex="-1"></a>    | (_, gr)::(par_begp, par)::grs -&gt;</span>
+<span id="cb236-26"><a href="#cb236-26" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> par =</span>
+<span id="cb236-27"><a href="#cb236-27" aria-hidden="true" tabindex="-1"></a>        GEnd endp::gr @ [GBeg (Pos endp)] @ par <span class="kw">in</span></span>
+<span id="cb236-28"><a href="#cb236-28" aria-hidden="true" tabindex="-1"></a>      grends w ((par_begp, par)::grs))</span>
+<span id="cb236-29"><a href="#cb236-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb236-30"><a href="#cb236-30" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> grends w = grends w []           <span class="co">(* Initial stack is empty. *)</span></span></code></pre></div>
 <p>Finally we produce the resulting stream of strings:</p>
-<pre><code>let rec format w (inline, endlpos as st) =  (* State: the stack of *)
-  Await (function                           (* &quot;group fits in line&quot;; position where end of line would be. *)
-  | TE (_, z) -&gt; Yield (z, format w st)
-  | LE p when List.hd inline -&gt;
-    Yield (&quot; &quot;, format w st)                (* After return, line has w free space. *)
-  | LE p -&gt; Yield (&quot;\n&quot;, format w (inline, p+w))
-  | GBeg Too_far -&gt;                         (* Group with end too far is not inline. *)
-    format w (false::inline, endlpos)
-  | GBeg (Pos p) -&gt;                         (* Group is inline if it ends soon enough. *)
-    format w ((p&lt;=endlpos)::inline, endlpos)
-  | GEnd _ -&gt; format w (List.tl inline, endlpos))
-
-let format w = format w ([false], w)        (* Break lines outside of groups. *)</code></pre>
+<div class="sourceCode" id="cb237"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb237-1"><a href="#cb237-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> <span class="dt">format</span> w (inline, endlpos <span class="kw">as</span> st) =  <span class="co">(* State: the stack of *)</span></span>
+<span id="cb237-2"><a href="#cb237-2" aria-hidden="true" tabindex="-1"></a>  Await (<span class="kw">function</span>                           <span class="co">(* &quot;group fits in line&quot;; position where *)</span></span>
+<span id="cb237-3"><a href="#cb237-3" aria-hidden="true" tabindex="-1"></a>  | TE (_, z) -&gt; Yield (z, <span class="dt">format</span> w st).    <span class="co">(* end of line would be. *)</span></span>
+<span id="cb237-4"><a href="#cb237-4" aria-hidden="true" tabindex="-1"></a>  | LE p <span class="kw">when</span> <span class="dt">List</span>.hd inline -&gt;</span>
+<span id="cb237-5"><a href="#cb237-5" aria-hidden="true" tabindex="-1"></a>    Yield (<span class="st">&quot; &quot;</span>, <span class="dt">format</span> w st)                <span class="co">(* After return, line has w free space. *)</span></span>
+<span id="cb237-6"><a href="#cb237-6" aria-hidden="true" tabindex="-1"></a>  | LE p -&gt; Yield (<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dt">format</span> w (inline, p+w))</span>
+<span id="cb237-7"><a href="#cb237-7" aria-hidden="true" tabindex="-1"></a>  | GBeg Too_far -&gt;                         <span class="co">(* Group with end too far is not inline. *)</span></span>
+<span id="cb237-8"><a href="#cb237-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">format</span> w (<span class="kw">false</span>::inline, endlpos)</span>
+<span id="cb237-9"><a href="#cb237-9" aria-hidden="true" tabindex="-1"></a>  | GBeg (Pos p) -&gt;                         <span class="co">(* Group is inline if it ends soon enough. *)</span></span>
+<span id="cb237-10"><a href="#cb237-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">format</span> w ((p&lt;=endlpos)::inline, endlpos)</span>
+<span id="cb237-11"><a href="#cb237-11" aria-hidden="true" tabindex="-1"></a>  | GEnd _ -&gt; <span class="dt">format</span> w (<span class="dt">List</span>.tl inline, endlpos))</span>
+<span id="cb237-12"><a href="#cb237-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb237-13"><a href="#cb237-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="dt">format</span> w = <span class="dt">format</span> w ([<span class="kw">false</span>], w)        <span class="co">(* Break lines outside of groups. *)</span></span></code></pre></div>
 <p>Put the pipes together:</p>
 <pre><code>+--------+     +-------+     +---------+     +--------+     +----------------+
 | gen doc| --&gt; |docpos | --&gt; |grends w | --&gt; |format w| --&gt; |iterate print_s |
@@ -5507,30 +5509,31 @@ let format w = format w ([false], w)        (* Break lines outside of groups. *)
 <h4 id="factored-solution">7.9.3 Factored Solution</h4>
 <p>Factorize <code>format</code> so that various line breaking styles
 can be plugged in:</p>
-<pre><code>let rec breaks w (inline, endlpos as st) =
-  Await (function
-  | TE _ as e -&gt; Yield (e, breaks w st)
-  | LE p when List.hd inline -&gt;
-    Yield (TE (p, &quot; &quot;), breaks w st)
-  | LE p as e -&gt; Yield (e, breaks w (inline, p+w))
-  | GBeg Too_far as e -&gt;
-    Yield (e, breaks w (false::inline, endlpos))
-  | GBeg (Pos p) as e -&gt;
-    Yield (e, breaks w ((p&lt;=endlpos)::inline, endlpos))
-  | GEnd _ as e -&gt;
-    Yield (e, breaks w (List.tl inline, endlpos)))
-
-let breaks w = breaks w ([false], w)
-
-let rec emit =
-  Await (function
-  | TE (_, z) -&gt; Yield (z, emit)
-  | LE _ -&gt; Yield (&quot;\n&quot;, emit)
-  | GBeg _ | GEnd _ -&gt; emit)
-
-let pretty_print w doc =
-  gen doc &gt;-&gt; docpos &gt;-&gt; grends w &gt;-&gt; breaks w &gt;-&gt;
-  emit &gt;-&gt; iterate print_string</code></pre>
+<div class="sourceCode" id="cb239"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb239-1"><a href="#cb239-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> breaks w (inline, endlpos <span class="kw">as</span> st) =</span>
+<span id="cb239-2"><a href="#cb239-2" aria-hidden="true" tabindex="-1"></a>  Await (<span class="kw">function</span></span>
+<span id="cb239-3"><a href="#cb239-3" aria-hidden="true" tabindex="-1"></a>  | TE _ <span class="kw">as</span> e -&gt; Yield (e, breaks w st)</span>
+<span id="cb239-4"><a href="#cb239-4" aria-hidden="true" tabindex="-1"></a>  | LE p <span class="kw">when</span> <span class="dt">List</span>.hd inline -&gt;</span>
+<span id="cb239-5"><a href="#cb239-5" aria-hidden="true" tabindex="-1"></a>    Yield (TE (p, <span class="st">&quot; &quot;</span>), breaks w st)</span>
+<span id="cb239-6"><a href="#cb239-6" aria-hidden="true" tabindex="-1"></a>  | LE p <span class="kw">as</span> e -&gt; Yield (e, breaks w (inline, p+w))</span>
+<span id="cb239-7"><a href="#cb239-7" aria-hidden="true" tabindex="-1"></a>  | GBeg Too_far <span class="kw">as</span> e -&gt;</span>
+<span id="cb239-8"><a href="#cb239-8" aria-hidden="true" tabindex="-1"></a>    Yield (e, breaks w (<span class="kw">false</span>::inline, endlpos))</span>
+<span id="cb239-9"><a href="#cb239-9" aria-hidden="true" tabindex="-1"></a>  | GBeg (Pos p) <span class="kw">as</span> e -&gt;</span>
+<span id="cb239-10"><a href="#cb239-10" aria-hidden="true" tabindex="-1"></a>    Yield (e, breaks w ((p&lt;=endlpos)::inline, endlpos))</span>
+<span id="cb239-11"><a href="#cb239-11" aria-hidden="true" tabindex="-1"></a>  | GEnd _ <span class="kw">as</span> e -&gt;</span>
+<span id="cb239-12"><a href="#cb239-12" aria-hidden="true" tabindex="-1"></a>    Yield (e, breaks w (<span class="dt">List</span>.tl inline, endlpos)))</span>
+<span id="cb239-13"><a href="#cb239-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb239-14"><a href="#cb239-14" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> breaks w = breaks w ([<span class="kw">false</span>], w)</span>
+<span id="cb239-15"><a href="#cb239-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb239-16"><a href="#cb239-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> emit =</span>
+<span id="cb239-17"><a href="#cb239-17" aria-hidden="true" tabindex="-1"></a>  Await (<span class="kw">function</span></span>
+<span id="cb239-18"><a href="#cb239-18" aria-hidden="true" tabindex="-1"></a>  | TE (_, z) -&gt; Yield (z, emit)</span>
+<span id="cb239-19"><a href="#cb239-19" aria-hidden="true" tabindex="-1"></a>  | LE _ -&gt; Yield (<span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>, emit)</span>
+<span id="cb239-20"><a href="#cb239-20" aria-hidden="true" tabindex="-1"></a>  | GBeg _ | GEnd _ -&gt; emit)</span>
+<span id="cb239-21"><a href="#cb239-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb239-22"><a href="#cb239-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pretty_print w doc =</span>
+<span id="cb239-23"><a href="#cb239-23" aria-hidden="true" tabindex="-1"></a>  gen doc &gt;-&gt; docpos &gt;-&gt; grends w &gt;-&gt; breaks w &gt;-&gt;</span>
+<span id="cb239-24"><a href="#cb239-24" aria-hidden="true" tabindex="-1"></a>  emit &gt;-&gt; iterate <span class="dt">print_string</span></span></code></pre></div>
 <h3 id="exercises-6">7.10 Exercises</h3>
 <p><strong>Exercise 1:</strong> My first impulse was to define lazy list
 functions as follows:</p>
@@ -5580,35 +5583,36 @@ href="http://en.wikipedia.org/wiki/Regular_number">regular
 numbers</a>.</p>
 <p>Starter code is available in the lecture script
 <code>Lec7.ml</code>:</p>
-<pre><code>let rec lfilter f = function
-  | LNil -&gt; LNil
-  | LCons (n, ll) -&gt;
-      if f n then LCons (n, lazy (lfilter f (Lazy.force ll)))
-      else lfilter f (Lazy.force ll)
-
-let primes =
-  let rec sieve = function
-    | LCons(p, nf) -&gt;
-        LCons(p, lazy (sieve (sift p (Lazy.force nf))))
-    | LNil -&gt; failwith &quot;Impossible! Internal error.&quot;
-  and sift p = lfilter (fun n -&gt; n mod p &lt;&gt; 0)
-  in sieve (l_from 2)
-
-let times ll n = lmap (fun i -&gt; i * n) ll
-
-let rec merge xs ys =
-  match xs, ys with
-  | LCons (x, lazy xr), LCons (y, lazy yr) -&gt;
-      if x &lt; y then LCons (x, lazy (merge xr ys))
-      else if x &gt; y then LCons (y, lazy (merge xs yr))
-      else LCons (x, lazy (merge xr yr))
-  | r, LNil | LNil, r -&gt; r
-
-let hamming k =
-  let pr = ltake k primes in
-  let rec h = LCons (1, lazy (
-     (* TODO *)
-  )) in h</code></pre>
+<div class="sourceCode" id="cb241"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb241-1"><a href="#cb241-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lfilter f = <span class="kw">function</span></span>
+<span id="cb241-2"><a href="#cb241-2" aria-hidden="true" tabindex="-1"></a>  | LNil -&gt; LNil</span>
+<span id="cb241-3"><a href="#cb241-3" aria-hidden="true" tabindex="-1"></a>  | LCons (n, ll) -&gt;</span>
+<span id="cb241-4"><a href="#cb241-4" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> f n <span class="kw">then</span> LCons (n, <span class="kw">lazy</span> (lfilter f (<span class="dt">Lazy</span>.force ll)))</span>
+<span id="cb241-5"><a href="#cb241-5" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> lfilter f (<span class="dt">Lazy</span>.force ll)</span>
+<span id="cb241-6"><a href="#cb241-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb241-7"><a href="#cb241-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> primes =</span>
+<span id="cb241-8"><a href="#cb241-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> sieve = <span class="kw">function</span></span>
+<span id="cb241-9"><a href="#cb241-9" aria-hidden="true" tabindex="-1"></a>    | LCons(p, nf) -&gt;</span>
+<span id="cb241-10"><a href="#cb241-10" aria-hidden="true" tabindex="-1"></a>        LCons(p, <span class="kw">lazy</span> (sieve (sift p (<span class="dt">Lazy</span>.force nf))))</span>
+<span id="cb241-11"><a href="#cb241-11" aria-hidden="true" tabindex="-1"></a>    | LNil -&gt; <span class="dt">failwith</span> <span class="st">&quot;Impossible! Internal error.&quot;</span></span>
+<span id="cb241-12"><a href="#cb241-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">and</span> sift p = lfilter (<span class="kw">fun</span> n -&gt; n <span class="kw">mod</span> p &lt;&gt; <span class="dv">0</span>)</span>
+<span id="cb241-13"><a href="#cb241-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span> sieve (l_from <span class="dv">2</span>)</span>
+<span id="cb241-14"><a href="#cb241-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb241-15"><a href="#cb241-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> times ll n = lmap (<span class="kw">fun</span> i -&gt; i * n) ll</span>
+<span id="cb241-16"><a href="#cb241-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb241-17"><a href="#cb241-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> merge xs ys =</span>
+<span id="cb241-18"><a href="#cb241-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> xs, ys <span class="kw">with</span></span>
+<span id="cb241-19"><a href="#cb241-19" aria-hidden="true" tabindex="-1"></a>  | LCons (x, <span class="kw">lazy</span> xr), LCons (y, <span class="kw">lazy</span> yr) -&gt;</span>
+<span id="cb241-20"><a href="#cb241-20" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> x &lt; y <span class="kw">then</span> LCons (x, <span class="kw">lazy</span> (merge xr ys))</span>
+<span id="cb241-21"><a href="#cb241-21" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> <span class="kw">if</span> x &gt; y <span class="kw">then</span> LCons (y, <span class="kw">lazy</span> (merge xs yr))</span>
+<span id="cb241-22"><a href="#cb241-22" aria-hidden="true" tabindex="-1"></a>      <span class="kw">else</span> LCons (x, <span class="kw">lazy</span> (merge xr yr))</span>
+<span id="cb241-23"><a href="#cb241-23" aria-hidden="true" tabindex="-1"></a>  | r, LNil | LNil, r -&gt; r</span>
+<span id="cb241-24"><a href="#cb241-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb241-25"><a href="#cb241-25" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> hamming k =</span>
+<span id="cb241-26"><a href="#cb241-26" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> pr = ltake k primes <span class="kw">in</span></span>
+<span id="cb241-27"><a href="#cb241-27" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> h = LCons (<span class="dv">1</span>, <span class="kw">lazy</span> (</span>
+<span id="cb241-28"><a href="#cb241-28" aria-hidden="true" tabindex="-1"></a>     <span class="co">(* </span><span class="al">TODO</span><span class="co"> *)</span>h</span>
+<span id="cb241-29"><a href="#cb241-29" aria-hidden="true" tabindex="-1"></a>  )) <span class="kw">in</span> h</span></code></pre></div>
 <p><strong>Exercise 5:</strong> Modify <code>format</code> and/or
 <code>breaks</code> to use just a single number instead of a stack of
 booleans to keep track of what groups should be inlined.</p>
@@ -5646,8 +5650,9 @@ elements <code>doc_e</code> and yields the toplevel subdocuments
 <p>You can modify the definition of documents to allow annotations, so
 that the element annotations are preserved (<code>gen</code> should
 ignore annotations to keep things simple):</p>
-<pre><code>type &#39;a doc =
-  Text of &#39;a * string | Line of &#39;a | Cat of doc * doc | Group of &#39;a * doc</code></pre>
+<div class="sourceCode" id="cb243"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb243-1"><a href="#cb243-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a doc =</span>
+<span id="cb243-2"><a href="#cb243-2" aria-hidden="true" tabindex="-1"></a>  Text <span class="kw">of</span> &#39;a * <span class="dt">string</span> | Line <span class="kw">of</span> &#39;a | Cat <span class="kw">of</span> doc * doc | Group <span class="kw">of</span> &#39;a * doc</span></code></pre></div>
 <p><strong>Exercise 9:</strong> (Harder) Design and implement a way to
 duplicate arrows outgoing from a pipe-box, that would memoize the
 stream, i.e. not recompute everything “upstream” for the composition of

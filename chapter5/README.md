@@ -448,25 +448,25 @@ module BTreeMap : MAP = struct
 
   let empty = Empty
 
-  let rec member k m =                           (* "Divide and conquer" search through the tree. *)
+  let rec member k m =                    (* "Divide and conquer" search through the tree. *)
     match m with
     | Empty -> false
     | T (_, k2, _, _) when k = k2 -> true
     | T (m1, k2, _, _) when k < k2 -> member k m1
     | T (_, _, _, m2) -> member k m2
 
-  let rec add k v m =                            (* Searches the tree in the same way as member *)
-    match m with                                 (* but copies every node along the way. *)
+  let rec add k v m =                     (* Searches the tree in the same way as member *)
+    match m with                          (* but copies every node along the way. *)
     | Empty -> T (Empty, k, v, Empty)
     | T (m1, k2, _, m2) when k = k2 -> T (m1, k, v, m2)
     | T (m1, k2, v2, m2) when k < k2 -> T (add k v m1, k2, v2, m2)
     | T (m1, k2, v2, m2) -> T (m1, k2, v2, add k v m2)
 
-  let rec split_rightmost m =                    (* A helper function, it does not belong *)
-    match m with                                 (* to the "exported" signature. *)
+  let rec split_rightmost m =             (* A helper function, it does not belong *)
+    match m with                          (* to the "exported" signature. *)
     | Empty -> raise Not_found
-    | T (Empty, k, v, Empty) -> k, v, Empty      (* We remove one element, *)
-    | T (m1, k, v, m2) ->                        (* the one that is on the bottom right. *)
+    | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
+    | T (m1, k, v, m2) ->                 (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
 
@@ -533,31 +533,31 @@ type 'a t = E | T of color * 'a t * 'a * 'a t
 
 let empty = E
 
-let rec member x m =                           (* Like in unbalanced binary search tree. *)
+let rec member x m =                     (* Like in unbalanced binary search tree. *)
   match m with
   | E -> false
   | T (_, _, y, _) when x = y -> true
   | T (_, a, y, _) when x < y -> member x a
   | T (_, _, _, b) -> member x b
 
-let balance = function                         (* Restoring the invariants. *)
-  | B, T (R, T (R,a,x,b), y, c), z, d          (* On next figure: left, *)
-  | B, T (R, a, x, T (R,b,y,c)), z, d          (* top, *)
-  | B, a, x, T (R, T (R,b,y,c), z, d)          (* bottom, *)
-  | B, a, x, T (R, b, y, T (R,c,z,d))          (* right, *)
+let balance = function                   (* Restoring the invariants. *)
+  | B, T (R, T (R,a,x,b), y, c), z, d    (* On next figure: left, *)
+  | B, T (R, a, x, T (R,b,y,c)), z, d    (* top, *)
+  | B, a, x, T (R, T (R,b,y,c), z, d)    (* bottom, *)
+  | B, a, x, T (R, b, y, T (R,c,z,d))    (* right, *)
       -> T (R, T (B,a,x,b), y, T (B,c,z,d))    (* center tree. *)
   | color, a, x, b -> T (color, a, x, b)       (* We allow red-red violation for now. *)
 
 let insert x s =
-  let rec ins = function                       (* Like in unbalanced binary search tree, *)
-    | E -> T (R, E, x, E)                      (* but fix violation above created node. *)
+  let rec ins = function                 (* Like in unbalanced binary search tree, *)
+    | E -> T (R, E, x, E)                (* but fix violation above created node. *)
     | T (color, a, y, b) as s ->
         if x < y then balance (color, ins a, y, b)
         else if x > y then balance (color, a, y, ins b)
         else s
   in
-  match ins s with                             (* We could still have red-red violation at root, *)
-  | T (_, a, y, b) -> T (B, a, y, b)           (* fixed by coloring it black. *)
+  match ins s with                       (* We could still have red-red violation at root, *)
+  | T (_, a, y, b) -> T (B, a, y, b)     (* fixed by coloring it black. *)
   | E -> failwith "insert: impossible"
 ```
 

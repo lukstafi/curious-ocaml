@@ -613,20 +613,20 @@ Document First part Second part
 #### 7.9.1 Straightforward Solution
 
 ```ocaml
-let pretty w d =                            (* Allowed width of line w. *)
-  let rec width = function                  (* Total length of subdocument. *)
+let pretty w d =                     (* Allowed width of line w. *)
+  let rec width = function           (* Total length of subdocument. *)
     | Text z -> String.length z
     | Line -> 1
     | Cat (d1, d2) -> width d1 + width d2
     | Group d -> width d in
-  let rec format f r = function             (* Remaining space r. *)
+  let rec format f r = function      (* Remaining space r. *)
     | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1               (* If not f then line breaks. *)
+    | Line when f -> " ", r-1        (* If not f then line breaks. *)
     | Line -> "\n", w
     | Cat (d1, d2) ->
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
-      s1 ^ s2, r                            (* If following group fits, then without line breaks. *)
+      s1 ^ s2, r                     (* If following group fits, then without line breaks. *)
     | Group d -> format (f || width d <= r) r d in
   fst (format false w d)
 ```
@@ -636,7 +636,7 @@ let pretty w d =                            (* Allowed width of line w. *)
 Working with a stream of nodes:
 
 ```ocaml
-type ('a, 'b) doc_e =                       (* Annotated nodes, special for group beginning. *)
+type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
@@ -707,29 +707,29 @@ let rec grends grstack =
 
 That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
 
-```
+```ocaml
 type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
-  let flush tail =                          (* When the stack exceeds width w, *)
-    yield_all                               (* flush it -- yield everything in it. *)
+  let flush tail =                   (* When the stack exceeds width w, *)
+    yield_all                        (* flush it -- yield everything in it. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in                               (* Above: concatenate in rev. with prep before each part. *)
+      tail in                        (* Above: concatenate in rev. with prep before each part. *)
   Await (function
   | TE (curp, _) | LE curp as e ->
-    (match grstack with                     (* Remember beginning of groups in the stack. *)
+    (match grstack with              (* Remember beginning of groups in the stack. *)
     | [] -> Yield (e, grends w [])
     | (begp, _)::_ when curp-begp > w ->
       flush (Yield (e, grends w []))
     | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))
   | GBeg begp -> grends w ((begp, [])::grstack)
   | GEnd endp as e ->
-    match grstack with                      (* No longer fail when the stack is empty -- *)
-    | [] -> Yield (e, grends w [])          (* could have been flushed. *)
+    match grstack with               (* No longer fail when the stack is empty -- *)
+    | [] -> Yield (e, grends w [])   (* could have been flushed. *)
     | (begp, _)::_ when endp-begp > w ->
       flush (Yield (e, grends w []))
-    | [_, gr] ->                            (* If width not exceeded, *)
-      yield_all                             (* work as before optimization. *)
+    | [_, gr] ->                     (* If width not exceeded, *)
+      yield_all                      (* work as before optimization. *)
         (GBeg (Pos endp)::List.rev (GEnd endp::gr))
         (grends w [])
     | (_, gr)::(par_begp, par)::grs ->
@@ -737,15 +737,15 @@ let rec grends w grstack =
         GEnd endp::gr @ [GBeg (Pos endp)] @ par in
       grends w ((par_begp, par)::grs))
 
-let grends w = grends w []                  (* Initial stack is empty. *)
+let grends w = grends w []           (* Initial stack is empty. *)
 ```
 
 Finally we produce the resulting stream of strings:
 
-```
+```ocaml
 let rec format w (inline, endlpos as st) =  (* State: the stack of *)
-  Await (function                           (* "group fits in line"; position where end of line would be. *)
-  | TE (_, z) -> Yield (z, format w st)
+  Await (function                           (* "group fits in line"; position where *)
+  | TE (_, z) -> Yield (z, format w st).    (* end of line would be. *)
   | LE p when List.hd inline ->
     Yield (" ", format w st)                (* After return, line has w free space. *)
   | LE p -> Yield ("\n", format w (inline, p+w))
@@ -770,7 +770,7 @@ Put the pipes together:
 
 Factorize `format` so that various line breaking styles can be plugged in:
 
-```
+```ocaml
 let rec breaks w (inline, endlpos as st) =
   Await (function
   | TE _ as e -> Yield (e, breaks w st)
@@ -831,7 +831,7 @@ In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related t
 
 Starter code is available in the lecture script `Lec7.ml`:
 
-```
+```ocaml
 let rec lfilter f = function
   | LNil -> LNil
   | LCons (n, ll) ->
@@ -859,7 +859,7 @@ let rec merge xs ys =
 let hamming k =
   let pr = ltake k primes in
   let rec h = LCons (1, lazy (
-     (* TODO *)
+     (* TODO *)h
   )) in h
 ```
 
@@ -885,7 +885,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```
+```ocaml
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of doc * doc | Group of 'a * doc
 ```

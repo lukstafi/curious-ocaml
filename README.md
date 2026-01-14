@@ -2582,25 +2582,25 @@ module BTreeMap : MAP = struct
 
   let empty = Empty
 
-  let rec member k m =                           (* "Divide and conquer" search through the tree. *)
+  let rec member k m =                    (* "Divide and conquer" search through the tree. *)
     match m with
     | Empty -> false
     | T (_, k2, _, _) when k = k2 -> true
     | T (m1, k2, _, _) when k < k2 -> member k m1
     | T (_, _, _, m2) -> member k m2
 
-  let rec add k v m =                            (* Searches the tree in the same way as member *)
-    match m with                                 (* but copies every node along the way. *)
+  let rec add k v m =                     (* Searches the tree in the same way as member *)
+    match m with                          (* but copies every node along the way. *)
     | Empty -> T (Empty, k, v, Empty)
     | T (m1, k2, _, m2) when k = k2 -> T (m1, k, v, m2)
     | T (m1, k2, v2, m2) when k < k2 -> T (add k v m1, k2, v2, m2)
     | T (m1, k2, v2, m2) -> T (m1, k2, v2, add k v m2)
 
-  let rec split_rightmost m =                    (* A helper function, it does not belong *)
-    match m with                                 (* to the "exported" signature. *)
+  let rec split_rightmost m =             (* A helper function, it does not belong *)
+    match m with                          (* to the "exported" signature. *)
     | Empty -> raise Not_found
-    | T (Empty, k, v, Empty) -> k, v, Empty      (* We remove one element, *)
-    | T (m1, k, v, m2) ->                        (* the one that is on the bottom right. *)
+    | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
+    | T (m1, k, v, m2) ->                 (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
 
@@ -2667,31 +2667,31 @@ type 'a t = E | T of color * 'a t * 'a * 'a t
 
 let empty = E
 
-let rec member x m =                           (* Like in unbalanced binary search tree. *)
+let rec member x m =                     (* Like in unbalanced binary search tree. *)
   match m with
   | E -> false
   | T (_, _, y, _) when x = y -> true
   | T (_, a, y, _) when x < y -> member x a
   | T (_, _, _, b) -> member x b
 
-let balance = function                         (* Restoring the invariants. *)
-  | B, T (R, T (R,a,x,b), y, c), z, d          (* On next figure: left, *)
-  | B, T (R, a, x, T (R,b,y,c)), z, d          (* top, *)
-  | B, a, x, T (R, T (R,b,y,c), z, d)          (* bottom, *)
-  | B, a, x, T (R, b, y, T (R,c,z,d))          (* right, *)
+let balance = function                   (* Restoring the invariants. *)
+  | B, T (R, T (R,a,x,b), y, c), z, d    (* On next figure: left, *)
+  | B, T (R, a, x, T (R,b,y,c)), z, d    (* top, *)
+  | B, a, x, T (R, T (R,b,y,c), z, d)    (* bottom, *)
+  | B, a, x, T (R, b, y, T (R,c,z,d))    (* right, *)
       -> T (R, T (B,a,x,b), y, T (B,c,z,d))    (* center tree. *)
   | color, a, x, b -> T (color, a, x, b)       (* We allow red-red violation for now. *)
 
 let insert x s =
-  let rec ins = function                       (* Like in unbalanced binary search tree, *)
-    | E -> T (R, E, x, E)                      (* but fix violation above created node. *)
+  let rec ins = function                 (* Like in unbalanced binary search tree, *)
+    | E -> T (R, E, x, E)                (* but fix violation above created node. *)
     | T (color, a, y, b) as s ->
         if x < y then balance (color, ins a, y, b)
         else if x > y then balance (color, a, y, ins b)
         else s
   in
-  match ins s with                             (* We could still have red-red violation at root, *)
-  | T (_, a, y, b) -> T (B, a, y, b)           (* fixed by coloring it black. *)
+  match ins s with                       (* We could still have red-red violation at root, *)
+  | T (_, a, y, b) -> T (B, a, y, b)     (* fixed by coloring it black. *)
   | E -> failwith "insert: impossible"
 ```
 
@@ -4373,20 +4373,20 @@ Document First part Second part
 #### 7.9.1 Straightforward Solution
 
 ```ocaml
-let pretty w d =                            (* Allowed width of line w. *)
-  let rec width = function                  (* Total length of subdocument. *)
+let pretty w d =                     (* Allowed width of line w. *)
+  let rec width = function           (* Total length of subdocument. *)
     | Text z -> String.length z
     | Line -> 1
     | Cat (d1, d2) -> width d1 + width d2
     | Group d -> width d in
-  let rec format f r = function             (* Remaining space r. *)
+  let rec format f r = function      (* Remaining space r. *)
     | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1               (* If not f then line breaks. *)
+    | Line when f -> " ", r-1        (* If not f then line breaks. *)
     | Line -> "\n", w
     | Cat (d1, d2) ->
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
-      s1 ^ s2, r                            (* If following group fits, then without line breaks. *)
+      s1 ^ s2, r                     (* If following group fits, then without line breaks. *)
     | Group d -> format (f || width d <= r) r d in
   fst (format false w d)
 ```
@@ -4396,7 +4396,7 @@ let pretty w d =                            (* Allowed width of line w. *)
 Working with a stream of nodes:
 
 ```ocaml
-type ('a, 'b) doc_e =                       (* Annotated nodes, special for group beginning. *)
+type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
@@ -4467,29 +4467,29 @@ let rec grends grstack =
 
 That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
 
-```
+```ocaml
 type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
-  let flush tail =                          (* When the stack exceeds width w, *)
-    yield_all                               (* flush it -- yield everything in it. *)
+  let flush tail =                   (* When the stack exceeds width w, *)
+    yield_all                        (* flush it -- yield everything in it. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in                               (* Above: concatenate in rev. with prep before each part. *)
+      tail in                        (* Above: concatenate in rev. with prep before each part. *)
   Await (function
   | TE (curp, _) | LE curp as e ->
-    (match grstack with                     (* Remember beginning of groups in the stack. *)
+    (match grstack with              (* Remember beginning of groups in the stack. *)
     | [] -> Yield (e, grends w [])
     | (begp, _)::_ when curp-begp > w ->
       flush (Yield (e, grends w []))
     | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))
   | GBeg begp -> grends w ((begp, [])::grstack)
   | GEnd endp as e ->
-    match grstack with                      (* No longer fail when the stack is empty -- *)
-    | [] -> Yield (e, grends w [])          (* could have been flushed. *)
+    match grstack with               (* No longer fail when the stack is empty -- *)
+    | [] -> Yield (e, grends w [])   (* could have been flushed. *)
     | (begp, _)::_ when endp-begp > w ->
       flush (Yield (e, grends w []))
-    | [_, gr] ->                            (* If width not exceeded, *)
-      yield_all                             (* work as before optimization. *)
+    | [_, gr] ->                     (* If width not exceeded, *)
+      yield_all                      (* work as before optimization. *)
         (GBeg (Pos endp)::List.rev (GEnd endp::gr))
         (grends w [])
     | (_, gr)::(par_begp, par)::grs ->
@@ -4497,15 +4497,15 @@ let rec grends w grstack =
         GEnd endp::gr @ [GBeg (Pos endp)] @ par in
       grends w ((par_begp, par)::grs))
 
-let grends w = grends w []                  (* Initial stack is empty. *)
+let grends w = grends w []           (* Initial stack is empty. *)
 ```
 
 Finally we produce the resulting stream of strings:
 
-```
+```ocaml
 let rec format w (inline, endlpos as st) =  (* State: the stack of *)
-  Await (function                           (* "group fits in line"; position where end of line would be. *)
-  | TE (_, z) -> Yield (z, format w st)
+  Await (function                           (* "group fits in line"; position where *)
+  | TE (_, z) -> Yield (z, format w st).    (* end of line would be. *)
   | LE p when List.hd inline ->
     Yield (" ", format w st)                (* After return, line has w free space. *)
   | LE p -> Yield ("\n", format w (inline, p+w))
@@ -4530,7 +4530,7 @@ Put the pipes together:
 
 Factorize `format` so that various line breaking styles can be plugged in:
 
-```
+```ocaml
 let rec breaks w (inline, endlpos as st) =
   Await (function
   | TE _ as e -> Yield (e, breaks w st)
@@ -4591,7 +4591,7 @@ In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related t
 
 Starter code is available in the lecture script `Lec7.ml`:
 
-```
+```ocaml
 let rec lfilter f = function
   | LNil -> LNil
   | LCons (n, ll) ->
@@ -4619,7 +4619,7 @@ let rec merge xs ys =
 let hamming k =
   let pr = ltake k primes in
   let rec h = LCons (1, lazy (
-     (* TODO *)
+     (* TODO *)h
   )) in h
 ```
 
@@ -4645,7 +4645,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```
+```ocaml
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of doc * doc | Group of 'a * doc
 ```
