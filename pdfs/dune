@@ -25,7 +25,7 @@
  (target new_book.pdf)
  (deps README.md)
  (action
-  (system "pandoc -s --toc --katex %{deps} -o %{target}")))
+  (system "sed 's/```ocaml [^`]*/```ocaml/' %{deps} | pandoc -s --toc --katex -o %{target}")))
 
 ; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
 ; (rule
