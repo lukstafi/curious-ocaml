@@ -19,7 +19,7 @@ header-includes:
 
 ### 1.1 In the Beginning there was Logos
 
-What logical connectives do you know?
+Let's start by reviewing the logical connectives you may have encountered. What logical connectives do you know?
 
 | $\top$ | $\bot$ | $\wedge$ | $\vee$ | $\rightarrow$ |
 |---|---|---|---|---|
@@ -108,7 +108,9 @@ Here $x$ is a unique variable—we cannot substitute a particular number for it 
 
 ### 1.3 Logos was Programmed in OCaml
 
-There is a deep correspondence between logic and programming, known as the **Curry-Howard correspondence** (or "propositions as types"). The following table shows how logical connectives correspond to programming constructs:
+We now arrive at a remarkable connection between logic and programming—the **Curry-Howard correspondence** (also known as "propositions as types"). This deep correspondence shows that proofs in logic directly correspond to programs in typed programming languages!
+
+The following table shows how logical connectives correspond to programming constructs:
 
 | Logic | Type | Expression |
 |-------|------|------------|
@@ -196,12 +198,11 @@ We will cover what is missing in the above rules when we discuss **polymorphism*
 Operators like `+`, `*`, `<`, `=` are names of functions. Just like other names, you can use operator names for your own functions:
 
 ```ocaml
-let (+:) a b = String.concat "" [a; b]  (* Special way of defining *)
+let (+:) a b = String.concat "" [a; b];;  (* Special way of defining *)
+"Alpha" +: "Beta";;  (* but normal way of using operators *)
 ```
 
-```ocaml
-"Alpha" +: "Beta"  (* but normal way of using operators *)
-```
+Notice the asymmetry: we use a *special* syntax for defining operators (with parentheses) but the *normal* infix syntax for using them.
 
 Operators in OCaml are **not overloaded**. This means that every type needs its own set of operators:
 - `+`, `*`, `/` work for integers
@@ -271,7 +272,7 @@ Exercises from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas
 
 ### 2.1 A Glimpse at Type Inference
 
-For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`. In the derivations below, $[?]$ means "type unknown yet."
+For a refresher, let's apply the type inference rules introduced in Chapter 1 to some simple examples. We'll start with the identity function `fun x -> x`. In the derivations below, $[?]$ means "dunno yet" (type unknown).
 
 We begin with an incomplete derivation:
 
@@ -342,7 +343,11 @@ $$
 
 In the first case, `(+)` is a function that takes an integer and returns a function from integers to integers. In the second case, we have a function that takes a function as an argument.
 
-For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What expanded form does `((+) 1)` correspond to exactly (computationally)? It corresponds to `fun y -> 1 + y`.
+For addition, instead of `(fun x -> x+1)` we can write `((+) 1)`. What expanded form does `((+) 1)` correspond to exactly (computationally)?
+
+*Think about it before reading on...*
+
+It corresponds to `fun y -> 1 + y`.
 
 We will become more familiar with functions returning functions when we study the *lambda calculus* in a later chapter.
 
@@ -407,7 +412,7 @@ Several conventions and syntax rules apply to parametric types:
 
   And Haskell syntax: `data Choice a b = Left a | Right b`
 
-### 2.3 Syntactic Conventions
+### 2.3 Syntactic Bread and Sugar
 
 #### Constructor Naming
 
@@ -639,9 +644,9 @@ val iso2 : repr -> btree
 
 These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for all representations `r`, `iso1 (iso2 r) = r`.
 
-#### A First Attempt
+#### My First (Failed) Attempt
 
-Here is a first (failed) attempt:
+Here is my first attempt:
 
 ```
 # let iso1 (t : btree) : repr =
@@ -658,7 +663,7 @@ Here is an example of a value that is not matched:
 Node (_, Tip, Node (_, _, _))
 ```
 
-We forgot about one case! It seems difficult to guess the solution directly.
+I forgot about one case! It seems difficult to guess the solution directly. Have you found it on your first try?
 
 #### Breaking Down the Problem
 
@@ -706,7 +711,9 @@ let iso1 (t : btree) : repr =
   step3r (step2r (step1r t))
 ```
 
-Defining `step1l`, `step2l`, `step3l`, and `iso2` is now straightforward---each step is the inverse of its corresponding forward step.
+**Exercise:** Define `step1l`, `step2l`, `step3l`, and `iso2`.
+
+*Hint:* Now it's straightforward---each step is the inverse of its corresponding forward step!
 
 #### Take-Home Lessons
 
@@ -716,7 +723,7 @@ Defining `step1l`, `step2l`, `step3l`, and `iso2` is now straightforward---each 
 
 ### 2.6 Differentiating Algebraic Data Types
 
-The title might seem strange---we will differentiate the translated polynomials, not the types themselves. But what sense does this make?
+Of course, you might object that the pompous title is wrong---we will differentiate the translated polynomials, not the types themselves. But what sense does this make?
 
 It turns out that taking the partial derivative of a polynomial (translated from a data type), when translated back, gives a type representing how to change one occurrence of a value corresponding to the variable with respect to which we differentiated. In other words, the derivative represents a "context" or "hole" in the data structure.
 
@@ -793,6 +800,11 @@ type btree_deriv =
 
 (You might someday hear about *zippers*---they are "inverted" relative to our type, with the hole coming first.)
 
+**Exercise:** Write a function that takes a number and a `btree_deriv`, and builds a `btree` by putting the number into the "hole" in `btree_deriv`.
+
+<details>
+<summary>Solution</summary>
+
 The integration function fills the hole with a value:
 
 ```ocaml
@@ -803,6 +815,8 @@ let rec btree_integr n = function
   | Below (RightBranch, m, ltree, deriv) ->
     Node (m, ltree, btree_integr n deriv)
 ```
+
+</details>
 
 ### 2.7 Exercises
 
@@ -941,7 +955,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 | F# | `let (<<) f g x = f (g x)` |
 | Haskell | `(.) f g = \x -> f (g x)` |
 
-This backward composition looks like function application but needs fewer parentheses. Recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms. Using backward composition, we could write:
+This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
 
 ```
 let iso2 = step1l -| step2l -| step3l
@@ -965,6 +979,8 @@ let iso1 = step1r |- step2r |- step3r
 Both composition examples above use **partial application**. Recall from the previous chapter that `((+) 1)` is a function that adds 1 to its argument. Partial application occurs when we do not pass all the arguments a function needs; the result is a function that requires the remaining arguments.
 
 In the composition `step1r |- step2r |- step3r`, each `stepNr` function is partially applied. The composition operator `(|-)` takes two functions `f` and `g` and returns a new function that first applies `f`, then applies `g` to the result.
+
+*How is partial application used in the composition examples above?*
 
 #### Power Function
 
@@ -993,7 +1009,7 @@ Using `power`, we can define a numerical approximation of the derivative:
 let derivative dx f = fun x -> (f(x +. dx) -. f(x)) /. dx
 ```
 
-This definition emphasizes that `derivative dx f` is itself a function of `x`. We can write it more concisely as:
+This definition emphasizes that `derivative dx f` is itself a function of `x` (where the intent to use with two arguments is stressed). We can write it more concisely as:
 
 ```ocaml
 let derivative dx f x = (f(x +. dx) -. f(x)) /. dx
@@ -1259,7 +1275,7 @@ The indentation levels in this trace correspond to **stack frames**---the runtim
 
 ### 3.4 Tail Calls and Tail Recursion
 
-Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. The trace above illustrates this: each level of indentation represents a new stack frame.
+Excuse me for not defining what a *function call* is... Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. The trace above illustrates this: each level of indentation represents a new stack frame.
 
 #### What is a Tail Call?
 
@@ -2138,6 +2154,8 @@ let repeat_until p f s =
 
 This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We examine the formal mechanics of type inference and then apply these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in red-black trees.
 
+*If you see any error in this chapter, please let us know!*
+
 ### 5.1 Type Inference
 
 We have seen the rules that govern the assignment of types to expressions, but how does OCaml guess what types to use, and when no correct types exist? The answer is that it solves equations.
@@ -2162,7 +2180,7 @@ In contrast:
 val x : '_weak1 list ref = {contents = []}
 ```
 
-Here `'_a` is an unknown. It stands for a particular type like `float` or `int -> int`, but OCaml just does not yet know which type. OCaml only reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not central to functional programming.
+Here `'_a` is an unknown. It stands for a particular type like `float` or `int -> int`, but OCaml just doesn't know the type yet. OCaml only reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to functional programming.
 
 When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help: writing `let f x = expr x` instead of `let f = expr`. For example:
 
@@ -2500,7 +2518,7 @@ end
 
 ### 5.8 Implementing Maps: Association Lists
 
-Let us now build an implementation of maps from the ground up. The most straightforward implementation... might not be what you expected:
+Let's now build an implementation of maps from the ground up. The most straightforward implementation... might not be what you expected:
 
 ```ocaml
 module TrivialMap : MAP = struct
@@ -2774,19 +2792,21 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 This chapter explores two fundamental programming paradigms in functional programming: **folding** (also known as reduction) and **backtracking**. We begin with the classic `map` and `fold` higher-order functions, examine how they generalize to trees and other data structures, then move on to solving puzzles using backtracking with lists.
 
+The material in this chapter draws from Martin Odersky's "Functional Programming Fundamentals," Ralf Laemmel's "Going Bananas," Graham Hutton's "Programming in Haskell" (Chapter 11 on the Countdown Problem), and Tomasz Wierzbicki's Honey Islands Puzzle Solver.
+
 ### 6.1 Basic Generic List Operations
 
-Functional programming emphasizes identifying common patterns and abstracting them into reusable higher-order functions. Let us see how this works in practice.
+Functional programming emphasizes identifying common patterns and abstracting them into reusable higher-order functions. Rather than writing similar code repeatedly, we extract the common structure into a single generic function. Let us see how this principle works in practice through two motivating examples.
 
 #### The `map` Function
 
-Consider the problem of printing a comma-separated list of integers. The `String` module provides:
+How do we print a comma-separated list of integers? The `String` module provides a function that joins strings with a separator:
 
 ```
 val concat : string -> string list -> string
 ```
 
-First, we need to convert numbers into strings:
+But `String.concat` works on strings, not integers. So first, we need to convert numbers into strings:
 
 ```ocaml env=ch6
 let rec strings_of_ints = function
@@ -2796,7 +2816,7 @@ let rec strings_of_ints = function
 let comma_sep_ints = String.concat ", " -| strings_of_ints
 ```
 
-Similarly, to sort strings from shortest to longest, we first compute lengths:
+Here is another common task: how do we sort strings from shortest to longest? We can pair each string with its length and then sort by the first component. First, let us compute the lengths:
 
 ```ocaml env=ch6
 let rec strings_lengths = function
@@ -2806,7 +2826,9 @@ let rec strings_lengths = function
 let by_size = List.sort compare -| strings_lengths
 ```
 
-Notice the common structure in `strings_of_ints` and `strings_lengths`: both transform each element of a list independently. We can extract this pattern into a generic function called `map`:
+Now, look carefully at `strings_of_ints` and `strings_lengths`. Do you notice the common structure? Both functions traverse a list and transform each element independently -- one applies `string_of_int`, the other applies a function that pairs a string with its length. The recursive structure is identical; only the transformation differs.
+
+This is our cue to *extract the common pattern* into a generic higher-order function. We call it `map`:
 
 ```ocaml env=ch6
 let rec list_map f = function
@@ -2826,7 +2848,7 @@ let by_size =
 
 #### The `fold` Function
 
-Consider summing elements of a list:
+Now let us consider a different kind of pattern. How do we sum all the elements of a list?
 
 ```ocaml env=ch6
 let rec balance = function
@@ -2834,7 +2856,7 @@ let rec balance = function
   | hd::tl -> hd + balance tl
 ```
 
-Or multiplying elements:
+And how do we multiply all the elements together (perhaps to compute a cumulative ratio)?
 
 ```ocaml env=ch6
 let rec total_ratio = function
@@ -2842,7 +2864,7 @@ let rec total_ratio = function
   | hd::tl -> hd *. total_ratio tl
 ```
 
-The pattern is the same: we combine each element with the result of processing the rest of the list. This is the **fold** operation:
+Again, the recursive structure is the same. In both cases, we combine each element with the result of processing the rest of the list. The differences are: (1) what we return for the empty list (the "base case" or "identity element"), and (2) how we combine the head with the recursive result. This pattern is called **folding**:
 
 ```ocaml env=ch6
 let rec list_fold f base = function
@@ -2850,16 +2872,23 @@ let rec list_fold f base = function
   | hd::tl -> f hd (list_fold f base tl)
 ```
 
-**Important:** Note that `list_fold f base l` equals `List.fold_right f l base`. The OCaml standard library uses a different argument order.
+**Important:** Note that `list_fold f base l` equals `List.fold_right f l base`. The OCaml standard library uses a different argument order, so be careful when using `List.fold_right`.
 
-The key insight is that `map` alters the *contents* of data without changing its structure, while `fold` computes a value using the structure as scaffolding. Visually:
+The key insight is understanding the fundamental difference between `map` and `fold`:
 
-- `map` transforms: `[a; b; c; d]` becomes `[f a; f b; f c; f d]`
-- `fold` collapses: `[a; b; c; d]` becomes `f a (f b (f c (f d accu)))`
+- **`map`** alters the *contents* of a data structure without changing its shape. The output list has the same length as the input; we merely transform each element.
+- **`fold`** *collapses* a data structure down to a single value, using the structure itself as scaffolding for the computation.
+
+Visually, consider what happens to the list `[a; b; c; d]`:
+
+- `map f` transforms: `[a; b; c; d]` becomes `[f a; f b; f c; f d]` -- same structure, different contents
+- `fold f accu` collapses: `[a; b; c; d]` becomes `f a (f b (f c (f d accu)))` -- structure disappears, single value remains
 
 ### 6.2 Making Fold Tail-Recursive
 
-Let us investigate tail-recursive functions. Consider reversing a list:
+Our `list_fold` function above is not tail-recursive: it builds up a chain of deferred `f` applications on the call stack. For very long lists, this can cause stack overflow. Can we make folding tail-recursive?
+
+Let us investigate some tail-recursive list functions to find a pattern. Consider reversing a list:
 
 ```ocaml env=ch6
 let rec list_rev acc = function
@@ -2867,7 +2896,9 @@ let rec list_rev acc = function
   | hd::tl -> list_rev (hd::acc) tl
 ```
 
-Or computing an average:
+The key technique here is the *accumulator* parameter `acc`. Instead of building up work to do after the recursive call returns, we do the work *before* the recursive call and pass the intermediate result along.
+
+Here is another example -- computing an average by tracking both the running sum and the count:
 
 ```ocaml env=ch6
 let rec average (sum, tot) = function
@@ -2876,7 +2907,7 @@ let rec average (sum, tot) = function
   | hd::tl -> average (hd +. sum, 1. +. tot) tl
 ```
 
-The pattern here is different from `fold_right`. We process elements from left to right, accumulating a result:
+Notice how these functions process elements from left to right, threading an accumulator through the computation. This is the pattern of `fold_left`:
 
 ```ocaml env=ch6
 let rec fold_left f accu = function
@@ -2884,7 +2915,7 @@ let rec fold_left f accu = function
   | a::l -> fold_left f (f accu a) l
 ```
 
-With `fold_left`, hiding the accumulator is straightforward:
+With `fold_left`, expressing our earlier functions becomes straightforward -- we hide the accumulator inside the initial value:
 
 ```ocaml env=ch6
 let list_rev l =
@@ -2894,7 +2925,9 @@ let average =
   fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.)
 ```
 
-The naming convention for `fold_right` and `fold_left` reflects associativity:
+Note that the `average` example is slightly trickier than `list_rev` because we need to track two values (sum and count) rather than one.
+
+**Why the names `fold_right` and `fold_left`?** The names reflect the associativity of the combining operation:
 
 - `fold_right f` makes `f` **right associative**, like the list constructor `::`:
   `List.fold_right f [a1; ...; an] b` is `f a1 (f a2 (... (f an b) ...))`
@@ -2902,8 +2935,7 @@ The naming convention for `fold_right` and `fold_left` reflects associativity:
 - `fold_left f` makes `f` **left associative**, like function application:
   `List.fold_left f a [b1; ...; bn]` is `f (... (f (f a b1) b2) ...) bn`
 
-The "backward" structure of `fold_left` — the input list has a right-leaning spine,
-while the computation tree has a left-leaning spine:
+This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
 ```
     Input list              Result computation
@@ -2919,16 +2951,18 @@ while the computation tree has a left-leaning spine:
                d    []  accu   a
 ```
 
+This reversal of structure is why `fold_left` naturally reverses lists when the combining operation is `cons`.
+
 #### Useful Derived Functions
 
-List filtering is naturally expressed using `fold_right`:
+Many common list operations can be expressed elegantly using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
 
 ```ocaml env=ch6
 let list_filter p l =
   List.fold_right (fun h t -> if p h then h::t else t) l []
 ```
 
-A tail-recursive map that returns elements in reverse order:
+When we need a tail-recursive map and can tolerate reversed output, `fold_left` gives us `rev_map`:
 
 ```ocaml env=ch6
 let list_rev_map f l =
@@ -2936,6 +2970,8 @@ let list_rev_map f l =
 ```
 
 ### 6.3 Map and Fold for Trees and Other Structures
+
+The `map` and `fold` patterns are not limited to lists. They apply to any recursive data structure. The key insight is that `map` preserves structure while transforming contents, and `fold` collapses structure into a single value.
 
 #### Binary Trees
 
@@ -2953,9 +2989,9 @@ let test = Node
 let _ = bt_map ((+) 1) test
 ```
 
-The `map` and `fold` functions we consider here preserve/respect the structure of data. They do **not** correspond to `map` and `fold` of abstract data type containers (which are like `List.rev_map` and `List.fold_left` over container elements in arbitrary order). Here we generalize `List.map` and `List.fold_right` to other structures.
+**A note on terminology:** The `map` and `fold` functions we define here preserve and respect the structure of data. They are different from the `map` and `fold` operations you might find in abstract data type container libraries, which often behave more like `List.rev_map` and `List.fold_left` over container elements in arbitrary order. Here we are generalizing `List.map` and `List.fold_right` to other structures.
 
-The most general form of `fold` for binary trees processes each element together with partial results from subtrees:
+For binary trees, the most general form of `fold` processes each element together with the partial results already computed for its subtrees:
 
 ```ocaml env=ch6
 let rec bt_fold f base = function
@@ -2964,16 +3000,18 @@ let rec bt_fold f base = function
     f e (bt_fold f base l) (bt_fold f base r)
 ```
 
-Examples:
+Here are two examples showing how `bt_fold` can compute different properties of a tree:
 
 ```ocaml env=ch6
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
 let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 ```
 
+The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
+
 #### More Complex Structures: Expressions
 
-To demonstrate map and fold for more complex structures, we recall the expression type from Chapter 3:
+Real-world data types often have more than two cases. To demonstrate map and fold for more complex structures, let us recall the expression type from Chapter 3:
 
 ```ocaml env=ch6
 type expression =
@@ -2985,7 +3023,7 @@ type expression =
   | Quot of expression * expression   (* e1 / e2 *)
 ```
 
-The multitude of cases makes the datatype harder to work with. Fortunately, *or-patterns* help:
+The multitude of cases makes this datatype harder to work with than binary trees. Fortunately, OCaml's *or-patterns* help us handle multiple similar cases together:
 
 ```ocaml env=ch6
 let rec vars = function
@@ -2995,7 +3033,7 @@ let rec vars = function
     vars a @ vars b
 ```
 
-Mapping and folding must be specialized for each case. We pack behaviors into records:
+For a generic `map` and `fold` over expressions, we need to specify behavior for each case. Since there are many cases, we pack all the behaviors into records. This way, we can define default behaviors and then override just the cases we care about:
 
 ```ocaml env=ch6
 type expression_map = {
@@ -3007,7 +3045,10 @@ type expression_map = {
   map_quot : expression -> expression -> expression;
 }
 
-(* Note: 'a replaces expression because fold produces values of arbitrary type *)
+(*
+   Note: In expression_fold, we use 'a instead of expression because
+   fold produces values of arbitrary type, not necessarily expressions.
+*)
 type 'a expression_fold = {
   fold_const : float -> 'a;
   fold_var : string -> 'a;
@@ -3018,7 +3059,7 @@ type 'a expression_fold = {
 }
 ```
 
-We define standard behaviors that can be tailored for specific uses:
+Now we define standard "default" behaviors. The `identity_map` reconstructs the same expression (useful as a starting point when we only want to change one case), and `make_fold` creates a fold where all binary operators behave the same:
 
 ```ocaml env=ch6
 let identity_map = {
@@ -3058,7 +3099,7 @@ let rec expr_fold efold = function
   | Quot (a,b) -> efold.fold_quot (expr_fold efold a) (expr_fold efold b)
 ```
 
-Using the `{record with field = value}` syntax to customize behaviors:
+Now here is the payoff. Using OCaml's `{record with field = value}` syntax, we can easily customize behaviors for specific uses by starting from the defaults and overriding just what we need:
 
 ```ocaml env=ch6
 let prime_vars = expr_map
@@ -3083,11 +3124,16 @@ let eval env = expr_fold {
 
 ### 6.4 Point-Free Programming
 
-In 1977/78, John Backus designed **FP**, the first *function-level programming* language. Over the next decade it evolved into the **FL** language.
+In 1977/78, John Backus -- the designer of FORTRAN and BNF notation -- introduced **FP**, the first *function-level programming* language. This was a radical departure from the prevailing style: rather than manipulating variables and values, programs were built entirely by combining functions. Over the next decade, FP evolved into the **FL** language.
 
-> "Clarity is achieved when programs are written at the function level--that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs." -- *The FL Project: The Design of a Functional Language*
+The philosophy behind function-level programming is captured in this quote:
 
-For function-level programming, we need combinators like these from *OCaml Batteries*:
+> "Clarity is achieved when programs are written at the function level -- that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs."
+> -- *The FL Project: The Design of a Functional Language*
+
+This style is sometimes called **point-free** or **tacit** programming, because we never mention the "points" (values) that functions operate on -- we only talk about the functions themselves and how they combine.
+
+To write in this style, we need a toolkit of **combinators** -- higher-order functions that combine other functions. Here are some common ones, similar to what you will find in the *OCaml Batteries* library:
 
 ```ocaml env=ch6
 let const x _ = x
@@ -3102,7 +3148,9 @@ let curry f x y = f (x,y)
 let uncurry f (x,y) = f x y
 ```
 
-The flow of computation can be viewed as a circuit where results of nodes (functions) connect to further nodes as inputs. We represent cross-sections of the circuit as tuples of intermediate values.
+One way to understand point-free programming is to visualize the flow of computation as a circuit. Values flow through the circuit, being transformed by functions at each node. Cross-sections of the circuit can be represented as tuples of intermediate values.
+
+Consider this simple function that converts a character and an integer to a string:
 
 ```ocaml env=ch6
 let print2 c i =
@@ -3111,40 +3159,50 @@ let print2 c i =
   a ^ b
 ```
 
-In point-free style:
+We can visualize this as a circuit: `(c, i)` enters, `c` flows through `Char.escaped`, `i` flows through `string_of_int`, and the results meet at `(^)`. In point-free style, we express this directly:
 
 ```ocaml env=ch6
 let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
 
-Since we usually pass arguments one at a time rather than in tuples, we need `uncurry` to access multi-argument functions. Converting a C/Pascal-like function to one that takes arguments one at a time is called *currying*, after logician Haskell Brooks Curry.
+Here `***` applies two functions in parallel to the components of a pair, `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
 
-Another approach uses function composition, `flip`, and the **S** combinator:
+**Why the name "currying"?** Converting a C/Pascal-style function (that takes all arguments as a tuple) into one that takes arguments one at a time is called *currying*, after the logician Haskell Brooks Curry. Since OCaml functions naturally take arguments one at a time, we often need `uncurry` to interface with tuple-based operations, and `curry` to convert back.
+
+Another approach to point-free style avoids tuples entirely, using function composition, `flip`, and the **S** combinator:
 
 ```ocaml env=ch6
 let s x y z = x z (y z)
 ```
 
-Example: transforming a filter-map function step by step:
+The S combinator allows us to pass one argument to two different functions and combine their results. This can bring a particular argument of a function to the "front" and pass it to another function.
+
+Here is an extended example showing step-by-step transformation of a filter-map function into point-free style:
 
 ```ocaml env=ch6
 let func2 f g l = List.filter f (List.map g l)
-(* Using composition: *)
+(* Step 1: Recognize that filter-after-map is composition *)
 let func2 f g = (-|) (List.filter f) (List.map g)
+(* Step 2: Eliminate l by composing with List.map *)
 let func2 f = (-|) (List.filter f) -| List.map
-(* Eliminating f: *)
+(* Step 3: Rewrite without infix notation to see the structure *)
 let func2 f = (-|) ((-|) (List.filter f)) List.map
+(* Step 4: Use flip to rearrange arguments *)
 let func2 f = flip (-|) List.map ((-|) (List.filter f))
+(* Step 5: Factor out f using composition *)
 let func2 f = (((|-) List.map) -| ((-|) -| List.filter)) f
+(* Step 6: Finally, f disappears (eta-reduction) *)
 let func2 = (|-) List.map -| ((-|) -| List.filter)
 ```
 
+While point-free style can be elegant for simple cases, it can quickly become obscure. Use it judiciously!
+
 ### 6.5 Reductions and More Higher-Order Functions
 
-Mathematics has notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
+Mathematics has a convenient notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
 
-In OCaml, we do not have a universal addition operator:
+Can we express this in OCaml? The challenge is that OCaml does not have a universal addition operator -- `+` works only on integers, `+.` only on floats. So we end up writing two versions:
 
 ```ocaml env=ch6
 let rec i_sum_fromto f a b =
@@ -3159,7 +3217,9 @@ let pi2_over6 =
   f_sum_fromto (fun i -> 1. /. float_of_int (i*i)) 1 5000
 ```
 
-The natural generalization:
+(The last example computes an approximation to $\pi^2/6$ using the Basel series.)
+
+The natural generalization is to make the combining operation a parameter:
 
 ```ocaml env=ch6
 let rec op_fromto op base f a b =
@@ -3169,11 +3229,11 @@ let rec op_fromto op base f a b =
 
 #### Collecting Results: concat_map
 
-Let us collect results of a multifunction (set-valued function) for a set of arguments. In mathematical notation:
+Sometimes a function produces not a single result but a *collection* of results. In mathematics, such a function is called a **multifunction** or set-valued function. If we have a multifunction $f$ and want to apply it to every element of a set $A$, we take the union of all results:
 
 $$f(A) = \bigcup_{p \in A} f(p)$$
 
-This translates to a useful list operation with union as append:
+When we represent sets as lists, "union" becomes "append". This gives us the extremely useful `concat_map` operation:
 
 ```ocaml env=ch6
 let rec concat_map f = function
@@ -3181,7 +3241,7 @@ let rec concat_map f = function
   | a::l -> f a @ concat_map f l
 ```
 
-More efficiently (tail-recursive):
+For better efficiency on long lists, here is a tail-recursive version:
 
 ```ocaml env=ch6
 let concat_map f l =
@@ -3191,7 +3251,11 @@ let concat_map f l =
   List.rev (cmap_f [] l)
 ```
 
+The `concat_map` function is fundamental for backtracking algorithms. We will use it extensively in the puzzle-solving sections below.
+
 #### All Subsequences of a List
+
+A classic example of a function that produces multiple results: given a list, generate all its subsequences (subsets that preserve order). The idea is simple: for each element, we either include it or exclude it.
 
 ```ocaml env=ch6
 let rec subseqs l =
@@ -3219,19 +3283,23 @@ let rec subseqs l =
 
 #### Permutations and Choices
 
-To generate all permutations, we interleave each element into all positions:
+Generating all permutations of a list is another classic combinatorial problem. The key insight is the `interleave` function: given an element `x` and a list, it produces all ways of inserting `x` into the list:
 
 ```ocaml env=ch6
 let rec interleave x = function
-  | [] -> [[x]]
-  | y::ys -> (x::y::ys) :: List.map (fun zs -> y::zs) (interleave x ys)
+  | [] -> [[x]]                 (* x can only go in one place: by itself *)
+  | y::ys ->
+    (x::y::ys)                  (* x goes at the front, OR *)
+    :: List.map (fun zs -> y::zs) (interleave x ys)  (* x goes somewhere after y *)
 
 let rec perms = function
-  | [] -> [[]]
+  | [] -> [[]]                  (* one way to permute empty list: empty list *)
   | x::xs -> concat_map (interleave x) (perms xs)
 ```
 
-For the Countdown problem, we need all non-empty subsequences with all their permutations:
+For example, `interleave 1 [2;3]` produces `[[1;2;3]; [2;1;3]; [2;3;1]]` -- all positions where 1 can be inserted.
+
+For the Countdown problem below, we will need all non-empty subsequences with all their permutations -- that is, all ways of choosing and ordering elements from a list:
 
 ```ocaml env=ch6
 let choices l = concat_map perms (List.filter ((<>) []) (subseqs l))
@@ -3239,11 +3307,11 @@ let choices l = concat_map perms (List.filter ((<>) []) (subseqs l))
 
 ### 6.6 Grouping and Map-Reduce
 
-It is often useful to organize values by some property.
+When processing large datasets, it is often useful to organize values by some property -- grouping all items with the same key together, then processing each group. This pattern is so common it has a name: **map-reduce** (popularized by Google for distributed computing).
 
 #### Collecting by Key
 
-First, we collect elements from an association list by key:
+The first step is to collect elements from an association list, grouping all values that share the same key:
 
 ```ocaml env=ch6
 let collect l =
@@ -3252,13 +3320,13 @@ let collect l =
   | (k0, v0)::tl ->
     let k0, vs, l = List.fold_left
       (fun (k0, vs, l) (kn, vn) ->           (* Collect values for current key *)
-        if k0 = kn then k0, vn::vs, l        (* and when the key changes, *)
-        else kn, [vn], (k0, List.rev vs)::l) (* stack the collected values *)
-      (k0, [v0], []) tl in                   (* Why reverse? To preserve order *)
+        if k0 = kn then k0, vn::vs, l        (* Same key: add value to current group *)
+        else kn, [vn], (k0, List.rev vs)::l) (* New key: save current group, start new *)
+      (k0, [v0], []) tl in                   (* Why reverse? To preserve original order *)
     List.rev ((k0, List.rev vs)::l)
 ```
 
-Now we can group by an arbitrary property:
+Now we can group elements by an arbitrary property -- we just need to extract the property as the key:
 
 ```ocaml env=ch6
 let group_by p l = collect (List.map (fun e -> p e, e) l)
@@ -3266,7 +3334,7 @@ let group_by p l = collect (List.map (fun e -> p e, e) l)
 
 #### Reduction (Aggregation)
 
-To process results like SQL aggregate operations, we add **reduction**:
+Grouping alone is often not enough -- we want to *aggregate* each group into a summary value, like SQL's `SUM`, `COUNT`, or `AVG`. This aggregation step is called **reduction**:
 
 ```ocaml env=ch6
 let aggregate_by p red base l =
@@ -3282,7 +3350,7 @@ let aggregate_by p redf base l =
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
 ```
 
-Often it is easier to extract the property upfront. Since we first map elements into key-value pairs, we call this `map_reduce`:
+Often it is cleaner to extract both the key and the value we care about upfront, before grouping. Since we first **map** elements into key-value pairs, then group and **reduce**, we call this pattern `map_reduce`:
 
 ```ocaml env=ch6
 let map_reduce mapf redf base l =
@@ -3293,7 +3361,7 @@ let map_reduce mapf redf base l =
 
 #### Map-Reduce Examples
 
-Sometimes we have multiple sources of information:
+Sometimes our mapping function produces multiple key-value pairs per input (for example, when processing documents word by word). For this we use `concat_reduce`, which uses `concat_map` instead of `map`:
 
 ```ocaml env=ch6
 let concat_reduce mapf redf base l =
@@ -3302,7 +3370,7 @@ let concat_reduce mapf redf base l =
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
 ```
 
-Computing a merged histogram of documents:
+**Example 1: Word histogram.** Count how many times each word appears across a collection of documents:
 
 ```ocaml env=ch6
 let histogram documents =
@@ -3312,7 +3380,7 @@ let histogram documents =
   concat_reduce mapf (+) 0 documents
 ```
 
-Computing an inverted index:
+**Example 2: Inverted index.** Build an index mapping each word to the list of documents (identified by address) containing it:
 
 ```ocaml env=ch6
 let cons hd tl = hd::tl
@@ -3324,7 +3392,7 @@ let inverted_index documents =
   concat_reduce mapf cons [] documents
 ```
 
-Set intersection is computed using `intersect` for sets represented as sorted lists:
+**Example 3: Simple search engine.** Once we have an inverted index, we can search for documents containing all of a given set of words. We need set intersection -- here implemented for sets represented as sorted lists:
 
 ```ocaml env=ch6
 let intersect xs ys =                       (* Sets as sorted lists *)
@@ -3338,7 +3406,7 @@ let intersect xs ys =                       (* Sets as sorted lists *)
   List.rev (aux [] (xs, ys))
 ```
 
-A simple "search engine":
+Now we can build a simple search function that finds all documents containing every word in a query:
 
 ```ocaml env=ch6
 let search index words =
@@ -3349,7 +3417,9 @@ let search index words =
 
 ### 6.7 Higher-Order Functions for the Option Type
 
-Operating on optional values:
+The `option` type is OCaml's way of representing values that might be absent. Rather than using null pointers (a common source of bugs), we explicitly mark possibly-missing values with `Some x` or `None`. Here are some useful higher-order functions for working with options.
+
+First, applying a function to an optional value:
 
 ```ocaml env=ch6
 let map_option f = function
@@ -3357,7 +3427,7 @@ let map_option f = function
   | Some e -> f e
 ```
 
-Mapping over a list and filtering out failures:
+Second, mapping a partial function over a list and keeping only the successful results:
 
 ```ocaml env=ch6
 let rec map_some f = function
@@ -3380,18 +3450,20 @@ let map_some f l =
 
 ### 6.8 The Countdown Problem Puzzle
 
-The Countdown Problem is a classic puzzle:
+Now we turn to solving puzzles, which will showcase the power of backtracking with lists. The **Countdown Problem** is a classic puzzle from a British TV game show:
 
 - Using a given set of numbers and arithmetic operators +, -, *, /, construct an expression with a given value.
 - All numbers, including intermediate results, must be positive integers.
 - Each source number can be used at most once.
 
 **Example:**
-- Numbers: 1, 3, 7, 10, 25, 50
+- Source numbers: 1, 3, 7, 10, 25, 50
 - Target: 765
-- Possible solution: (25-10) * (50+1)
+- One possible solution: (25-10) * (50+1) = 15 * 51 = 765
 
-There are 780 solutions for this example. Changing the target to 831 gives an example with no solutions.
+This example has 780 different solutions! Changing the target to 831 gives an example with no solutions at all.
+
+Let us develop a solver step by step, starting with the data types.
 
 #### Data Types
 
@@ -3433,7 +3505,9 @@ let solution e ns n =
 
 #### Brute Force Solution
 
-Splitting a list into two non-empty parts:
+Our strategy is to generate all possible expressions from the source numbers, then filter for those that evaluate to the target. To build expressions, we need to split the numbers into two groups (for the left and right operands of an operator).
+
+First, a helper to split a list into two non-empty parts in all possible ways:
 
 ```ocaml env=ch6
 let split l =
@@ -3446,29 +3520,31 @@ let split l =
   aux [] [] l
 ```
 
-We introduce an operator for working with multiple data sources:
+We introduce a convenient operator for working with multiple data sources. The "bind" operator `|->` takes a list of values and a function that produces a list from each value, then concatenates all results:
 
 ```ocaml env=ch6
 let ( |-> ) x f = concat_map f x
 ```
 
-Generating all expressions from a list of numbers:
+Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
 
 ```ocaml env=ch6
 let combine l r =                           (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
 let rec exprs = function
-  | [] -> []
-  | [n] -> [Val n]
+  | [] -> []                                (* No expressions from empty list *)
+  | [n] -> [Val n]                          (* Single number: just Val n *)
   | ns ->
-    split ns |-> (fun (ls, rs) ->           (* For each split ls,rs of numbers *)
-      exprs ls |-> (fun l ->                (* for each expression l over ls *)
-        exprs rs |-> (fun r ->              (* and expression r over rs *)
-          combine l r)))                    (* produce all l ? r expressions *)
+    split ns |-> (fun (ls, rs) ->           (* For each way to split numbers... *)
+      exprs ls |-> (fun l ->                (* ...for each expression l from left half... *)
+        exprs rs |-> (fun r ->              (* ...for each expression r from right half... *)
+          combine l r)))                    (* ...produce all l op r combinations *)
 ```
 
-Finding solutions:
+Read the nested `|->` as "for each ... for each ... for each ...". This is the essence of backtracking: we explore all combinations systematically.
+
+Finally, to find solutions, we try all choices of source numbers (all non-empty subsets with all orderings) and filter for expressions that evaluate to the target:
 
 ```ocaml env=ch6
 let guard n =
@@ -3481,7 +3557,9 @@ let solutions ns n =
 
 #### Optimization: Fuse Generation with Testing
 
-We memorize values with expressions as pairs `(e, eval e)`, so only valid subexpressions are generated:
+The brute force approach generates many invalid expressions (like `5 - 7` which gives a negative result, or `5 / 3` which is not an integer). We can do better by *fusing* generation with evaluation: instead of generating an expression and then checking if it is valid, we track the value alongside the expression and only generate valid subexpressions.
+
+The key insight is to work with pairs `(e, eval e)` so that only valid subexpressions are ever generated:
 
 ```ocaml env=ch6
 let combine' (l, x) (r, y) =
@@ -3507,7 +3585,7 @@ let solutions' ns n =
 
 #### Eliminating Symmetric Cases
 
-Strengthening the validity predicate to account for commutativity and identity:
+We can further improve performance by observing that addition and multiplication are commutative: `3 + 5` and `5 + 3` give the same result. Similarly, multiplying by 1 or adding/subtracting 0 are useless. We can eliminate these redundancies by strengthening the validity predicate:
 
 ```ocaml env=ch6
 let valid op x y =
@@ -3518,13 +3596,15 @@ let valid op x y =
   | Div -> x mod y = 0 && y <> 1
 ```
 
-This eliminates repeating symmetrical solutions on the semantic level (values) rather than syntactic level (expressions)--both easier and more effective.
+This eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
 
 ### 6.9 The Honey Islands Puzzle
 
-The Honey Islands puzzle: Find cells to eat honey from so that the least amount of honey becomes sour (assuming sourness spreads through contact).
+Now let us tackle a different kind of puzzle that requires more sophisticated backtracking.
 
-Given a honeycomb with some cells initially marked black, mark additional cells so that unmarked cells form `num_islands` disconnected components, each with `island_size` cells.
+**Be a bee!** Imagine a honeycomb where you need to eat honey from certain cells to prevent the remaining honey from going sour. Sourness spreads through contact, so you want to divide the honey into isolated "islands" -- each small enough that it will be consumed before spoiling.
+
+More precisely: given a honeycomb with some cells initially marked black (empty), mark additional cells as empty so that the remaining (unmarked) cells form exactly `num_islands` disconnected components, each with exactly `island_size` cells.
 
 | Task: 3 islands × 3 cells | Solution |
 |:-------------------------:|:--------:|
@@ -3534,10 +3614,12 @@ In the solution, yellow cells contain honey, black cells were initially empty, a
 
 #### Representing the Honeycomb
 
+We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
+
 ```ocaml env=ch6
 type cell = int * int                       (* Cartesian coordinates *)
 
-module CellSet =                            (* Store cells in sets *)
+module CellSet =                            (* Store cells in sets for efficient membership tests *)
   Set.Make (struct type t = cell let compare = compare end)
 
 type task = {                               (* For board size N, coordinates *)
@@ -3547,11 +3629,11 @@ type task = {                               (* For board size N, coordinates *)
   empty_cells : CellSet.t;                  (* Initially empty cells *)
 }
 
-let cellset_of_list l =                     (* List to set, inverse of CellSet.elements *)
+let cellset_of_list l =                     (* Convert list to set (inverse of CellSet.elements) *)
   List.fold_right CellSet.add l CellSet.empty
 ```
 
-**Neighborhood:** Each cell (x, y) has up to 6 neighbors:
+**Neighborhood:** In a honeycomb, each cell has up to 6 neighbors. We filter out neighbors that are outside the board or already eaten:
 
 ```ocaml env=ch6
 let even x = x mod 2 = 0
@@ -3568,7 +3650,7 @@ let neighbors n eaten (x, y) =
      x+1,y+1; x-1,y+1; x-2,y]
 ```
 
-**Building the honeycomb:**
+**Building the honeycomb:** We generate all valid honey cells by iterating over the coordinate range and filtering:
 
 ```ocaml env=ch6
 let honey_cells n eaten =
@@ -3655,7 +3737,7 @@ let draw_to_screen ~w ~h curves =
 
 #### Testing Correctness
 
-We walk through each island counting cells depth-first:
+Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
 
 ```ocaml skip
 let check_correct n island_size num_islands empty_cells =
@@ -3692,7 +3774,9 @@ let check_correct n island_size num_islands empty_cells =
 
 #### Multiple Results per Step: concat_fold
 
-When processing lists with potentially multiple results per step, we need `concat_fold`:
+When processing lists, sometimes each step can produce multiple results (not just one as in `fold_left`, or many independent ones as in `concat_map`). We need a hybrid: process elements sequentially like `fold_left`, but allow multiple results at each step, collecting all the final states.
+
+This is `concat_fold`:
 
 ```ocaml env=ch6
 let rec concat_fold f a = function
@@ -3703,11 +3787,11 @@ let rec concat_fold f a = function
 
 #### Generating Solutions
 
-We transform the testing code into generation code by:
+The key insight is that we can transform the *testing* code into *generation* code by:
 
-- Passing around the current solution `eaten`
-- Returning results in a list (empty list = no solutions)
-- At each neighbor, trying both eating and keeping
+1. Passing around the current partial solution (the `eaten` list)
+2. Returning results in a list (empty list means no solutions from this path)
+3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
 
 ```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
@@ -3750,9 +3834,13 @@ let find_to_eat n island_size num_islands empty_cells =
 
 #### Optimizations
 
-The main rule: **fail (drop solution candidates) as early as possible**.
+The brute-force generation explores far too many possibilities. The key optimization principle is: **fail (drop solution candidates) as early as possible**.
 
-We guard both choices (eating and keeping) and track how much honey needs to be eaten:
+Instead of blindly exploring all choices, we add guards to prune branches that cannot lead to solutions:
+
+- Do not try to eat more cells if we have already eaten enough
+- Do not add more cells to an island that is already full
+- Track exactly how many cells still need to be eaten
 
 ```ocaml env=ch6
 type state = {
@@ -3820,31 +3908,29 @@ The optimized island loop only tries actions that make sense:
 
 ### 6.10 Constraint-Based Puzzles
 
-Puzzles can be presented by providing:
+Many puzzles can be understood in terms of **constraint satisfaction**:
 
-1. The general form of solutions
-2. Additional requirements (constraints) that solutions must meet
+1. The puzzle defines the *general form* of solutions (what variables need values)
+2. The puzzle specifies *constraints* that valid solutions must satisfy
 
-For many puzzles, solutions decompose into a fixed number of **variables**:
+For example, in Sudoku, the variables are the 81 cells, each with domain {1,...,9}, and the constraints require each row, column, and 3x3 box to contain all digits exactly once.
 
-- A **domain** is the set of possible values a variable can have
-- In Honey Islands, variables are cells with domain {Honey, Empty}
-- **Constraints** specify relationships: cells that must be empty, number and size of connected components, neighborhood graph
+In the Honey Islands puzzle, we could view each cell as a variable with domain {Honey, Empty}. The constraints specify which cells must be empty initially, and the requirement of forming a specific number and size of connected components.
 
 #### Finite Domain Constraint Programming
 
-A general and often efficient scheme:
+**Constraint propagation** is a powerful technique for solving such puzzles efficiently. The key idea is to track *sets of possible values* for each variable and systematically eliminate impossibilities:
 
-1. With each variable, associate a set of values (initially the full domain). The singleton containing this association is the initial set of partial solutions.
+1. **Initialize:** For each variable, start with the full set of possible values (its domain). The current "partial solution" is this collection of sets.
 
-2. While there is a solution with more than one value for some variable:
-   - (a) If some value for a variable fails for all possible assignments to other variables, remove it
-   - (b) If a variable has an empty set of possible values, remove that solution
-   - (c) Select the variable with the smallest non-singleton set. Split into similarly-sized parts. Replace the solution with two solutions for each part.
+2. **Propagate and split:** Repeat until all variables have exactly one value:
+   - (a) **Propagate constraints:** If some value for a variable is inconsistent with *all* possible values of related variables, remove it
+   - (b) **Prune failures:** If any variable has an empty set of possible values, this partial solution has no completions -- abandon it
+   - (c) **Split:** Select a variable with multiple possible values. Create new partial solutions by partitioning its possibilities (simplest: try each value separately, or split into "this value" vs "all others")
 
-3. Build final solutions by assigning each variable its single remaining value.
+3. **Extract solutions:** When all variables have single values, we have found a solution.
 
-Simplifications: In step (2c), instead of equal-sized splits, we can partition into singleton and remainder, or partition completely into singletons.
+The efficiency comes from *early pruning*: constraint propagation often eliminates many possibilities without explicitly trying them, dramatically reducing the search space compared to brute-force enumeration.
 
 ### 6.11 Exercises
 
@@ -3879,7 +3965,11 @@ Simplifications: In step (2c), instead of equal-sized splits, we can partition i
 
 ## Chapter 7: Laziness
 
-This chapter explores lazy evaluation and stream processing in OCaml. We examine different evaluation strategies, implement streams and lazy lists, apply them to power series computation and differential equations, build circular data structures, and develop a sophisticated pipe-based pretty-printer.
+*"Today's lecture is about lazy evaluation. Thank you for coming, goodbye!"*
+
+Well, perhaps you have some questions? This chapter explores one of the most elegant ideas in functional programming: lazy evaluation. By deferring computation until results are actually needed, we unlock powerful techniques for working with infinite data structures, solving differential equations symbolically, and building sophisticated stream-processing pipelines.
+
+We will examine different evaluation strategies, implement streams and lazy lists, apply them to power series computation and differential equations, build circular data structures, and develop a sophisticated pipe-based pretty-printer. Along the way, we will see how laziness transforms the way we think about computation itself.
 
 ### 7.1 Evaluation Strategies and Parameter Passing
 
@@ -3899,19 +3989,19 @@ This chapter explores lazy evaluation and stream processing in OCaml. We examine
 
 **Normal order**: Start computing function bodies before evaluating their arguments. Do not even wait for arguments if they are not needed.
 
-**Call-by-name**: Arguments are substituted directly into the function body and then left to be evaluated whenever they appear in the function.
+**Call-by-name**: Arguments are substituted directly into the function body and then left to be evaluated whenever they appear in the function. This means an argument might be evaluated multiple times if it appears multiple times in the function body.
 
-**Call-by-need**: If the function argument is evaluated, that value is stored for subsequent uses.
+**Call-by-need**: If the function argument is evaluated, that value is stored for subsequent uses. This avoids the redundant recomputation that can occur with call-by-name.
 
-Almost all languages do not compute inside the body of an un-applied function, but with curried functions you can pre-compute data before all arguments are provided (recall the `search_bible` example from earlier lectures).
+Almost all languages do not compute inside the body of an un-applied function, but with curried functions you can pre-compute data before all arguments are provided (recall the `search_bible` example from earlier lectures, where preprocessing happened when the first argument was supplied).
 
-In eager / call-by-value languages we can simulate call-by-name by taking a function to compute the value as an argument instead of the value directly. "Our" languages have a `unit` type with a single value `()` specifically for use as throw-away arguments. Scala has built-in support for call-by-name (i.e. direct, without the need to build argument functions).
+In eager / call-by-value languages we can simulate call-by-name by taking a function to compute the value as an argument instead of the value directly. "Our" languages have a `unit` type with a single value `()` specifically for use as throw-away arguments -- we pass `fun () -> expensive_computation` instead of `expensive_computation` directly. Scala has built-in support for call-by-name (i.e. direct, without the need to build argument functions).
 
-ML languages have built-in support for lazy evaluation, while Haskell has built-in support for eager evaluation (to override the default laziness).
+ML languages have built-in support for lazy evaluation, while Haskell has built-in support for eager evaluation (to override the default laziness). This reflects the different design philosophies: OCaml defaults to strict evaluation with opt-in laziness, while Haskell defaults to lazy evaluation with opt-in strictness.
 
 ### 7.2 Call-by-name: Streams
 
-Call-by-name is useful not only for implementing flow control:
+Call-by-name is useful not only for implementing flow control. Remember how we struggled to define `if_then_else` as a regular function in the lambda calculus lecture? The problem was that both branches would be evaluated before the function could choose between them. With call-by-name simulation, we can finally make it work:
 
 ```ocaml env=ch7
 let if_then_else cond e1 e2 =
@@ -3920,7 +4010,7 @@ let if_then_else cond e1 e2 =
   | false -> e2 ()
 ```
 
-but also for arguments of value constructors, i.e. for data structures.
+Here `e1` and `e2` are functions that compute their respective branches only when called. But call-by-name is useful for more than just flow control -- it also enables lazy data structures.
 
 **Streams** are lists with call-by-name tails:
 
@@ -3928,7 +4018,7 @@ but also for arguments of value constructors, i.e. for data structures.
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
-Reading from a stream into a list:
+The key insight is that the tail is not a stream directly, but a *function* that produces a stream when called. This means the tail is not computed until we actually need it. Reading from a stream into a regular list forces evaluation of the requested elements:
 
 ```ocaml env=ch7
 let rec stake n = function
@@ -3936,7 +4026,7 @@ let rec stake n = function
   | _ -> []
 ```
 
-Streams can easily be infinite:
+Notice how we call `s ()` to get the next portion of the stream. This is where the "lazy" computation happens. Because of this delayed evaluation, streams can easily be infinite:
 
 ```ocaml env=ch7
 let rec s_ones = SCons (1, fun () -> s_ones)
@@ -3945,9 +4035,11 @@ let rec s_from n =
   SCons (n, fun () -> s_from (n+1))
 ```
 
+The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
+
 #### 7.2.1 Stream Operations
 
-Streams admit list-like operations:
+Just as we can define higher-order functions on lists, streams admit similar operations. The key difference is that we must wrap recursive calls in functions to maintain laziness:
 
 ```ocaml env=ch7
 let rec smap f = function
@@ -3961,7 +4053,7 @@ let rec szip = function
   | _ -> raise (Invalid_argument "szip")
 ```
 
-Streams can provide scaffolding for recursive algorithms. Consider the Fibonacci sequence:
+Streams can provide scaffolding for recursive algorithms, enabling elegant definitions that would be impossible with strict data structures. Consider the Fibonacci sequence:
 
 ```ocaml env=ch7
 let rec sfib =
@@ -3969,7 +4061,7 @@ let rec sfib =
     (szip (sfib, SCons (1, fun () -> sfib))))
 ```
 
-This definition creates a stream where each element is computed by adding pairs from the current stream and itself shifted by one position:
+This remarkably concise definition creates a stream where each element is computed by adding pairs from the current stream and itself shifted by one position. The stream effectively "builds itself" by referring to its own earlier elements:
 
 | sfib     | 1 | 2 | 3 | 5 | 8 | 13 | ... |
 |----------|---|---|---|---|---|----|-----|
@@ -3980,7 +4072,7 @@ The `+` operation between corresponding elements produces the next values.
 
 #### 7.2.2 Streams and Input-Output
 
-Streams are less functional than could be expected in the context of input-output effects:
+Streams can be used to read from files lazily, but there is a catch -- they are less functional than one might expect in the context of input-output effects:
 
 ```ocaml env=ch7
 let file_stream name =
@@ -3991,32 +4083,34 @@ let file_stream name =
   ch_read_line ()
 ```
 
-*OCaml Batteries* uses a stream type `enum` for interfacing between various sequence-like data types. The safest way to use streams is in a *linear* / *ephemeral* manner: every value used only once. Streams minimize space consumption at the expense of time for recomputation.
+The problem is that reading from a file is a side effect. If you traverse the stream twice, you will not get the same results -- the file handle advances with each read. This is why *OCaml Batteries* uses a stream type `enum` for interfacing between various sequence-like data types, with careful documentation about when streams can be safely reused.
+
+The safest way to use streams is in a *linear* or *ephemeral* manner: every value used only once. Streams minimize space consumption at the expense of time for recomputation -- if you need to traverse the data multiple times, you will recompute it each time. For data that should be computed once and accessed multiple times, we need lazy lists.
 
 ### 7.3 Lazy Values
 
-Lazy evaluation is more general than call-by-need as any value can be lazy, not only a function parameter.
+Lazy evaluation is more general than call-by-need as any value can be lazy, not only a function parameter. While streams give us call-by-name semantics (recomputing on each access), lazy values give us call-by-need semantics (computing once and caching the result).
 
-A *lazy value* is a value that "holds" an expression until its result is needed, and from then on it "holds" the result. It is also called a *suspension*. If it holds the expression (not yet evaluated), it is called a *thunk*.
+A *lazy value* is a value that "holds" an expression until its result is needed, and from then on it "holds" the result. It is also called a *suspension*. If it holds the expression (not yet evaluated), it is called a *thunk* -- a placeholder waiting to become a real value.
 
-In OCaml, we build lazy values explicitly. In Haskell, all values are lazy but functions can have call-by-value parameters which "need" the argument.
+In OCaml, we build lazy values explicitly using the `lazy` keyword. In Haskell, all values are lazy by default, but functions can have call-by-value parameters which "need" (force evaluation of) the argument.
 
-To create a lazy value: `lazy expr` -- where `expr` is the suspended computation.
+To create a lazy value: `lazy expr` -- where `expr` is the suspended computation. The expression `expr` is not evaluated when the lazy value is created; it is stored for later.
 
-Two ways to use a lazy value (be careful when the result is computed!):
-- In expressions: `Lazy.force l_expr`
-- In patterns: `match l_expr with lazy v -> ...`
-  - Syntactically `lazy` behaves like a data constructor.
+There are two ways to use a lazy value. Be careful to understand when the result is computed!
+- In expressions: `Lazy.force l_expr` -- explicitly forces evaluation
+- In patterns: `match l_expr with lazy v -> ...` -- forces evaluation during pattern matching
+  - Syntactically `lazy` behaves like a data constructor, which is why it can appear in patterns.
 
 #### 7.3.1 Lazy Lists
 
-Lazy lists are defined as:
+Lazy lists are the "memoizing" version of streams. Instead of a function that recomputes the tail each time, we use a lazy value that computes it once:
 
 ```ocaml env=ch7
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 ```
 
-Reading from a lazy list into a list:
+The tail is of type `'a llist Lazy.t` -- a lazy value that will produce the rest of the list when forced. Reading from a lazy list into a regular list forces evaluation of just the elements we need:
 
 ```ocaml env=ch7
 let rec ltake n = function
@@ -4024,7 +4118,7 @@ let rec ltake n = function
   | _ -> []
 ```
 
-Lazy lists can easily be infinite:
+Notice the `lazy l` pattern -- this forces evaluation of the lazy tail and binds the result to `l`. Lazy lists can easily be infinite, just like streams:
 
 ```ocaml env=ch7
 let rec l_ones = LCons (1, lazy l_ones)
@@ -4032,7 +4126,7 @@ let rec l_ones = LCons (1, lazy l_ones)
 let rec l_from n = LCons (n, lazy (l_from (n+1)))
 ```
 
-Read once, access multiple times (unlike streams):
+The crucial difference from streams is that lazy lists support "read once, access multiple times" semantics. Once a portion of the list has been computed, subsequent accesses return the cached result:
 
 ```ocaml env=ch7
 let file_llist name =
@@ -4043,7 +4137,11 @@ let file_llist name =
   ch_read_line ()
 ```
 
+With `file_llist`, you can traverse the resulting list multiple times and get the same data each time (as long as you keep a reference to the head of the list). The file is read lazily, but each line is cached after being read.
+
 #### 7.3.2 Lazy List Operations
+
+We can define the familiar higher-order functions on lazy lists. Notice the subtle but important difference from streams -- we must use `Lazy.force` to access the lazy tail before passing it to recursive calls:
 
 ```ocaml env=ch7
 let rec lzip = function
@@ -4059,7 +4157,7 @@ let rec lmap f = function
     LCons (f a, lazy (lmap f (Lazy.force ll)))
 ```
 
-Using these operations, we can define the factorial sequence elegantly:
+Using these operations, we can define the factorial sequence in a beautifully self-referential way:
 
 ```ocaml env=ch7
 let posnums = l_from 1
@@ -4069,7 +4167,7 @@ let rec lfact =
                     (lzip (lfact, posnums))))
 ```
 
-This produces: 1, 1, 2, 6, 24, 120, ... where each element is the product of the previous factorial and the corresponding positive integer:
+This produces: 1, 1, 2, 6, 24, 120, ... The definition is elegant: each factorial is the product of the previous factorial and the corresponding positive integer. The lazy list `lfact` refers to itself to get the previous factorials!
 
 | lfact   | 1 | 1 | 2 |  6 |  24 | 120 | ... |
 |---------|---|---|---|----|-----|-----|-----|
@@ -4080,9 +4178,9 @@ The `*` operation between corresponding elements produces the next values.
 
 ### 7.4 Power Series and Differential Equations
 
-This section presents an application of lazy lists to power series computation and solving differential equations through power series. The differential equations idea is due to Henning Thielemann.
+This section presents a fascinating application of lazy lists: computing power series and solving differential equations symbolically. The differential equations idea is due to Henning Thielemann, and demonstrates the expressive power of lazy evaluation.
 
-The expression $P(x) = \sum_{i=0}^{n} a_i x^i$ defines a polynomial for $n < \infty$ and a power series for $n = \infty$.
+The expression $P(x) = \sum_{i=0}^{n} a_i x^i$ defines a polynomial when $n < \infty$ and a power series when $n = \infty$. We can represent both as lazy lists of coefficients $[a_0; a_1; a_2; \ldots]$.
 
 If we define:
 
@@ -4093,18 +4191,20 @@ let rec lfold_right f l base =
     | LCons (a, lazy l) -> f a (lfold_right f l base)
 ```
 
-then we can compute polynomials using Horner's method:
+then we can compute polynomials using Horner's method. Horner's method evaluates polynomials efficiently by factoring out powers of $x$: instead of computing $a_0 + a_1 x + a_2 x^2 + \ldots$, we compute $a_0 + x(a_1 + x(a_2 + \ldots))$:
 
 ```ocaml env=ch7
 let horner x l =
   lfold_right (fun c sum -> c +. x *. sum) l 0.
 ```
 
-But this will not work for infinite power series! Does it make sense to compute the value at $x$ of a power series? Does it make sense to fold an infinite list?
+But this will not work for infinite power series! Two natural questions arise:
+- Does it make sense to compute the value at $x$ of a power series?
+- Does it make sense to fold an infinite list?
 
-If the power series converges for $x > 1$, then when the elements $a_n$ get small, the remaining sum $\sum_{i=n}^{\infty} a_i x^i$ is also small.
+The answer to both is "yes, sometimes." If the power series converges for $x > 1$, then when the elements $a_n$ get small, the remaining sum $\sum_{i=n}^{\infty} a_i x^i$ is also small. We can truncate the computation when the contribution becomes negligible.
 
-`lfold_right` falls into an infinite loop on infinite lists. We need call-by-name / call-by-need semantics for the argument function `f`:
+The problem is that `lfold_right` falls into an infinite loop on infinite lists -- it tries to reach the end before computing anything. We need call-by-name / call-by-need semantics for the argument function `f`, so it can decide to stop early:
 
 ```ocaml env=ch7
 let rec lazy_foldr f l base =
@@ -4114,23 +4214,25 @@ let rec lazy_foldr f l base =
       f a (lazy (lazy_foldr f (Lazy.force ll) base))
 ```
 
-We need a stopping condition in the Horner algorithm step:
+Now we need a stopping condition in the Horner algorithm step. We stop when the coefficient becomes small enough that further terms are negligible:
 
 ```ocaml env=ch7
-let lhorner x l =                         (* This is a bit of a hack, *)
+let lhorner x l =                         (* This is a bit of a hack: *)
   let upd c sum =                         (* we hope to "hit" the interval (0, epsilon]. *)
     if c = 0. || abs_float c > epsilon_float
     then c +. x *. Lazy.force sum
-    else 0. in
+    else 0. in                            (* Stop when c is tiny but nonzero. *)
   lazy_foldr upd l 0.
 
 let inv_fact = lmap (fun n -> 1. /. float_of_int n) lfact
 let e = lhorner 1. inv_fact
 ```
 
+The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
+
 #### 7.4.1 Power Series / Polynomial Operations
 
-For power series operations with floating-point coefficients, we need a float-based version of positive numbers:
+To work with power series, we need to define arithmetic operations on lazy lists of coefficients. For floating-point coefficients, we first need a float-based version of positive numbers:
 
 ```ocaml env=ch7
 let rec l_from_f n = LCons (n, lazy (l_from_f (n +. 1.)))
@@ -4139,6 +4241,8 @@ let posnums_f = l_from_f 1.
 (* Unary negation for series *)
 let (~-:) = lmap (fun x -> -.x)
 ```
+
+Now we can define the basic arithmetic operations on power series. Addition and subtraction work coefficient-wise:
 
 ```ocaml env=ch7
 let rec add xs ys =
@@ -4159,28 +4263,32 @@ let scale s = lmap (fun x -> s *. x)
 
 let rec shift n xs =
   if n = 0 then xs
-  else if n > 0 then LCons (0., lazy (shift (n-1) xs))
-  else match xs with
+  else if n > 0 then LCons (0., lazy (shift (n-1) xs))  (* Multiply by x^n *)
+  else match xs with                                    (* Divide by x^|n| *)
     | LNil -> LNil
     | LCons (0., lazy xs) -> shift (n+1) xs
     | _ -> failwith "shift: fractional division"
 
+(* Multiplication uses the convolution formula *)
 let rec mul xs = function
   | LNil -> LNil
   | LCons (y, ys) ->
     add (scale y xs) (LCons (0., lazy (mul xs (Lazy.force ys))))
 
+(* Division is like long division of polynomials *)
 let rec div xs ys =
   match xs, ys with
   | LNil, _ -> LNil
-  | LCons (0., xs'), LCons (0., ys') ->
+  | LCons (0., xs'), LCons (0., ys') ->   (* Both start with zero: cancel x *)
     div (Lazy.force xs') (Lazy.force ys')
   | LCons (x, xs'), LCons (y, ys') ->
-    let q = x /. y in
+    let q = x /. y in                     (* Leading coefficient of quotient *)
     LCons (q, lazy (div (sub (Lazy.force xs')
                                  (scale q (Lazy.force ys'))) ys))
   | LCons _, LNil -> failwith "div: division by zero"
 
+(* Integration: integral of a_0 + a_1*x + a_2*x^2 + ...
+   is c + a_0*x + a_1*x^2/2 + a_2*x^3/3 + ... *)
 let integrate c xs =
   LCons (c, lazy (lmap (uncurry (/.)) (lzip (xs, posnums_f))))
 
@@ -4188,17 +4296,21 @@ let ltail = function
   | LNil -> invalid_arg "ltail"
   | LCons (_, lazy tl) -> tl
 
+(* Differentiation: derivative of a_0 + a_1*x + a_2*x^2 + ...
+   is a_1 + 2*a_2*x + 3*a_3*x^2 + ... *)
 let differentiate xs =
   lmap (uncurry ( *.)) (lzip (ltail xs, posnums_f))
 ```
 
 #### 7.4.2 Differential Equations
 
-Consider the differential equations for sine and cosine:
+Now for the remarkable part: we can solve differential equations by representing the solutions as power series! Consider the differential equations for sine and cosine:
 
 $$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 0 = 0, \quad \cos 0 = 1$$
 
-We will solve the corresponding integral equations. We cannot define the integral by direct recursion like this:
+We will solve the corresponding integral equations. Why integral equations rather than differential equations? Because integration gives us a way to build up the solution coefficient by coefficient, starting from the initial conditions.
+
+Our first attempt might be to define them by direct recursion:
 
 ```
 let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)
@@ -4209,9 +4321,9 @@ and cos = integrate (of_int 1) (~-:sin)
 
 Unfortunately this fails with: `Error: This kind of expression is not allowed as right-hand side of 'let rec'`
 
-Even changing the second argument of `integrate` to call-by-need does not help, because OCaml cannot represent the values that `sin` and `cos` refer to at the point of their definition.
+The problem is that OCaml's `let rec` requires the right-hand side to be a "static" value -- something like a function or a data constructor applied to arguments. Even changing the second argument of `integrate` to call-by-need does not help, because OCaml cannot represent the values that `sin` and `cos` refer to at the point of their definition.
 
-We need to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure:
+The solution is to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure. We provide the first coefficient explicitly:
 
 ```ocaml env=ch7
 let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums_f))
@@ -4220,9 +4332,11 @@ let rec sin = LCons (of_int 0, lazy (integ cos))
 and cos = LCons (of_int 1, lazy (integ (~-:sin)))
 ```
 
-The complete example would look much more elegant in Haskell, where all values are lazy by default.
+Now the `let rec` works because each right-hand side is just `LCons` applied to a value and a lazy expression. The lazy expressions are not evaluated during the definition, so there is no problem with the mutual recursion. When we force the lazy tails, the computation proceeds coefficient by coefficient.
 
-Although this approach is not limited to linear equations, equations like Lotka-Volterra or Lorentz are not "solvable" this way -- computed coefficients quickly grow instead of quickly falling.
+The complete example would look much more elegant in Haskell, where all values are lazy by default -- we would not need the explicit `LCons` and `lazy` wrappers.
+
+Although this approach is not limited to linear equations, equations like Lotka-Volterra or Lorentz are not "solvable" this way -- the computed coefficients quickly grow instead of quickly falling, so the series does not converge well.
 
 Drawing functions work like in the previous lecture, but with open curves:
 
@@ -4236,11 +4350,13 @@ let plot_1D f ~w ~scale ~t_beg ~t_end =
 
 ### 7.5 Arbitrary Precision Computation
 
-Putting together the power series computation with floating-point numbers reveals drastic numerical errors for large $x$. Floating-point numbers have limited precision, and we break out of Horner method computations too quickly.
+Putting together the power series computation with floating-point numbers reveals drastic numerical errors for large $x$. There are two problems:
+1. Floating-point numbers have limited precision, so intermediate calculations accumulate errors.
+2. We break out of Horner method computations too quickly -- the stopping condition based on `epsilon_float` may stop before we have enough precision.
 
-For infinite precision on rational numbers we use the `nums` library -- but it does not help by itself.
+For infinite precision on rational numbers we can use the `nums` library, but it does not help by itself -- the stopping condition still causes us to truncate the computation prematurely.
 
-We need to generate a sequence of approximations to the power series limit at $x$:
+The key insight is that instead of computing a single approximate value, we should generate a *sequence of approximations* to the power series limit at $x$. Then we can watch the sequence until it converges:
 
 ```ocaml env=ch7
 let infhorner x l =
@@ -4250,7 +4366,7 @@ let infhorner x l =
   lazy_foldr upd l (LCons (of_int 0, lazy LNil))
 ```
 
-Find where the series converges -- as far as a given test is concerned:
+The function `infhorner` returns a lazy list of partial sums. Each element is a better approximation than the previous one. Now we need to find where the series has converged to the precision we need:
 
 ```ocaml env=ch7
 let rec exact f = function           (* We arbitrarily decide that convergence is *)
@@ -4259,6 +4375,8 @@ let rec exact f = function           (* We arbitrarily decide that convergence i
       when f x0 = f x1 && f x0 = f x2 -> f x0
   | LCons (_, lazy tl) -> exact f tl
 ```
+
+The function `exact` applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
 
 Draw the pixels of the graph at exact coordinates:
 
@@ -4271,13 +4389,17 @@ let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
     i, h0 + eval y)
 ```
 
-If a power series had every third term contributing we would have to check three terms in the function `exact`. We could also test for `f x0 = f x1 && not (x0 =. x1)` like in `lhorner`.
+If a power series had every third term contributing (zeros in a regular pattern), we would have to check more terms in the function `exact`. We could also use a different stopping criterion like `f x0 = f x1 && not (x0 =. x1)` (stop when the transformed values match but the raw values are still changing), similar to what we did in `lhorner`.
 
 #### 7.5.1 Example: Nuclear Chain Reaction
 
-Consider a nuclear chain reaction where substance A decays into B, which decays into C. The differential equations are:
+Consider a nuclear chain reaction where substance A decays into B, which then decays into C. This is a classic problem in nuclear physics. The differential equations are:
 
 $$\frac{dN_A}{dt} = -\lambda_A N_A, \quad \frac{dN_B}{dt} = \lambda_A N_A - \lambda_B N_B$$
+
+Here $\lambda_A$ and $\lambda_B$ are the decay constants, and $N_A$, $N_B$ are the amounts of each substance. Substance A decays at a rate proportional to its amount. Substance B is produced by A's decay and itself decays into C.
+
+We can solve these equations using the same technique as for sine and cosine:
 
 ```
 let n_chain ~nA0 ~nB0 ~lA ~lB =
@@ -4292,9 +4414,9 @@ let n_chain ~nA0 ~nB0 ~lA ~lB =
 
 ### 7.6 Circular Data Structures: Double-Linked Lists
 
-Without delayed computation, the ability to define data structures with referential cycles is very limited.
+Without delayed computation, the ability to define data structures with referential cycles is very limited. In a strict language, you cannot create a structure that refers to itself -- the reference would have to exist before the structure is created.
 
-Double-linked lists contain such cycles between any two nodes even if they are not cyclic when following only *forward* or *backward* links:
+Double-linked lists are a classic example of structures with inherent cycles. Even if the list itself is not circular (it has a beginning and an end), each pair of adjacent nodes forms a cycle: node A points forward to node B, and node B points backward to node A:
 
 ```
 +--------+     +--------+     +--------+     +--------+     +--------+
@@ -4302,12 +4424,16 @@ Double-linked lists contain such cycles between any two nodes even if they are n
 +--------+     +--------+     +--------+     +--------+     +--------+
 ```
 
-We need to "break" the cycles by making some links lazy:
+To represent such structures in OCaml, we need to "break" the cycles by making some links lazy. The backward links will be lazy, allowing us to construct the structure one node at a time:
 
 ```ocaml env=ch7
 type 'a dllist =
   DLNil | DLCons of 'a dllist Lazy.t * 'a * 'a dllist
 ```
+
+The type has three components: a lazy backward link, the element, and a (strict) forward link. The backward link is lazy because when we create a node, its predecessor may not exist yet.
+
+We can navigate forward through the list, dropping elements from the front:
 
 ```ocaml env=ch7
 let rec dldrop n l =
@@ -4317,7 +4443,7 @@ let rec dldrop n l =
     | _ -> l
 ```
 
-Creating a double-linked list from a regular list:
+The tricky part is constructing a double-linked list from a regular list. Each cell must know its predecessor, but the predecessor is created first. We use a recursive lazy value to tie the knot:
 
 ```ocaml env=ch7
 let dllist_of_list l =
@@ -4331,7 +4457,9 @@ let dllist_of_list l =
   dllist (lazy DLNil) l
 ```
 
-Taking elements going forward:
+The key trick is `let rec cell = lazy (DLCons (prev, x, dllist cell xs))`. The lazy value `cell` refers to itself! When we force `cell`, it creates a `DLCons` node whose forward link (`dllist cell xs`) receives `cell` as the predecessor for the next node. This is only possible because the backward link is lazy -- when we create the next node, we do not need to evaluate `cell`, just store a reference to it.
+
+Taking elements going forward is straightforward:
 
 ```ocaml env=ch7
 let rec dltake n l =
@@ -4341,7 +4469,7 @@ let rec dltake n l =
     | _ -> []
 ```
 
-Taking elements going backward:
+Taking elements going backward shows the power of the double-linked structure -- we can traverse in either direction:
 
 ```ocaml env=ch7
 let rec dlbackwards n l =
@@ -4353,61 +4481,63 @@ let rec dlbackwards n l =
 
 ### 7.7 Input-Output Streams
 
-The stream type used a throwaway argument to make a suspension:
+Let us return to streams and generalize them. The stream type we defined earlier used a throwaway argument to make a suspension:
 
 ```ocaml env=ch7
 type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
 ```
 
-What if we take a real argument?
+The `unit` argument serves only to delay computation. But what if we take a *real* argument -- one that provides input to the stream? This leads to a more powerful abstraction:
 
 ```ocaml env=ch7
 type ('a, 'b) iostream =
   EOS | More of 'b * ('a -> ('a, 'b) iostream)
 ```
 
-This is a stream that for a single input value produces an output value.
+This is an *interactive* stream: it produces an output value of type `'b`, and when given an input value of type `'a`, produces the rest of the stream. The stream alternates between producing output and consuming input.
 
 ```ocaml env=ch7
 type 'a istream = (unit, 'a) iostream  (* Input stream produces output when "asked". *)
 type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input. *)
 ```
 
-(The confusion arises from adapting the *input file / output file* terminology, also used for streams.)
+The terminology can be confusing. An "input stream" (`istream`) is one that produces output when asked (like reading from a file). An "output stream" (`ostream`) is one that consumes input (like writing to a file). The confusion arises from adapting the *input file / output file* terminology.
 
-We can compose streams: directing output of one to input of another.
+The power of this abstraction is that we can compose streams, directing the output of one to the input of another:
 
 ```ocaml env=ch7
 let rec compose sf sg =
   match sg with
-  | EOS -> EOS                              (* No more output. *)
+  | EOS -> EOS                              (* No more output from sg. *)
   | More (z, g) ->
     match sf with
-    | EOS -> More (z, fun _ -> EOS)         (* No more input "processing power". *)
+    | EOS -> More (z, fun _ -> EOS)         (* No more input from sf. *)
     | More (y, f) ->
-      let update x = compose (f x) (g y) in
+      let update x = compose (f x) (g y) in (* Feed sf's output y to sg. *)
       More (z, update)
 ```
 
-Every box has one incoming and one outgoing wire. Notice how the output stream is ahead of the input stream.
+Think of it as connecting boxes with wires: every box has one incoming wire and one outgoing wire. When composing `sf` and `sg`, the output of `sf` becomes the input of `sg`. Notice that the output stream is "ahead" of the input stream -- `sg` can produce its first output `z` before `sf` has produced anything.
 
 ### 7.8 Pipes
 
-We need a more flexible input-output stream definition:
-- Consume several inputs to produce a single output.
-- Produce several outputs after a single input (or even without input).
-- No need for a dummy when producing output requires input.
+The `iostream` type has a limitation: it must alternate strictly between producing output and consuming input. In many real-world scenarios, we need more flexibility:
+- A transformation might consume several inputs before producing a single output (like computing an average).
+- A transformation might produce several outputs from a single input (like splitting a string).
+- A transformation might produce output without needing any input (like a constant source).
 
-After Haskell, we call the data structure `pipe`:
+Following the Haskell tradition, we call this more flexible data structure a `pipe`:
 
 ```ocaml env=ch7
 type ('a, 'b) pipe =
-  EOP                                       (* End of pipe *)
-| Yield of 'b * ('a, 'b) pipe               (* For incremental streams change to lazy. *)
-| Await of ('a -> ('a, 'b) pipe)
+  EOP                                       (* End of pipe -- done processing *)
+| Yield of 'b * ('a, 'b) pipe               (* Produce output b, then continue *)
+| Await of ('a -> ('a, 'b) pipe)            (* Wait for input a, then continue *)
 ```
 
-Again, we can have producing output only *input pipes* and consuming input only *output pipes*:
+A pipe can be in one of three states: finished (`EOP`), ready to produce output (`Yield`), or waiting for input (`Await`). The key insight is that `Yield` includes the continuation pipe directly (not wrapped in a function), so multiple outputs can be produced in sequence without requiring input. For incremental processing where outputs should be lazy, you would change `Yield` to hold a lazy pipe instead.
+
+Again, we can specialize to input-only and output-only pipes:
 
 ```ocaml env=ch7
 type 'a ipipe = (unit, 'a) pipe
@@ -4415,41 +4545,43 @@ type void
 type 'a opipe = ('a, void) pipe
 ```
 
-Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values, but with the abstract `void` type, it cannot yield anything.
+Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an abstract type with no values, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
 
 #### 7.8.1 Pipe Composition
 
-Composition of pipes is like "concatenating them in space" or connecting boxes:
+Composition of pipes is like "concatenating them in space" or connecting boxes. We plug the output of pipe `pf` into the input of pipe `pg`:
 
 ```ocaml env=ch7
 let rec compose pf pg =
   match pg with
-  | EOP -> EOP                              (* Done producing results. *)
-  | Yield (z, pg') -> Yield (z, compose pf pg')   (* Ready result. *)
-  | Await g ->
+  | EOP -> EOP                              (* pg is done -- composition is done. *)
+  | Yield (z, pg') -> Yield (z, compose pf pg')   (* pg has output ready -- pass it through. *)
+  | Await g ->                              (* pg needs input -- try to get it from pf. *)
     match pf with
-    | EOP -> EOP                            (* End of input. *)
-    | Yield (y, pf') -> compose pf' (g y)   (* Compute next result. *)
-    | Await f ->
+    | EOP -> EOP                            (* pf is done -- no more input for pg. *)
+    | Yield (y, pf') -> compose pf' (g y)   (* pf has output -- feed it to pg. *)
+    | Await f ->                            (* Both are waiting -- wait for external input. *)
       let update x = compose (f x) pg in
-      Await update                          (* Wait for more input. *)
+      Await update
 
 let (>->) pf pg = compose pf pg
 ```
 
-Appending pipes means "concatenating them in time" or adding more fuel to a box:
+The `>->` operator lets us chain pipes together like Unix pipes: `source >-> transform >-> sink`.
+
+Appending pipes means "concatenating them in time" rather than in space. When the first pipe finishes, we continue with the second:
 
 ```ocaml env=ch7
 let rec append pf pg =
   match pf with
-  | EOP -> pg                               (* When pf runs out, use pg. *)
-  | Yield (z, pf') -> Yield (z, append pf' pg)
-  | Await f ->                              (* If pf awaits input, continue when it comes. *)
+  | EOP -> pg                               (* pf is exhausted -- continue with pg. *)
+  | Yield (z, pf') -> Yield (z, append pf' pg)  (* pf has output -- pass it through. *)
+  | Await f ->                              (* pf awaits input -- pass it through. *)
     let update x = append (f x) pg in
     Await update
 ```
 
-Append a list of ready results in front of a pipe:
+We can also append a list of ready results in front of a pipe. This is useful for producing multiple outputs at once:
 
 ```ocaml env=ch7
 let rec yield_all l tail =
@@ -4458,7 +4590,7 @@ let rec yield_all l tail =
   | x::xs -> Yield (x, yield_all xs tail)
 ```
 
-Iterate a pipe (**not functional** -- performs side effects):
+Finally, the `iterate` function creates a pipe that repeatedly applies a side-effecting function to its inputs. This is **not functional** (it performs side effects), but it is useful for output:
 
 ```ocaml env=ch7
 let rec iterate f : 'a opipe =
@@ -4467,12 +4599,20 @@ let rec iterate f : 'a opipe =
 
 ### 7.9 Example: Pretty-Printing
 
-Print a hierarchically organized document with a limited line width.
+Now let us apply pipes to a substantial example: pretty-printing. The goal is to print a hierarchically organized document with a limited line width. When a group of text fits on the current line, we keep it together; when it does not fit, we break it across multiple lines.
 
 ```ocaml env=ch7
 type doc =
   Text of string | Line | Cat of doc * doc | Group of doc
 ```
+
+The document type has four constructors:
+- `Text s` -- literal text
+- `Line` -- a potential line break (rendered as a space if the group fits, or a newline if it does not)
+- `Cat (d1, d2)` -- concatenation
+- `Group d` -- a group that should be kept together if possible
+
+Some convenient operators for building documents:
 
 ```ocaml env=ch7
 let (++) d1 d2 = Cat (d1, Cat (Line, d2))
@@ -4483,7 +4623,7 @@ let test_doc =
             Group (!"First part" ++ !"Second part"))
 ```
 
-Example output with different widths:
+The pretty-printer should produce different outputs depending on the available width:
 
 ```
 # let () = print_endline (pretty 30 test_doc);;
@@ -4501,35 +4641,44 @@ Document First part Second part
 
 #### 7.9.1 Straightforward Solution
 
+Before diving into pipes, let us implement a straightforward recursive solution:
+
 ```ocaml env=ch7
 let pretty w d =                     (* Allowed width of line w. *)
-  let rec width = function           (* Total length of subdocument. *)
+  let rec width = function           (* Compute total length of subdocument. *)
     | Text z -> String.length z
-    | Line -> 1
+    | Line -> 1                      (* A line break takes 1 character (space or newline). *)
     | Cat (d1, d2) -> width d1 + width d2
     | Group d -> width d in
-  let rec format f r = function      (* Remaining space r. *)
+  let rec format f r = function      (* f: flatten (no breaks)? r: remaining space. *)
     | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1        (* If not f then line breaks. *)
-    | Line -> "\n", w
+    | Line when f -> " ", r-1        (* Flatten mode: render as space. *)
+    | Line -> "\n", w                (* Break mode: newline, reset remaining to full width. *)
     | Cat (d1, d2) ->
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
-      s1 ^ s2, r                     (* If following group fits, then without line breaks. *)
-    | Group d -> format (f || width d <= r) r d in
-  fst (format false w d)
+      s1 ^ s2, r
+    | Group d -> format (f || width d <= r) r d  (* Flatten if group fits. *)
+  in
+  fst (format false w d)             (* Start outside any group (not flattening). *)
 ```
+
+The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
 
 #### 7.9.2 Stream-Based Solution
 
-Working with a stream of nodes:
+The straightforward solution works, but it has a problem: for each group, we compute `width` by traversing the entire subtree, potentially doing redundant work. The stream-based solution processes the document incrementally, computing positions as we go.
+
+First, we define a type for document elements that can carry annotations:
 
 ```ocaml env=ch7
 type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
-Normalize a subdocument -- remove empty groups:
+The type parameters `'a` and `'b` allow different annotations for different elements. `GBeg` (group beginning) has a different type because it will eventually carry the end position of the group.
+
+Normalize a subdocument to remove empty groups:
 
 ```ocaml env=ch7
 let rec norm = function
@@ -4539,7 +4688,7 @@ let rec norm = function
   | d -> Some d
 ```
 
-Generate the stream by infix traversal:
+Generate the stream of document elements by infix traversal:
 
 ```ocaml env=ch7
 let rec gen = function
@@ -4554,74 +4703,74 @@ let rec gen = function
              append (gen d) (Yield (GEnd (), EOP)))
 ```
 
-Compute lengths of document prefixes, i.e. the position of each node counting by characters from the beginning of document:
+The next pipe computes the position (character count from the beginning) of each element:
 
 ```ocaml env=ch7
 let rec docpos curpos =
-  Await (function                         (* We input from a doc_e pipe *)
+  Await (function                         (* Input from a doc_e pipe, *)
   | TE (_, z) ->
-    Yield (TE (curpos, z),                (* and output doc_e annotated with position. *)
+    Yield (TE (curpos, z),                (* output doc_e annotated with position. *)
            docpos (curpos + String.length z))
-  | LE _ ->                               (* Space and line breaks increase position by 1. *)
+  | LE _ ->                               (* Spaces and line breaks: 1 character. *)
     Yield (LE curpos, docpos (curpos + 1))
-  | GBeg _ ->                             (* Groups do not increase position. *)
+  | GBeg _ ->                             (* Groups themselves have no width. *)
     Yield (GBeg curpos, docpos curpos)
   | GEnd _ ->
     Yield (GEnd curpos, docpos curpos))
 
-let docpos = docpos 0                     (* The whole document starts at 0. *)
+let docpos = docpos 0                     (* The whole document starts at position 0. *)
 ```
 
-Put the end position of the group into the group beginning marker, so that we can know whether to break it into multiple lines:
+Now comes the tricky part. We want to annotate each `GBeg` with the position where the group *ends*, so we can decide whether the group fits on the line. But we see `GBeg` before we see `GEnd`! We need to buffer elements until we see the end of each group:
 
 ```ocaml env=ch7
 let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
     (match grstack with
-    | [] -> Yield (e, grends [])          (* We can yield only when *)
-    | gr::grs -> grends ((e::gr)::grs))   (* no group is waiting. *)
-  | GBeg _ -> grends ([]::grstack)        (* Wait for end of group. *)
+    | [] -> Yield (e, grends [])          (* No groups waiting -- yield immediately. *)
+    | gr::grs -> grends ((e::gr)::grs))   (* Inside a group -- buffer the element. *)
+  | GBeg _ -> grends ([]::grstack)        (* Start a new group: push empty buffer. *)
   | GEnd endp ->
     match grstack with                    (* End the group on top of stack. *)
     | [] -> failwith "grends: unmatched group end marker"
-    | [gr] ->                             (* Top group -- we can yield now. *)
+    | [gr] ->                             (* Outermost group -- yield everything now. *)
       yield_all
-        (GBeg endp::List.rev (GEnd endp::gr))
+        (GBeg endp::List.rev (GEnd endp::gr))  (* Annotate GBeg with end position. *)
         (grends [])
-    | gr::par::grs ->                     (* Remember in parent group instead. *)
+    | gr::par::grs ->                     (* Nested group -- add to parent's buffer. *)
       let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))                  (* Could use catenable lists above. *)
+      grends (par::grs))                  (* Could use catenable lists for efficiency. *)
 ```
 
-That's waiting too long! We can stop waiting when the width of a group exceeds the line limit. `GBeg` will not store end of group when it is irrelevant:
+This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
 
 ```ocaml skip
 type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
-  let flush tail =                   (* When the stack exceeds width w, *)
-    yield_all                        (* flush it -- yield everything in it. *)
+  let flush tail =                   (* When a group exceeds width w, *)
+    yield_all                        (* flush the stack -- yield everything buffered. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in
+      tail in                        (* Mark flushed groups as Too_far. *)
   Await (function
   | TE (curp, _) | LE curp as e ->
-    (match grstack with              (* Remember beginning of groups in the stack. *)
-    | [] -> Yield (e, grends w [])
+    (match grstack with              (* Track beginning position of each group. *)
+    | [] -> Yield (e, grends w [])   (* No groups -- yield immediately. *)
     | (begp, _)::_ when curp-begp > w ->
-      flush (Yield (e, grends w []))
-    | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))
-  | GBeg begp -> grends w ((begp, [])::grstack)
+      flush (Yield (e, grends w []))    (* Group too wide -- flush and yield. *)
+    | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))  (* Buffer element. *)
+  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start position. *)
   | GEnd endp as e ->
-    match grstack with               (* No longer fail when the stack is empty -- *)
-    | [] -> Yield (e, grends w [])   (* could have been flushed. *)
+    match grstack with               (* No longer fail when stack is empty -- *)
+    | [] -> Yield (e, grends w [])   (* could have been flushed earlier. *)
     | (begp, _)::_ when endp-begp > w ->
-      flush (Yield (e, grends w []))
-    | [_, gr] ->                     (* If width not exceeded, *)
-      yield_all                      (* work as before optimization. *)
+      flush (Yield (e, grends w []))    (* Group exceeded width -- flush. *)
+    | [_, gr] ->                     (* Group fits -- annotate with end position. *)
+      yield_all
         (GBeg (Pos endp)::List.rev (GEnd endp::gr))
         (grends w [])
-    | (_, gr)::(par_begp, par)::grs ->
+    | (_, gr)::(par_begp, par)::grs ->  (* Nested group fits -- add to parent. *)
       let par =
         GEnd endp::gr @ [GBeg (Pos endp)] @ par in
       grends w ((par_begp, par)::grs))
@@ -4629,25 +4778,25 @@ let rec grends w grstack =
 let grends w = grends w []           (* Initial stack is empty. *)
 ```
 
-Finally we produce the resulting stream of strings:
+Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
 
 ```ocaml skip
-let rec format w (inline, endlpos as st) =  (* State: the stack of *)
-  Await (function                           (* "group fits in line"; position where *)
-  | TE (_, z) -> Yield (z, format w st)     (* end of line would be. *)
+let rec format w (inline, endlpos as st) =  (* inline: stack of "flatten this group?" *)
+  Await (function                           (* endlpos: position where line ends *)
+  | TE (_, z) -> Yield (z, format w st)     (* Text: output directly. *)
   | LE p when List.hd inline ->
-    Yield (" ", format w st)                (* After return, line has w free space. *)
-  | LE p -> Yield ("\n", format w (inline, p+w))
-  | GBeg Too_far ->                         (* Group with end too far is not inline. *)
+    Yield (" ", format w st)                (* In flatten mode: line break -> space. *)
+  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: newline, update endlpos. *)
+  | GBeg Too_far ->                         (* Group too wide -- don't flatten. *)
     format w (false::inline, endlpos)
-  | GBeg (Pos p) ->                         (* Group is inline if it ends soon enough. *)
+  | GBeg (Pos p) ->                         (* Group fits if it ends before endlpos. *)
     format w ((p<=endlpos)::inline, endlpos)
-  | GEnd _ -> format w (List.tl inline, endlpos))
+  | GEnd _ -> format w (List.tl inline, endlpos))  (* Pop the inline stack. *)
 
-let format w = format w ([false], w)        (* Break lines outside of groups. *)
+let format w = format w ([false], w)        (* Start with no flattening, full line width. *)
 ```
 
-Put the pipes together:
+Put the pipes together into a complete pipeline:
 
 ```
 +--------+     +-------+     +---------+     +--------+     +----------------+
@@ -4655,17 +4804,20 @@ Put the pipes together:
 +--------+     +-------+     +---------+     +--------+     +----------------+
 ```
 
+The data flows from left to right: `gen` produces document elements, `docpos` annotates them with positions, `grends` annotates group beginnings with their end positions, `format` decides where to break lines and produces strings, and `iterate print_string` prints the strings.
+
 #### 7.9.3 Factored Solution
 
-Factorize `format` so that various line breaking styles can be plugged in:
+For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
 
 ```ocaml skip
+(* breaks: decides where to break, outputs annotated doc_e elements *)
 let rec breaks w (inline, endlpos as st) =
   Await (function
-  | TE _ as e -> Yield (e, breaks w st)
+  | TE _ as e -> Yield (e, breaks w st)          (* Pass through text. *)
   | LE p when List.hd inline ->
-    Yield (TE (p, " "), breaks w st)
-  | LE p as e -> Yield (e, breaks w (inline, p+w))
+    Yield (TE (p, " "), breaks w st)             (* Flatten: convert to space. *)
+  | LE p as e -> Yield (e, breaks w (inline, p+w))  (* Break: keep as LE. *)
   | GBeg Too_far as e ->
     Yield (e, breaks w (false::inline, endlpos))
   | GBeg (Pos p) as e ->
@@ -4675,16 +4827,19 @@ let rec breaks w (inline, endlpos as st) =
 
 let breaks w = breaks w ([false], w)
 
+(* emit: converts doc_e elements to strings *)
 let rec emit =
   Await (function
-  | TE (_, z) -> Yield (z, emit)
-  | LE _ -> Yield ("\n", emit)
-  | GBeg _ | GEnd _ -> emit)
+  | TE (_, z) -> Yield (z, emit)                 (* Text: output directly. *)
+  | LE _ -> Yield ("\n", emit)                   (* Line break: output newline. *)
+  | GBeg _ | GEnd _ -> emit)                     (* Group markers: skip. *)
 
 let pretty_print w doc =
   gen doc >-> docpos >-> grends w >-> breaks w >->
   emit >-> iterate print_string
 ```
+
+Now `breaks` can be replaced with a different strategy (for example, one that adds indentation), and `emit` stays the same. The full pipeline reads like a description of what happens: generate elements, compute positions, annotate groups with their ends, decide where to break, convert to strings, and print.
 
 ### 7.10 Exercises
 
@@ -4784,11 +4939,13 @@ type 'a doc =
 
 ## Chapter 8: Monads
 
-This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions, introduce monadic concepts, examine monad laws and the monad-plus extension, then work through various monad instances including state, exception, and probability monads. We conclude with monad transformers and cooperative lightweight threads.
+This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
+
+The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."
 
 ### 8.1 List Comprehensions
 
-Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The brute-force generation of expressions looked like this:
+Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The nested callback style, while functional, is hard to read and understand at a glance. The brute-force generation of expressions looked like this:
 
 ```ocaml env=ch8
 let combine l r =
@@ -4804,7 +4961,7 @@ let rec exprs = function
       combine l r)))
 ```
 
-And the generate-and-test scheme used:
+Notice how the nested callbacks pile up: each `|->` introduces another level of indentation. The generate-and-test scheme used similar nesting:
 
 ```ocaml env=ch8
 let guard p e = if p e then [e] else []
@@ -4815,13 +4972,15 @@ let solutions ns n =
     guard (fun e -> eval e = Some n))
 ```
 
-We introduced the operator `|->` defined as:
+The key insight is that we introduced the operator `|->` defined as:
 
 ```ocaml env=ch8
 let ( |-> ) x f = concat_map f x
 ```
 
-We can do much better with list comprehensions syntax extension. In older versions of OCaml with Camlp4, this was loaded via:
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax extension that originated in languages like Haskell and Python.
+
+In older versions of OCaml with Camlp4, list comprehensions were loaded via:
 
 ```
 #load "dynlink.cma";;
@@ -4829,21 +4988,23 @@ We can do much better with list comprehensions syntax extension. In older versio
 #load "Camlp4Parsers/Camlp4ListComprehension.cmo";;
 ```
 
-With list comprehensions, we can write:
+With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
 ```
 let test = [i * 2 | i <- from_to 2 22; i mod 3 = 0]
 ```
 
-The translation rules for list comprehensions are:
+This reads as: "the list of `i * 2` for each `i` drawn from `from_to 2 22` where `i mod 3 = 0`." The `<-` arrow draws elements from a generator, and conditions filter which elements are kept.
 
-- `[expr | ]` translates to `[expr]`
-- `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])`
-- `[expr | condition; more]` translates to `if condition then [expr | more] else []`
+The translation rules that define list comprehension semantics are straightforward:
+
+- `[expr | ]` translates to `[expr]` -- the base case, a singleton list
+- `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])` -- draw from a generator, then recurse
+- `[expr | condition; more]` translates to `if condition then [expr | more] else []` -- filter by a condition
 
 #### Revisiting Countdown with List Comprehensions
 
-The brute-force generation becomes cleaner:
+Now let us revisit the Countdown Problem code with list comprehensions. The brute-force generation becomes dramatically cleaner -- compare this to the deeply nested version above:
 
 ```
 let rec exprs = function
@@ -4855,7 +5016,7 @@ let rec exprs = function
        o <- [Add; Sub; Mul; Div]]
 ```
 
-And the generate-and-test scheme simplifies to:
+The intent is immediately clear: we split the numbers, recursively build expressions for left and right parts, and try each operator. The generate-and-test scheme becomes equally elegant:
 
 ```
 let solutions ns n =
@@ -4863,9 +5024,11 @@ let solutions ns n =
    e <- exprs ns'; eval e = Some n]
 ```
 
+The guard condition `eval e = Some n` filters out expressions that do not evaluate to the target value.
+
 #### More List Comprehension Examples
 
-Computing subsequences using list comprehensions (with some garbage generation):
+List comprehensions shine when expressing combinatorial algorithms. Here is computing all subsequences of a list (note that this generates some intermediate garbage, but the intent is clear):
 
 ```
 let rec subseqs l =
@@ -4874,7 +5037,9 @@ let rec subseqs l =
   | x::xs -> [ys | px <- subseqs xs; ys <- [px; x::px]]
 ```
 
-Computing permutations via insertion:
+For each element `x`, we recursively compute subsequences of the tail, then for each such subsequence we include both the version without `x` and the version with `x` prepended.
+
+Computing permutations can be done via insertion -- inserting an element at every possible position:
 
 ```
 let rec insert x = function
@@ -4887,7 +5052,9 @@ let rec ins_perms = function
   | x::xs -> [zs | ys <- ins_perms xs; zs <- insert x ys]
 ```
 
-And via selection:
+The `insert` function generates all ways to insert `x` into a list. Then `ins_perms` recursively permutes the tail and inserts the head at every position.
+
+Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
 
 ```
 let rec select = function
@@ -4899,22 +5066,26 @@ let rec sel_perms = function
   | xs -> [x::ys | x, xs' <- select xs; ys <- sel_perms xs']
 ```
 
+The `select` function returns all ways to pick one element from a list, along with the remaining elements. Then `sel_perms` chooses a first element and recursively permutes the rest.
+
 ### 8.2 Generalized Comprehensions: Binding Operators
 
-OCaml 5 introduced **binding operators** that provide a clean, native syntax for monadic computations. Instead of external syntax extensions like the old `pa_monad`, we can define custom `let*` and `let+` operators that integrate naturally with the language.
+The pattern we saw with list comprehensions is remarkably general. In fact, the same `|->` pattern (applying a function that returns a container, then flattening) works for many types beyond lists. This is the essence of monads.
+
+OCaml 5 introduced **binding operators** that provide a clean, native syntax for such computations. Instead of external syntax extensions like the old Camlp4-based `pa_monad`, we can now define custom `let*` and `let+` operators that integrate naturally with the language.
 
 For the list monad, we define these binding operators:
 
 ```ocaml env=ch8
-let ( let* ) x f = concat_map f x      (* bind *)
-let ( let+ ) x f = List.map f x        (* map/fmap *)
+let ( let* ) x f = concat_map f x      (* bind: sequence computations *)
+let ( let+ ) x f = List.map f x        (* map: apply pure function *)
 let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
-let ( and+ ) = ( and* )
-let return x = [x]
-let fail = []
+let ( and+ ) = ( and* )                (* parallel binding *)
+let return x = [x]                     (* inject a value into the monad *)
+let fail = []                          (* the empty computation *)
 ```
 
-With these operators, the expression generation code becomes:
+The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator allows binding multiple values in parallel. With these operators, the expression generation code becomes:
 
 ```
 let rec exprs = function
@@ -4928,9 +5099,9 @@ let rec exprs = function
       [App (o, l, r)]
 ```
 
-Note that unlike the old `perform` syntax where we used `<--` for binding, we now use `let*` followed by `=` and must explicitly write `in` before the continuation.
+Each `let*` introduces a binding: the variable on the left is bound to each value produced by the expression on the right, and the computation continues with `in`. This is much more readable than the nested callbacks we started with.
 
-The `let*` syntax does not directly support guards. If we try to write:
+However, the `let*` syntax does not directly support guards (conditions that filter results). If we try to write:
 
 ```
 let solutions ns n =
@@ -4940,7 +5111,9 @@ let solutions ns n =
   e
 ```
 
-We get an error because it expects a list, not a boolean. We can work around this by deciding whether to return anything:
+We get a type error: the expression expects a list, but `eval e = Some n` is a boolean. What can we do?
+
+One approach is to explicitly decide whether to return anything:
 
 ```
 let solutions ns n =
@@ -4949,13 +5122,13 @@ let solutions ns n =
   if eval e = Some n then [e] else []
 ```
 
-For a general guard check function, we define:
+But what if we want to check a condition earlier in the computation, or check multiple conditions? We need a general "guard check" function. The key insight is that we can use the monad itself to represent success or failure:
 
 ```ocaml env=ch8
 let guard p = if p then [()] else []
 ```
 
-And then:
+When the condition `p` is true, `guard` returns `[()]` -- a list with one element (the unit value). When false, it returns `[]` -- an empty list. Now we can use it in a binding:
 
 ```
 let solutions ns n =
@@ -4965,13 +5138,17 @@ let solutions ns n =
   [e]
 ```
 
+Why does this work? When the guard succeeds, `let* () = [()]` binds unit and continues. When it fails, `let* () = []` produces no results -- the empty list -- so the rest of the computation is never reached for that branch. This is exactly the filtering behavior we want!
+
 ### 8.3 Monads
 
-A monad is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at least two operations:
+Now we are ready to define monads properly. A **monad** is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at least two operations:
 
-- `bind : 'a monad -> ('a -> 'b monad) -> 'b monad`
-- `return : 'a -> 'a monad`
+- `bind : 'a monad -> ('a -> 'b monad) -> 'b monad` -- sequence two computations, passing the result of the first to the second
+- `return : 'a -> 'a monad` -- inject a pure value into the monad
 - The infix `>>=` is commonly used for `bind`: `let (>>=) a b = bind a b`
+
+The `bind` operation is the heart of the monad: it takes a computation that produces an `'a`, and a function that takes an `'a` and produces a new computation yielding `'b`. The result is a combined computation that yields `'b`.
 
 With OCaml 5's binding operators, we define `let*` as an alias for `bind`:
 
@@ -4987,28 +5164,32 @@ let solutions ns n =
   return e
 ```
 
-Why does `guard` look this way? Let us examine:
+But why does `guard` look the way it does? Let us examine more carefully:
 
 ```ocaml env=ch8
 let fail = []
 let guard p = if p then return () else fail
 ```
 
-Steps in monadic computation are composed with `let*` (or `>>=`, like `|->` for lists). The key insight is:
+Steps in monadic computation are composed with `let*` (or `>>=`, which is like `|->` for lists). The key insight is understanding what happens when we bind with an empty list versus a singleton:
 
-- `let* _ = [] in ...` does not produce anything -- as needed by guarding
-- `let* _ = [()] in ...` becomes `(fun _ -> ...) ()` which simply continues the computation unchanged
+- `let* _ = [] in ...` does not produce anything -- the continuation is never called, so the computation fails (produces no results)
+- `let* _ = [()] in ...` calls the continuation once with `()`, which simply continues the computation unchanged
 
-Throwing away the binding argument is common. With binding operators, we can use `let* () = ...` or `let* _ = ...`:
+This is why `guard` works: returning `[()]` means "succeed with unit" and returning `[]` means "fail with no results." The unit value itself is a dummy -- we only care whether the list is empty or not.
+
+Throwing away the binding argument is a common pattern. With binding operators, we use `let* () = ...` or `let* _ = ...` to indicate we do not need the bound value:
 
 ```ocaml env=ch8
 let (>>=) a b = bind a b
 let (>>) m f = m >>= (fun _ -> f)
 ```
 
+The `>>` operator (called "sequence" or "then") is useful when you want to perform a computation for its effect but discard its result.
+
 #### The Binding Operator Syntax
 
-OCaml 5's binding operators translate as follows:
+For reference, OCaml 5's binding operators translate as follows:
 
 | Source | Translation |
 |--------|-------------|
@@ -5017,13 +5198,13 @@ OCaml 5's binding operators translate as follows:
 | `let* () = exp in body` | `bind exp (fun () -> body)` |
 | `let* x = e1 and* y = e2 in body` | `bind (and* e1 e2) (fun (x, y) -> body)` |
 
-The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions.
+The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
-For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately.
+Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` requires a way to handle the `None` case.
 
 ### 8.4 Monad Laws
 
-A parametric data type is a monad only if its `bind` and `return` operations meet these axioms:
+Not every type with `bind` and `return` operations is a proper monad. A parametric data type is a monad only if its `bind` and `return` operations meet three fundamental axioms:
 
 $$
 \begin{aligned}
@@ -5033,6 +5214,12 @@ $$
 \end{aligned}
 $$
 
+Let us understand what these laws mean:
+
+- **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
+- **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
+- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (when `x` does not appear free in `b`).
+
 You should verify that these laws hold for our list monad:
 
 ```ocaml env=ch8
@@ -5040,14 +5227,18 @@ let bind a b = concat_map b a
 let return x = [x]
 ```
 
+For example, to verify left identity: `bind (return a) f` = `bind [a] f` = `concat_map f [a]` = `f a`. The other laws can be verified similarly.
+
 ### 8.5 Monoid Laws and Monad-Plus
+
+The list monad has an additional structure beyond just `bind` and `return`: it supports combining multiple computations and representing failure. This leads us to the concept of a **monoid**.
 
 A monoid is a type with at least two operations:
 
-- `mzero : 'a monoid`
-- `mplus : 'a monoid -> 'a monoid -> 'a monoid`
+- `mzero : 'a monoid` -- an identity element (think: zero, or the empty container)
+- `mplus : 'a monoid -> 'a monoid -> 'a monoid` -- a combining operation (think: addition, or concatenation)
 
-that meet these laws:
+These operations must meet the standard monoid laws:
 
 $$
 \begin{aligned}
@@ -5057,9 +5248,9 @@ $$
 \end{aligned}
 $$
 
-We define `fail` as a synonym for `mzero` and infix `++` for `mplus`.
+We define `fail` as a synonym for `mzero` and infix `++` for `mplus`. For lists, `mzero` is `[]` and `mplus` is `@` (append).
 
-Fusing monads and monoids gives the most popular general flavor of monads, which we call **monad-plus** after Haskell. Monad-plus requires additional axioms relating its "addition" and "multiplication":
+Fusing monads and monoids gives the most popular general flavor of monads, which we call **monad-plus** after Haskell. A monad-plus is a monad that also has monoid structure, with additional axioms relating the "addition" (`mplus`) and "multiplication" (`bind`):
 
 $$
 \begin{aligned}
@@ -5067,6 +5258,8 @@ $$
 \text{bind}\ m\ (\lambda x.\text{mzero}) &\approx \text{mzero}
 \end{aligned}
 $$
+
+These laws say that `mzero` acts like a "zero" for `bind`: binding from zero produces zero, and binding to a function that always returns zero also produces zero. This is analogous to how $0 \times x = 0$ and $x \times 0 = 0$ in arithmetic.
 
 Using infix notation with $\oplus$ for `mplus`, $\mathbf{0}$ for `mzero`, $\triangleright$ for `bind`, and $\mathbf{1}$ for `return`, the complete monad-plus axioms are:
 
@@ -5092,7 +5285,7 @@ let bind a b = concat_map b a
 let return a = [a]
 ```
 
-We can define in any monad-plus:
+Given any monad-plus, we can define useful derived operations:
 
 ```ocaml env=ch8
 let fail = mzero
@@ -5102,9 +5295,13 @@ let (>>=) a b = bind a b
 let guard p = if p then return () else fail
 ```
 
+Now we can see that `guard` is defined in terms of the monad-plus structure: it returns the identity element (`return ()`) on success, or the zero element (`fail`) on failure.
+
 ### 8.6 Backtracking: Computation with Choice
 
-We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
+We have seen `mzero` (i.e., `fail`) in the countdown problem -- it represents a computation that produces no results. But what about `mplus`? The `mplus` operation combines two computations, giving us a way to express *choice*: try this computation, or try that one.
+
+Here is an example from a puzzle solver where `mplus` creates a choice point:
 
 ```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
@@ -5141,13 +5338,13 @@ let find_to_eat n island_size num_islands empty_cells =
   find_board (init_state honey cells_to_eat)
 ```
 
-The `mplus choose_eat choose_keep` creates a choice point: either eat the cell or keep it as part of the island. The monad-plus structure handles backtracking automatically.
+The line `mplus choose_eat choose_keep` creates a choice point: the algorithm can either eat the cell (removing it from consideration) or keep it as part of the current island. When we use the list monad as our monad-plus, this explores *all* possible choices, collecting all solutions. The monad-plus structure handles the bookkeeping of backtracking automatically -- we just express the choices declaratively.
 
 ### 8.7 Monad Flavors
 
-Monads "wrap around" a type, but some monads need an additional type parameter. Usually the additional type does not change while within a monad, so we stick to `'a monad` rather than `('s, 'a) monad`.
+Monads "wrap around" a type, but some monads need an additional type parameter. For example, a state monad might be parameterized by the type of state it carries. Usually the additional type does not change while within a monad, so we stick to `'a monad` rather than `('s, 'a) monad`.
 
-As monad-plus shows, things get interesting when we add more operations to a basic monad. Here are some common monad flavors:
+As monad-plus shows, things get interesting when we add more operations to a basic monad. Different "flavors" of monads provide different capabilities. Here are the most common ones:
 
 **Monads with access:**
 
@@ -5155,7 +5352,7 @@ As monad-plus shows, things get interesting when we add more operations to a bas
 access : 'a monad -> 'a
 ```
 
-Example: the lazy monad.
+An `access` operation lets you extract the value from the monad. Not all monads support this -- some only allow you to "run" the monad at the top level. Example: the lazy monad, where `access` is `Lazy.force`.
 
 **Monad-plus (non-deterministic computation):**
 
@@ -5164,6 +5361,8 @@ mzero : 'a monad
 mplus : 'a monad -> 'a monad -> 'a monad
 ```
 
+We have already seen this. The monad-plus flavor supports failure and choice, enabling backtracking search.
+
 **Monads with state (parameterized by type `store`):**
 
 ```
@@ -5171,7 +5370,9 @@ get : store monad
 put : store -> unit monad
 ```
 
-There is a "canonical" state monad. Similar monads include the writer monad (with `get` called `listen` and `put` called `tell`) and the reader monad, without `put`, but with `get` (called `ask`) and:
+These operations let you read and write a piece of state that is threaded through the computation. There is a "canonical" state monad we will examine later. Related monads include:
+- The **writer monad**: has `tell` (append to a log) and `listen` (read the log)
+- The **reader monad**: has `ask` (read an environment) and `local` to modify the environment for a sub-computation:
 
 ```
 local : (store -> store) -> 'a monad -> 'a monad
@@ -5184,13 +5385,15 @@ throw : excn -> 'a monad
 catch : 'a monad -> (excn -> 'a monad) -> 'a monad
 ```
 
+These provide structured error handling within the monad. The `throw` operation raises an exception; `catch` handles it.
+
 **Continuation monad:**
 
 ```
 callCC : (('a -> 'b monad) -> 'a monad) -> 'a monad
 ```
 
-We will not cover continuations in detail here.
+The continuation monad gives you access to the "rest of the computation" as a first-class value. This is powerful but complex; we will not cover continuations in detail here.
 
 **Probabilistic computation:**
 
@@ -5198,7 +5401,7 @@ We will not cover continuations in detail here.
 choose : float -> 'a monad -> 'a monad -> 'a monad
 ```
 
-satisfying the laws with $a \oplus_p b$ for `choose p a b` and $p \cdot q$ for `p *. q`, where $0 \leq p, q \leq 1$:
+The `choose p a b` operation selects `a` with probability `p` and `b` with probability `1-p`. This enables reasoning about probability distributions. The laws ensure that probability behaves correctly:
 
 $$
 \begin{aligned}
@@ -5215,13 +5418,13 @@ $$
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-Example: lightweight threads.
+The `parallel` operation runs two computations concurrently and combines their results. Example: lightweight threads like in the Lwt library.
 
 ### 8.8 Interlude: The Module System
 
-OCaml's module system provides the infrastructure for defining monads in a reusable way. Here is a brief overview of the key concepts.
+Before we implement various monads, we need to understand OCaml's module system, which provides the infrastructure for defining monads in a reusable, generic way. This section provides a brief overview of the key concepts.
 
-Modules collect related type definitions and operations together. Module values are introduced with `struct ... end` (structures), and module types with `sig ... end` (signatures). A structure is a package of definitions; a signature is an interface for packages.
+Modules collect related type definitions and operations together. Module values are introduced with `struct ... end` (called *structures*), and module types with `sig ... end` (called *signatures*). A structure is a package of definitions; a signature is an interface that specifies what a structure must provide.
 
 A source file `source.ml` defines a module `Source`. A file `source.mli` defines its type.
 
@@ -5233,7 +5436,7 @@ The content of a module is made visible with `open Module`. Module `Pervasives` 
 
 Content of a module is included into another module with `include Module`.
 
-**Functors** are module functions -- functions from modules to modules:
+**Functors** are module functions -- functions from modules to modules. They are the key to writing generic code that works with any monad:
 
 ```
 module Funct = functor (Arg : sig ... end) -> struct ... end
@@ -5243,7 +5446,7 @@ module Funct (Arg : sig ... end) = struct ... end
 
 Functors can return functors, and modules can be parameterized by multiple modules. Functor application always uses parentheses: `Funct (struct ... end)`.
 
-A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with `t_name` made more specific. We can also include signatures with `include MODULE_TYPE`.
+A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with `t_name` made more specific. This is useful when you want to expose the concrete type after applying a functor. We can also include signatures with `include MODULE_TYPE`.
 
 Finally, we can pass around modules in normal functions using first-class modules:
 
@@ -5261,14 +5464,16 @@ let test = f (module struct let g i = i*i end : T)
 
 ### 8.9 The Two Metaphors
 
-Monads can be understood through two complementary metaphors.
+Monads are abstract, but two complementary metaphors can help build intuition for what they are and how they work.
 
 #### Monads as Containers
 
-A monad is a **quarantine container**:
+The first metaphor views a monad as a **quarantine container**. Think of it like a sealed box:
 
-- We can put something into the container with `return`
-- We can operate on it, but the result needs to stay in the container
+- We can put something into the container with `return` -- this "seals" a pure value inside the monad
+- We can operate on the contents, but the result must stay in the container -- we cannot simply extract values
+
+The `lift` function applies a pure function to the contents of a monad, keeping the result wrapped:
 
 ```ocaml env=ch8
 let lift f m =
@@ -5277,7 +5482,7 @@ let lift f m =
 (* val lift : ('a -> 'b) -> 'a monad -> 'b monad *)
 ```
 
-- We can deactivate-unwrap the quarantine container but only when it is in another container so the quarantine is not broken
+We can also "flatten" nested containers. If we have a monad containing another monad, `join` unwraps one layer -- but the result is still in a monad, so the quarantine is not broken:
 
 ```ocaml env=ch8
 let join m =
@@ -5286,23 +5491,25 @@ let join m =
 (* val join : ('a monad) monad -> 'a monad *)
 ```
 
-The quarantine container for a **monad-plus** is more like other containers: it can be empty, or contain multiple elements.
+The quarantine container for a **monad-plus** is more like a collection: it can be empty (failure), contain one element (success), or contain multiple elements (multiple solutions).
 
-Monads with access allow us to extract the resulting element from the container; other monads provide a `run` operation that exposes "what really happened behind the quarantine."
+Monads with access allow us to extract the resulting element from the container. Other monads provide a `run` operation that exposes "what really happened behind the quarantine" -- for example, the state monad's `run` takes an initial state and returns both the final value and the final state.
 
 #### Monads as Computation
 
-To compute the result, use `let*` bindings to sequence instructions, naming partial results. The physical metaphor is an **assembly line**:
+The second metaphor views a monad as a way to structure computation. Each `let*` binding is a step in a sequence, and the monad controls how steps are connected. The physical metaphor is an **assembly line**:
 
 ```
 let assemblyLine w =
   let* c = makeChopsticks w in    (* Worker makes chopsticks *)
   let* c' = polishChopsticks c in (* Worker polishes them *)
   let* c'' = wrapChopsticks c' in (* Worker wraps them *)
-  return c''                       (* Loader returns the result *)
+  return c''                       (* Final product goes out *)
 ```
 
-Any expression can be spread over a monad. For lambda-terms:
+Each worker (operation) takes material from the previous step and produces something for the next step. The monad defines what happens between steps -- for lists, it means "do this for each element"; for state, it means "thread the state through"; for exceptions, it means "propagate errors."
+
+Any expression can be systematically translated into a monadic form. For lambda-terms:
 
 $$
 \begin{aligned}
@@ -5314,11 +5521,11 @@ $$
 \end{aligned}
 $$
 
-When an expression is spread over a monad, its computation can be monitored or affected without modifying the expression.
+This translation inserts `bind` at every point where execution flows from one subexpression to another. The beauty of this approach is that once an expression is spread over a monad, its computation can be monitored, logged, or affected without modifying the expression itself. This is the key to implementing effects like state, exceptions, or non-determinism in a purely functional way.
 
 ### 8.10 Monad Classes and Instances
 
-To implement a monad, we need to provide the implementation type, `return`, and `bind` operations.
+Now we will see how to implement monads in OCaml using the module system. To implement a monad, we need to provide the implementation type, `return`, and `bind` operations. Here is the minimal signature:
 
 ```ocaml env=ch8
 module type MONAD = sig
@@ -5328,9 +5535,9 @@ module type MONAD = sig
 end
 ```
 
-Alternatively, we could start from `return`, `lift`, and `join` operations.
+This is the "class" that all monads must implement. Alternatively, we could start from `return`, `lift`, and `join` operations -- these are mathematically equivalent starting points.
 
-Based on just these two operations, we can define a suite of general-purpose functions:
+The power of functors is that we can define a suite of general-purpose functions that work for *any* monad, just based on these two operations:
 
 ```ocaml env=ch8
 module type MONAD_OPS = sig
@@ -5373,7 +5580,7 @@ module MonadOps (M : MONAD) = struct
 end
 ```
 
-We make the monad "safe" by keeping its type abstract, but `run` exposes "what really happened":
+We make the monad "safe" by keeping its type abstract. The `run` function exposes the underlying representation -- "what really happened behind the scenes":
 
 ```ocaml env=ch8
 module Monad (M : MONAD) : sig
@@ -5385,9 +5592,11 @@ end = struct
 end
 ```
 
+The pattern here is important: we take a minimal implementation (`M : MONAD`) and produce a full-featured monad module with all the derived operations.
+
 #### Monad-Plus Classes
 
-The monad-plus class has many implementations. They need to provide `mzero` and `mplus`:
+The monad-plus class extends the basic monad with failure and choice. Implementations need to provide `mzero` and `mplus` in addition to `return` and `bind`:
 
 ```ocaml env=ch8
 module type MONAD_PLUS = sig
@@ -5425,7 +5634,7 @@ end = struct
 end
 ```
 
-We also need a class for computations with state:
+We also need a class for computations with state. This signature will be included in state monads:
 
 ```ocaml env=ch8
 module type STATE = sig
@@ -5438,9 +5647,11 @@ end
 
 ### 8.11 Monad Instances
 
+Now let us see concrete implementations of various monads.
+
 #### The Lazy Monad
 
-Heavy laziness notation? Try a monad (with access):
+If you find OCaml's laziness notation (with `lazy` and `Lazy.force` everywhere) too heavy, you can use a monad! The lazy monad wraps lazy computations:
 
 ```ocaml env=ch8
 module LazyM = Monad (struct
@@ -5452,9 +5663,11 @@ end)
 let laccess m = Lazy.force (LazyM.run m)
 ```
 
+The `bind` operation creates a new lazy value that, when forced, forces `a`, passes the result to `b`, and forces the result. The `laccess` function forces the final lazy value to get the result.
+
 #### The List Monad
 
-Our resident list monad (monad-plus):
+Our familiar list monad is a monad-plus, supporting non-deterministic computation:
 
 ```ocaml env=ch8
 module ListM = MonadPlus (struct
@@ -5468,7 +5681,7 @@ end)
 
 #### Backtracking Parameterized by Monad-Plus
 
-The Countdown module can be parameterized by any monad-plus:
+Here is the power of abstraction: we can write the Countdown solver parameterized by *any* monad-plus. The same code works with lists (exploring all solutions), lazy lists (computing solutions on demand), or any other monad-plus implementation:
 
 ```ocaml env=ch8
 module Countdown (M : MONAD_PLUS_OPS) = struct
@@ -5546,7 +5759,9 @@ end
 
 #### Understanding Laziness
 
-Let us measure execution times:
+Now let us explore a practical question: what if we only want *one* solution, not all of them? With the list monad, we compute all solutions even if we only look at the first one. Can laziness help?
+
+Let us measure execution times to find out:
 
 ```ocaml env=ch8
 let time f =
@@ -5566,7 +5781,9 @@ let t1, sol1 = time test1
 (* val sol1 : string list = ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; ...] *)
 ```
 
-What if we want only one solution? Laziness to the rescue! We define an "odd lazy list":
+Finding all 49 solutions takes about 2.3 seconds. What if we want only one solution? Laziness to the rescue!
+
+Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but the head is strict:
 
 ```ocaml env=ch8
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
@@ -5595,9 +5812,11 @@ module LListM = MonadPlus (struct
 end)
 ```
 
-Testing shows that the odd lazy list still takes about the same time to even get the lazy list started! The elements are almost already computed once the first one is.
+But testing shows disappointing results: the odd lazy list still takes about 2.5 seconds just to create the lazy list! The elements are almost all computed by the time we get the first one.
 
-The **option monad** does not help either:
+Why? Because whenever we pattern match on `LCons (hd, tl)`, we have already evaluated the head. And when building lists with `mplus`, the head of the first list is computed immediately.
+
+What about using the **option monad** to find just the first solution?
 
 ```ocaml env=ch8
 module OptionM = MonadPlus (struct
@@ -5610,11 +5829,11 @@ module OptionM = MonadPlus (struct
 end)
 ```
 
-This very quickly computes... nothing. The `OptionM` monad (Haskell's `Maybe` monad) is good for computations that might fail, but not for search with multiple solutions.
+This very quickly computes... nothing! The option monad returns `None`.
 
-Our lazy list type is not lazy enough. Whenever we "make" a choice with `a ++ b` or `msum_map`, it computes the first candidate for each choice path immediately.
+Why? The `OptionM` monad (Haskell's `Maybe` monad) is good for computations that might fail, but it does not *search* -- its `mplus` just picks the first non-`None` value. Since our search often needs to backtrack when a choice leads to failure, option gives up too early.
 
-We need **even lazy lists** (our `llist` above are called "odd lazy lists"):
+Our odd lazy list type is not lazy *enough*. Whenever we "make" a choice with `a ++ b` or `msum_map`, it computes the first candidate for each choice path immediately. We need **even lazy lists** -- lists where even the outermost constructor is wrapped in `lazy`:
 
 ```ocaml env=ch8
 type 'a lazy_list = 'a lazy_list_ Lazy.t
@@ -5648,11 +5867,19 @@ module LazyListM = MonadPlus (struct
 end)
 ```
 
-Now the first solution takes considerably less time than all solutions. The next 9 solutions are almost computed once the first one is. But computing all solutions takes nearly twice as long as without the overhead of lazy computation -- the price of laziness.
+Now the first solution takes only about 0.37 seconds -- considerably less time than the 2.3 seconds for all solutions! The next 9 solutions are almost computed once the first one is (just 0.23 seconds more). But computing all 49 solutions takes about 4 seconds -- nearly twice as long as without laziness. This is the price we pay for lazy computation: overhead when we do need all results.
+
+The lesson: even lazy lists enable true lazy search, but they come with overhead. Choose the right monad for your use case.
 
 #### The Exception Monad
 
-Built-in non-functional exceptions in OCaml are more efficient and more flexible. However, monadic exceptions are safer than standard exceptions in situations like multi-threading. The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad.
+OCaml has built-in exceptions that are efficient and flexible. However, monadic exceptions have advantages in certain situations:
+
+- They are safer in multi-threading contexts (no risk of unhandled exceptions escaping)
+- They compose well with other monads (via monad transformers)
+- They make the possibility of failure explicit in the type
+
+The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad for exactly these reasons.
 
 ```ocaml env=ch8
 module ExceptionM (Excn : sig type t end) : sig
@@ -6514,7 +6741,7 @@ TODO
 
 ## Chapter 10: Functional Reactive Programming
 
-This chapter explores techniques for dealing with change and interaction in functional programming. We begin with zippers, a data structure for navigating and modifying positions within larger structures, then progress to adaptive (incremental) programming and Functional Reactive Programming (FRP). We conclude with practical examples including graphical user interfaces.
+How do we deal with change and interaction in functional programming? This is one of the most challenging questions in the field, and over the years programmers have developed increasingly sophisticated answers. This chapter explores a progression of techniques: we begin with *zippers*, a clever data structure for navigating and modifying positions within larger structures. We then advance to *adaptive programming* (also known as incremental computing), which automatically propagates changes through computations. Finally, we arrive at *Functional Reactive Programming* (FRP), a declarative approach to handling time-varying values and event streams. We conclude with practical examples including graphical user interfaces.
 
 **Recommended Reading:**
 
@@ -6525,7 +6752,9 @@ This chapter explores techniques for dealing with change and interaction in func
 
 ### 10.1 Zippers
 
-Often we need to keep track of a position within a data structure: easily access and modify it at that location, and easily move the location around. Recall from earlier chapters how we defined *context types* for datatypes -- types that represent a data structure with one of its elements missing.
+Imagine you are editing a document, a tree structure, or navigating through a file system. You need to keep track of where you are, easily access and modify the data at that location, and move around efficiently. This is exactly the problem that zippers solve.
+
+Recall from earlier chapters how we defined *context types* for datatypes -- types that represent a data structure with one of its elements missing. We discovered that taking the derivative of an algebraic datatype gives us exactly this context type. Now we will put this theory to practical use.
 
 Consider binary trees:
 
@@ -6551,7 +6780,9 @@ type btree_deriv =
   | Below of btree_dir * int * btree * btree_deriv
 ```
 
-The key insight is that **Location = context + subtree**! However, there is a problem with the representation above: we cannot easily move the location if `Here` is at the bottom. The part closest to the location should be on top.
+The key insight is that **Location = context + subtree**! A location in a data structure consists of two parts: the context (everything around the focused element) and the subtree (what we are currently looking at).
+
+However, there is a problem with the representation above: we cannot easily move the location if `Here` is at the bottom of our context representation. Think about it: if we want to move up from our current position, we need to access the innermost layer of the context first. The part closest to the location should be on top, not buried at the bottom.
 
 #### Revisiting the Equations
 
@@ -6568,9 +6799,11 @@ L(y) & = & \frac{1}{1 - y} \\
 \end{matrix}
 $$
 
-This tells us that the context can be stored as a list with the root as the last node. It does not matter whether we use built-in lists or a type with `Above` and `Root` variants.
+This algebraic manipulation reveals something beautiful: the context can be stored as a list with the root as the last node. The $L(2xT)$ factor tells us that we have a list where each element consists of $2xT$ -- that is, a direction indicator (left or right, hence the factor of 2), the element at that node ($x$), and the sibling subtree ($T$).
 
-Contexts of subtrees are more useful than contexts of single elements:
+It does not matter whether we use built-in OCaml lists or define a custom type with `Above` and `Root` variants -- the structure is the same.
+
+In practice, contexts of subtrees are more useful than contexts of single elements. Rather than tracking where a single value lives, we track the position of an entire subtree within the larger structure:
 
 ```ocaml skip
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
@@ -6578,62 +6811,70 @@ type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
 type 'a location = {sub: 'a tree; ctx: 'a context}
 
-let access {sub} = sub
-let change {ctx} sub = {sub; ctx}
-let modify f {sub; ctx} = {sub = f sub; ctx}
+let access {sub} = sub       (* Get the current subtree *)
+let change {ctx} sub = {sub; ctx}  (* Replace the subtree, keep context *)
+let modify f {sub; ctx} = {sub = f sub; ctx}  (* Transform the subtree *)
 ```
 
-We can imagine a location as a rooted tree which is hanging pinned at one of its nodes. For visualizations, see http://en.wikibooks.org/wiki/Haskell/Zippers.
+There is a wonderful visual intuition for zippers: imagine taking a tree and pinning it at one of its nodes, then letting it hang down under gravity. The pinned node becomes "the current focus," and all the other parts of the tree dangle from it. This mental picture helps understand how movement works: moving to a child means letting a new node become the pin point, with the old parent now hanging above. For excellent visualizations, see http://en.wikibooks.org/wiki/Haskell/Zippers.
 
 #### Moving Around
 
-Navigation functions allow us to traverse the structure:
+Navigation functions allow us to traverse the structure. Each movement operation restructures the zipper: what was context becomes part of the subtree, and vice versa. Watch how ascending rebuilds a parent node from the context, while descending breaks apart a node to create new context:
 
 ```ocaml skip
 let ascend loc =
   match loc.ctx with
-  | [] -> loc  (* Or raise exception *)
+  | [] -> loc  (* At root already, or raise exception *)
   | (Left_br, n, l) :: up_ctx ->
+    (* We were in the right subtree; rebuild the parent node *)
     {sub = Node (l, n, loc.sub); ctx = up_ctx}
   | (Right_br, n, r) :: up_ctx ->
+    (* We were in the left subtree; rebuild the parent node *)
     {sub = Node (loc.sub, n, r); ctx = up_ctx}
 
 let desc_left loc =
   match loc.sub with
-  | Tip -> loc  (* Or raise exception *)
+  | Tip -> loc  (* Cannot descend into a tip, or raise exception *)
   | Node (l, n, r) ->
+    (* Focus on left child; right sibling goes into context *)
     {sub = l; ctx = (Right_br, n, r) :: loc.ctx}
 
 let desc_right loc =
   match loc.sub with
-  | Tip -> loc  (* Or raise exception *)
+  | Tip -> loc  (* Cannot descend into a tip, or raise exception *)
   | Node (l, n, r) ->
+    (* Focus on right child; left sibling goes into context *)
     {sub = r; ctx = (Left_br, n, l) :: loc.ctx}
 ```
 
 #### Trees with Arbitrary Branching
 
-Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches, representing a document structure:
+Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches. This is particularly useful for representing document structures where a group can contain any number of children:
 
 ```ocaml skip
 type doc = Text of string | Line | Group of doc list
-type context = (doc list * doc list) list
+type context = (doc list * doc list) list  (* left siblings, right siblings *)
 type location = {sub: doc; ctx: context}
 ```
 
-The navigation functions for this more complex structure:
+In this design, the context at each level stores two lists: the siblings to the left of our current position (in reverse order for efficient access) and the siblings to the right. This allows us to move not just up and down, but also left and right among siblings.
+
+The navigation functions for this more complex structure show how we reconstruct the parent when going up, and how we split the sibling list when going down:
 
 ```ocaml skip
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
-  | (left, right) :: up_ctx ->  (* Previous subdocument and its siblings *)
+  | (left, right) :: up_ctx ->
+    (* Reconstruct the Group: reverse left siblings, add current, then right *)
     {sub = Group (List.rev left @ loc.sub :: right); ctx = up_ctx}
 
 let go_left loc =
   match loc.ctx with
   | [] -> invalid_arg "go_left: at top"
-  | (l :: left, right) :: up_ctx ->  (* Left sibling of previous subdocument *)
+  | (l :: left, right) :: up_ctx ->
+    (* Move to left sibling; current element moves to right siblings *)
     {sub = l; ctx = (left, loc.sub :: right) :: up_ctx}
   | ([], _) :: _ -> invalid_arg "go_left: at first"
 
@@ -6641,20 +6882,24 @@ let go_right loc =
   match loc.ctx with
   | [] -> invalid_arg "go_right: at top"
   | (left, r :: right) :: up_ctx ->
+    (* Move to right sibling; current element moves to left siblings *)
     {sub = r; ctx = (loc.sub :: left, right) :: up_ctx}
   | (_, []) :: _ -> invalid_arg "go_right: at last"
 
-let go_down loc =  (* Go to the first (i.e. leftmost) subdocument *)
+let go_down loc =
+  (* Go to the first (i.e. leftmost) subdocument *)
   match loc.sub with
   | Text _ -> invalid_arg "go_down: at text"
   | Line -> invalid_arg "go_down: at line"
   | Group [] -> invalid_arg "go_down: at empty"
-  | Group (doc :: docs) -> {sub = doc; ctx = ([], docs) :: loc.ctx}
+  | Group (doc :: docs) ->
+    (* First child becomes focus; rest become right siblings *)
+    {sub = doc; ctx = ([], docs) :: loc.ctx}
 ```
 
 ### 10.2 Example: Context Rewriting
 
-Imagine a friend working on string theory asks us for help simplifying equations. The task is to pull out particular subexpressions as far to the left as possible, while changing the whole expression as little as possible.
+Let us put zippers to work on a real problem. Imagine a friend working on string theory asks us for help simplifying equations. The task is to pull out particular subexpressions as far to the left as possible, while changing the whole expression as little as possible. This kind of algebraic manipulation is common in symbolic computation.
 
 We can illustrate our algorithm using mathematical notation. Let:
 - $x$ be the thing we pull out
@@ -6673,7 +6918,9 @@ D[e \circ C[x]] & \Rightarrow & D[C[x] \circ e]
 \end{matrix}
 $$
 
-First, the groundwork:
+These rules encode the algebraic properties we need: associativity (first two rules), distributivity of multiplication over addition (third and fourth rules), and commutativity (last rule, which lets us swap operands). The key insight is that we can implement these transformations efficiently using a zipper, since each rule only needs to look at a small neighborhood of the current position.
+
+First, the groundwork. We define expression types and a zipper for navigating them:
 
 ```ocaml skip
 type op = Add | Mul
@@ -6683,7 +6930,7 @@ type context = (expr_dir * op * expr) list
 type location = {sub: expr; ctx: context}
 ```
 
-To locate the subexpression described by predicate `p`:
+To locate the subexpression described by predicate `p`, we search the expression tree and build up the context as we go. Notice that we build the context in reverse order during the search, then reverse it at the end so the innermost context comes first (as required for efficient navigation):
 
 ```ocaml skip
 let rec find_aux p e =
@@ -6706,38 +6953,41 @@ let find p e =
   | Some (sub, ctx) -> Some {sub; ctx = List.rev ctx}
 ```
 
-Now we can implement the pull-out transformation:
+Now we can implement the pull-out transformation. This is where the zipper shines: we pattern match on the context to decide which rewriting rule to apply, then modify the context directly. The function recursively moves the target subexpression outward until it reaches the root:
 
 ```ocaml skip
 let rec pull_out loc =
   match loc.ctx with
-  | [] -> loc  (* Done *)
+  | [] -> loc  (* Done: reached the root *)
   | (Left_arg, op, l) :: up_ctx ->
-    (* D[e . C[x]] => D[C[x] . e] *)
+    (* D[e . C[x]] => D[C[x] . e] -- use commutativity to swap sides *)
     pull_out {loc with ctx = (Right_arg, op, l) :: up_ctx}
   | (Right_arg, op1, e1) :: (_, op2, e2) :: up_ctx
       when op1 = op2 ->
-    (* D[(C[x] . e1) . e2] / D[e2 . (C[x] . e1)] => D[C[x] . (e1 . e2)] *)
+    (* D[(C[x] . e1) . e2] => D[C[x] . (e1 . e2)] -- associativity *)
     pull_out {loc with ctx = (Right_arg, op1, App(e1, op1, e2)) :: up_ctx}
   | (Right_arg, Add, e1) :: (_, Mul, e2) :: up_ctx ->
-    (* D[(C[x] + e1) * e2] / D[e2 * (C[x] + e1)] => D[C[x] * e2 + e1 * e2] *)
+    (* D[(C[x] + e1) * e2] => D[C[x] * e2 + e1 * e2] -- distributivity *)
     pull_out {loc with ctx =
         (Right_arg, Mul, e2) ::
           (Right_arg, Add, App(e1, Mul, e2)) :: up_ctx}
-  | (Right_arg, op, r) :: up_ctx ->  (* Move up the context *)
+  | (Right_arg, op, r) :: up_ctx ->
+    (* No rule applies: move up by incorporating current context *)
     pull_out {sub = App(loc.sub, op, r); ctx = up_ctx}
 ```
 
-Since operators are commutative, we ignore the direction for the second piece of context above.
+Since we assume operators are commutative, we can ignore the direction for the second piece of context above -- both `(C[x] . e1) . e2` and `e2 . (C[x] . e1)` are handled by the same associativity rule.
 
-Testing the implementation:
+Let us test the implementation with a concrete example:
 
 ```ocaml skip
-let (+) a b = App (a, Add, b)
+let (+) a b = App (a, Add, b)  (* Convenient syntax for building expressions *)
 let ( * ) a b = App (a, Mul, b)
 let (!) a = Val a
 let x = Var "x"
 let y = Var "y"
+
+(* Original: 5 + y * (7 + x) * (3 + y) -- we want to pull x to the front *)
 let ex = !5 + y * (!7 + x) * (!3 + y)
 let loc = find (fun e -> e = x) ex
 let sol =
@@ -6745,29 +6995,32 @@ let sol =
   | None -> raise Not_found
   | Some loc -> pull_out loc
 (* Result: "(((x*y)*(3+y))+(((7*y)*(3+y))+5))" *)
+(* The x has been pulled out to the leftmost position! *)
 ```
 
-For best results, we can iterate the `pull_out` function until a fixpoint is reached.
+The transformation successfully pulled `x` from deep inside the expression to the outermost left position. For best results on complex expressions, we can iterate the `pull_out` function until a fixpoint is reached, ensuring all instances of the target are pulled out as far as possible.
 
 ### 10.3 Adaptive Programming (Incremental Computing)
 
-While zippers are useful, they are somewhat unnatural for general-purpose programming. Once we change the data structure, it is difficult to propagate the changes -- we would need to rewrite all algorithms to work on context changes.
+While zippers are elegant for navigating and modifying data structures, they are somewhat unnatural for general-purpose programming. The fundamental problem is this: once we change something using a zipper, how do we propagate those changes through all the computations that depend on the modified data? We would need to rewrite all our algorithms to explicitly work with context changes, which defeats the purpose of clean functional programming.
 
-In *Adaptive Programming*, also known as *incremental computation* or *self-adjusting computation*, we write programs in a straightforward functional manner, but can later modify any data causing only the minimal amount of work required to update results.
+*Adaptive Programming*, also known as *incremental computation* or *self-adjusting computation*, offers a more elegant solution. The idea is beautifully simple: we write programs in a straightforward functional manner, but the runtime system tracks dependencies between computations. When we later modify any input data, only the minimal amount of work required to update the results is performed -- everything else is reused from before.
 
-The functional description of computation is within a monad. We can change monadic values -- for example, parts of input -- from outside and propagate the changes. In the *Froc* library, the monadic *changeables* are `'a Froc_sa.t`, and the ability to modify them is exposed by type `'a Froc_sa.u` -- the *writeables*.
+The functional description of computation lives within a monad. We can change monadic values -- for example, parts of input -- from outside the computation, and the changes automatically propagate to all dependent results. In the *Froc* library by Jake Donham, the monadic *changeables* are represented by type `'a Froc_sa.t`, and the ability to modify them from outside is exposed by type `'a Froc_sa.u` -- the *writeables*.
 
 #### Dependency Graphs
 
-The monadic value `'a changeable` will be the *dependency graph* of the computation of the represented value `'a`. Consider the computation:
+The key to making incremental computation work is tracking *how* a result was computed, not just *what* the result is. The monadic value `'a changeable` stores the *dependency graph* of the computation of the represented value `'a`.
+
+Consider a simple computation:
 
 ```
 let u = v / w + x * y + z
 ```
 
-The dependency graph shows how the result depends on the inputs. When we modify inputs `v` and `z` simultaneously, we need to update intermediate nodes in the correct order. For example, we need to update `n2` before `u`.
+This creates a dependency graph where `u` depends on intermediate results (let us call them `n0 = v/w`, `n1 = x*y`, `n2 = n0+n1`), which in turn depend on the input variables. When we modify inputs -- say, both `v` and `z` simultaneously -- the runtime needs to update intermediate nodes in the correct order. Since `n2` depends on `n0`, we must update `n0` before `n2`, and both must be updated before `u`.
 
-We use the order of computation (represented as gray numbers in the dependency visualization) for the order of updates. Similarly to `parallel` in the concurrency monad, we provide `bind2`, `bind3`, etc., and corresponding `lift2`, `lift3`, etc., to introduce nodes with several children:
+The order in which the computation was originally performed determines the order of updates. We record timestamps for each computation, and updates follow this timestamp order. Similar to `parallel` in the concurrency monad from Chapter 8, we provide `bind2`, `bind3`, etc., and corresponding `lift2`, `lift3`, etc., to introduce nodes that depend on several children simultaneously:
 
 ```
 let n0 = bind2 v w (fun v w -> return (v / w))
@@ -6776,16 +7029,16 @@ let n2 = bind2 n0 n1 (fun n0 n1 -> return (n0 + n1))
 let u = bind2 n2 z (fun n2 z -> return (n2 + z))
 ```
 
-Do-notation is not necessary to have readable expressions:
+The beauty of lifting is that we can make our code look almost identical to ordinary arithmetic. Do-notation is not necessary to have readable expressions:
 
 ```
 let (/) = lift2 (/)
 let ( * ) = lift2 ( * )
 let (+) = lift2 (+)
-let u = v / w + x * y + z
+let u = v / w + x * y + z  (* Looks like normal code, but tracks dependencies! *)
 ```
 
-As in other monads, we can decrease overhead by using bigger chunks:
+As in other monads, we can decrease overhead by combining multiple operations into bigger chunks. Instead of creating a dependency node for every single operation, we can batch several operations together:
 
 ```
 let n0 = blift2 v w (fun v w -> v / w)
@@ -6795,7 +7048,7 @@ let u = blift2 n2 z (fun n2 z -> n2 + z)
 
 #### Handling Conditional Dependencies
 
-We have a problem if we recompute all nodes simply by order of computation:
+There is a subtlety that arises with conditionals. Consider this example:
 
 ```
 let b = x >>= fun x -> return (x = 0)
@@ -6803,53 +7056,60 @@ let n0 = x >>= fun x -> return (100 / x)
 let y = bind2 b n0 (fun b n0 -> if b then return 0 else n0)
 ```
 
-Rather than a single "time" stamp, we store intervals: begin and end of computation. When updating the `y` node, we first detach nodes in the range 4-9 from the graph. Computing the expression will re-attach the nodes as needed.
+If we blindly recompute all nodes in their original order when `x` changes, we have a problem. If `x` becomes 0, we would compute `n0 = 100 / 0` and crash -- even though the conditional in `y` would never use that result!
 
-When the value of `b` does not change, we skip updating `y` and proceed with updating `n0`. The value of `y` is a link to the value of `n0` so it will change anyway.
+The solution is to use *time intervals* rather than single timestamps. Each computation records when it began and when it ended. When updating the `y` node, we first *detach* all nodes in its time range (let us say 4-9) from the graph. The conditional is then recomputed, and it will re-attach only the nodes it actually needs. If `b` is true, the `n0` computation is never re-attached and thus never re-executed.
 
-We need memoization to re-attach the same nodes in case they do not need updating. Are they up-to-date? Run updating past the node's timestamp range.
+What if the value of `b` does not change? Then we can skip updating `y` entirely and proceed directly to updating `n0`. Since `y` contains a link to the value of `n0`, the final result of `y` will still reflect any changes to `n0`.
+
+We also need *memoization* to efficiently re-attach the same nodes when they do not need updating. When should a detached node be considered up-to-date? When the update process has progressed past that node's timestamp range, it is safe to re-attach it unchanged.
 
 #### Example Using Froc
 
-The `Froc_sa` (for *self-adjusting*) module exports the monadic type `t` for changeable computation, and a handle type `u` for updating the computation:
+Let us see adaptive programming in action with a concrete example: incrementally growing and displaying a tree. The `Froc_sa` module (for *self-adjusting*) exports the monadic type `t` for changeable computation, and a handle type `u` for updating the computation from outside.
+
+We define a binary tree where each node stores its screen location. Crucially, the children are wrapped in the `t` type, making them changeable:
 
 ```ocaml skip
 open Froc_sa
 
-type tree =  (* Binary tree with nodes storing their screen location *)
-  | Leaf of int * int  (* We will grow the tree *)
-  | Node of int * int * tree t * tree t  (* by modifying subtrees *)
+type tree =
+  | Leaf of int * int              (* A leaf stores its x,y position *)
+  | Node of int * int * tree t * tree t  (* Children are changeable! *)
 ```
 
-Displaying the tree is a changeable effect. Whenever the tree changes, displaying will be updated. Only new nodes will be drawn after an update:
+Displaying the tree is itself a changeable effect. Whenever the tree changes, the display will be automatically updated. The key insight is that only *new* nodes will be drawn after an update -- unchanged parts of the tree do not trigger any drawing:
 
 ```ocaml skip
-let rec display px py t =
+let rec display px py t =  (* px, py = parent position for drawing line *)
   match t with
   | Leaf (x, y) ->
     return
-      (Graphics.draw_poly_line [|px, py; x, y|];  (* We return *)
-       Graphics.draw_circle x y 3)  (* a throwaway value *)
+      (Graphics.draw_poly_line [|px, py; x, y|];  (* Draw line to parent *)
+       Graphics.draw_circle x y 3)  (* Draw the leaf node *)
   | Node (x, y, l, r) ->
     return (Graphics.draw_poly_line [|px, py; x, y|])
-    >>= fun _ -> l >>= display x y
-    >>= fun _ -> r >>= display x y
+    >>= fun _ -> l >>= display x y  (* Recursively display left child *)
+    >>= fun _ -> r >>= display x y  (* Recursively display right child *)
 ```
 
-Growing the tree:
+Now the interesting part: growing the tree. The `grow_at` function replaces a leaf with a new internal node that has two leaf children. The crucial operations are `changeable` (which creates a new changeable value with a writeable handle) and `write` (which updates a changeable from outside):
 
 ```ocaml skip
 let grow_at (x, depth, upd) =
+  (* Calculate positions for left and right children *)
   let x_l = x - f2i (width *. (2.0 ** (~-. (i2f (depth + 1))))) in
   let l, upd_l = changeable (Leaf (x_l, (depth + 1) * 20)) in
   let x_r = x + f2i (width *. (2.0 ** (~-. (i2f (depth + 1))))) in
   let r, upd_r = changeable (Leaf (x_r, (depth + 1) * 20)) in
-  write upd (Node (x, depth * 20, l, r));  (* Update the old leaf *)
-  propagate ();  (* and keep handles to make future updates *)
+  (* Replace the old leaf with a new internal node *)
+  write upd (Node (x, depth * 20, l, r));
+  propagate ();  (* Trigger update propagation! *)
+  (* Return handles for future growth at the new leaves *)
   [x_l, depth + 1, upd_l; x_r, depth + 1, upd_r]
 ```
 
-The main loop:
+The main loop grows the tree level by level, calling `grow_at` for every leaf at the current frontier:
 
 ```ocaml skip
 let rec loop t subts steps =
@@ -6859,40 +7119,58 @@ let rec loop t subts steps =
 let incremental steps () =
   Graphics.open_graph " 1024x600";
   let t, u = changeable (Leaf (512, 20)) in
-  let d = t >>= display (f2i (width /. 2.)) 0 in  (* Display once *)
-  loop t [512, 1, u] steps;  (* new nodes will be drawn automatically *)
+  (* Set up the display ONCE -- it will update automatically! *)
+  let d = t >>= display (f2i (width /. 2.)) 0 in
+  loop t [512, 1, u] steps;  (* New nodes will be drawn automatically *)
   Graphics.close_graph ()
 ```
 
-Unfortunately, the overhead of incremental computation is quite large. Comparing byte code execution times:
+Notice the elegance: we set up the display computation once, and then as we grow the tree by writing to changeable leaves, the display automatically updates to show only the new nodes. The dependency tracking ensures that only the affected parts of the display computation are re-executed.
+
+However, there is a practical caveat: the overhead of incremental computation is quite large. Comparing byte code execution times for growing and displaying trees of various depths:
 
 | depth | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 |
 |-------|-----|-----|-----|-----|-----|-----|-----|------|------|
 | incremental | 0.66s | 1s | 2.2s | 4.4s | 9.3s | 21s | 50s | 140s | 255s |
 | rebuilding | 0.5s | 0.63s | 1.3s | 3s | 5.3s | 13s | 39s | 190s | -- |
 
+Rebuilding the entire tree from scratch is actually faster for smaller depths! Incremental computation only wins when changes are small relative to the total computation. The moral: use incremental computation when you expect to make many small updates to a large structure, not when building something from scratch.
+
 ### 10.4 Functional Reactive Programming
 
-FRP is an attempt to declaratively deal with time. *Behaviors* are functions of time -- a behavior has a specific value in each instant. *Events* are sets of (time, value) pairs, organized into streams of actions.
+We have seen how zippers let us navigate structures and how adaptive programming propagates changes. But what about programs that must respond to *time* itself -- animations, games, interactive applications? This is the domain of *Functional Reactive Programming* (FRP).
 
-Two problems arise in FRP:
+FRP is an attempt to declaratively deal with time. The key insight is to distinguish two kinds of time-varying values:
 
-1. Behaviors and events are well-defined when they do not depend on future
-2. Efficiency: minimize overhead
+- *Behaviors* are continuous functions of time. A behavior has a specific value at every instant. Think of a mouse position, window size, or the current frame of an animation.
 
-FRP is *synchronous*: it is possible to set up for events to happen at the same time. It is also *continuous*: behaviors can have details at arbitrary time resolution. Although the results are *sampled*, there is no fixed (minimal) time step for specifying behavior. (Note: "Asynchrony" refers to various ideas, so always ask what people mean when they use the term.)
+- *Events* are discrete occurrences. An event is a set of (time, value) pairs, organized into streams of actions. Think of mouse clicks, key presses, or timer ticks.
+
+Two fundamental problems arise in FRP:
+
+1. **Causality**: Behaviors and events must be well-defined, which means they cannot depend on future values. A behavior at time $t$ can only depend on events that have already occurred.
+
+2. **Efficiency**: We need to minimize the overhead of tracking time and dependencies, especially for real-time applications like games.
+
+FRP is *synchronous*: it is possible to set up multiple events to happen at exactly the same time, and the system handles this correctly. It is also *continuous*: behaviors can have details at arbitrary time resolution. Although the actual results are *sampled* at discrete moments, there is no fixed (minimal) time step for specifying behavior -- you describe what the behavior *should be* at any time, and the system samples it as needed.
+
+(Note: "Asynchrony" in reactive programming refers to various different ideas depending on context, so always ask what people mean when they use the term.)
 
 #### Idealized Definitions
 
-Ideally we would define:
+Let us start with the idealized, mathematical definitions and then see how practical considerations force us to refine them.
+
+In the purest form, we would define:
 
 ```ocaml skip
 type time = float
-type 'a behavior = time -> 'a  (* Arbitrary function *)
-type 'a event = ('a, time) stream  (* Increasing time instants *)
+type 'a behavior = time -> 'a  (* Arbitrary function of time *)
+type 'a event = ('a, time) stream  (* Stream of values at increasing time instants *)
 ```
 
-Forcing a lazy list (stream) of events would wait until an event arrives. But behaviors need to react to external events:
+This is mathematically elegant: a behavior is literally a function from time to values, and events are a lazy stream of timestamped occurrences. Forcing the stream would block until the next event arrives.
+
+But this idealized view has problems. Behaviors need to react to external events -- the position of a paddle should follow the mouse, not just be a predetermined function of time:
 
 ```ocaml skip
 type user_action =
@@ -6904,49 +7182,53 @@ type user_action =
 type 'a behavior = user_action event -> time -> 'a
 ```
 
-Scanning through an event list since the beginning of time until current time, each time we evaluate a behavior, is very wasteful with respect to time and space. Producing a stream of behaviors for the stream of time allows us to forget about events already in the past:
+Now a behavior takes both the event history and the current time. But this leads to an efficiency problem: every time we evaluate a behavior, we would need to scan through all events from the beginning of time up to the current moment. This is wasteful in both time and space.
+
+The solution is to turn behaviors into stream transformers. Instead of a function that answers "what is the value at time $t$?", we produce a stream of values, one for each sampling time. This allows us to forget about events that are already in the past:
 
 ```ocaml skip
 type 'a behavior =
   user_action event -> time stream -> 'a stream
 ```
 
-The next optimization is to pair user actions with sampling times:
+The next optimization is to combine the user actions and sampling times into a single stream. At each sampling moment, we either have a user action or nothing happened:
 
 ```ocaml skip
 type 'a behavior =
   (user_action option * time) stream -> 'a stream
 ```
 
-The `None` action corresponds to sampling time when nothing happens.
+The `None` action corresponds to a sampling moment when nothing happened -- we still need to produce a value for the behavior at that time, even if no event triggered it.
 
-Turning behaviors and events from functions of time into input-output streams is similar to optimizing intersection of ordered lists from $O(mn)$ to $O(m + n)$ time.
+This transformation from functions-of-time to stream transformers is analogous to a classic algorithm optimization: computing the intersection of two sorted lists. The naive approach checks every pair, giving $O(mn)$ time. The smart approach walks through both lists simultaneously, giving $O(m + n)$ time. Similarly, our stream-based behaviors process time and events together in a single pass.
 
-Now we can in turn define events in terms of behaviors:
+With behaviors as stream transformers, we can elegantly define events in terms of behaviors:
 
 ```ocaml skip
 type 'a event = 'a option behavior
 ```
 
-although it betrays the discrete character of events (happening at points in time rather than varying over intervals of time).
+An event is simply a behavior that produces `None` at most sampling times and `Some value` when the event actually occurs. This unifies our treatment of behaviors and events, although it somewhat betrays the discrete character of events (they conceptually happen at points in time, not vary over intervals).
 
-We have gotten very close to *stream processing* as discussed in Chapter 7. Recall the incremental pretty-printing example that can "react" to more input. Stream combinators, *fork* from the exercises for Chapter 7, and a corresponding *merge*, turn stream processing into *synchronous discrete reactive programming*.
+We have now arrived at something very close to the *stream processing* we discussed in Chapter 7. Recall the incremental pretty-printing example that could "react" to more input being added. The stream combinators we developed there, along with *fork* (from the exercises) and a corresponding *merge*, turn stream processing into *synchronous discrete reactive programming*. FRP is, in a sense, stream processing with explicit time.
 
 #### Behaviors as Monads
 
-Behaviors are monadic (but see the next point) -- in the original specification:
+Behaviors form a monad -- at least in the original, idealized specification. Looking at the simple definition `type 'a behavior = time -> 'a`, we can define:
 
 ```ocaml skip
 type 'a behavior = time -> 'a
 
 val return : 'a -> 'a behavior
-let return a = fun _ -> a
+let return a = fun _ -> a  (* Constant behavior: same value at all times *)
 
 val bind : 'a behavior -> ('a -> 'b behavior) -> 'b behavior
-let bind a f = fun t -> f (a t) t
+let bind a f = fun t -> f (a t) t  (* Sample 'a' at time t, then sample the result *)
 ```
 
-As we have seen with changeables, we mostly use lifting. In the Haskell world we would call behaviors *applicative*. To build our own lifters in any monad:
+The `return` function creates a constant behavior that has the same value at all times. The `bind` function samples the first behavior at the current time, uses that value to select a second behavior, and samples *that* at the current time.
+
+In practice, as we saw with changeables, we mostly use *lifting* rather than full monadic bind. In the Haskell world, behaviors are often called *applicative* rather than monadic. We can build our own lifting functions from the applicative `ap` combinator:
 
 ```
 val ap : ('a -> 'b) monad -> 'a monad -> 'b monad
@@ -6956,11 +7238,11 @@ let ap fm am =
   return (f a)
 ```
 
-Note that for changeables, the naive implementation above will introduce unnecessary dependencies. Monadic libraries for *incremental computing* or FRP should provide optimized variants if needed. Compare with `parallel` for concurrent computing.
+A word of caution: for changeables and other incremental systems, this naive implementation of `ap` will introduce unnecessary dependencies in the computation graph. If `fm` changes, we would unnecessarily recompute everything even if only `am` matters for the result. Good FRP and incremental computing libraries provide optimized variants that track dependencies more precisely. This is analogous to how we needed `parallel` (rather than sequential bind) for concurrent computing in Chapter 8.
 
 #### Converting Between Events and Behaviors
 
-Going from events to behaviors, `until` and `switch` have type:
+One of the most important operations in FRP is converting between events and behaviors. Going from events to behaviors, the key combinators `until` and `switch` have type:
 
 ```
 'a behavior -> 'a behavior event -> 'a behavior
@@ -6972,15 +7254,19 @@ while `step` has type:
 'a -> 'a event -> 'a behavior
 ```
 
-- `until b es` behaves as `b` until the first event in `es`, then behaves as the behavior in that event
-- `switch b es` behaves as the behavior from the last event in `es` prior to current time, if any, otherwise as `b`
-- `step a b` starts with behavior returning `a` and then switches to returning the value of the last event in `b` (prior to current time) -- a *step function*
+Here is what each does:
 
-We will use "*signal*" to refer to a behavior or an event. Note that often "signal" is used to mean what we call behavior (check terminology when looking at a new FRP library).
+- `until b es` behaves as `b` until the first event in `es` occurs, then permanently switches to behaving as the behavior carried by that event. This is "one-shot" switching.
+
+- `switch b es` behaves as the behavior from the *most recent* event in `es` (prior to current time), if any event has occurred, otherwise it behaves as `b`. Unlike `until`, this keeps switching whenever a new event arrives.
+
+- `step a es` is the simplest: it starts as a constant behavior returning `a`, and then switches to returning the value of the most recent event in `es`. This creates a *step function* -- a behavior that jumps from value to value at discrete times.
+
+We will use the term "*signal*" to refer to either a behavior or an event. Be aware that terminology varies across FRP libraries: some use "signal" to mean specifically what we call a behavior. Always check the documentation when working with a new FRP library.
 
 ### 10.5 Reactivity by Stream Processing
 
-The stream processing infrastructure should be familiar from earlier chapters:
+Now let us implement FRP using the stream processing techniques from Chapter 7. The infrastructure should be familiar:
 
 ```ocaml skip
 type 'a stream = 'a stream_ Lazy.t
@@ -7011,7 +7297,7 @@ let rec lfold acc f (l : 'a stream) = lazy (
   Cons (acc, lfold acc f xs))
 ```
 
-Since a behavior is a function of user actions and sample times, we need to ensure that only one stream is created for the actual input stream:
+Since a behavior is a function from the input stream to an output stream, we face a subtle sharing problem: if we apply the same behavior function twice to the "same" input, we might create two separate streams that diverge. We need to ensure that for any actual input stream, each behavior creates exactly one output stream. This requires memoization:
 
 ```ocaml skip
 type ('a, 'b) memo1 =
@@ -7021,63 +7307,73 @@ let memo1 f = {memo_f = f; memo_r = None}
 
 let memo1_app f x =
   match f.memo_r with
-  | Some (y, res) when x == y -> res  (* Physical equality is OK -- *)
-  | _ ->  (* external input is "physically" unique *)
-    let res = f.memo_f x in  (* While debugging, we can monitor *)
-    f.memo_r <- Some (x, res);  (* whether f.memo_r = None before *)
+  | Some (y, res) when x == y -> res  (* Physical equality check *)
+  | _ ->
+    let res = f.memo_f x in
+    f.memo_r <- Some (x, res);  (* Cache for next call *)
     res
 
-let ($) = memo1_app
+let ($) = memo1_app  (* Convenient infix for memoized application *)
 
 type 'a behavior =
   ((user_action option * time) stream, 'a stream) memo1
 ```
 
+We use physical equality (`==`) rather than structural equality (`=`) because the external input stream is a single physical object -- if we see the same pointer, we know it is the same stream. During debugging, we can verify that `memo_r` is `None` before the first call and `Some` afterwards.
+
 #### Building Complex Behaviors
 
-The monadic/applicative functions to build complex behaviors. If you do not provide type annotations in `.ml` files, work together with an `.mli` file to catch problems early. You can later add more type annotations as needed to find out what is wrong.
+Now we can build the monadic/applicative functions for composing behaviors. A practical tip: when working with these higher-order types, type annotations are essential. If you do not provide type annotations in `.ml` files, work together with an `.mli` interface file to catch type problems early.
 
 ```ocaml skip
+(* A constant behavior: returns the same value at all times *)
 let returnB x : 'a behavior =
-  let rec xs = lazy (Cons (x, xs)) in
+  let rec xs = lazy (Cons (x, xs)) in  (* Infinite stream of x *)
   memo1 (fun _ -> xs)
 
-let ( !* ) = returnB
+let ( !* ) = returnB  (* Convenient prefix operator for constants *)
 
+(* Lift a unary function to work on behaviors *)
 let liftB f fb = memo1 (fun uts -> lmap f (fb $ uts))
 
+(* Lift binary and ternary functions similarly *)
 let liftB2 f fb1 fb2 = memo1
   (fun uts -> lmap2 f (fb1 $ uts) (fb2 $ uts))
 
 let liftB3 f fb1 fb2 fb3 = memo1
   (fun uts -> lmap3 f (fb1 $ uts) (fb2 $ uts) (fb3 $ uts))
 
+(* Lift a function to work on events (None -> None, Some e -> Some (f e)) *)
 let liftE f (fe : 'a event) : 'b event = memo1
   (fun uts -> lmap
     (function Some e -> Some (f e) | None -> None)
     (fe $ uts))
 
-let (=>>) fe f = liftE f fe
-let (->>) e v = e =>> fun _ -> v
+let (=>>) fe f = liftE f fe  (* Map over events, infix style *)
+let (->>) e v = e =>> fun _ -> v  (* Replace event value with constant *)
 ```
 
-Creating events out of behaviors:
+We also need to create events from behaviors and vice versa. Creating events out of behaviors:
 
 ```ocaml skip
+(* whileB: produces an event at every moment the behavior is true *)
 let whileB (fb : bool behavior) : unit event =
   memo1 (fun uts ->
     lmap (function true -> Some () | false -> None)
       (fb $ uts))
 
+(* unique: filters out duplicate consecutive events *)
 let unique fe : 'a event =
   memo1 (fun uts ->
     let xs = fe $ uts in
     lmap2 (fun x y -> if x = y then None else y)
-      (lazy (Cons (None, xs))) xs)
+      (lazy (Cons (None, xs))) xs)  (* Compare with previous value *)
 
+(* whenB: produces an event when the behavior becomes true (edge detection) *)
 let whenB fb =
   memo1 (fun uts -> unique (whileB fb) $ uts)
 
+(* snapshot: when an event occurs, capture both the event value and current behavior value *)
 let snapshot fe fb : ('a * 'b) event =
   memo1 (fun uts -> lmap2
     (fun x -> function Some y -> Some (y, x) | None -> None)
@@ -7087,61 +7383,72 @@ let snapshot fe fb : ('a * 'b) event =
 Creating behaviors out of events:
 
 ```ocaml skip
-let step acc fe =  (* The step function: value of last event *)
+(* step: holds the value of the most recent event, starting with 'acc' *)
+let step acc fe =
   memo1 (fun uts -> lfold acc
     (fun acc -> function None -> acc | Some v -> v)
     (fe $ uts))
 
-let step_accum acc ff =  (* Transform a value by a series of functions *)
+(* step_accum: accumulates by applying functions from events to current value *)
+let step_accum acc ff =
   memo1 (fun uts ->
     lfold acc (fun acc -> function
       | None -> acc | Some f -> f acc)
       (ff $ uts))
 ```
 
-To numerically integrate a behavior, we need to access the sampling times:
+For physics simulations like our upcoming paddle game, we need to integrate behaviors over time. This requires access to the sampling timestamps:
 
 ```ocaml skip
 let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
     let Cons (b, bs) = Lazy.force bs in
-    let acc = acc +. (t1 -. t0) *. b in  (* b = fb(t1), acc approx integral up to t0 *)
+    (* Rectangle rule: b is fb(t1), acc approximates integral up to t0 *)
+    let acc = acc +. (t1 -. t0) *. b in
     Cons (acc, lazy (loop t1 acc uts bs)) in
   memo1 (fun uts -> lazy (
     let Cons ((_, t), uts') = Lazy.force uts in
     Cons (0., lazy (loop t 0. uts' (fb $ uts)))))
 ```
 
-In our *paddle game* example, we paradoxically express position and velocity in mutually recursive manner. The trick is the same as in Chapter 7 -- integration introduces one step of delay.
+In our upcoming *paddle game* example, we will express position and velocity in a mutually recursive manner -- position is the integral of velocity, but velocity changes when position hits a wall. This seems paradoxical: how can we define position in terms of velocity if velocity depends on position?
 
-User actions:
+The trick is the same as we saw in Chapter 7: integration introduces one step of delay. The integral at time $t$ depends on velocities at times *before* $t$, while the bounce detection at time $t$ uses the position at time $t$. This breaks the cyclic dependency and makes the recursion well-founded.
+
+We define behaviors for user actions by extracting them from the input stream:
 
 ```ocaml skip
+(* Left button press event *)
 let lbp : unit event =
   memo1 (fun uts -> lmap
     (function Some(Button(_,_)), _ -> Some() | _ -> None)
     uts)
 
+(* Mouse movement event (carries coordinates) *)
 let mm : (int * int) event =
   memo1 (fun uts -> lmap
     (function Some(MouseMove(x, y)), _ -> Some(x, y) | _ -> None)
     uts)
 
+(* Window resize event *)
 let screen : (int * int) event =
   memo1 (fun uts -> lmap
     (function Some(Resize(x, y)), _ -> Some(x, y) | _ -> None)
     uts)
 
-let mouse_x : int behavior = step 0 (liftE fst mm)
-let mouse_y : int behavior = step 0 (liftE snd mm)
-let width : int behavior = step 640 (liftE fst screen)
-let height : int behavior = step 512 (liftE snd screen)
+(* Behaviors derived from events using step *)
+let mouse_x : int behavior = step 0 (liftE fst mm)  (* Current mouse X *)
+let mouse_y : int behavior = step 0 (liftE snd mm)  (* Current mouse Y *)
+let width : int behavior = step 640 (liftE fst screen)  (* Window width *)
+let height : int behavior = step 512 (liftE snd screen) (* Window height *)
 ```
 
 #### The Paddle Game Example
 
-A *scene graph* is a data structure that represents a "world" which can be drawn on screen:
+Now let us put all these pieces together to build a classic paddle game (similar to Pong). A ball bounces around the screen, and the player controls a paddle at the bottom to prevent the ball from falling.
+
+First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen:
 
 ```ocaml skip
 type scene =
@@ -7152,42 +7459,44 @@ type scene =
   | Translate of float * float * scene  (* additional offset of origin *)
 ```
 
-Drawing a scene explains what we mean above:
+The drawing function interprets the scene graph, accumulating translations as it traverses:
 
 ```ocaml skip
 let draw sc =
   let f2i = int_of_float in
   let open Graphics in
-  let rec aux t_x t_y = function  (* Accumulate translations *)
+  let rec aux t_x t_y = function  (* t_x, t_y accumulate translations *)
     | Rect (x, y, w, h) ->
       fill_rect (f2i t_x + x) (f2i t_y + y) w h
     | Circle (x, y, r) ->
       fill_circle (f2i t_x + x) (f2i t_y + y) r
     | Group scs ->
       List.iter (aux t_x t_y) scs
-    | Color (c, sc) -> set_color c; aux t_x t_y sc  (* Set color for sc objects *)
-    | Translate (x, y, sc) -> aux (t_x +. x) (t_y +. y) sc in
-  clear_graph ();  (* "Fast and clean" removing of previous picture *)
+    | Color (c, sc) ->
+      set_color c; aux t_x t_y sc  (* Set color, then draw *)
+    | Translate (x, y, sc) ->
+      aux (t_x +. x) (t_y +. y) sc in  (* Add to accumulated offset *)
+  clear_graph ();  (* Clear the back buffer *)
   aux 0. 0. sc;
-  synchronize ()  (* Synchronize the double buffer -- avoiding flickering *)
+  synchronize ()  (* Swap buffers -- this avoids flickering *)
 ```
 
-An animation is a scene behavior. To animate it we need to create the input stream: the user actions and sampling times stream. We could abstract away drawing from time sampling in `reactimate`, asking for (i.e. passing as argument) a producer of user actions and a consumer of scene graphs (like `draw`).
+An *animation* is simply a scene behavior -- a time-varying scene. The `reactimate` function runs the animation loop: it creates the input stream (user actions paired with sampling times), feeds it to the scene behavior to get a stream of scenes, and draws each scene. We use double buffering to avoid flickering.
 
-General-purpose behavior operators:
+For the game logic, we define lifted operators so we can write behavior expressions naturally:
 
 ```ocaml skip
-let (+*) = liftB2 (+)
-let (-*) = liftB2 (-)
-let ( *** ) = liftB2 ( * )
-let (/*) = liftB2 (/)
-let (&&*) = liftB2 (&&)
-let (||*) = liftB2 (||)
-let (<*) = liftB2 (<)
-let (>*) = liftB2 (>)
+let (+*) = liftB2 (+)    (* Addition on behaviors *)
+let (-*) = liftB2 (-)    (* Subtraction on behaviors *)
+let ( *** ) = liftB2 ( * )  (* Multiplication on behaviors *)
+let (/*) = liftB2 (/)    (* Division on behaviors *)
+let (&&*) = liftB2 (&&)  (* Logical AND on behaviors *)
+let (||*) = liftB2 (||)  (* Logical OR on behaviors *)
+let (<*) = liftB2 (<)    (* Less-than on behaviors *)
+let (>*) = liftB2 (>)    (* Greater-than on behaviors *)
 ```
 
-The walls are drawn on left, top and right borders of the window:
+Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
 
 ```ocaml skip
 let walls =
@@ -7204,47 +7513,58 @@ let paddle = liftB (fun mx ->
   Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
 ```
 
-The ball has a velocity in pixels per second. It bounces from the walls, which is hard-coded in terms of distance from window borders. Unfortunately OCaml, being an eager language, does not let us encode recursive behaviors in an elegant way. We need to unpack behaviors and events as functions of the input stream:
+The ball has a velocity in pixels per second and bounces from the walls. Unfortunately, OCaml being an eager language does not let us encode mutually recursive behaviors as elegantly as we might in a lazy language like Haskell. We need to unpack behaviors and events as explicit functions of the input stream and tie the knot manually using mutable record fields.
 
-- `xbounce ->> (~-.)` event is just the negation function happening at each horizontal bounce
-- `step_accum vel (xbounce ->> (~-.))` behavior is `vel` value changing sign at each horizontal bounce
-- `liftB int_of_float (integral xvel) +* width /* !*2` -- first integrate velocity, then truncate it to integers and offset to the middle of the window
-- `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- issue an event the first time the position exceeds the bounds. This ensures there are no further bouncings until the ball moves out of the walls
+The key ideas in the ball implementation:
+
+- `xbounce ->> (~-.)` -- When an `xbounce` event fires, emit the negation function `(~-.)`. This will be used to flip the velocity sign.
+
+- `step_accum vel (xbounce ->> (~-.))` -- Start with velocity `vel`, and whenever a bounce event occurs, apply the negation function to flip the sign. This creates a velocity that bounces back and forth.
+
+- `liftB int_of_float (integral xvel) +* width /* !*2` -- Integrate velocity to get position (as a float), truncate to integers, and offset to center the ball in the window.
+
+- `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
 ### 10.6 Reactivity by Incremental Computing
 
-In *Froc*, behaviors and events are both implemented as changeables but only behaviors persist; events are "instantaneous." Behaviors are composed out of constants and prior events, capturing the "changeable" aspect. Events capture the "writeable" aspect -- after their values are propagated, the values are removed. Events and behaviors are collectively called *signals*.
+In the previous section, we implemented FRP using lazy streams. An alternative approach is to use the incremental computing infrastructure from Section 10.3. The *Froc* library takes this approach.
 
-*Froc* does not represent time, and provides the function `changes : 'a behavior -> 'a event`, which violates the continuous semantics we introduced before. It breaks the illusion that behaviors vary continuously rather than at discrete points in time. But it avoids the need to synchronize global time samples with events in the system. It is "less continuous but more dense."
+In *Froc*, both behaviors and events are implemented as changeables, but they have different lifetimes. Behaviors *persist* -- they always have a current value. Events are *instantaneous* -- they fire, propagate their values, and then are removed from the dependency graph. This captures an intuitive distinction: a behavior like "current mouse position" always exists, while an event like "mouse button pressed" happens at a moment and is gone.
 
-Sending an event -- `send` -- starts an *update cycle*. Signals cannot call `send`, but can `send_deferred` which will send an event in the next cycle. Things that happen in the same update cycle are *simultaneous*. Events are removed (detached from dependency graph) after an update cycle.
+Behaviors are composed out of constants and prior events, capturing the "changeable" aspect. Events capture the "writeable" aspect -- they are how external inputs enter the system. Together, events and behaviors are called *signals*.
 
-*Froc* provides the `fix_b`, `fix_e` functions to define signals recursively. Current value refers to value from previous update cycle, and defers next recursive step to next cycle, until convergence.
+One important design choice in *Froc*: it does not explicitly represent time. Instead, it provides the function `changes : 'a behavior -> 'a event`, which fires an event whenever a behavior changes. This violates the continuous semantics we discussed earlier -- it breaks the illusion that behaviors vary continuously rather than at discrete points. But it simplifies the implementation by avoiding the need to synchronize global time samples with events. The result is "less continuous but more dense" in the sense that updates happen exactly when needed, not at fixed intervals.
 
-Update cycles can happen "back-to-back" via `send_deferred` and `fix_b`, `fix_e`, or can be invoked from outside *Froc* by sending events at arbitrary times. With a `time` behavior that holds a `clock` event value, events from "back-to-back" update cycles can be at the same clock time although not simultaneous in this sense. Update cycles prevent *glitches*, where outdated signal is used e.g. to issue an event.
+Sending an event using `send` starts an *update cycle*. During an update cycle, all dependent signals are brought up to date. Signals themselves cannot call `send` (that would create unpredictable cascades), but they can call `send_deferred`, which schedules an event for the *next* update cycle. Things that happen in the same update cycle are considered *simultaneous*.
+
+*Froc* provides `fix_b` and `fix_e` functions to define signals recursively. The "current value" in a recursive definition refers to the value from the *previous* update cycle, and each recursive step is deferred to the next cycle, until values converge.
+
+Update cycles can happen "back-to-back" via `send_deferred` and `fix_b`/`fix_e`, or can be triggered from outside *Froc* by sending events at arbitrary times. With a `time` behavior that tracks a clock event, events from back-to-back update cycles can have the same clock time even though they are not simultaneous in the FRP sense. This architecture prevents *glitches*, where an outdated signal value is accidentally used before it has been updated.
 
 #### Pure vs. Impure Style
 
-A behavior is written in *pure style* when its definition does not use `send`, `send_deferred`, `notify_e`, `notify_b` and `sample`:
+*Froc* supports two programming styles. A behavior is written in *pure style* when its definition does not use `send`, `send_deferred`, `notify_e`, `notify_b`, or `sample`. In pure style:
 
-- `sample`, `notify_e`, `notify_b` are used from outside the behavior (from its "environment") analogously to observing the result of a function
-- `send`, `send_deferred` are used from outside analogously to providing input to a function
+- `sample`, `notify_e`, `notify_b` are used only from *outside* the behavior (from its "environment") -- analogous to observing the result of a function after it completes
+- `send`, `send_deferred` are used only from outside -- analogous to providing input to a function before it runs
 
-When writing in impure style we need to remember to refer from somewhere to all the pieces of our behavior, otherwise the unreferred parts will be **garbage collected** breaking the behavior. A value is referred to when it has a name in the global environment or is part of a bigger value that is referred to (for example it is stored somewhere). Signals can be referred to by being part of the dependency graph, but also by any of the more general ways.
+In *impure style*, we can freely mix signal definitions with imperative notifications and samples. This is more flexible but has an important pitfall: we must ensure that all pieces of our behavior are *referred to* from somewhere, otherwise the garbage collector will reclaim them and our behavior will mysteriously stop working!
+
+A value is "referred to" when it has a name in the global environment, or is stored as part of a larger value that is referred to. Signals are also referred to when they are part of the dependency graph. If you define a signal, attach a notification to it, but do not keep the signal itself alive, the notification may stop working when the signal is garbage collected.
 
 #### Reimplementing the Paddle Game Example
 
-Rather than following our incremental computing example (a scene with changeable parts), we follow our FRP example: a scene behavior.
+Let us reimplement the paddle game using *Froc* instead of lazy streams. We will follow the same structure as our stream-based FRP example: a scene behavior that represents the complete game state at each moment.
 
-First we introduce time:
+First, we introduce time explicitly (since *Froc* does not track it automatically):
 
 ```ocaml skip
 open Froc
-let clock, tick = make_event ()
-let time = hold (Unix.gettimeofday ()) clock
+let clock, tick = make_event ()  (* clock event, tick to send it *)
+let time = hold (Unix.gettimeofday ()) clock  (* Behavior: current time *)
 ```
 
-Next we define integration:
+The main loop will call `send tick current_time` at each frame. Now we can define integration. Note the use of `sample` to read the current value of a behavior -- this is the impure style:
 
 ```ocaml skip
 let integral fb =
@@ -7260,19 +7580,19 @@ let integ_res fb =
   lift (fun (v, _) -> int_of_float v) (integral fb)
 ```
 
-We can also define integration in pure style:
+We can also define integration in *pure style*, which avoids calling `sample` inside the behavior definition:
 
 ```ocaml skip
 let pair fa fb = lift2 (fun x y -> x, y) fa fb
 
 let integral_nice fb =
-  let samples = changes (pair fb time) in
+  let samples = changes (pair fb time) in  (* Event when either changes *)
   let aux (sum, t0) (fv, t1) =
     sum +. (t1 -. t0) *. fv, t1 in
   collect_b aux (0., sample time) samples
 ```
 
-The initial value `(0., sample time)` is not "inside" the behavior so `sample` here does not spoil the pure style.
+The initial value `(0., sample time)` uses `sample`, but this is evaluated *once* when setting up the behavior, not inside the behavior definition itself, so it does not spoil the pure style.
 
 ### 10.7 Direct Control
 
@@ -7647,7 +7967,9 @@ Implement an example that uses this compositionality-increasing capability.
 
 ## Chapter 11: The Expression Problem
 
-This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. We examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. The chapter concludes with an application to parser combinators and dynamic code loading.
+This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
+
+We will examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. Each approach has different trade-offs in terms of type safety, code organization, and ease of use. The chapter concludes with a practical application: parser combinators with dynamic code loading, demonstrating how these techniques apply to real-world problems.
 
 ### 11.1 The Expression Problem: Definition
 
@@ -7673,7 +7995,7 @@ And operations we want to support:
 - Pretty-printing to strings `string_of`
 - Free variables computation `free_vars`
 
-The challenge is to combine these sub-languages and add new operations without breaking existing code or sacrificing type safety.
+The challenge is to combine these sub-languages and add new operations without breaking existing code or sacrificing type safety. This is a fundamental tension in programming language design: functional languages typically make it easy to add new operations (just write a new function with pattern matching), while object-oriented languages typically make it easy to add new data variants (just add a new subclass). Finding a solution that provides both kinds of extensibility simultaneously, with static type safety and separate compilation, is the essence of the expression problem.
 
 #### References
 
@@ -7686,19 +8008,19 @@ The challenge is to combine these sub-languages and add new operations without b
 
 ### 11.2 Functional Programming Non-Solution: Ordinary Algebraic Datatypes
 
-Pattern matching makes **functional extensibility** easy in functional programming. However, ensuring **datatype extensibility** is complicated when using standard variant types.
+Pattern matching makes **functional extensibility** easy in functional programming. When we want to add a new operation, we simply write a new function that pattern-matches on the existing datatype. However, ensuring **datatype extensibility** is complicated when using standard variant types, because adding a new variant requires modifying the type definition and all functions that pattern-match on it.
 
-For brevity, we place examples in a single file, but the component type and function definitions are not mutually recursive, so they can be put in separate modules.
+For brevity, we place examples in a single file, but the component type and function definitions are not mutually recursive, so they can be put in separate modules for separate compilation.
 
 **Non-solution penalty points:**
 
-- Functions implemented for a broader language (e.g., `lexpr_t`) cannot be used with a value from a narrower language (e.g., `expr_t`)
-- Significant memory (and some time) overhead due to *tagging*: the work of `wrap` and `unwrap` functions, adding tags such as `Lambda` and `Expr`
-- Some code bloat due to tagging. For example, deep pattern matching needs to be manually unrolled and interspersed with calls to `unwrap`
+- Functions implemented for a broader language (e.g., `lexpr_t`) cannot be used with a value from a narrower language (e.g., `expr_t`). This breaks the intuition that a smaller language should be usable wherever a larger one is expected.
+- Significant memory (and some time) overhead due to *tagging*: the work of the `wrap` and `unwrap` functions, adding tags such as `Lambda` and `Expr` to distinguish which sub-language an expression belongs to.
+- Some code bloat due to tagging. For example, deep pattern matching needs to be manually unrolled and interspersed with calls to `unwrap`, making the code harder to read and maintain.
 
-**Verdict:** Non-solution, but better than extensible variant types-based approach and direct OOP approach.
+**Verdict:** Non-solution, but better than the extensible variant types-based approach and the direct OOP approach.
 
-Here is the implementation:
+Here is the implementation. Note how we use type parameters and wrap/unwrap functions to achieve a form of extensibility:
 
 ```ocaml env=sol1
 type var = string  (* Variables constitute a sub-language of its own *)
@@ -7771,7 +8093,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
     (fun e -> Expr_t e) (fun (Expr_t e) -> Some e) subst
 ```
 
-Finally, we merge the two sub-languages:
+Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the "fall-through" property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
 
 ```ocaml env=sol1
 type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
@@ -7803,15 +8125,17 @@ let rec eval3 subst =
 
 ### 11.3 Lightweight FP Non-Solution: Extensible Variant Types
 
-Exceptions have always formed an extensible variant type in OCaml, whose pattern matching is done using the `try...with` syntax. Since recently, new extensible variant types can be defined. This augments the normal function extensibility of FP with straightforward data extensibility.
+Exceptions have always formed an extensible variant type in OCaml, whose pattern matching is done using the `try...with` syntax. Since recently, new extensible variant types can be defined using the `type t = ..` syntax. This augments the normal function extensibility of FP with straightforward data extensibility, providing a seemingly elegant solution.
+
+The syntax is simple: `type expr = ..` declares an extensible type, and `type expr += Var of string` adds a new variant case to it. This mirrors how exceptions work in OCaml, but for arbitrary types.
 
 **Non-solution penalty points:**
 
-- Giving up exhaustivity checking, which is an important aspect of static type safety
-- More natural with "single inheritance" extension chains, although merging is possible and demonstrated in our example
-- Requires "tying the recursive knot" for functions
+- **Giving up exhaustivity checking**, which is an important aspect of static type safety. The compiler cannot warn you when you forget to handle a case, because new cases can be added at any time.
+- More natural with "single inheritance" extension chains, although merging is possible and demonstrated in our example. The sub-languages are not differentiated by types, which is a significant shortcoming.
+- Requires "tying the recursive knot" for functions, similar to the previous approach.
 
-**Verdict:** Pleasant-looking, but the worst approach because of possible bugginess. Unless bug-proneness is not a concern, then the best approach.
+**Verdict:** Pleasant-looking, but arguably the worst approach because of possible bugginess. The loss of exhaustivity checking means that bugs from unhandled cases will only be discovered at runtime. However, if bug-proneness is not a concern (e.g., for rapid prototyping), this is actually the most concise approach.
 
 ```ocaml env=sol2
 type expr = ..  (* This is how extensible variant types are defined *)
@@ -7907,9 +8231,11 @@ let fv_test3 = freevars3 test3
 
 ### 11.4 Object-Oriented Programming: Subtyping
 
-OCaml's **objects** are values, somewhat similar to records. Viewed from the outside, an OCaml object has only **methods**, identifying the code with which to respond to messages (method invocations). All methods are **late-bound**; the object determines what code is run (i.e., *virtual* in C++ parlance).
+Before examining OOP solutions to the expression problem, let us understand OCaml's object system.
 
-**Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned decides if an object can be used. Parametric polymorphism can be used to infer if an object has the required methods.
+OCaml's **objects** are values, somewhat similar to records. Viewed from the outside, an OCaml object has only **methods**, identifying the code with which to respond to messages (method invocations). All methods are **late-bound**; the object determines what code is run (i.e., *virtual* in C++ parlance). This is in contrast to records, where field access is resolved at compile time.
+
+**Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned (the methods they provide) decides if an object can be used, not the name of the type or class. Parametric polymorphism can be used to infer if an object has the required methods.
 
 ```ocaml env=oop_intro
 let f x = x#m  (* Method invocation: object#method *)
@@ -7918,13 +8244,13 @@ let f x = x#m  (* Method invocation: object#method *)
 (* .. means that objects with more methods will be accepted *)
 ```
 
-Methods are computed when they are invoked, even if they do not take arguments. We define objects inside `object...end` (compare: records `{...}`) using keywords:
+Methods are computed when they are invoked, even if they do not take arguments (unlike record fields, which are computed once when the record is created). We define objects inside `object...end` (compare: records `{...}`) using keywords:
 
-- `method` for methods
-- `val` for constant fields
+- `method` for methods (always late-bound)
+- `val` for constant fields (only accessible within the object)
 - `val mutable` for mutable fields
 
-Constructor arguments can often be used instead of constant fields:
+Constructor arguments can often be used instead of constant fields. Here is a simple example:
 
 ```ocaml env=oop_intro
 let square w = object
@@ -7950,18 +8276,36 @@ let l = [(a :> <m : 'a>); (b :> <m : 'a>)]  (* But the types share a supertype *
 (* val l : < m : int > list *)
 ```
 
+#### Object-Oriented Programming: Inheritance
+
+The system of object classes in OCaml is similar to the module system. Object classes are not types; rather, classes are a way to build object *constructors*, which are functions that return objects. Classes have their types, called class types (compare: modules and signatures).
+
+In OCaml parlance:
+
+- **Late binding** is not called anything special, since all methods are late-bound (called *virtual* in C++)
+- A method or field declared to be defined in sub-classes is called **virtual** (called *abstract* in C++); classes that use virtual methods or fields are also called virtual
+- A method that is only visible in sub-classes is called **private** (called *protected* in C++)
+- A method not visible outside the class is achieved by omitting it from the class type (called *private* in C++) -- you provide the type for the class and omit the method in the class type, similar to module signatures and `.mli` files
+
+OCaml allows **multiple inheritance**, which can be used to implement *mixins* as virtual/abstract classes. Inheritance works somewhat similarly to textual inclusion: the inherited class's methods and fields are copied into the inheriting class, but with late binding preserved.
+
+The `{< ... >}` syntax creates a *clone* of the current object with some fields changed. This is essential for functional-style object programming, where we create new objects rather than mutating existing ones.
+
 ### 11.5 Direct Object-Oriented Non-Solution
+
+It turns out that although object-oriented programming was designed with data extensibility in mind, it is a bad fit for recursive types like those in the expression problem. Below is an attempt at solving our problem using classes.
 
 We can try to solve the expression problem using objects directly. However, adding new functionality still requires modifying old code, so this approach does not fully solve the expression problem.
 
 **Non-solution penalty points:**
 
-- No way to add functionality without modifying old code (in particular, the abstract class and all concrete classes)
-- No deep pattern matching
+- No way to add functionality without modifying old code (in particular, the abstract class and all concrete classes must be extended with new methods)
+- Functions implemented for a broader language cannot handle values from a narrower one
+- No deep pattern matching: we cannot examine the structure of nested expressions
 
 **Verdict:** Non-solution, and probably the worst approach.
 
-Here is an implementation using objects:
+Here is an implementation using objects. The abstract class `evaluable` defines the interface that all expression objects must implement. For lambda calculus, we need helper methods: `rename` for renaming free variables (needed for alpha-conversion), and `apply` for beta-reduction when possible:
 
 ```ocaml env=sol3
 type var_name = string
@@ -7978,13 +8322,13 @@ object
 end
 
 class ['lang] var (v : var_name) =
-object (self)
+object (self)  (* We name the current object `self` for later reference *)
   inherit ['lang] evaluable
   val v = v
   method eval subst =
     try List.assoc v subst with Not_found -> self
-  method rename v1 v2 =
-    if v = v1 then {< v = v2 >} else self
+  method rename v1 v2 =  (* Renaming a variable: *)
+    if v = v1 then {< v = v2 >} else self  (* clone with new name if matched *)
 end
 
 class ['lang] abs (v : var_name) (body : 'lang) =
@@ -7992,13 +8336,13 @@ object (self)
   inherit ['lang] evaluable
   val v = v
   val body = body
-  method eval subst =
-    let v' = gensym () in
+  method eval subst =  (* We do alpha-conversion prior to evaluation *)
+    let v' = gensym () in  (* Generate fresh name to avoid capture *)
     {< v = v'; body = (body#rename v v')#eval subst >}
-  method rename v1 v2 =
-    if v = v1 then self
+  method rename v1 v2 =  (* Renaming the free variable v1 *)
+    if v = v1 then self  (* If v=v1, then v1 is bound here, not free -- no work *)
     else {< body = body#rename v1 v2 >}
-  method apply arg _ subst =
+  method apply arg _ subst =  (* Beta-reduction: substitute arg for v in body *)
     body#eval ((v, arg)::subst)
 end
 
@@ -8007,11 +8351,11 @@ object (self)
   inherit ['lang] evaluable
   val f = f
   val arg = arg
-  method eval subst =
-    let arg' = arg#eval subst in
+  method eval subst =  (* We use `apply` to differentiate between f=abs *)
+    let arg' = arg#eval subst in  (* (beta-redexes) and f<>abs *)
     f#apply arg' (fun () -> {< f = f#eval subst; arg = arg' >}) subst
-  method rename v1 v2 =
-    {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}
+  method rename v1 v2 =  (* Cloning ensures result is subtype of 'lang *)
+    {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}  (* not just 'lang app *)
 end
 
 type evaluable_t = evaluable_t evaluable
@@ -8024,7 +8368,7 @@ let test1 = new_app1 (new_abs1 "x" (new_var1 "x")) (new_var1 "y")
 let e_test1 = test1#eval []
 ```
 
-Extending with arithmetic requires additional mixins:
+Extending with arithmetic requires additional mixins. To use lambda-expressions together with arithmetic expressions, we need to upgrade them with a helper method `compute` that returns the numeric value if one exists:
 
 ```ocaml env=sol3
 class virtual compute_mixin = object
@@ -8112,13 +8456,16 @@ let e_test2 = test2#eval []
 
 ### 11.6 OOP Non-Solution: The Visitor Pattern
 
-The **visitor pattern** is a design pattern that separates an algorithm from the object structure on which it operates. This allows adding new operations to existing object structures without modifying those structures.
+The **visitor pattern** is an object-oriented programming pattern for turning objects into variants with shallow pattern-matching (i.e., dispatch based on which variant a value is). It effectively replaces data extensibility with operation extensibility: instead of being able to add new data variants easily, we can add new operations easily.
+
+The key idea is that each data variant has an `accept` method that takes a visitor object and calls the appropriate `visit` method on it. This inverts the usual pattern matching: instead of the function choosing which branch to take based on the data, the data chooses which method to call on the visitor.
 
 **Non-solution penalty points:**
 
-- Adding new functionality requires modifying old code (the abstract visitor class)
-- No deep pattern matching
-- Uses mutable state for returning results
+- Adding new functionality requires modifying old code (the abstract visitor class must declare new `visit` methods)
+- Heavy code bloat compared to pattern matching
+- No deep pattern matching: we can only dispatch on the outermost constructor
+- Side-effects appear to be required for returning results (we store computation results in mutable fields because keeping the visitor polymorphic while having the result type depend on the visitor is difficult)
 
 **Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
 
@@ -8236,15 +8583,25 @@ Extending with arithmetic expressions follows a similar pattern, and the merged 
 
 ### 11.7 Polymorphic Variants
 
-**Polymorphic variants** provide a flexible alternative to standard variants. They allow combining types from different sources without explicitly defining a common parent type.
+**Polymorphic variants** provide a flexible alternative to standard variants. They are to ordinary variants as objects are to records: both enable *open types* and subtyping, both allow different types to share the same components.
+
+Interestingly, they are *dual* concepts: if we replace "product" of records/objects by "sum" (as we discussed in earlier chapters), we get variants/polymorphic variants. This duality implies many behaviors are opposite. For example:
+
+- While object subtypes have *more* methods, polymorphic variant subtypes have *fewer* tags
+- The `>` sign means "these tags or more" (open for adding tags)
+- The `<` sign means "these tags or less" (closed to these tags only)
+- No sign means a closed type
+
+Because distinct polymorphic variant types can share the same tags, the solution to the Expression Problem becomes straightforward: we can define sub-languages with overlapping tags and compose them.
 
 **Penalty points:**
 
-- Requires explicit type annotations more often
+- Requires explicit type annotations more often than regular variants
 - Requires "tying the recursive knots" for types, e.g., `type lambda_t = lambda_t lambda`
-- Some loss of type-level distinction between sub-languages
+- The need to tie the recursive knot separately at both the type level and the function level. At the function level, an eta-expansion is sometimes required due to the *value recursion* problem
+- There can be a slight time cost compared to the visitor pattern: additional dispatch at each level of type aggregation (i.e., merging sub-languages)
 
-**Verdict:** A flexible solution, better than the previous approaches but still not perfect.
+**Verdict:** A flexible and concise solution, second-best place overall.
 
 ```ocaml env=sol5
 type var = [`Var of string]
@@ -8258,8 +8615,8 @@ type 'a lambda =
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
 
 let eval_lambda eval_rec subst : 'a lambda -> 'a = function
-  | #var as v -> eval_var subst v
-  | `App (l1, l2) ->
+  | #var as v -> eval_var subst v  (* We could also leave the type open *)
+  | `App (l1, l2) ->               (* rather than closing it to `lambda` *)
     let l2' = eval_rec subst l2 in
     (match eval_rec subst l1 with
     | `Abs (s, body) ->
@@ -8299,9 +8656,9 @@ let map_expr (f : _ -> 'a) : 'a expr -> 'a = function
 
 let eval_expr eval_rec subst (e : 'a expr) : 'a =
   match map_expr (eval_rec subst) e with
-  | #var as v -> eval_var subst v
-  | `Add (`Num m, `Num n) -> `Num (m + n)
-  | `Mult (`Num m, `Num n) -> `Num (m * n)
+  | #var as v -> eval_var subst v  (* Here and elsewhere, we could also *)
+  | `Add (`Num m, `Num n) -> `Num (m + n)  (* factor-out the sub-language *)
+  | `Mult (`Num m, `Num n) -> `Num (m * n)  (* of variables *)
   | e -> e
 
 let freevars_expr freevars_rec : 'a expr -> 'b = function
@@ -8348,7 +8705,7 @@ let fv_old_test = freevars3 (test2 :> lexpr_t)
 
 ### 11.8 Polymorphic Variants with Recursive Modules
 
-Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments.
+Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments. The module system handles the recursion for us, making the code cleaner and more modular.
 
 We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
 
@@ -8362,14 +8719,14 @@ and then of private row types as abstracting the row variable:
 type 'row t = [`Int of int | `String of string | 'row]
 ```
 
-But the actual formalization of private row types is more complex.
+But the actual formalization of private row types is more complex. The key point is that private row types allow us to specify that a type is "at least" a certain set of variants, while still being extensible.
 
 **Penalty points:**
 
 - We still need to tie the recursive knots for types, for example `private [> 'a lambda] as 'a`
 - There can be slight time costs due to the use of functors and dispatch on merging of sub-languages
 
-**Verdict:** A clean solution, best place.
+**Verdict:** A clean solution, best place. The recursive module approach is the most elegant solution we have seen so far.
 
 ```ocaml env=sol6
 type var = [`Var of string]
@@ -8498,9 +8855,9 @@ let fv_old_test = LExpr.freevars (test2 :> LExpr.exp)
 
 ### 11.9 Parser Combinators
 
-Large-scale parsing in OCaml is typically done using external languages OCamlLex and Menhir. But it is convenient to have parsers written directly in OCaml.
+We now turn to an application that demonstrates the extensibility concepts we have been discussing. Large-scale parsing in OCaml is typically done using external languages like OCamlLex and Menhir, which generate efficient parsers from grammar specifications. But it is often convenient to have parsers written directly in OCaml, especially for smaller grammars or when we want to extend the parser dynamically.
 
-Language **combinators** are ways of defining languages by composing definitions of smaller languages. For example, the combinators of the **Extended Backus-Naur Form** notation are:
+Language **combinators** are ways of defining languages by composing definitions of smaller languages. This is exactly the kind of compositional, extensible design we have been exploring with the expression problem. For example, the combinators of the **Extended Backus-Naur Form** notation are:
 
 - **Concatenation**: $S = A, B$ stands for $S = \{ ab \mid a \in A, b \in B \}$
 - **Alternation**: $S = A \mid B$ stands for $S = \{ a \mid a \in A \vee a \in B \}$
@@ -8526,26 +8883,28 @@ The only non-monad-plus operation that has to be built into the monad is some wa
 - `val satisfy : (char -> bool) -> char parser`
   - `satisfy (fun c -> c = 'a')` consumes the character "a" from the input stream and returns it; if the input stream starts with a different character, this parser fails
 
-Ordinary monadic recursive descent parsers **do not allow** *left-recursion*: if a cycle of calls not consuming any character can be entered when a parse failure should occur, the cycle will keep repeating.
+Ordinary monadic recursive descent parsers **do not allow** *left-recursion*: if a cycle of calls not consuming any character can be entered when a parse failure should occur, the cycle will keep repeating indefinitely.
 
-For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits, then a stack of uses of the rule $N \rightarrow N D$ will build up when the next character is not a digit.
+For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits, then a stack of uses of the rule $N \rightarrow N D$ will build up when the next character is not a digit. The parser will try to match $N$, which requires matching $N D$, which requires matching $N$ again, leading to infinite recursion.
 
-On the other hand, rules can share common prefixes.
+On the other hand, rules can share common prefixes, and the backtracking monad will handle trying alternatives correctly.
 
 ### 11.10 Parser Combinators: Implementation
 
 The parser monad is actually a composition of two monads:
 
-- The **state monad** for storing the stream of characters that remain to be parsed
-- The **backtracking monad** for handling parse failures and ambiguities
+- The **state monad** for storing the stream of characters that remain to be parsed (specifically, the current position in the input string)
+- The **backtracking monad** for handling parse failures and ambiguities (allowing us to try alternatives when one parse fails)
 
-Alternatively, one can split the state monad into a reader monad with the parsed string, and a state monad with the parsing position.
+Alternatively, one can split the state monad into a reader monad with the parsed string, and a state monad with the parsing position. This is the approach we take here.
 
-We experiment with a different approach to monad-plus: **lazy-monad-plus**:
+We experiment with a different approach to monad-plus: **lazy-monad-plus**. The difference from regular monad-plus is that the second argument to `mplus` is lazy:
 
 ```
 val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 ```
+
+This laziness prevents the second alternative from being evaluated until it is actually needed, which is important for avoiding infinite recursion in some parsing scenarios.
 
 #### Implementation of lazy-monad-plus
 
@@ -8683,6 +9042,8 @@ end
 
 ### 11.11 Parser Combinators: Tying the Recursive Knot
 
+Now we come to the key insight connecting parser combinators to the expression problem: how do we allow the grammar to be extended dynamically? The answer is to use a mutable reference holding a list of grammar rules, and tie the recursive knot lazily.
+
 File `PluginBase.ml`:
 
 ```ocaml env=parsec
@@ -8702,6 +9063,8 @@ let get_language () : int monad =
 ```
 
 ### 11.12 Parser Combinators: Dynamic Code Loading
+
+OCaml supports dynamic code loading through the `Dynlink` module. This allows us to load compiled modules at runtime, which can register new grammar rules by mutating the `grammar_rules` reference. This is a powerful form of extensibility: we can add new syntax to our language without recompiling the main program.
 
 File `PluginRun.ml`:
 
@@ -8734,6 +9097,8 @@ let () =
 
 ### 11.13 Parser Combinators: Toy Example
 
+Let us see how this works with a concrete example. We will define two plugins: one for parsing numbers and addition, and another for parsing multiplication. Each plugin registers its grammar rules by appending to the `grammar_rules` list.
+
 File `Plugin1.ml`:
 
 ```ocaml env=parsec
@@ -8741,7 +9106,7 @@ open ParseM
 let digit_of_char d = int_of_char d - int_of_char '0'
 
 let number _ =  (* Numbers: N := D N | D where D is digits *)
-  let rec num =
+  let rec num =  (* Note: we avoid left-recursion by having the digit first *)
     lazy ((let* d = digit in
            let* (n, b) = Lazy.force num in
            return (digit_of_char d * b + n, b * 10))
@@ -8749,7 +9114,8 @@ let number _ =  (* Numbers: N := D N | D where D is digits *)
   Lazy.force num >>| fst
 
 let addition lang =  (* Addition rule: S -> (S + S) *)
-  (* Requiring a parenthesis ( turns the rule into non-left-recursive *)
+  (* Requiring a parenthesis '(' turns the rule into non-left-recursive *)
+  (* because we consume a character before recursing *)
   let* () = literal "(" in
   let* n1 = lang in
   let* () = literal "+" in
@@ -8760,7 +9126,7 @@ let addition lang =  (* Addition rule: S -> (S + S) *)
 let () = grammar_rules := number :: addition :: !grammar_rules
 ```
 
-File `Plugin2.ml`:
+File `Plugin2.ml` adds multiplication to the language. Notice how we can add this functionality without modifying any existing code:
 
 ```ocaml env=parsec
 open ParseM
@@ -8778,7 +9144,9 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 ### 11.14 Exercises
 
-**Exercise 1:** Implement the `string_of_` functions or methods, covering all data cases, corresponding to the `eval_` functions in at least two examples from the lecture, including both an object-based example and a variant-based example (either standard, or polymorphic, or extensible variants).
+The following exercises will help you deepen your understanding of the expression problem and the various solutions we have explored. They range from implementing additional operations to refactoring the code for better organization.
+
+**Exercise 1:** Implement the `string_of_` functions or methods, covering all data cases, corresponding to the `eval_` functions in at least two examples from the lecture, including both an object-based example and a variant-based example (either standard, or polymorphic, or extensible variants). This will help you understand how functional extensibility works in each approach.
 
 **Exercise 2:** Split at least one of the examples from the previous exercise into multiple files and demonstrate separate compilation.
 
@@ -8786,7 +9154,7 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 **Exercise 4:** Factor-out the sub-language consisting only of variables, thus eliminating the duplication of tags `VarL`, `VarE` in the examples based on standard variants (file `FP_ADT.ml`).
 
-**Exercise 5:** Come up with a scenario where the extensible variant types-based solution leads to a non-obvious or hard to locate bug.
+**Exercise 5:** Come up with a scenario where the extensible variant types-based solution leads to a non-obvious or hard to locate bug. This exercise illustrates why exhaustivity checking is so valuable for static type safety.
 
 **Exercise 6:** Re-implement the direct object-based solution to the expression problem (file `Objects.ml`) to make it more satisfying. For example, eliminate the need for some of the `rename`, `apply`, `compute` methods.
 
@@ -8810,3 +9178,5 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 1. Rewrite the parser combinators example to use regular monad-plus and even lazy lists.
 2. Select one example from Lecture 8 and rewrite it using lazy-monad-plus and odd lazy lists.
+
+(In an "odd" lazy list, the first element is strict and only the tail is lazy. In an "even" lazy list, the entire list is wrapped in laziness. The choice affects when computation happens and how infinite structures are handled.)

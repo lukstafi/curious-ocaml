@@ -1,6 +1,8 @@
 ## Chapter 11: The Expression Problem
 
-This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. We examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. The chapter concludes with an application to parser combinators and dynamic code loading.
+This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
+
+We will examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. Each approach has different trade-offs in terms of type safety, code organization, and ease of use. The chapter concludes with a practical application: parser combinators with dynamic code loading, demonstrating how these techniques apply to real-world problems.
 
 ### 11.1 The Expression Problem: Definition
 
@@ -26,7 +28,7 @@ And operations we want to support:
 - Pretty-printing to strings `string_of`
 - Free variables computation `free_vars`
 
-The challenge is to combine these sub-languages and add new operations without breaking existing code or sacrificing type safety.
+The challenge is to combine these sub-languages and add new operations without breaking existing code or sacrificing type safety. This is a fundamental tension in programming language design: functional languages typically make it easy to add new operations (just write a new function with pattern matching), while object-oriented languages typically make it easy to add new data variants (just add a new subclass). Finding a solution that provides both kinds of extensibility simultaneously, with static type safety and separate compilation, is the essence of the expression problem.
 
 #### References
 
@@ -39,19 +41,19 @@ The challenge is to combine these sub-languages and add new operations without b
 
 ### 11.2 Functional Programming Non-Solution: Ordinary Algebraic Datatypes
 
-Pattern matching makes **functional extensibility** easy in functional programming. However, ensuring **datatype extensibility** is complicated when using standard variant types.
+Pattern matching makes **functional extensibility** easy in functional programming. When we want to add a new operation, we simply write a new function that pattern-matches on the existing datatype. However, ensuring **datatype extensibility** is complicated when using standard variant types, because adding a new variant requires modifying the type definition and all functions that pattern-match on it.
 
-For brevity, we place examples in a single file, but the component type and function definitions are not mutually recursive, so they can be put in separate modules.
+For brevity, we place examples in a single file, but the component type and function definitions are not mutually recursive, so they can be put in separate modules for separate compilation.
 
 **Non-solution penalty points:**
 
-- Functions implemented for a broader language (e.g., `lexpr_t`) cannot be used with a value from a narrower language (e.g., `expr_t`)
-- Significant memory (and some time) overhead due to *tagging*: the work of `wrap` and `unwrap` functions, adding tags such as `Lambda` and `Expr`
-- Some code bloat due to tagging. For example, deep pattern matching needs to be manually unrolled and interspersed with calls to `unwrap`
+- Functions implemented for a broader language (e.g., `lexpr_t`) cannot be used with a value from a narrower language (e.g., `expr_t`). This breaks the intuition that a smaller language should be usable wherever a larger one is expected.
+- Significant memory (and some time) overhead due to *tagging*: the work of the `wrap` and `unwrap` functions, adding tags such as `Lambda` and `Expr` to distinguish which sub-language an expression belongs to.
+- Some code bloat due to tagging. For example, deep pattern matching needs to be manually unrolled and interspersed with calls to `unwrap`, making the code harder to read and maintain.
 
-**Verdict:** Non-solution, but better than extensible variant types-based approach and direct OOP approach.
+**Verdict:** Non-solution, but better than the extensible variant types-based approach and the direct OOP approach.
 
-Here is the implementation:
+Here is the implementation. Note how we use type parameters and wrap/unwrap functions to achieve a form of extensibility:
 
 ```ocaml env=sol1
 type var = string  (* Variables constitute a sub-language of its own *)
@@ -124,7 +126,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
     (fun e -> Expr_t e) (fun (Expr_t e) -> Some e) subst
 ```
 
-Finally, we merge the two sub-languages:
+Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the "fall-through" property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
 
 ```ocaml env=sol1
 type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
@@ -156,15 +158,17 @@ let rec eval3 subst =
 
 ### 11.3 Lightweight FP Non-Solution: Extensible Variant Types
 
-Exceptions have always formed an extensible variant type in OCaml, whose pattern matching is done using the `try...with` syntax. Since recently, new extensible variant types can be defined. This augments the normal function extensibility of FP with straightforward data extensibility.
+Exceptions have always formed an extensible variant type in OCaml, whose pattern matching is done using the `try...with` syntax. Since recently, new extensible variant types can be defined using the `type t = ..` syntax. This augments the normal function extensibility of FP with straightforward data extensibility, providing a seemingly elegant solution.
+
+The syntax is simple: `type expr = ..` declares an extensible type, and `type expr += Var of string` adds a new variant case to it. This mirrors how exceptions work in OCaml, but for arbitrary types.
 
 **Non-solution penalty points:**
 
-- Giving up exhaustivity checking, which is an important aspect of static type safety
-- More natural with "single inheritance" extension chains, although merging is possible and demonstrated in our example
-- Requires "tying the recursive knot" for functions
+- **Giving up exhaustivity checking**, which is an important aspect of static type safety. The compiler cannot warn you when you forget to handle a case, because new cases can be added at any time.
+- More natural with "single inheritance" extension chains, although merging is possible and demonstrated in our example. The sub-languages are not differentiated by types, which is a significant shortcoming.
+- Requires "tying the recursive knot" for functions, similar to the previous approach.
 
-**Verdict:** Pleasant-looking, but the worst approach because of possible bugginess. Unless bug-proneness is not a concern, then the best approach.
+**Verdict:** Pleasant-looking, but arguably the worst approach because of possible bugginess. The loss of exhaustivity checking means that bugs from unhandled cases will only be discovered at runtime. However, if bug-proneness is not a concern (e.g., for rapid prototyping), this is actually the most concise approach.
 
 ```ocaml env=sol2
 type expr = ..  (* This is how extensible variant types are defined *)
@@ -260,9 +264,11 @@ let fv_test3 = freevars3 test3
 
 ### 11.4 Object-Oriented Programming: Subtyping
 
-OCaml's **objects** are values, somewhat similar to records. Viewed from the outside, an OCaml object has only **methods**, identifying the code with which to respond to messages (method invocations). All methods are **late-bound**; the object determines what code is run (i.e., *virtual* in C++ parlance).
+Before examining OOP solutions to the expression problem, let us understand OCaml's object system.
 
-**Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned decides if an object can be used. Parametric polymorphism can be used to infer if an object has the required methods.
+OCaml's **objects** are values, somewhat similar to records. Viewed from the outside, an OCaml object has only **methods**, identifying the code with which to respond to messages (method invocations). All methods are **late-bound**; the object determines what code is run (i.e., *virtual* in C++ parlance). This is in contrast to records, where field access is resolved at compile time.
+
+**Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned (the methods they provide) decides if an object can be used, not the name of the type or class. Parametric polymorphism can be used to infer if an object has the required methods.
 
 ```ocaml env=oop_intro
 let f x = x#m  (* Method invocation: object#method *)
@@ -271,13 +277,13 @@ let f x = x#m  (* Method invocation: object#method *)
 (* .. means that objects with more methods will be accepted *)
 ```
 
-Methods are computed when they are invoked, even if they do not take arguments. We define objects inside `object...end` (compare: records `{...}`) using keywords:
+Methods are computed when they are invoked, even if they do not take arguments (unlike record fields, which are computed once when the record is created). We define objects inside `object...end` (compare: records `{...}`) using keywords:
 
-- `method` for methods
-- `val` for constant fields
+- `method` for methods (always late-bound)
+- `val` for constant fields (only accessible within the object)
 - `val mutable` for mutable fields
 
-Constructor arguments can often be used instead of constant fields:
+Constructor arguments can often be used instead of constant fields. Here is a simple example:
 
 ```ocaml env=oop_intro
 let square w = object
@@ -303,18 +309,36 @@ let l = [(a :> <m : 'a>); (b :> <m : 'a>)]  (* But the types share a supertype *
 (* val l : < m : int > list *)
 ```
 
+#### Object-Oriented Programming: Inheritance
+
+The system of object classes in OCaml is similar to the module system. Object classes are not types; rather, classes are a way to build object *constructors*, which are functions that return objects. Classes have their types, called class types (compare: modules and signatures).
+
+In OCaml parlance:
+
+- **Late binding** is not called anything special, since all methods are late-bound (called *virtual* in C++)
+- A method or field declared to be defined in sub-classes is called **virtual** (called *abstract* in C++); classes that use virtual methods or fields are also called virtual
+- A method that is only visible in sub-classes is called **private** (called *protected* in C++)
+- A method not visible outside the class is achieved by omitting it from the class type (called *private* in C++) -- you provide the type for the class and omit the method in the class type, similar to module signatures and `.mli` files
+
+OCaml allows **multiple inheritance**, which can be used to implement *mixins* as virtual/abstract classes. Inheritance works somewhat similarly to textual inclusion: the inherited class's methods and fields are copied into the inheriting class, but with late binding preserved.
+
+The `{< ... >}` syntax creates a *clone* of the current object with some fields changed. This is essential for functional-style object programming, where we create new objects rather than mutating existing ones.
+
 ### 11.5 Direct Object-Oriented Non-Solution
+
+It turns out that although object-oriented programming was designed with data extensibility in mind, it is a bad fit for recursive types like those in the expression problem. Below is an attempt at solving our problem using classes.
 
 We can try to solve the expression problem using objects directly. However, adding new functionality still requires modifying old code, so this approach does not fully solve the expression problem.
 
 **Non-solution penalty points:**
 
-- No way to add functionality without modifying old code (in particular, the abstract class and all concrete classes)
-- No deep pattern matching
+- No way to add functionality without modifying old code (in particular, the abstract class and all concrete classes must be extended with new methods)
+- Functions implemented for a broader language cannot handle values from a narrower one
+- No deep pattern matching: we cannot examine the structure of nested expressions
 
 **Verdict:** Non-solution, and probably the worst approach.
 
-Here is an implementation using objects:
+Here is an implementation using objects. The abstract class `evaluable` defines the interface that all expression objects must implement. For lambda calculus, we need helper methods: `rename` for renaming free variables (needed for alpha-conversion), and `apply` for beta-reduction when possible:
 
 ```ocaml env=sol3
 type var_name = string
@@ -331,13 +355,13 @@ object
 end
 
 class ['lang] var (v : var_name) =
-object (self)
+object (self)  (* We name the current object `self` for later reference *)
   inherit ['lang] evaluable
   val v = v
   method eval subst =
     try List.assoc v subst with Not_found -> self
-  method rename v1 v2 =
-    if v = v1 then {< v = v2 >} else self
+  method rename v1 v2 =  (* Renaming a variable: *)
+    if v = v1 then {< v = v2 >} else self  (* clone with new name if matched *)
 end
 
 class ['lang] abs (v : var_name) (body : 'lang) =
@@ -345,13 +369,13 @@ object (self)
   inherit ['lang] evaluable
   val v = v
   val body = body
-  method eval subst =
-    let v' = gensym () in
+  method eval subst =  (* We do alpha-conversion prior to evaluation *)
+    let v' = gensym () in  (* Generate fresh name to avoid capture *)
     {< v = v'; body = (body#rename v v')#eval subst >}
-  method rename v1 v2 =
-    if v = v1 then self
+  method rename v1 v2 =  (* Renaming the free variable v1 *)
+    if v = v1 then self  (* If v=v1, then v1 is bound here, not free -- no work *)
     else {< body = body#rename v1 v2 >}
-  method apply arg _ subst =
+  method apply arg _ subst =  (* Beta-reduction: substitute arg for v in body *)
     body#eval ((v, arg)::subst)
 end
 
@@ -360,11 +384,11 @@ object (self)
   inherit ['lang] evaluable
   val f = f
   val arg = arg
-  method eval subst =
-    let arg' = arg#eval subst in
+  method eval subst =  (* We use `apply` to differentiate between f=abs *)
+    let arg' = arg#eval subst in  (* (beta-redexes) and f<>abs *)
     f#apply arg' (fun () -> {< f = f#eval subst; arg = arg' >}) subst
-  method rename v1 v2 =
-    {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}
+  method rename v1 v2 =  (* Cloning ensures result is subtype of 'lang *)
+    {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}  (* not just 'lang app *)
 end
 
 type evaluable_t = evaluable_t evaluable
@@ -377,7 +401,7 @@ let test1 = new_app1 (new_abs1 "x" (new_var1 "x")) (new_var1 "y")
 let e_test1 = test1#eval []
 ```
 
-Extending with arithmetic requires additional mixins:
+Extending with arithmetic requires additional mixins. To use lambda-expressions together with arithmetic expressions, we need to upgrade them with a helper method `compute` that returns the numeric value if one exists:
 
 ```ocaml env=sol3
 class virtual compute_mixin = object
@@ -465,13 +489,16 @@ let e_test2 = test2#eval []
 
 ### 11.6 OOP Non-Solution: The Visitor Pattern
 
-The **visitor pattern** is a design pattern that separates an algorithm from the object structure on which it operates. This allows adding new operations to existing object structures without modifying those structures.
+The **visitor pattern** is an object-oriented programming pattern for turning objects into variants with shallow pattern-matching (i.e., dispatch based on which variant a value is). It effectively replaces data extensibility with operation extensibility: instead of being able to add new data variants easily, we can add new operations easily.
+
+The key idea is that each data variant has an `accept` method that takes a visitor object and calls the appropriate `visit` method on it. This inverts the usual pattern matching: instead of the function choosing which branch to take based on the data, the data chooses which method to call on the visitor.
 
 **Non-solution penalty points:**
 
-- Adding new functionality requires modifying old code (the abstract visitor class)
-- No deep pattern matching
-- Uses mutable state for returning results
+- Adding new functionality requires modifying old code (the abstract visitor class must declare new `visit` methods)
+- Heavy code bloat compared to pattern matching
+- No deep pattern matching: we can only dispatch on the outermost constructor
+- Side-effects appear to be required for returning results (we store computation results in mutable fields because keeping the visitor polymorphic while having the result type depend on the visitor is difficult)
 
 **Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
 
@@ -589,15 +616,25 @@ Extending with arithmetic expressions follows a similar pattern, and the merged 
 
 ### 11.7 Polymorphic Variants
 
-**Polymorphic variants** provide a flexible alternative to standard variants. They allow combining types from different sources without explicitly defining a common parent type.
+**Polymorphic variants** provide a flexible alternative to standard variants. They are to ordinary variants as objects are to records: both enable *open types* and subtyping, both allow different types to share the same components.
+
+Interestingly, they are *dual* concepts: if we replace "product" of records/objects by "sum" (as we discussed in earlier chapters), we get variants/polymorphic variants. This duality implies many behaviors are opposite. For example:
+
+- While object subtypes have *more* methods, polymorphic variant subtypes have *fewer* tags
+- The `>` sign means "these tags or more" (open for adding tags)
+- The `<` sign means "these tags or less" (closed to these tags only)
+- No sign means a closed type
+
+Because distinct polymorphic variant types can share the same tags, the solution to the Expression Problem becomes straightforward: we can define sub-languages with overlapping tags and compose them.
 
 **Penalty points:**
 
-- Requires explicit type annotations more often
+- Requires explicit type annotations more often than regular variants
 - Requires "tying the recursive knots" for types, e.g., `type lambda_t = lambda_t lambda`
-- Some loss of type-level distinction between sub-languages
+- The need to tie the recursive knot separately at both the type level and the function level. At the function level, an eta-expansion is sometimes required due to the *value recursion* problem
+- There can be a slight time cost compared to the visitor pattern: additional dispatch at each level of type aggregation (i.e., merging sub-languages)
 
-**Verdict:** A flexible solution, better than the previous approaches but still not perfect.
+**Verdict:** A flexible and concise solution, second-best place overall.
 
 ```ocaml env=sol5
 type var = [`Var of string]
@@ -611,8 +648,8 @@ type 'a lambda =
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
 
 let eval_lambda eval_rec subst : 'a lambda -> 'a = function
-  | #var as v -> eval_var subst v
-  | `App (l1, l2) ->
+  | #var as v -> eval_var subst v  (* We could also leave the type open *)
+  | `App (l1, l2) ->               (* rather than closing it to `lambda` *)
     let l2' = eval_rec subst l2 in
     (match eval_rec subst l1 with
     | `Abs (s, body) ->
@@ -652,9 +689,9 @@ let map_expr (f : _ -> 'a) : 'a expr -> 'a = function
 
 let eval_expr eval_rec subst (e : 'a expr) : 'a =
   match map_expr (eval_rec subst) e with
-  | #var as v -> eval_var subst v
-  | `Add (`Num m, `Num n) -> `Num (m + n)
-  | `Mult (`Num m, `Num n) -> `Num (m * n)
+  | #var as v -> eval_var subst v  (* Here and elsewhere, we could also *)
+  | `Add (`Num m, `Num n) -> `Num (m + n)  (* factor-out the sub-language *)
+  | `Mult (`Num m, `Num n) -> `Num (m * n)  (* of variables *)
   | e -> e
 
 let freevars_expr freevars_rec : 'a expr -> 'b = function
@@ -701,7 +738,7 @@ let fv_old_test = freevars3 (test2 :> lexpr_t)
 
 ### 11.8 Polymorphic Variants with Recursive Modules
 
-Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments.
+Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments. The module system handles the recursion for us, making the code cleaner and more modular.
 
 We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
 
@@ -715,14 +752,14 @@ and then of private row types as abstracting the row variable:
 type 'row t = [`Int of int | `String of string | 'row]
 ```
 
-But the actual formalization of private row types is more complex.
+But the actual formalization of private row types is more complex. The key point is that private row types allow us to specify that a type is "at least" a certain set of variants, while still being extensible.
 
 **Penalty points:**
 
 - We still need to tie the recursive knots for types, for example `private [> 'a lambda] as 'a`
 - There can be slight time costs due to the use of functors and dispatch on merging of sub-languages
 
-**Verdict:** A clean solution, best place.
+**Verdict:** A clean solution, best place. The recursive module approach is the most elegant solution we have seen so far.
 
 ```ocaml env=sol6
 type var = [`Var of string]
@@ -851,9 +888,9 @@ let fv_old_test = LExpr.freevars (test2 :> LExpr.exp)
 
 ### 11.9 Parser Combinators
 
-Large-scale parsing in OCaml is typically done using external languages OCamlLex and Menhir. But it is convenient to have parsers written directly in OCaml.
+We now turn to an application that demonstrates the extensibility concepts we have been discussing. Large-scale parsing in OCaml is typically done using external languages like OCamlLex and Menhir, which generate efficient parsers from grammar specifications. But it is often convenient to have parsers written directly in OCaml, especially for smaller grammars or when we want to extend the parser dynamically.
 
-Language **combinators** are ways of defining languages by composing definitions of smaller languages. For example, the combinators of the **Extended Backus-Naur Form** notation are:
+Language **combinators** are ways of defining languages by composing definitions of smaller languages. This is exactly the kind of compositional, extensible design we have been exploring with the expression problem. For example, the combinators of the **Extended Backus-Naur Form** notation are:
 
 - **Concatenation**: $S = A, B$ stands for $S = \{ ab \mid a \in A, b \in B \}$
 - **Alternation**: $S = A \mid B$ stands for $S = \{ a \mid a \in A \vee a \in B \}$
@@ -879,26 +916,28 @@ The only non-monad-plus operation that has to be built into the monad is some wa
 - `val satisfy : (char -> bool) -> char parser`
   - `satisfy (fun c -> c = 'a')` consumes the character "a" from the input stream and returns it; if the input stream starts with a different character, this parser fails
 
-Ordinary monadic recursive descent parsers **do not allow** *left-recursion*: if a cycle of calls not consuming any character can be entered when a parse failure should occur, the cycle will keep repeating.
+Ordinary monadic recursive descent parsers **do not allow** *left-recursion*: if a cycle of calls not consuming any character can be entered when a parse failure should occur, the cycle will keep repeating indefinitely.
 
-For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits, then a stack of uses of the rule $N \rightarrow N D$ will build up when the next character is not a digit.
+For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits, then a stack of uses of the rule $N \rightarrow N D$ will build up when the next character is not a digit. The parser will try to match $N$, which requires matching $N D$, which requires matching $N$ again, leading to infinite recursion.
 
-On the other hand, rules can share common prefixes.
+On the other hand, rules can share common prefixes, and the backtracking monad will handle trying alternatives correctly.
 
 ### 11.10 Parser Combinators: Implementation
 
 The parser monad is actually a composition of two monads:
 
-- The **state monad** for storing the stream of characters that remain to be parsed
-- The **backtracking monad** for handling parse failures and ambiguities
+- The **state monad** for storing the stream of characters that remain to be parsed (specifically, the current position in the input string)
+- The **backtracking monad** for handling parse failures and ambiguities (allowing us to try alternatives when one parse fails)
 
-Alternatively, one can split the state monad into a reader monad with the parsed string, and a state monad with the parsing position.
+Alternatively, one can split the state monad into a reader monad with the parsed string, and a state monad with the parsing position. This is the approach we take here.
 
-We experiment with a different approach to monad-plus: **lazy-monad-plus**:
+We experiment with a different approach to monad-plus: **lazy-monad-plus**. The difference from regular monad-plus is that the second argument to `mplus` is lazy:
 
 ```
 val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
 ```
+
+This laziness prevents the second alternative from being evaluated until it is actually needed, which is important for avoiding infinite recursion in some parsing scenarios.
 
 #### Implementation of lazy-monad-plus
 
@@ -1036,6 +1075,8 @@ end
 
 ### 11.11 Parser Combinators: Tying the Recursive Knot
 
+Now we come to the key insight connecting parser combinators to the expression problem: how do we allow the grammar to be extended dynamically? The answer is to use a mutable reference holding a list of grammar rules, and tie the recursive knot lazily.
+
 File `PluginBase.ml`:
 
 ```ocaml env=parsec
@@ -1055,6 +1096,8 @@ let get_language () : int monad =
 ```
 
 ### 11.12 Parser Combinators: Dynamic Code Loading
+
+OCaml supports dynamic code loading through the `Dynlink` module. This allows us to load compiled modules at runtime, which can register new grammar rules by mutating the `grammar_rules` reference. This is a powerful form of extensibility: we can add new syntax to our language without recompiling the main program.
 
 File `PluginRun.ml`:
 
@@ -1087,6 +1130,8 @@ let () =
 
 ### 11.13 Parser Combinators: Toy Example
 
+Let us see how this works with a concrete example. We will define two plugins: one for parsing numbers and addition, and another for parsing multiplication. Each plugin registers its grammar rules by appending to the `grammar_rules` list.
+
 File `Plugin1.ml`:
 
 ```ocaml env=parsec
@@ -1094,7 +1139,7 @@ open ParseM
 let digit_of_char d = int_of_char d - int_of_char '0'
 
 let number _ =  (* Numbers: N := D N | D where D is digits *)
-  let rec num =
+  let rec num =  (* Note: we avoid left-recursion by having the digit first *)
     lazy ((let* d = digit in
            let* (n, b) = Lazy.force num in
            return (digit_of_char d * b + n, b * 10))
@@ -1102,7 +1147,8 @@ let number _ =  (* Numbers: N := D N | D where D is digits *)
   Lazy.force num >>| fst
 
 let addition lang =  (* Addition rule: S -> (S + S) *)
-  (* Requiring a parenthesis ( turns the rule into non-left-recursive *)
+  (* Requiring a parenthesis '(' turns the rule into non-left-recursive *)
+  (* because we consume a character before recursing *)
   let* () = literal "(" in
   let* n1 = lang in
   let* () = literal "+" in
@@ -1113,7 +1159,7 @@ let addition lang =  (* Addition rule: S -> (S + S) *)
 let () = grammar_rules := number :: addition :: !grammar_rules
 ```
 
-File `Plugin2.ml`:
+File `Plugin2.ml` adds multiplication to the language. Notice how we can add this functionality without modifying any existing code:
 
 ```ocaml env=parsec
 open ParseM
@@ -1131,7 +1177,9 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 ### 11.14 Exercises
 
-**Exercise 1:** Implement the `string_of_` functions or methods, covering all data cases, corresponding to the `eval_` functions in at least two examples from the lecture, including both an object-based example and a variant-based example (either standard, or polymorphic, or extensible variants).
+The following exercises will help you deepen your understanding of the expression problem and the various solutions we have explored. They range from implementing additional operations to refactoring the code for better organization.
+
+**Exercise 1:** Implement the `string_of_` functions or methods, covering all data cases, corresponding to the `eval_` functions in at least two examples from the lecture, including both an object-based example and a variant-based example (either standard, or polymorphic, or extensible variants). This will help you understand how functional extensibility works in each approach.
 
 **Exercise 2:** Split at least one of the examples from the previous exercise into multiple files and demonstrate separate compilation.
 
@@ -1139,7 +1187,7 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 **Exercise 4:** Factor-out the sub-language consisting only of variables, thus eliminating the duplication of tags `VarL`, `VarE` in the examples based on standard variants (file `FP_ADT.ml`).
 
-**Exercise 5:** Come up with a scenario where the extensible variant types-based solution leads to a non-obvious or hard to locate bug.
+**Exercise 5:** Come up with a scenario where the extensible variant types-based solution leads to a non-obvious or hard to locate bug. This exercise illustrates why exhaustivity checking is so valuable for static type safety.
 
 **Exercise 6:** Re-implement the direct object-based solution to the expression problem (file `Objects.ml`) to make it more satisfying. For example, eliminate the need for some of the `rename`, `apply`, `compute` methods.
 
@@ -1163,3 +1211,5 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 1. Rewrite the parser combinators example to use regular monad-plus and even lazy lists.
 2. Select one example from Lecture 8 and rewrite it using lazy-monad-plus and odd lazy lists.
+
+(In an "odd" lazy list, the first element is strict and only the tail is lazy. In an "even" lazy list, the entire list is wrapped in laziness. The choice affects when computation happens and how infinite structures are handled.)

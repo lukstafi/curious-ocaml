@@ -2,19 +2,21 @@
 
 This chapter explores two fundamental programming paradigms in functional programming: **folding** (also known as reduction) and **backtracking**. We begin with the classic `map` and `fold` higher-order functions, examine how they generalize to trees and other data structures, then move on to solving puzzles using backtracking with lists.
 
+The material in this chapter draws from Martin Odersky's "Functional Programming Fundamentals," Ralf Laemmel's "Going Bananas," Graham Hutton's "Programming in Haskell" (Chapter 11 on the Countdown Problem), and Tomasz Wierzbicki's Honey Islands Puzzle Solver.
+
 ### 6.1 Basic Generic List Operations
 
-Functional programming emphasizes identifying common patterns and abstracting them into reusable higher-order functions. Let us see how this works in practice.
+Functional programming emphasizes identifying common patterns and abstracting them into reusable higher-order functions. Rather than writing similar code repeatedly, we extract the common structure into a single generic function. Let us see how this principle works in practice through two motivating examples.
 
 #### The `map` Function
 
-Consider the problem of printing a comma-separated list of integers. The `String` module provides:
+How do we print a comma-separated list of integers? The `String` module provides a function that joins strings with a separator:
 
 ```
 val concat : string -> string list -> string
 ```
 
-First, we need to convert numbers into strings:
+But `String.concat` works on strings, not integers. So first, we need to convert numbers into strings:
 
 ```ocaml env=ch6
 let rec strings_of_ints = function
@@ -24,7 +26,7 @@ let rec strings_of_ints = function
 let comma_sep_ints = String.concat ", " -| strings_of_ints
 ```
 
-Similarly, to sort strings from shortest to longest, we first compute lengths:
+Here is another common task: how do we sort strings from shortest to longest? We can pair each string with its length and then sort by the first component. First, let us compute the lengths:
 
 ```ocaml env=ch6
 let rec strings_lengths = function
@@ -34,7 +36,9 @@ let rec strings_lengths = function
 let by_size = List.sort compare -| strings_lengths
 ```
 
-Notice the common structure in `strings_of_ints` and `strings_lengths`: both transform each element of a list independently. We can extract this pattern into a generic function called `map`:
+Now, look carefully at `strings_of_ints` and `strings_lengths`. Do you notice the common structure? Both functions traverse a list and transform each element independently -- one applies `string_of_int`, the other applies a function that pairs a string with its length. The recursive structure is identical; only the transformation differs.
+
+This is our cue to *extract the common pattern* into a generic higher-order function. We call it `map`:
 
 ```ocaml env=ch6
 let rec list_map f = function
@@ -54,7 +58,7 @@ let by_size =
 
 #### The `fold` Function
 
-Consider summing elements of a list:
+Now let us consider a different kind of pattern. How do we sum all the elements of a list?
 
 ```ocaml env=ch6
 let rec balance = function
@@ -62,7 +66,7 @@ let rec balance = function
   | hd::tl -> hd + balance tl
 ```
 
-Or multiplying elements:
+And how do we multiply all the elements together (perhaps to compute a cumulative ratio)?
 
 ```ocaml env=ch6
 let rec total_ratio = function
@@ -70,7 +74,7 @@ let rec total_ratio = function
   | hd::tl -> hd *. total_ratio tl
 ```
 
-The pattern is the same: we combine each element with the result of processing the rest of the list. This is the **fold** operation:
+Again, the recursive structure is the same. In both cases, we combine each element with the result of processing the rest of the list. The differences are: (1) what we return for the empty list (the "base case" or "identity element"), and (2) how we combine the head with the recursive result. This pattern is called **folding**:
 
 ```ocaml env=ch6
 let rec list_fold f base = function
@@ -78,16 +82,23 @@ let rec list_fold f base = function
   | hd::tl -> f hd (list_fold f base tl)
 ```
 
-**Important:** Note that `list_fold f base l` equals `List.fold_right f l base`. The OCaml standard library uses a different argument order.
+**Important:** Note that `list_fold f base l` equals `List.fold_right f l base`. The OCaml standard library uses a different argument order, so be careful when using `List.fold_right`.
 
-The key insight is that `map` alters the *contents* of data without changing its structure, while `fold` computes a value using the structure as scaffolding. Visually:
+The key insight is understanding the fundamental difference between `map` and `fold`:
 
-- `map` transforms: `[a; b; c; d]` becomes `[f a; f b; f c; f d]`
-- `fold` collapses: `[a; b; c; d]` becomes `f a (f b (f c (f d accu)))`
+- **`map`** alters the *contents* of a data structure without changing its shape. The output list has the same length as the input; we merely transform each element.
+- **`fold`** *collapses* a data structure down to a single value, using the structure itself as scaffolding for the computation.
+
+Visually, consider what happens to the list `[a; b; c; d]`:
+
+- `map f` transforms: `[a; b; c; d]` becomes `[f a; f b; f c; f d]` -- same structure, different contents
+- `fold f accu` collapses: `[a; b; c; d]` becomes `f a (f b (f c (f d accu)))` -- structure disappears, single value remains
 
 ### 6.2 Making Fold Tail-Recursive
 
-Let us investigate tail-recursive functions. Consider reversing a list:
+Our `list_fold` function above is not tail-recursive: it builds up a chain of deferred `f` applications on the call stack. For very long lists, this can cause stack overflow. Can we make folding tail-recursive?
+
+Let us investigate some tail-recursive list functions to find a pattern. Consider reversing a list:
 
 ```ocaml env=ch6
 let rec list_rev acc = function
@@ -95,7 +106,9 @@ let rec list_rev acc = function
   | hd::tl -> list_rev (hd::acc) tl
 ```
 
-Or computing an average:
+The key technique here is the *accumulator* parameter `acc`. Instead of building up work to do after the recursive call returns, we do the work *before* the recursive call and pass the intermediate result along.
+
+Here is another example -- computing an average by tracking both the running sum and the count:
 
 ```ocaml env=ch6
 let rec average (sum, tot) = function
@@ -104,7 +117,7 @@ let rec average (sum, tot) = function
   | hd::tl -> average (hd +. sum, 1. +. tot) tl
 ```
 
-The pattern here is different from `fold_right`. We process elements from left to right, accumulating a result:
+Notice how these functions process elements from left to right, threading an accumulator through the computation. This is the pattern of `fold_left`:
 
 ```ocaml env=ch6
 let rec fold_left f accu = function
@@ -112,7 +125,7 @@ let rec fold_left f accu = function
   | a::l -> fold_left f (f accu a) l
 ```
 
-With `fold_left`, hiding the accumulator is straightforward:
+With `fold_left`, expressing our earlier functions becomes straightforward -- we hide the accumulator inside the initial value:
 
 ```ocaml env=ch6
 let list_rev l =
@@ -122,7 +135,9 @@ let average =
   fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.)
 ```
 
-The naming convention for `fold_right` and `fold_left` reflects associativity:
+Note that the `average` example is slightly trickier than `list_rev` because we need to track two values (sum and count) rather than one.
+
+**Why the names `fold_right` and `fold_left`?** The names reflect the associativity of the combining operation:
 
 - `fold_right f` makes `f` **right associative**, like the list constructor `::`:
   `List.fold_right f [a1; ...; an] b` is `f a1 (f a2 (... (f an b) ...))`
@@ -130,8 +145,7 @@ The naming convention for `fold_right` and `fold_left` reflects associativity:
 - `fold_left f` makes `f` **left associative**, like function application:
   `List.fold_left f a [b1; ...; bn]` is `f (... (f (f a b1) b2) ...) bn`
 
-The "backward" structure of `fold_left` — the input list has a right-leaning spine,
-while the computation tree has a left-leaning spine:
+This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
 ```
     Input list              Result computation
@@ -147,16 +161,18 @@ while the computation tree has a left-leaning spine:
                d    []  accu   a
 ```
 
+This reversal of structure is why `fold_left` naturally reverses lists when the combining operation is `cons`.
+
 #### Useful Derived Functions
 
-List filtering is naturally expressed using `fold_right`:
+Many common list operations can be expressed elegantly using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
 
 ```ocaml env=ch6
 let list_filter p l =
   List.fold_right (fun h t -> if p h then h::t else t) l []
 ```
 
-A tail-recursive map that returns elements in reverse order:
+When we need a tail-recursive map and can tolerate reversed output, `fold_left` gives us `rev_map`:
 
 ```ocaml env=ch6
 let list_rev_map f l =
@@ -164,6 +180,8 @@ let list_rev_map f l =
 ```
 
 ### 6.3 Map and Fold for Trees and Other Structures
+
+The `map` and `fold` patterns are not limited to lists. They apply to any recursive data structure. The key insight is that `map` preserves structure while transforming contents, and `fold` collapses structure into a single value.
 
 #### Binary Trees
 
@@ -181,9 +199,9 @@ let test = Node
 let _ = bt_map ((+) 1) test
 ```
 
-The `map` and `fold` functions we consider here preserve/respect the structure of data. They do **not** correspond to `map` and `fold` of abstract data type containers (which are like `List.rev_map` and `List.fold_left` over container elements in arbitrary order). Here we generalize `List.map` and `List.fold_right` to other structures.
+**A note on terminology:** The `map` and `fold` functions we define here preserve and respect the structure of data. They are different from the `map` and `fold` operations you might find in abstract data type container libraries, which often behave more like `List.rev_map` and `List.fold_left` over container elements in arbitrary order. Here we are generalizing `List.map` and `List.fold_right` to other structures.
 
-The most general form of `fold` for binary trees processes each element together with partial results from subtrees:
+For binary trees, the most general form of `fold` processes each element together with the partial results already computed for its subtrees:
 
 ```ocaml env=ch6
 let rec bt_fold f base = function
@@ -192,16 +210,18 @@ let rec bt_fold f base = function
     f e (bt_fold f base l) (bt_fold f base r)
 ```
 
-Examples:
+Here are two examples showing how `bt_fold` can compute different properties of a tree:
 
 ```ocaml env=ch6
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
 let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
 ```
 
+The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
+
 #### More Complex Structures: Expressions
 
-To demonstrate map and fold for more complex structures, we recall the expression type from Chapter 3:
+Real-world data types often have more than two cases. To demonstrate map and fold for more complex structures, let us recall the expression type from Chapter 3:
 
 ```ocaml env=ch6
 type expression =
@@ -213,7 +233,7 @@ type expression =
   | Quot of expression * expression   (* e1 / e2 *)
 ```
 
-The multitude of cases makes the datatype harder to work with. Fortunately, *or-patterns* help:
+The multitude of cases makes this datatype harder to work with than binary trees. Fortunately, OCaml's *or-patterns* help us handle multiple similar cases together:
 
 ```ocaml env=ch6
 let rec vars = function
@@ -223,7 +243,7 @@ let rec vars = function
     vars a @ vars b
 ```
 
-Mapping and folding must be specialized for each case. We pack behaviors into records:
+For a generic `map` and `fold` over expressions, we need to specify behavior for each case. Since there are many cases, we pack all the behaviors into records. This way, we can define default behaviors and then override just the cases we care about:
 
 ```ocaml env=ch6
 type expression_map = {
@@ -235,7 +255,10 @@ type expression_map = {
   map_quot : expression -> expression -> expression;
 }
 
-(* Note: 'a replaces expression because fold produces values of arbitrary type *)
+(*
+   Note: In expression_fold, we use 'a instead of expression because
+   fold produces values of arbitrary type, not necessarily expressions.
+*)
 type 'a expression_fold = {
   fold_const : float -> 'a;
   fold_var : string -> 'a;
@@ -246,7 +269,7 @@ type 'a expression_fold = {
 }
 ```
 
-We define standard behaviors that can be tailored for specific uses:
+Now we define standard "default" behaviors. The `identity_map` reconstructs the same expression (useful as a starting point when we only want to change one case), and `make_fold` creates a fold where all binary operators behave the same:
 
 ```ocaml env=ch6
 let identity_map = {
@@ -286,7 +309,7 @@ let rec expr_fold efold = function
   | Quot (a,b) -> efold.fold_quot (expr_fold efold a) (expr_fold efold b)
 ```
 
-Using the `{record with field = value}` syntax to customize behaviors:
+Now here is the payoff. Using OCaml's `{record with field = value}` syntax, we can easily customize behaviors for specific uses by starting from the defaults and overriding just what we need:
 
 ```ocaml env=ch6
 let prime_vars = expr_map
@@ -311,11 +334,16 @@ let eval env = expr_fold {
 
 ### 6.4 Point-Free Programming
 
-In 1977/78, John Backus designed **FP**, the first *function-level programming* language. Over the next decade it evolved into the **FL** language.
+In 1977/78, John Backus -- the designer of FORTRAN and BNF notation -- introduced **FP**, the first *function-level programming* language. This was a radical departure from the prevailing style: rather than manipulating variables and values, programs were built entirely by combining functions. Over the next decade, FP evolved into the **FL** language.
 
-> "Clarity is achieved when programs are written at the function level--that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs." -- *The FL Project: The Design of a Functional Language*
+The philosophy behind function-level programming is captured in this quote:
 
-For function-level programming, we need combinators like these from *OCaml Batteries*:
+> "Clarity is achieved when programs are written at the function level -- that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs."
+> -- *The FL Project: The Design of a Functional Language*
+
+This style is sometimes called **point-free** or **tacit** programming, because we never mention the "points" (values) that functions operate on -- we only talk about the functions themselves and how they combine.
+
+To write in this style, we need a toolkit of **combinators** -- higher-order functions that combine other functions. Here are some common ones, similar to what you will find in the *OCaml Batteries* library:
 
 ```ocaml env=ch6
 let const x _ = x
@@ -330,7 +358,9 @@ let curry f x y = f (x,y)
 let uncurry f (x,y) = f x y
 ```
 
-The flow of computation can be viewed as a circuit where results of nodes (functions) connect to further nodes as inputs. We represent cross-sections of the circuit as tuples of intermediate values.
+One way to understand point-free programming is to visualize the flow of computation as a circuit. Values flow through the circuit, being transformed by functions at each node. Cross-sections of the circuit can be represented as tuples of intermediate values.
+
+Consider this simple function that converts a character and an integer to a string:
 
 ```ocaml env=ch6
 let print2 c i =
@@ -339,40 +369,50 @@ let print2 c i =
   a ^ b
 ```
 
-In point-free style:
+We can visualize this as a circuit: `(c, i)` enters, `c` flows through `Char.escaped`, `i` flows through `string_of_int`, and the results meet at `(^)`. In point-free style, we express this directly:
 
 ```ocaml env=ch6
 let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
 
-Since we usually pass arguments one at a time rather than in tuples, we need `uncurry` to access multi-argument functions. Converting a C/Pascal-like function to one that takes arguments one at a time is called *currying*, after logician Haskell Brooks Curry.
+Here `***` applies two functions in parallel to the components of a pair, `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
 
-Another approach uses function composition, `flip`, and the **S** combinator:
+**Why the name "currying"?** Converting a C/Pascal-style function (that takes all arguments as a tuple) into one that takes arguments one at a time is called *currying*, after the logician Haskell Brooks Curry. Since OCaml functions naturally take arguments one at a time, we often need `uncurry` to interface with tuple-based operations, and `curry` to convert back.
+
+Another approach to point-free style avoids tuples entirely, using function composition, `flip`, and the **S** combinator:
 
 ```ocaml env=ch6
 let s x y z = x z (y z)
 ```
 
-Example: transforming a filter-map function step by step:
+The S combinator allows us to pass one argument to two different functions and combine their results. This can bring a particular argument of a function to the "front" and pass it to another function.
+
+Here is an extended example showing step-by-step transformation of a filter-map function into point-free style:
 
 ```ocaml env=ch6
 let func2 f g l = List.filter f (List.map g l)
-(* Using composition: *)
+(* Step 1: Recognize that filter-after-map is composition *)
 let func2 f g = (-|) (List.filter f) (List.map g)
+(* Step 2: Eliminate l by composing with List.map *)
 let func2 f = (-|) (List.filter f) -| List.map
-(* Eliminating f: *)
+(* Step 3: Rewrite without infix notation to see the structure *)
 let func2 f = (-|) ((-|) (List.filter f)) List.map
+(* Step 4: Use flip to rearrange arguments *)
 let func2 f = flip (-|) List.map ((-|) (List.filter f))
+(* Step 5: Factor out f using composition *)
 let func2 f = (((|-) List.map) -| ((-|) -| List.filter)) f
+(* Step 6: Finally, f disappears (eta-reduction) *)
 let func2 = (|-) List.map -| ((-|) -| List.filter)
 ```
 
+While point-free style can be elegant for simple cases, it can quickly become obscure. Use it judiciously!
+
 ### 6.5 Reductions and More Higher-Order Functions
 
-Mathematics has notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
+Mathematics has a convenient notation for sums over intervals: $\sum_{n=a}^{b} f(n)$.
 
-In OCaml, we do not have a universal addition operator:
+Can we express this in OCaml? The challenge is that OCaml does not have a universal addition operator -- `+` works only on integers, `+.` only on floats. So we end up writing two versions:
 
 ```ocaml env=ch6
 let rec i_sum_fromto f a b =
@@ -387,7 +427,9 @@ let pi2_over6 =
   f_sum_fromto (fun i -> 1. /. float_of_int (i*i)) 1 5000
 ```
 
-The natural generalization:
+(The last example computes an approximation to $\pi^2/6$ using the Basel series.)
+
+The natural generalization is to make the combining operation a parameter:
 
 ```ocaml env=ch6
 let rec op_fromto op base f a b =
@@ -397,11 +439,11 @@ let rec op_fromto op base f a b =
 
 #### Collecting Results: concat_map
 
-Let us collect results of a multifunction (set-valued function) for a set of arguments. In mathematical notation:
+Sometimes a function produces not a single result but a *collection* of results. In mathematics, such a function is called a **multifunction** or set-valued function. If we have a multifunction $f$ and want to apply it to every element of a set $A$, we take the union of all results:
 
 $$f(A) = \bigcup_{p \in A} f(p)$$
 
-This translates to a useful list operation with union as append:
+When we represent sets as lists, "union" becomes "append". This gives us the extremely useful `concat_map` operation:
 
 ```ocaml env=ch6
 let rec concat_map f = function
@@ -409,7 +451,7 @@ let rec concat_map f = function
   | a::l -> f a @ concat_map f l
 ```
 
-More efficiently (tail-recursive):
+For better efficiency on long lists, here is a tail-recursive version:
 
 ```ocaml env=ch6
 let concat_map f l =
@@ -419,7 +461,11 @@ let concat_map f l =
   List.rev (cmap_f [] l)
 ```
 
+The `concat_map` function is fundamental for backtracking algorithms. We will use it extensively in the puzzle-solving sections below.
+
 #### All Subsequences of a List
+
+A classic example of a function that produces multiple results: given a list, generate all its subsequences (subsets that preserve order). The idea is simple: for each element, we either include it or exclude it.
 
 ```ocaml env=ch6
 let rec subseqs l =
@@ -447,19 +493,23 @@ let rec subseqs l =
 
 #### Permutations and Choices
 
-To generate all permutations, we interleave each element into all positions:
+Generating all permutations of a list is another classic combinatorial problem. The key insight is the `interleave` function: given an element `x` and a list, it produces all ways of inserting `x` into the list:
 
 ```ocaml env=ch6
 let rec interleave x = function
-  | [] -> [[x]]
-  | y::ys -> (x::y::ys) :: List.map (fun zs -> y::zs) (interleave x ys)
+  | [] -> [[x]]                 (* x can only go in one place: by itself *)
+  | y::ys ->
+    (x::y::ys)                  (* x goes at the front, OR *)
+    :: List.map (fun zs -> y::zs) (interleave x ys)  (* x goes somewhere after y *)
 
 let rec perms = function
-  | [] -> [[]]
+  | [] -> [[]]                  (* one way to permute empty list: empty list *)
   | x::xs -> concat_map (interleave x) (perms xs)
 ```
 
-For the Countdown problem, we need all non-empty subsequences with all their permutations:
+For example, `interleave 1 [2;3]` produces `[[1;2;3]; [2;1;3]; [2;3;1]]` -- all positions where 1 can be inserted.
+
+For the Countdown problem below, we will need all non-empty subsequences with all their permutations -- that is, all ways of choosing and ordering elements from a list:
 
 ```ocaml env=ch6
 let choices l = concat_map perms (List.filter ((<>) []) (subseqs l))
@@ -467,11 +517,11 @@ let choices l = concat_map perms (List.filter ((<>) []) (subseqs l))
 
 ### 6.6 Grouping and Map-Reduce
 
-It is often useful to organize values by some property.
+When processing large datasets, it is often useful to organize values by some property -- grouping all items with the same key together, then processing each group. This pattern is so common it has a name: **map-reduce** (popularized by Google for distributed computing).
 
 #### Collecting by Key
 
-First, we collect elements from an association list by key:
+The first step is to collect elements from an association list, grouping all values that share the same key:
 
 ```ocaml env=ch6
 let collect l =
@@ -480,13 +530,13 @@ let collect l =
   | (k0, v0)::tl ->
     let k0, vs, l = List.fold_left
       (fun (k0, vs, l) (kn, vn) ->           (* Collect values for current key *)
-        if k0 = kn then k0, vn::vs, l        (* and when the key changes, *)
-        else kn, [vn], (k0, List.rev vs)::l) (* stack the collected values *)
-      (k0, [v0], []) tl in                   (* Why reverse? To preserve order *)
+        if k0 = kn then k0, vn::vs, l        (* Same key: add value to current group *)
+        else kn, [vn], (k0, List.rev vs)::l) (* New key: save current group, start new *)
+      (k0, [v0], []) tl in                   (* Why reverse? To preserve original order *)
     List.rev ((k0, List.rev vs)::l)
 ```
 
-Now we can group by an arbitrary property:
+Now we can group elements by an arbitrary property -- we just need to extract the property as the key:
 
 ```ocaml env=ch6
 let group_by p l = collect (List.map (fun e -> p e, e) l)
@@ -494,7 +544,7 @@ let group_by p l = collect (List.map (fun e -> p e, e) l)
 
 #### Reduction (Aggregation)
 
-To process results like SQL aggregate operations, we add **reduction**:
+Grouping alone is often not enough -- we want to *aggregate* each group into a summary value, like SQL's `SUM`, `COUNT`, or `AVG`. This aggregation step is called **reduction**:
 
 ```ocaml env=ch6
 let aggregate_by p red base l =
@@ -510,7 +560,7 @@ let aggregate_by p redf base l =
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
 ```
 
-Often it is easier to extract the property upfront. Since we first map elements into key-value pairs, we call this `map_reduce`:
+Often it is cleaner to extract both the key and the value we care about upfront, before grouping. Since we first **map** elements into key-value pairs, then group and **reduce**, we call this pattern `map_reduce`:
 
 ```ocaml env=ch6
 let map_reduce mapf redf base l =
@@ -521,7 +571,7 @@ let map_reduce mapf redf base l =
 
 #### Map-Reduce Examples
 
-Sometimes we have multiple sources of information:
+Sometimes our mapping function produces multiple key-value pairs per input (for example, when processing documents word by word). For this we use `concat_reduce`, which uses `concat_map` instead of `map`:
 
 ```ocaml env=ch6
 let concat_reduce mapf redf base l =
@@ -530,7 +580,7 @@ let concat_reduce mapf redf base l =
   |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)
 ```
 
-Computing a merged histogram of documents:
+**Example 1: Word histogram.** Count how many times each word appears across a collection of documents:
 
 ```ocaml env=ch6
 let histogram documents =
@@ -540,7 +590,7 @@ let histogram documents =
   concat_reduce mapf (+) 0 documents
 ```
 
-Computing an inverted index:
+**Example 2: Inverted index.** Build an index mapping each word to the list of documents (identified by address) containing it:
 
 ```ocaml env=ch6
 let cons hd tl = hd::tl
@@ -552,7 +602,7 @@ let inverted_index documents =
   concat_reduce mapf cons [] documents
 ```
 
-Set intersection is computed using `intersect` for sets represented as sorted lists:
+**Example 3: Simple search engine.** Once we have an inverted index, we can search for documents containing all of a given set of words. We need set intersection -- here implemented for sets represented as sorted lists:
 
 ```ocaml env=ch6
 let intersect xs ys =                       (* Sets as sorted lists *)
@@ -566,7 +616,7 @@ let intersect xs ys =                       (* Sets as sorted lists *)
   List.rev (aux [] (xs, ys))
 ```
 
-A simple "search engine":
+Now we can build a simple search function that finds all documents containing every word in a query:
 
 ```ocaml env=ch6
 let search index words =
@@ -577,7 +627,9 @@ let search index words =
 
 ### 6.7 Higher-Order Functions for the Option Type
 
-Operating on optional values:
+The `option` type is OCaml's way of representing values that might be absent. Rather than using null pointers (a common source of bugs), we explicitly mark possibly-missing values with `Some x` or `None`. Here are some useful higher-order functions for working with options.
+
+First, applying a function to an optional value:
 
 ```ocaml env=ch6
 let map_option f = function
@@ -585,7 +637,7 @@ let map_option f = function
   | Some e -> f e
 ```
 
-Mapping over a list and filtering out failures:
+Second, mapping a partial function over a list and keeping only the successful results:
 
 ```ocaml env=ch6
 let rec map_some f = function
@@ -608,18 +660,20 @@ let map_some f l =
 
 ### 6.8 The Countdown Problem Puzzle
 
-The Countdown Problem is a classic puzzle:
+Now we turn to solving puzzles, which will showcase the power of backtracking with lists. The **Countdown Problem** is a classic puzzle from a British TV game show:
 
 - Using a given set of numbers and arithmetic operators +, -, *, /, construct an expression with a given value.
 - All numbers, including intermediate results, must be positive integers.
 - Each source number can be used at most once.
 
 **Example:**
-- Numbers: 1, 3, 7, 10, 25, 50
+- Source numbers: 1, 3, 7, 10, 25, 50
 - Target: 765
-- Possible solution: (25-10) * (50+1)
+- One possible solution: (25-10) * (50+1) = 15 * 51 = 765
 
-There are 780 solutions for this example. Changing the target to 831 gives an example with no solutions.
+This example has 780 different solutions! Changing the target to 831 gives an example with no solutions at all.
+
+Let us develop a solver step by step, starting with the data types.
 
 #### Data Types
 
@@ -661,7 +715,9 @@ let solution e ns n =
 
 #### Brute Force Solution
 
-Splitting a list into two non-empty parts:
+Our strategy is to generate all possible expressions from the source numbers, then filter for those that evaluate to the target. To build expressions, we need to split the numbers into two groups (for the left and right operands of an operator).
+
+First, a helper to split a list into two non-empty parts in all possible ways:
 
 ```ocaml env=ch6
 let split l =
@@ -674,29 +730,31 @@ let split l =
   aux [] [] l
 ```
 
-We introduce an operator for working with multiple data sources:
+We introduce a convenient operator for working with multiple data sources. The "bind" operator `|->` takes a list of values and a function that produces a list from each value, then concatenates all results:
 
 ```ocaml env=ch6
 let ( |-> ) x f = concat_map f x
 ```
 
-Generating all expressions from a list of numbers:
+Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
 
 ```ocaml env=ch6
 let combine l r =                           (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
 let rec exprs = function
-  | [] -> []
-  | [n] -> [Val n]
+  | [] -> []                                (* No expressions from empty list *)
+  | [n] -> [Val n]                          (* Single number: just Val n *)
   | ns ->
-    split ns |-> (fun (ls, rs) ->           (* For each split ls,rs of numbers *)
-      exprs ls |-> (fun l ->                (* for each expression l over ls *)
-        exprs rs |-> (fun r ->              (* and expression r over rs *)
-          combine l r)))                    (* produce all l ? r expressions *)
+    split ns |-> (fun (ls, rs) ->           (* For each way to split numbers... *)
+      exprs ls |-> (fun l ->                (* ...for each expression l from left half... *)
+        exprs rs |-> (fun r ->              (* ...for each expression r from right half... *)
+          combine l r)))                    (* ...produce all l op r combinations *)
 ```
 
-Finding solutions:
+Read the nested `|->` as "for each ... for each ... for each ...". This is the essence of backtracking: we explore all combinations systematically.
+
+Finally, to find solutions, we try all choices of source numbers (all non-empty subsets with all orderings) and filter for expressions that evaluate to the target:
 
 ```ocaml env=ch6
 let guard n =
@@ -709,7 +767,9 @@ let solutions ns n =
 
 #### Optimization: Fuse Generation with Testing
 
-We memorize values with expressions as pairs `(e, eval e)`, so only valid subexpressions are generated:
+The brute force approach generates many invalid expressions (like `5 - 7` which gives a negative result, or `5 / 3` which is not an integer). We can do better by *fusing* generation with evaluation: instead of generating an expression and then checking if it is valid, we track the value alongside the expression and only generate valid subexpressions.
+
+The key insight is to work with pairs `(e, eval e)` so that only valid subexpressions are ever generated:
 
 ```ocaml env=ch6
 let combine' (l, x) (r, y) =
@@ -735,7 +795,7 @@ let solutions' ns n =
 
 #### Eliminating Symmetric Cases
 
-Strengthening the validity predicate to account for commutativity and identity:
+We can further improve performance by observing that addition and multiplication are commutative: `3 + 5` and `5 + 3` give the same result. Similarly, multiplying by 1 or adding/subtracting 0 are useless. We can eliminate these redundancies by strengthening the validity predicate:
 
 ```ocaml env=ch6
 let valid op x y =
@@ -746,13 +806,15 @@ let valid op x y =
   | Div -> x mod y = 0 && y <> 1
 ```
 
-This eliminates repeating symmetrical solutions on the semantic level (values) rather than syntactic level (expressions)--both easier and more effective.
+This eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
 
 ### 6.9 The Honey Islands Puzzle
 
-The Honey Islands puzzle: Find cells to eat honey from so that the least amount of honey becomes sour (assuming sourness spreads through contact).
+Now let us tackle a different kind of puzzle that requires more sophisticated backtracking.
 
-Given a honeycomb with some cells initially marked black, mark additional cells so that unmarked cells form `num_islands` disconnected components, each with `island_size` cells.
+**Be a bee!** Imagine a honeycomb where you need to eat honey from certain cells to prevent the remaining honey from going sour. Sourness spreads through contact, so you want to divide the honey into isolated "islands" -- each small enough that it will be consumed before spoiling.
+
+More precisely: given a honeycomb with some cells initially marked black (empty), mark additional cells as empty so that the remaining (unmarked) cells form exactly `num_islands` disconnected components, each with exactly `island_size` cells.
 
 | Task: 3 islands × 3 cells | Solution |
 |:-------------------------:|:--------:|
@@ -762,10 +824,12 @@ In the solution, yellow cells contain honey, black cells were initially empty, a
 
 #### Representing the Honeycomb
 
+We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
+
 ```ocaml env=ch6
 type cell = int * int                       (* Cartesian coordinates *)
 
-module CellSet =                            (* Store cells in sets *)
+module CellSet =                            (* Store cells in sets for efficient membership tests *)
   Set.Make (struct type t = cell let compare = compare end)
 
 type task = {                               (* For board size N, coordinates *)
@@ -775,11 +839,11 @@ type task = {                               (* For board size N, coordinates *)
   empty_cells : CellSet.t;                  (* Initially empty cells *)
 }
 
-let cellset_of_list l =                     (* List to set, inverse of CellSet.elements *)
+let cellset_of_list l =                     (* Convert list to set (inverse of CellSet.elements) *)
   List.fold_right CellSet.add l CellSet.empty
 ```
 
-**Neighborhood:** Each cell (x, y) has up to 6 neighbors:
+**Neighborhood:** In a honeycomb, each cell has up to 6 neighbors. We filter out neighbors that are outside the board or already eaten:
 
 ```ocaml env=ch6
 let even x = x mod 2 = 0
@@ -796,7 +860,7 @@ let neighbors n eaten (x, y) =
      x+1,y+1; x-1,y+1; x-2,y]
 ```
 
-**Building the honeycomb:**
+**Building the honeycomb:** We generate all valid honey cells by iterating over the coordinate range and filtering:
 
 ```ocaml env=ch6
 let honey_cells n eaten =
@@ -883,7 +947,7 @@ let draw_to_screen ~w ~h curves =
 
 #### Testing Correctness
 
-We walk through each island counting cells depth-first:
+Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
 
 ```ocaml skip
 let check_correct n island_size num_islands empty_cells =
@@ -920,7 +984,9 @@ let check_correct n island_size num_islands empty_cells =
 
 #### Multiple Results per Step: concat_fold
 
-When processing lists with potentially multiple results per step, we need `concat_fold`:
+When processing lists, sometimes each step can produce multiple results (not just one as in `fold_left`, or many independent ones as in `concat_map`). We need a hybrid: process elements sequentially like `fold_left`, but allow multiple results at each step, collecting all the final states.
+
+This is `concat_fold`:
 
 ```ocaml env=ch6
 let rec concat_fold f a = function
@@ -931,11 +997,11 @@ let rec concat_fold f a = function
 
 #### Generating Solutions
 
-We transform the testing code into generation code by:
+The key insight is that we can transform the *testing* code into *generation* code by:
 
-- Passing around the current solution `eaten`
-- Returning results in a list (empty list = no solutions)
-- At each neighbor, trying both eating and keeping
+1. Passing around the current partial solution (the `eaten` list)
+2. Returning results in a list (empty list means no solutions from this path)
+3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
 
 ```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
@@ -978,9 +1044,13 @@ let find_to_eat n island_size num_islands empty_cells =
 
 #### Optimizations
 
-The main rule: **fail (drop solution candidates) as early as possible**.
+The brute-force generation explores far too many possibilities. The key optimization principle is: **fail (drop solution candidates) as early as possible**.
 
-We guard both choices (eating and keeping) and track how much honey needs to be eaten:
+Instead of blindly exploring all choices, we add guards to prune branches that cannot lead to solutions:
+
+- Do not try to eat more cells if we have already eaten enough
+- Do not add more cells to an island that is already full
+- Track exactly how many cells still need to be eaten
 
 ```ocaml env=ch6
 type state = {
@@ -1048,31 +1118,29 @@ The optimized island loop only tries actions that make sense:
 
 ### 6.10 Constraint-Based Puzzles
 
-Puzzles can be presented by providing:
+Many puzzles can be understood in terms of **constraint satisfaction**:
 
-1. The general form of solutions
-2. Additional requirements (constraints) that solutions must meet
+1. The puzzle defines the *general form* of solutions (what variables need values)
+2. The puzzle specifies *constraints* that valid solutions must satisfy
 
-For many puzzles, solutions decompose into a fixed number of **variables**:
+For example, in Sudoku, the variables are the 81 cells, each with domain {1,...,9}, and the constraints require each row, column, and 3x3 box to contain all digits exactly once.
 
-- A **domain** is the set of possible values a variable can have
-- In Honey Islands, variables are cells with domain {Honey, Empty}
-- **Constraints** specify relationships: cells that must be empty, number and size of connected components, neighborhood graph
+In the Honey Islands puzzle, we could view each cell as a variable with domain {Honey, Empty}. The constraints specify which cells must be empty initially, and the requirement of forming a specific number and size of connected components.
 
 #### Finite Domain Constraint Programming
 
-A general and often efficient scheme:
+**Constraint propagation** is a powerful technique for solving such puzzles efficiently. The key idea is to track *sets of possible values* for each variable and systematically eliminate impossibilities:
 
-1. With each variable, associate a set of values (initially the full domain). The singleton containing this association is the initial set of partial solutions.
+1. **Initialize:** For each variable, start with the full set of possible values (its domain). The current "partial solution" is this collection of sets.
 
-2. While there is a solution with more than one value for some variable:
-   - (a) If some value for a variable fails for all possible assignments to other variables, remove it
-   - (b) If a variable has an empty set of possible values, remove that solution
-   - (c) Select the variable with the smallest non-singleton set. Split into similarly-sized parts. Replace the solution with two solutions for each part.
+2. **Propagate and split:** Repeat until all variables have exactly one value:
+   - (a) **Propagate constraints:** If some value for a variable is inconsistent with *all* possible values of related variables, remove it
+   - (b) **Prune failures:** If any variable has an empty set of possible values, this partial solution has no completions -- abandon it
+   - (c) **Split:** Select a variable with multiple possible values. Create new partial solutions by partitioning its possibilities (simplest: try each value separately, or split into "this value" vs "all others")
 
-3. Build final solutions by assigning each variable its single remaining value.
+3. **Extract solutions:** When all variables have single values, we have found a solution.
 
-Simplifications: In step (2c), instead of equal-sized splits, we can partition into singleton and remainder, or partition completely into singletons.
+The efficiency comes from *early pruning*: constraint propagation often eliminates many possibilities without explicitly trying them, dramatically reducing the search space compared to brute-force enumeration.
 
 ### 6.11 Exercises
 

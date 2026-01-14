@@ -1,10 +1,12 @@
 ## Chapter 8: Monads
 
-This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions, introduce monadic concepts, examine monad laws and the monad-plus extension, then work through various monad instances including state, exception, and probability monads. We conclude with monad transformers and cooperative lightweight threads.
+This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
+
+The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."
 
 ### 8.1 List Comprehensions
 
-Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The brute-force generation of expressions looked like this:
+Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The nested callback style, while functional, is hard to read and understand at a glance. The brute-force generation of expressions looked like this:
 
 ```ocaml env=ch8
 let combine l r =
@@ -20,7 +22,7 @@ let rec exprs = function
       combine l r)))
 ```
 
-And the generate-and-test scheme used:
+Notice how the nested callbacks pile up: each `|->` introduces another level of indentation. The generate-and-test scheme used similar nesting:
 
 ```ocaml env=ch8
 let guard p e = if p e then [e] else []
@@ -31,13 +33,15 @@ let solutions ns n =
     guard (fun e -> eval e = Some n))
 ```
 
-We introduced the operator `|->` defined as:
+The key insight is that we introduced the operator `|->` defined as:
 
 ```ocaml env=ch8
 let ( |-> ) x f = concat_map f x
 ```
 
-We can do much better with list comprehensions syntax extension. In older versions of OCaml with Camlp4, this was loaded via:
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax extension that originated in languages like Haskell and Python.
+
+In older versions of OCaml with Camlp4, list comprehensions were loaded via:
 
 ```
 #load "dynlink.cma";;
@@ -45,21 +49,23 @@ We can do much better with list comprehensions syntax extension. In older versio
 #load "Camlp4Parsers/Camlp4ListComprehension.cmo";;
 ```
 
-With list comprehensions, we can write:
+With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
 ```
 let test = [i * 2 | i <- from_to 2 22; i mod 3 = 0]
 ```
 
-The translation rules for list comprehensions are:
+This reads as: "the list of `i * 2` for each `i` drawn from `from_to 2 22` where `i mod 3 = 0`." The `<-` arrow draws elements from a generator, and conditions filter which elements are kept.
 
-- `[expr | ]` translates to `[expr]`
-- `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])`
-- `[expr | condition; more]` translates to `if condition then [expr | more] else []`
+The translation rules that define list comprehension semantics are straightforward:
+
+- `[expr | ]` translates to `[expr]` -- the base case, a singleton list
+- `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])` -- draw from a generator, then recurse
+- `[expr | condition; more]` translates to `if condition then [expr | more] else []` -- filter by a condition
 
 #### Revisiting Countdown with List Comprehensions
 
-The brute-force generation becomes cleaner:
+Now let us revisit the Countdown Problem code with list comprehensions. The brute-force generation becomes dramatically cleaner -- compare this to the deeply nested version above:
 
 ```
 let rec exprs = function
@@ -71,7 +77,7 @@ let rec exprs = function
        o <- [Add; Sub; Mul; Div]]
 ```
 
-And the generate-and-test scheme simplifies to:
+The intent is immediately clear: we split the numbers, recursively build expressions for left and right parts, and try each operator. The generate-and-test scheme becomes equally elegant:
 
 ```
 let solutions ns n =
@@ -79,9 +85,11 @@ let solutions ns n =
    e <- exprs ns'; eval e = Some n]
 ```
 
+The guard condition `eval e = Some n` filters out expressions that do not evaluate to the target value.
+
 #### More List Comprehension Examples
 
-Computing subsequences using list comprehensions (with some garbage generation):
+List comprehensions shine when expressing combinatorial algorithms. Here is computing all subsequences of a list (note that this generates some intermediate garbage, but the intent is clear):
 
 ```
 let rec subseqs l =
@@ -90,7 +98,9 @@ let rec subseqs l =
   | x::xs -> [ys | px <- subseqs xs; ys <- [px; x::px]]
 ```
 
-Computing permutations via insertion:
+For each element `x`, we recursively compute subsequences of the tail, then for each such subsequence we include both the version without `x` and the version with `x` prepended.
+
+Computing permutations can be done via insertion -- inserting an element at every possible position:
 
 ```
 let rec insert x = function
@@ -103,7 +113,9 @@ let rec ins_perms = function
   | x::xs -> [zs | ys <- ins_perms xs; zs <- insert x ys]
 ```
 
-And via selection:
+The `insert` function generates all ways to insert `x` into a list. Then `ins_perms` recursively permutes the tail and inserts the head at every position.
+
+Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
 
 ```
 let rec select = function
@@ -115,22 +127,26 @@ let rec sel_perms = function
   | xs -> [x::ys | x, xs' <- select xs; ys <- sel_perms xs']
 ```
 
+The `select` function returns all ways to pick one element from a list, along with the remaining elements. Then `sel_perms` chooses a first element and recursively permutes the rest.
+
 ### 8.2 Generalized Comprehensions: Binding Operators
 
-OCaml 5 introduced **binding operators** that provide a clean, native syntax for monadic computations. Instead of external syntax extensions like the old `pa_monad`, we can define custom `let*` and `let+` operators that integrate naturally with the language.
+The pattern we saw with list comprehensions is remarkably general. In fact, the same `|->` pattern (applying a function that returns a container, then flattening) works for many types beyond lists. This is the essence of monads.
+
+OCaml 5 introduced **binding operators** that provide a clean, native syntax for such computations. Instead of external syntax extensions like the old Camlp4-based `pa_monad`, we can now define custom `let*` and `let+` operators that integrate naturally with the language.
 
 For the list monad, we define these binding operators:
 
 ```ocaml env=ch8
-let ( let* ) x f = concat_map f x      (* bind *)
-let ( let+ ) x f = List.map f x        (* map/fmap *)
+let ( let* ) x f = concat_map f x      (* bind: sequence computations *)
+let ( let+ ) x f = List.map f x        (* map: apply pure function *)
 let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
-let ( and+ ) = ( and* )
-let return x = [x]
-let fail = []
+let ( and+ ) = ( and* )                (* parallel binding *)
+let return x = [x]                     (* inject a value into the monad *)
+let fail = []                          (* the empty computation *)
 ```
 
-With these operators, the expression generation code becomes:
+The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator allows binding multiple values in parallel. With these operators, the expression generation code becomes:
 
 ```
 let rec exprs = function
@@ -144,9 +160,9 @@ let rec exprs = function
       [App (o, l, r)]
 ```
 
-Note that unlike the old `perform` syntax where we used `<--` for binding, we now use `let*` followed by `=` and must explicitly write `in` before the continuation.
+Each `let*` introduces a binding: the variable on the left is bound to each value produced by the expression on the right, and the computation continues with `in`. This is much more readable than the nested callbacks we started with.
 
-The `let*` syntax does not directly support guards. If we try to write:
+However, the `let*` syntax does not directly support guards (conditions that filter results). If we try to write:
 
 ```
 let solutions ns n =
@@ -156,7 +172,9 @@ let solutions ns n =
   e
 ```
 
-We get an error because it expects a list, not a boolean. We can work around this by deciding whether to return anything:
+We get a type error: the expression expects a list, but `eval e = Some n` is a boolean. What can we do?
+
+One approach is to explicitly decide whether to return anything:
 
 ```
 let solutions ns n =
@@ -165,13 +183,13 @@ let solutions ns n =
   if eval e = Some n then [e] else []
 ```
 
-For a general guard check function, we define:
+But what if we want to check a condition earlier in the computation, or check multiple conditions? We need a general "guard check" function. The key insight is that we can use the monad itself to represent success or failure:
 
 ```ocaml env=ch8
 let guard p = if p then [()] else []
 ```
 
-And then:
+When the condition `p` is true, `guard` returns `[()]` -- a list with one element (the unit value). When false, it returns `[]` -- an empty list. Now we can use it in a binding:
 
 ```
 let solutions ns n =
@@ -181,13 +199,17 @@ let solutions ns n =
   [e]
 ```
 
+Why does this work? When the guard succeeds, `let* () = [()]` binds unit and continues. When it fails, `let* () = []` produces no results -- the empty list -- so the rest of the computation is never reached for that branch. This is exactly the filtering behavior we want!
+
 ### 8.3 Monads
 
-A monad is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at least two operations:
+Now we are ready to define monads properly. A **monad** is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at least two operations:
 
-- `bind : 'a monad -> ('a -> 'b monad) -> 'b monad`
-- `return : 'a -> 'a monad`
+- `bind : 'a monad -> ('a -> 'b monad) -> 'b monad` -- sequence two computations, passing the result of the first to the second
+- `return : 'a -> 'a monad` -- inject a pure value into the monad
 - The infix `>>=` is commonly used for `bind`: `let (>>=) a b = bind a b`
+
+The `bind` operation is the heart of the monad: it takes a computation that produces an `'a`, and a function that takes an `'a` and produces a new computation yielding `'b`. The result is a combined computation that yields `'b`.
 
 With OCaml 5's binding operators, we define `let*` as an alias for `bind`:
 
@@ -203,28 +225,32 @@ let solutions ns n =
   return e
 ```
 
-Why does `guard` look this way? Let us examine:
+But why does `guard` look the way it does? Let us examine more carefully:
 
 ```ocaml env=ch8
 let fail = []
 let guard p = if p then return () else fail
 ```
 
-Steps in monadic computation are composed with `let*` (or `>>=`, like `|->` for lists). The key insight is:
+Steps in monadic computation are composed with `let*` (or `>>=`, which is like `|->` for lists). The key insight is understanding what happens when we bind with an empty list versus a singleton:
 
-- `let* _ = [] in ...` does not produce anything -- as needed by guarding
-- `let* _ = [()] in ...` becomes `(fun _ -> ...) ()` which simply continues the computation unchanged
+- `let* _ = [] in ...` does not produce anything -- the continuation is never called, so the computation fails (produces no results)
+- `let* _ = [()] in ...` calls the continuation once with `()`, which simply continues the computation unchanged
 
-Throwing away the binding argument is common. With binding operators, we can use `let* () = ...` or `let* _ = ...`:
+This is why `guard` works: returning `[()]` means "succeed with unit" and returning `[]` means "fail with no results." The unit value itself is a dummy -- we only care whether the list is empty or not.
+
+Throwing away the binding argument is a common pattern. With binding operators, we use `let* () = ...` or `let* _ = ...` to indicate we do not need the bound value:
 
 ```ocaml env=ch8
 let (>>=) a b = bind a b
 let (>>) m f = m >>= (fun _ -> f)
 ```
 
+The `>>` operator (called "sequence" or "then") is useful when you want to perform a computation for its effect but discard its result.
+
 #### The Binding Operator Syntax
 
-OCaml 5's binding operators translate as follows:
+For reference, OCaml 5's binding operators translate as follows:
 
 | Source | Translation |
 |--------|-------------|
@@ -233,13 +259,13 @@ OCaml 5's binding operators translate as follows:
 | `let* () = exp in body` | `bind exp (fun () -> body)` |
 | `let* x = e1 and* y = e2 in body` | `bind (and* e1 e2) (fun (x, y) -> body)` |
 
-The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions.
+The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
-For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately.
+Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` requires a way to handle the `None` case.
 
 ### 8.4 Monad Laws
 
-A parametric data type is a monad only if its `bind` and `return` operations meet these axioms:
+Not every type with `bind` and `return` operations is a proper monad. A parametric data type is a monad only if its `bind` and `return` operations meet three fundamental axioms:
 
 $$
 \begin{aligned}
@@ -249,6 +275,12 @@ $$
 \end{aligned}
 $$
 
+Let us understand what these laws mean:
+
+- **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
+- **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
+- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (when `x` does not appear free in `b`).
+
 You should verify that these laws hold for our list monad:
 
 ```ocaml env=ch8
@@ -256,14 +288,18 @@ let bind a b = concat_map b a
 let return x = [x]
 ```
 
+For example, to verify left identity: `bind (return a) f` = `bind [a] f` = `concat_map f [a]` = `f a`. The other laws can be verified similarly.
+
 ### 8.5 Monoid Laws and Monad-Plus
+
+The list monad has an additional structure beyond just `bind` and `return`: it supports combining multiple computations and representing failure. This leads us to the concept of a **monoid**.
 
 A monoid is a type with at least two operations:
 
-- `mzero : 'a monoid`
-- `mplus : 'a monoid -> 'a monoid -> 'a monoid`
+- `mzero : 'a monoid` -- an identity element (think: zero, or the empty container)
+- `mplus : 'a monoid -> 'a monoid -> 'a monoid` -- a combining operation (think: addition, or concatenation)
 
-that meet these laws:
+These operations must meet the standard monoid laws:
 
 $$
 \begin{aligned}
@@ -273,9 +309,9 @@ $$
 \end{aligned}
 $$
 
-We define `fail` as a synonym for `mzero` and infix `++` for `mplus`.
+We define `fail` as a synonym for `mzero` and infix `++` for `mplus`. For lists, `mzero` is `[]` and `mplus` is `@` (append).
 
-Fusing monads and monoids gives the most popular general flavor of monads, which we call **monad-plus** after Haskell. Monad-plus requires additional axioms relating its "addition" and "multiplication":
+Fusing monads and monoids gives the most popular general flavor of monads, which we call **monad-plus** after Haskell. A monad-plus is a monad that also has monoid structure, with additional axioms relating the "addition" (`mplus`) and "multiplication" (`bind`):
 
 $$
 \begin{aligned}
@@ -283,6 +319,8 @@ $$
 \text{bind}\ m\ (\lambda x.\text{mzero}) &\approx \text{mzero}
 \end{aligned}
 $$
+
+These laws say that `mzero` acts like a "zero" for `bind`: binding from zero produces zero, and binding to a function that always returns zero also produces zero. This is analogous to how $0 \times x = 0$ and $x \times 0 = 0$ in arithmetic.
 
 Using infix notation with $\oplus$ for `mplus`, $\mathbf{0}$ for `mzero`, $\triangleright$ for `bind`, and $\mathbf{1}$ for `return`, the complete monad-plus axioms are:
 
@@ -308,7 +346,7 @@ let bind a b = concat_map b a
 let return a = [a]
 ```
 
-We can define in any monad-plus:
+Given any monad-plus, we can define useful derived operations:
 
 ```ocaml env=ch8
 let fail = mzero
@@ -318,9 +356,13 @@ let (>>=) a b = bind a b
 let guard p = if p then return () else fail
 ```
 
+Now we can see that `guard` is defined in terms of the monad-plus structure: it returns the identity element (`return ()`) on success, or the zero element (`fail`) on failure.
+
 ### 8.6 Backtracking: Computation with Choice
 
-We have seen `mzero` (i.e., `fail`) in the countdown problem. What about `mplus`? Here is an example from a puzzle solver:
+We have seen `mzero` (i.e., `fail`) in the countdown problem -- it represents a computation that produces no results. But what about `mplus`? The `mplus` operation combines two computations, giving us a way to express *choice*: try this computation, or try that one.
+
+Here is an example from a puzzle solver where `mplus` creates a choice point:
 
 ```ocaml skip
 let find_to_eat n island_size num_islands empty_cells =
@@ -357,13 +399,13 @@ let find_to_eat n island_size num_islands empty_cells =
   find_board (init_state honey cells_to_eat)
 ```
 
-The `mplus choose_eat choose_keep` creates a choice point: either eat the cell or keep it as part of the island. The monad-plus structure handles backtracking automatically.
+The line `mplus choose_eat choose_keep` creates a choice point: the algorithm can either eat the cell (removing it from consideration) or keep it as part of the current island. When we use the list monad as our monad-plus, this explores *all* possible choices, collecting all solutions. The monad-plus structure handles the bookkeeping of backtracking automatically -- we just express the choices declaratively.
 
 ### 8.7 Monad Flavors
 
-Monads "wrap around" a type, but some monads need an additional type parameter. Usually the additional type does not change while within a monad, so we stick to `'a monad` rather than `('s, 'a) monad`.
+Monads "wrap around" a type, but some monads need an additional type parameter. For example, a state monad might be parameterized by the type of state it carries. Usually the additional type does not change while within a monad, so we stick to `'a monad` rather than `('s, 'a) monad`.
 
-As monad-plus shows, things get interesting when we add more operations to a basic monad. Here are some common monad flavors:
+As monad-plus shows, things get interesting when we add more operations to a basic monad. Different "flavors" of monads provide different capabilities. Here are the most common ones:
 
 **Monads with access:**
 
@@ -371,7 +413,7 @@ As monad-plus shows, things get interesting when we add more operations to a bas
 access : 'a monad -> 'a
 ```
 
-Example: the lazy monad.
+An `access` operation lets you extract the value from the monad. Not all monads support this -- some only allow you to "run" the monad at the top level. Example: the lazy monad, where `access` is `Lazy.force`.
 
 **Monad-plus (non-deterministic computation):**
 
@@ -380,6 +422,8 @@ mzero : 'a monad
 mplus : 'a monad -> 'a monad -> 'a monad
 ```
 
+We have already seen this. The monad-plus flavor supports failure and choice, enabling backtracking search.
+
 **Monads with state (parameterized by type `store`):**
 
 ```
@@ -387,7 +431,9 @@ get : store monad
 put : store -> unit monad
 ```
 
-There is a "canonical" state monad. Similar monads include the writer monad (with `get` called `listen` and `put` called `tell`) and the reader monad, without `put`, but with `get` (called `ask`) and:
+These operations let you read and write a piece of state that is threaded through the computation. There is a "canonical" state monad we will examine later. Related monads include:
+- The **writer monad**: has `tell` (append to a log) and `listen` (read the log)
+- The **reader monad**: has `ask` (read an environment) and `local` to modify the environment for a sub-computation:
 
 ```
 local : (store -> store) -> 'a monad -> 'a monad
@@ -400,13 +446,15 @@ throw : excn -> 'a monad
 catch : 'a monad -> (excn -> 'a monad) -> 'a monad
 ```
 
+These provide structured error handling within the monad. The `throw` operation raises an exception; `catch` handles it.
+
 **Continuation monad:**
 
 ```
 callCC : (('a -> 'b monad) -> 'a monad) -> 'a monad
 ```
 
-We will not cover continuations in detail here.
+The continuation monad gives you access to the "rest of the computation" as a first-class value. This is powerful but complex; we will not cover continuations in detail here.
 
 **Probabilistic computation:**
 
@@ -414,7 +462,7 @@ We will not cover continuations in detail here.
 choose : float -> 'a monad -> 'a monad -> 'a monad
 ```
 
-satisfying the laws with $a \oplus_p b$ for `choose p a b` and $p \cdot q$ for `p *. q`, where $0 \leq p, q \leq 1$:
+The `choose p a b` operation selects `a` with probability `p` and `b` with probability `1-p`. This enables reasoning about probability distributions. The laws ensure that probability behaves correctly:
 
 $$
 \begin{aligned}
@@ -431,13 +479,13 @@ $$
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-Example: lightweight threads.
+The `parallel` operation runs two computations concurrently and combines their results. Example: lightweight threads like in the Lwt library.
 
 ### 8.8 Interlude: The Module System
 
-OCaml's module system provides the infrastructure for defining monads in a reusable way. Here is a brief overview of the key concepts.
+Before we implement various monads, we need to understand OCaml's module system, which provides the infrastructure for defining monads in a reusable, generic way. This section provides a brief overview of the key concepts.
 
-Modules collect related type definitions and operations together. Module values are introduced with `struct ... end` (structures), and module types with `sig ... end` (signatures). A structure is a package of definitions; a signature is an interface for packages.
+Modules collect related type definitions and operations together. Module values are introduced with `struct ... end` (called *structures*), and module types with `sig ... end` (called *signatures*). A structure is a package of definitions; a signature is an interface that specifies what a structure must provide.
 
 A source file `source.ml` defines a module `Source`. A file `source.mli` defines its type.
 
@@ -449,7 +497,7 @@ The content of a module is made visible with `open Module`. Module `Pervasives` 
 
 Content of a module is included into another module with `include Module`.
 
-**Functors** are module functions -- functions from modules to modules:
+**Functors** are module functions -- functions from modules to modules. They are the key to writing generic code that works with any monad:
 
 ```
 module Funct = functor (Arg : sig ... end) -> struct ... end
@@ -459,7 +507,7 @@ module Funct (Arg : sig ... end) = struct ... end
 
 Functors can return functors, and modules can be parameterized by multiple modules. Functor application always uses parentheses: `Funct (struct ... end)`.
 
-A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with `t_name` made more specific. We can also include signatures with `include MODULE_TYPE`.
+A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with `t_name` made more specific. This is useful when you want to expose the concrete type after applying a functor. We can also include signatures with `include MODULE_TYPE`.
 
 Finally, we can pass around modules in normal functions using first-class modules:
 
@@ -477,14 +525,16 @@ let test = f (module struct let g i = i*i end : T)
 
 ### 8.9 The Two Metaphors
 
-Monads can be understood through two complementary metaphors.
+Monads are abstract, but two complementary metaphors can help build intuition for what they are and how they work.
 
 #### Monads as Containers
 
-A monad is a **quarantine container**:
+The first metaphor views a monad as a **quarantine container**. Think of it like a sealed box:
 
-- We can put something into the container with `return`
-- We can operate on it, but the result needs to stay in the container
+- We can put something into the container with `return` -- this "seals" a pure value inside the monad
+- We can operate on the contents, but the result must stay in the container -- we cannot simply extract values
+
+The `lift` function applies a pure function to the contents of a monad, keeping the result wrapped:
 
 ```ocaml env=ch8
 let lift f m =
@@ -493,7 +543,7 @@ let lift f m =
 (* val lift : ('a -> 'b) -> 'a monad -> 'b monad *)
 ```
 
-- We can deactivate-unwrap the quarantine container but only when it is in another container so the quarantine is not broken
+We can also "flatten" nested containers. If we have a monad containing another monad, `join` unwraps one layer -- but the result is still in a monad, so the quarantine is not broken:
 
 ```ocaml env=ch8
 let join m =
@@ -502,23 +552,25 @@ let join m =
 (* val join : ('a monad) monad -> 'a monad *)
 ```
 
-The quarantine container for a **monad-plus** is more like other containers: it can be empty, or contain multiple elements.
+The quarantine container for a **monad-plus** is more like a collection: it can be empty (failure), contain one element (success), or contain multiple elements (multiple solutions).
 
-Monads with access allow us to extract the resulting element from the container; other monads provide a `run` operation that exposes "what really happened behind the quarantine."
+Monads with access allow us to extract the resulting element from the container. Other monads provide a `run` operation that exposes "what really happened behind the quarantine" -- for example, the state monad's `run` takes an initial state and returns both the final value and the final state.
 
 #### Monads as Computation
 
-To compute the result, use `let*` bindings to sequence instructions, naming partial results. The physical metaphor is an **assembly line**:
+The second metaphor views a monad as a way to structure computation. Each `let*` binding is a step in a sequence, and the monad controls how steps are connected. The physical metaphor is an **assembly line**:
 
 ```
 let assemblyLine w =
   let* c = makeChopsticks w in    (* Worker makes chopsticks *)
   let* c' = polishChopsticks c in (* Worker polishes them *)
   let* c'' = wrapChopsticks c' in (* Worker wraps them *)
-  return c''                       (* Loader returns the result *)
+  return c''                       (* Final product goes out *)
 ```
 
-Any expression can be spread over a monad. For lambda-terms:
+Each worker (operation) takes material from the previous step and produces something for the next step. The monad defines what happens between steps -- for lists, it means "do this for each element"; for state, it means "thread the state through"; for exceptions, it means "propagate errors."
+
+Any expression can be systematically translated into a monadic form. For lambda-terms:
 
 $$
 \begin{aligned}
@@ -530,11 +582,11 @@ $$
 \end{aligned}
 $$
 
-When an expression is spread over a monad, its computation can be monitored or affected without modifying the expression.
+This translation inserts `bind` at every point where execution flows from one subexpression to another. The beauty of this approach is that once an expression is spread over a monad, its computation can be monitored, logged, or affected without modifying the expression itself. This is the key to implementing effects like state, exceptions, or non-determinism in a purely functional way.
 
 ### 8.10 Monad Classes and Instances
 
-To implement a monad, we need to provide the implementation type, `return`, and `bind` operations.
+Now we will see how to implement monads in OCaml using the module system. To implement a monad, we need to provide the implementation type, `return`, and `bind` operations. Here is the minimal signature:
 
 ```ocaml env=ch8
 module type MONAD = sig
@@ -544,9 +596,9 @@ module type MONAD = sig
 end
 ```
 
-Alternatively, we could start from `return`, `lift`, and `join` operations.
+This is the "class" that all monads must implement. Alternatively, we could start from `return`, `lift`, and `join` operations -- these are mathematically equivalent starting points.
 
-Based on just these two operations, we can define a suite of general-purpose functions:
+The power of functors is that we can define a suite of general-purpose functions that work for *any* monad, just based on these two operations:
 
 ```ocaml env=ch8
 module type MONAD_OPS = sig
@@ -589,7 +641,7 @@ module MonadOps (M : MONAD) = struct
 end
 ```
 
-We make the monad "safe" by keeping its type abstract, but `run` exposes "what really happened":
+We make the monad "safe" by keeping its type abstract. The `run` function exposes the underlying representation -- "what really happened behind the scenes":
 
 ```ocaml env=ch8
 module Monad (M : MONAD) : sig
@@ -601,9 +653,11 @@ end = struct
 end
 ```
 
+The pattern here is important: we take a minimal implementation (`M : MONAD`) and produce a full-featured monad module with all the derived operations.
+
 #### Monad-Plus Classes
 
-The monad-plus class has many implementations. They need to provide `mzero` and `mplus`:
+The monad-plus class extends the basic monad with failure and choice. Implementations need to provide `mzero` and `mplus` in addition to `return` and `bind`:
 
 ```ocaml env=ch8
 module type MONAD_PLUS = sig
@@ -641,7 +695,7 @@ end = struct
 end
 ```
 
-We also need a class for computations with state:
+We also need a class for computations with state. This signature will be included in state monads:
 
 ```ocaml env=ch8
 module type STATE = sig
@@ -654,9 +708,11 @@ end
 
 ### 8.11 Monad Instances
 
+Now let us see concrete implementations of various monads.
+
 #### The Lazy Monad
 
-Heavy laziness notation? Try a monad (with access):
+If you find OCaml's laziness notation (with `lazy` and `Lazy.force` everywhere) too heavy, you can use a monad! The lazy monad wraps lazy computations:
 
 ```ocaml env=ch8
 module LazyM = Monad (struct
@@ -668,9 +724,11 @@ end)
 let laccess m = Lazy.force (LazyM.run m)
 ```
 
+The `bind` operation creates a new lazy value that, when forced, forces `a`, passes the result to `b`, and forces the result. The `laccess` function forces the final lazy value to get the result.
+
 #### The List Monad
 
-Our resident list monad (monad-plus):
+Our familiar list monad is a monad-plus, supporting non-deterministic computation:
 
 ```ocaml env=ch8
 module ListM = MonadPlus (struct
@@ -684,7 +742,7 @@ end)
 
 #### Backtracking Parameterized by Monad-Plus
 
-The Countdown module can be parameterized by any monad-plus:
+Here is the power of abstraction: we can write the Countdown solver parameterized by *any* monad-plus. The same code works with lists (exploring all solutions), lazy lists (computing solutions on demand), or any other monad-plus implementation:
 
 ```ocaml env=ch8
 module Countdown (M : MONAD_PLUS_OPS) = struct
@@ -762,7 +820,9 @@ end
 
 #### Understanding Laziness
 
-Let us measure execution times:
+Now let us explore a practical question: what if we only want *one* solution, not all of them? With the list monad, we compute all solutions even if we only look at the first one. Can laziness help?
+
+Let us measure execution times to find out:
 
 ```ocaml env=ch8
 let time f =
@@ -782,7 +842,9 @@ let t1, sol1 = time test1
 (* val sol1 : string list = ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; ...] *)
 ```
 
-What if we want only one solution? Laziness to the rescue! We define an "odd lazy list":
+Finding all 49 solutions takes about 2.3 seconds. What if we want only one solution? Laziness to the rescue!
+
+Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but the head is strict:
 
 ```ocaml env=ch8
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
@@ -811,9 +873,11 @@ module LListM = MonadPlus (struct
 end)
 ```
 
-Testing shows that the odd lazy list still takes about the same time to even get the lazy list started! The elements are almost already computed once the first one is.
+But testing shows disappointing results: the odd lazy list still takes about 2.5 seconds just to create the lazy list! The elements are almost all computed by the time we get the first one.
 
-The **option monad** does not help either:
+Why? Because whenever we pattern match on `LCons (hd, tl)`, we have already evaluated the head. And when building lists with `mplus`, the head of the first list is computed immediately.
+
+What about using the **option monad** to find just the first solution?
 
 ```ocaml env=ch8
 module OptionM = MonadPlus (struct
@@ -826,11 +890,11 @@ module OptionM = MonadPlus (struct
 end)
 ```
 
-This very quickly computes... nothing. The `OptionM` monad (Haskell's `Maybe` monad) is good for computations that might fail, but not for search with multiple solutions.
+This very quickly computes... nothing! The option monad returns `None`.
 
-Our lazy list type is not lazy enough. Whenever we "make" a choice with `a ++ b` or `msum_map`, it computes the first candidate for each choice path immediately.
+Why? The `OptionM` monad (Haskell's `Maybe` monad) is good for computations that might fail, but it does not *search* -- its `mplus` just picks the first non-`None` value. Since our search often needs to backtrack when a choice leads to failure, option gives up too early.
 
-We need **even lazy lists** (our `llist` above are called "odd lazy lists"):
+Our odd lazy list type is not lazy *enough*. Whenever we "make" a choice with `a ++ b` or `msum_map`, it computes the first candidate for each choice path immediately. We need **even lazy lists** -- lists where even the outermost constructor is wrapped in `lazy`:
 
 ```ocaml env=ch8
 type 'a lazy_list = 'a lazy_list_ Lazy.t
@@ -864,11 +928,19 @@ module LazyListM = MonadPlus (struct
 end)
 ```
 
-Now the first solution takes considerably less time than all solutions. The next 9 solutions are almost computed once the first one is. But computing all solutions takes nearly twice as long as without the overhead of lazy computation -- the price of laziness.
+Now the first solution takes only about 0.37 seconds -- considerably less time than the 2.3 seconds for all solutions! The next 9 solutions are almost computed once the first one is (just 0.23 seconds more). But computing all 49 solutions takes about 4 seconds -- nearly twice as long as without laziness. This is the price we pay for lazy computation: overhead when we do need all results.
+
+The lesson: even lazy lists enable true lazy search, but they come with overhead. Choose the right monad for your use case.
 
 #### The Exception Monad
 
-Built-in non-functional exceptions in OCaml are more efficient and more flexible. However, monadic exceptions are safer than standard exceptions in situations like multi-threading. The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad.
+OCaml has built-in exceptions that are efficient and flexible. However, monadic exceptions have advantages in certain situations:
+
+- They are safer in multi-threading contexts (no risk of unhandled exceptions escaping)
+- They compose well with other monads (via monad transformers)
+- They make the possibility of failure explicit in the type
+
+The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad for exactly these reasons.
 
 ```ocaml env=ch8
 module ExceptionM (Excn : sig type t end) : sig
@@ -898,10 +970,12 @@ end
 
 #### The State Monad
 
+The state monad threads a piece of mutable state through a computation without actually using mutation. The key insight is that a stateful computation can be represented as a *function* from the current state to a pair of (result, new state):
+
 ```ocaml env=ch8
 module StateM (Store : sig type t end) : sig
   type store = Store.t
-  type 'a t = store -> 'a * store  (* Pass the current store value to get the next value *)
+  type 'a t = store -> 'a * store  (* A stateful computation *)
   include MONAD_OPS
   include STATE with type 'a t := 'a monad
                  and type store := store
@@ -910,17 +984,19 @@ end = struct
   type store = Store.t
   module M = struct
     type 'a t = store -> 'a * store
-    let return a = fun s -> a, s     (* Keep the current value unchanged *)
+    let return a = fun s -> a, s     (* Return value, keep state unchanged *)
     let bind m b = fun s -> let a, s' = m s in b a s'
-  end                          (* To bind two steps, pass the value after first step *)
-  include M                          (* to the second step *)
+  end                          (* Run m, then pass result and new state to b *)
+  include M
   include MonadOps(M)
-  let get = fun s -> s, s            (* Keep the value unchanged but put it in monad *)
-  let put s' = fun _ -> (), s'       (* Change the value; a throwaway in monad *)
+  let get = fun s -> s, s            (* Return the current state *)
+  let put s' = fun _ -> (), s'       (* Replace the state, return unit *)
 end
 ```
 
-The state monad is useful to hide passing-around of a "current" value. Here is an example that renames variables in lambda-terms to eliminate potential name clashes:
+The `bind` operation sequences two stateful computations: it runs the first one with the initial state, then passes both the result and the new state to the second computation.
+
+The state monad is useful to hide the threading of a "current" value through a computation. Here is an example that renames variables in lambda-terms to eliminate potential name clashes (alpha-conversion):
 
 ```ocaml skip
 type term =
@@ -961,19 +1037,21 @@ let rec alpha_conv = function
    (Lam ("x5", App (Lam ("x6", App (Var "y", Var "x6")), Var "x5")), (7, [])) *)
 ```
 
-Note: This does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
+The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
+
+Note: This alpha-conversion does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
 
 ### 8.12 Monad Transformers
 
-Sometimes we need merits of multiple monads at the same time, e.g., monads `AM` and `BM`. The straightforward idea is to nest one monad within another: either `'a AM.monad BM.monad` or `'a BM.monad AM.monad`. But we want a monad that has operations of both `AM` and `BM`.
+Sometimes we need the capabilities of multiple monads at the same time. For example, we might want both state (to track information) and non-determinism (to explore choices). The straightforward idea is to nest one monad within another: either `'a AM.monad BM.monad` or `'a BM.monad AM.monad`. But this does not work well -- we want a single monad that has operations of *both* `AM` and `BM`.
 
-It turns out that the straightforward approach does not lead to operations with the meaning we want. A **monad transformer** `AT` takes a monad `BM` and turns it into a monad `AT(BM)` which actually wraps around `BM` on both sides. `AT(BM)` has operations of both monads.
+The solution is a **monad transformer**. A monad transformer `AT` takes a monad `BM` and produces a new monad `AT(BM)` that has operations of both. The transformed monad wraps around `BM` in a specific way to make the operations interact correctly.
 
-We will develop a monad transformer `StateT` which adds state to a monad-plus. The resulting monad has all: `return`, `bind`, `mzero`, `mplus`, `put`, `get`, and their supporting general-purpose functions.
+We will develop a monad transformer `StateT` which adds state to any monad-plus. The resulting monad has all the operations: `return`, `bind`, `mzero`, `mplus`, `put`, `get`, and all their derived functions.
 
-We need monad transformers in OCaml because "monads are contagious": although we have built-in state and exceptions, we need to use monadic state and exceptions when we are inside a monad. This is the reason Lwt is both a concurrency and an exception monad.
+Why do we need monad transformers in OCaml? Because "monads are contagious": although we have built-in state and exceptions, we need to use *monadic* state and exceptions when we are inside a monad. For example, using OCaml's native `ref` cells inside a list monad would give the wrong semantics for backtracking. This is also why Lwt is both a concurrency monad and an exception monad -- it needs monadic exceptions to interact correctly with its concurrency model.
 
-The state monad uses `let x = a in ...` for binding. The transformed monad uses `M.bind` (or `M.let*`) instead:
+To understand how the transformer works, let us compare the regular state monad with the transformed version. The regular state monad uses ordinary OCaml binding:
 
 ```
 type 'a state = store -> ('a * store)
@@ -982,18 +1060,24 @@ let return (a : 'a) : 'a state =
   fun s -> (a, s)
 
 let bind (u : 'a state) (f : 'a -> 'b state) : 'b state =
-  fun s -> (fun (a, s') -> f a s') (u s)
+  fun s -> let (a, s') = u s in f a s'
+```
 
+The transformed version wraps everything in the underlying monad `M`:
+
+```
 (* Monad M transformed to add state, in pseudo-code: *)
 type 'a stateT(M) = store -> ('a * store) M
-(* notice this is not an ('a M) state *)
+(* Note: this is store -> ('a * store) M, not ('a M) state *)
 
 let return (a : 'a) : 'a stateT(M) =
-  fun s -> M.return (a, s)           (* Rather than returning, M.return *)
+  fun s -> M.return (a, s)           (* Use M.return instead of just returning *)
 
 let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
-  fun s -> M.bind (u s) (fun (a, s') -> f a s')  (* Rather than let-binding, M.bind *)
+  fun s -> M.bind (u s) (fun (a, s') -> f a s')  (* Use M.bind instead of let *)
 ```
+
+The key insight is that the result type is `('a * store) M` -- the result and state are wrapped *together* in the underlying monad. This ensures that backtracking (in a monad-plus) correctly restores the state.
 
 #### State Transformer Implementation
 
@@ -1026,7 +1110,7 @@ end
 
 #### Backtracking with State
 
-Using the state transformer with our puzzle solver:
+Now we can combine backtracking with state for our puzzle solver. The state tracks which cells have been visited, eaten, and how many islands we have found. The monad-plus structure handles the backtracking when a choice leads to a dead end:
 
 ```ocaml skip
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
@@ -1128,29 +1212,31 @@ let find_to_eat a b c d =
 
 ### 8.13 Probabilistic Programming
 
-Using a random number generator, we can define procedures that produce various output. This is **not functional** -- mathematical functions have a deterministic result for fixed arguments.
+Using a random number generator, we can define procedures that produce various outputs. This is **not functional** in the mathematical sense -- mathematical functions have deterministic results for fixed arguments.
 
-Similarly to how we can "simulate" (mutable) variables with state monad and non-determinism with list monad, we can "simulate" random computation with a probability monad.
+Just as we can "simulate" mutable variables with the state monad and non-determinism with the list monad, we can "simulate" random computation with a **probability monad**. But the probability monad is more than just randomized computation -- it lets us *reason* about probabilities. We can ask questions like "what is the probability of this outcome?" or "what is the distribution of possible results?"
 
-The probability monad class means much more than having randomized computation. We can ask questions about probabilities of results. Monad instances can make tradeoffs of efficiency vs. accuracy (exact vs. approximate probabilities).
+Different monad implementations make different tradeoffs:
+- **Exact distribution**: Track all possible outcomes and their probabilities precisely
+- **Sampling (Monte Carlo)**: Approximate probabilities by running many random trials
 
 #### The Probability Monad
 
-The essential functions for the probability monad class are `choose` and `distrib`. Remaining functions could be defined in terms of these but are provided by each instance for efficiency.
+The essential functions for the probability monad class are `choose` (for making probabilistic choices) and `distrib` (for extracting the probability distribution). Other operations could be defined in terms of these but are provided by each instance for efficiency.
 
-Inside-monad operations:
+**Inside-monad operations** (building probabilistic computations):
 
-- `choose : float -> 'a monad -> 'a monad -> 'a monad`: `choose p a b` represents an event or distribution which is `a` with probability $p$ and is `b` with probability $1-p$.
-- `pick : ('a * float) list -> 'a monad`: A result from the provided distribution over values. The argument must be a probability distribution: positive values summing to 1.
-- `uniform : 'a list -> 'a monad`: Uniform distribution over given values.
-- `flip : float -> bool monad`: Equal to `choose p (return true) (return false)`.
-- `coin : bool monad`: Equal to `flip 0.5`.
+- `choose : float -> 'a monad -> 'a monad -> 'a monad`: `choose p a b` represents an event which is `a` with probability $p$ and `b` with probability $1-p$.
+- `pick : ('a * float) list -> 'a monad`: Draw a result from a given probability distribution. The argument must be a valid distribution: positive probabilities summing to 1.
+- `uniform : 'a list -> 'a monad`: Uniform distribution -- each element equally likely.
+- `flip : float -> bool monad`: A biased coin: `true` with probability `p`, `false` otherwise.
+- `coin : bool monad`: A fair coin: `flip 0.5`.
 
-Outside-monad operations:
+**Outside-monad operations** (querying probabilistic computations):
 
-- `prob : ('a -> bool) -> 'a monad -> float`: Returns the probability that the predicate holds.
-- `distrib : 'a monad -> ('a * float) list`: Returns the distribution of probabilities over the resulting values.
-- `access : 'a monad -> 'a`: Samples a random result from the distribution -- **non-functional** behavior.
+- `prob : ('a -> bool) -> 'a monad -> float`: Returns the probability that a predicate holds.
+- `distrib : 'a monad -> ('a * float) list`: Returns the full distribution of probabilities over outcomes.
+- `access : 'a monad -> 'a`: Samples a random result from the distribution -- this is **non-functional** behavior (different calls may return different results).
 
 ```ocaml env=ch8
 module type PROBABILITY = sig
@@ -1253,7 +1339,9 @@ end
 
 #### Example: The Monty Hall Problem
 
-In search of a new car, the player picks a door, say 1. The game host then opens one of the other doors, say 3, to reveal a goat and offers to let the player pick door 2 instead of door 1.
+The Monty Hall problem is a famous probability puzzle. In search of a new car, the player picks a door, say 1. The game host (who knows what is behind each door) then opens one of the other doors, say 3, to reveal a goat and offers to let the player switch to door 2 instead of door 1. Should the player switch?
+
+Most people's intuition says it does not matter, but let us compute the actual probabilities:
 
 ```ocaml skip
 module MontyHall (P : PROBABILITY) = struct
@@ -1283,18 +1371,20 @@ module MontySimul = MontyHall (Sampling1000)
    - : (bool * float) list = [(true, 0.666...); (false, 0.333...)] *)
 ```
 
-The famous result: switching doubles your chances of winning!
+The famous result: switching doubles your chances of winning! Counter-intuitively, the host's choice of which door to open gives you information -- by switching, you are betting that your initial choice was wrong (which it is 2/3 of the time).
 
 #### Conditional Probabilities
 
-Wouldn't it be nice to have a monad-plus rather than just a monad? We could use `guard` for conditional probabilities!
+So far we have computed unconditional probabilities. But what if we want to answer questions like "given that X happened, what is the probability of Y?" This is a conditional probability $P(Y|X)$.
+
+Wouldn't it be nice to have a monad-plus rather than just a monad? Then we could use `guard` for conditional probabilities!
 
 To compute $P(A|B)$:
 1. Compute what is needed for both $A$ and $B$
 2. Guard $B$
 3. Return $A$
 
-For the exact distribution monad, we just need to allow intermediate distributions to be unnormalized (sum to less than 1). For the sampling monad, we use rejection sampling (though `mplus` has no straightforward correct implementation).
+For the exact distribution monad, we allow intermediate distributions to be *unnormalized* (probabilities sum to less than 1) and normalize at the end. For the sampling monad, we use *rejection sampling*: generate samples and discard those that do not satisfy the condition (though `mplus` has no straightforward correct implementation in this approach).
 
 ```ocaml skip
 module type COND_PROBAB = sig
@@ -1435,15 +1525,23 @@ module BurglarySimul = Burglary (Sampling2000)
 
 ### 8.14 Lightweight Cooperative Threads
 
-The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a`, and resumes computing `b` only once the result `x` is known.
+Running multiple tasks asynchronously can hide I/O latency and utilize multi-core architectures. Traditional operating system threads are "heavyweight" -- they have significant overhead for context switching and memory. **Lightweight threads** are managed by the application rather than the OS, allowing many concurrent tasks with lower overhead.
 
-For concurrency, we need to "suppress" this sequentiality. We introduce:
+Lightweight threads can be:
+- **Preemptive**: The scheduler interrupts running threads to switch between them
+- **Cooperative**: Threads voluntarily give up control at specific points (like I/O operations)
+
+**Lwt** is a popular OCaml library for lightweight cooperative threads, implemented as a monad. The monadic structure ensures that thread switching happens at well-defined points (whenever you use `let*`), making the code easier to reason about.
+
+The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a`, and only resumes computing `b` once the result `x` is known.
+
+For concurrency, we need to "suppress" this sequentiality. We introduce a parallel bind:
 
 ```
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-where `parallel a b (fun x y -> c)` does not wait for `a` to be computed before it can start computing `b`.
+With `parallel a b (fun x y -> c)`, computations `a` and `b` can proceed concurrently. The continuation `c` runs once both results are available.
 
 If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
 
@@ -1457,11 +1555,15 @@ c x y
 
 #### Fine-Grained vs. Coarse-Grained Concurrency
 
-Under **fine-grained** concurrency, every `bind` is suspended and computation moves to other threads. It comes back to complete the `bind` before running threads created since the `bind` was suspended.
+There are two approaches to when threads switch:
 
-Under **coarse-grained** concurrency, computation is only suspended when requested via a `suspend` (often called `yield`) operation. Library operations that need to wait for an event or completion of I/O should call `suspend` internally.
+**Fine-grained** concurrency suspends at every `bind`. The scheduler runs other threads and comes back to complete the `bind` before running threads created since the suspension. This gives maximum interleaving but has higher overhead.
+
+**Coarse-grained** concurrency only suspends when explicitly requested via a `suspend` (often called `yield`) operation. Library operations that need to wait for I/O should call `suspend` internally. This is more efficient but requires careful placement of suspension points.
 
 #### Thread Monad Signatures
+
+The thread monad extends the basic monad with parallel composition:
 
 ```ocaml env=ch8
 module type THREADS = sig
@@ -1510,6 +1612,8 @@ end
 
 #### Cooperative Thread Implementation
 
+The implementation uses a mutable state to track thread progress. Each thread is in one of three states: completed (`Return`), waiting (`Sleep` with a list of callbacks to invoke when done), or forwarded to another thread (`Link`):
+
 ```ocaml skip
 module Cooperative = Threads(struct
   type 'a state =
@@ -1517,7 +1621,7 @@ module Cooperative = Threads(struct
     | Sleep of ('a -> unit) list       (* When thread returns, wake up waiters *)
     | Link of 'a t                     (* A link to the actual thread *)
   and 'a t = {mutable state : 'a state}  (* State of the thread can change *)
-                                       (* -- it can return, or more waiters can be added *)
+                                       (* -- it can return, or more waiters added *)
   let rec find t =                     (* Union-find style link chasing *)
     match t.state with
     | Link t -> find t
@@ -1584,6 +1688,8 @@ end)
 
 #### Testing the Thread Implementation
 
+Let us test the implementation with two threads that each print a sequence of numbers:
+
 ```ocaml skip
 module TTest (T : THREAD_OPS) = struct
   open T
@@ -1617,7 +1723,9 @@ let test =
    val test : unit = () *)
 ```
 
-The output shows that the threads interleave their execution, with each `bind` causing a context switch.
+The output shows that the threads interleave their execution beautifully: A(5), B(4), A(4), B(3), and so on. Each `bind` (the `let*`) causes a context switch to the other thread. This is fine-grained concurrency in action.
+
+The key insight is that monadic structure gives us precise control over concurrency. Every `let*` is a potential suspension point, making the code's behavior predictable and debuggable -- a significant advantage over preemptive threading where context switches can happen anywhere.
 
 ### 8.15 Exercises
 
