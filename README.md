@@ -2713,12 +2713,12 @@ let rec cons : 'a. 'a -> 'a seq -> 'a seq =
 
 let rec lookup : 'a. int -> 'a seq -> 'a =
   fun i s -> match i, s with
-  | _, Nil -> raise Not_found                 (* Rather than returning None : 'a option *)
-  | 0, One (x, _) -> x                        (* we raise exception, for convenience. *)
+  | _, Nil -> raise Not_found              (* Rather than returning None : 'a option *)
+  | 0, One (x, _) -> x                     (* we raise exception, for convenience. *)
   | i, One (_, ps) -> lookup (i-1) (Zero ps)
-  | i, Zero ps ->                             (* Random-access lookup works *)
-      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster *)
-      if i mod 2 = 0 then x else y            (* than in standard lists. *)
+  | i, Zero ps ->                          (* Random-access lookup works *)
+      let x, y = lookup (i / 2) ps in      (* in logarithmic time -- much faster *)
+      if i mod 2 = 0 then x else y         (* than in standard lists. *)
 ```
 
 The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.
@@ -3902,17 +3902,17 @@ let ( |-> ) x f = concat_map f x
 Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
 
 ```ocaml env=ch6
-let combine l r =                     (* Combine two expressions using each operator *)
+let combine l r =                  (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
 let rec exprs = function
-  | [] -> []                          (* No expressions from empty list *)
-  | [n] -> [Val n]                    (* Single number: just Val n *)
+  | [] -> []                       (* No expressions from empty list *)
+  | [n] -> [Val n]                 (* Single number: just Val n *)
   | ns ->
-    split ns |-> (fun (ls, rs) ->     (* For each way to split numbers... *)
-      exprs ls |-> (fun l ->          (* ...for each expression l from left half... *)
-        exprs rs |-> (fun r ->        (* ...for each expression r from right half... *)
-          combine l r)))              (* ...produce all l op r combinations *)
+    split ns |-> (fun (ls, rs) ->  (* For each way to split numbers... *)
+      exprs ls |-> (fun l ->       (* ...for each expression l from left half... *)
+        exprs rs |-> (fun r ->     (* ...for each expression r from right half... *)
+          combine l r)))           (* ...produce all l op r combinations *)
 ```
 
 Read the nested `|->` as "for each ... for each ... for each ...". This is the essence of backtracking: we explore all combinations systematically.
@@ -3990,16 +3990,16 @@ In the solution, yellow cells contain honey, black cells were initially empty, a
 We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
 
 ```ocaml env=ch6
-type cell = int * int                (* Cartesian coordinates *)
+type cell = int * int          (* Cartesian coordinates *)
 
-module CellSet =                     (* Store cells in sets for efficient membership tests *)
+module CellSet =               (* Store cells in sets for efficient membership tests *)
   Set.Make (struct type t = cell let compare = compare end)
 
-type task = {                        (* For board size N, coordinates *)
-  board_size : int;                  (* range from (-2N, -N) to (2N, N) *)
-  num_islands : int;                 (* Required number of islands *)
-  island_size : int;                 (* Required cells per island *)
-  empty_cells : CellSet.t;           (* Initially empty cells *)
+type task = {                  (* For board size N, coordinates *)
+  board_size : int;            (* range from (-2N, -N) to (2N, N) *)
+  num_islands : int;           (* Required number of islands *)
+  island_size : int;           (* Required cells per island *)
+  empty_cells : CellSet.t;     (* Initially empty cells *)
 }
 
 let cellset_of_list l =           (* Convert list to set (inverse of CellSet.elements) *)
@@ -6463,7 +6463,7 @@ module HoneyIslands (M : MONAD_PLUS_OPS) = struct
     let* () = put {s with eaten = c::s.eaten;
          visited = CellSet.add c s.visited;
          more_to_eat = s.more_to_eat - 1} in
-    return ()                 (* Remaining state update actions just affect the state *)
+    return ()              (* Remaining state update actions just affect the state *)
 
   let keep_cell c =
     let* s = get in
@@ -6927,66 +6927,66 @@ The implementation uses a mutable state to track thread progress. Each thread is
 ```ocaml skip
 module Cooperative = Threads(struct
   type 'a state =
-    | Return of 'a                     (* The thread has returned *)
-    | Sleep of ('a -> unit) list       (* When thread returns, wake up waiters *)
-    | Link of 'a t                     (* A link to the actual thread *)
+    | Return of 'a                 (* The thread has returned *)
+    | Sleep of ('a -> unit) list   (* When thread returns, wake up waiters *)
+    | Link of 'a t                 (* A link to the actual thread *)
   and 'a t = {mutable state : 'a state}  (* State of the thread can change *)
-                                       (* -- it can return, or more waiters added *)
-  let rec find t =                     (* Union-find style link chasing *)
+                                   (* -- it can return, or more waiters added *)
+  let rec find t =                 (* Union-find style link chasing *)
     match t.state with
     | Link t -> find t
     | _ -> t
 
-  let jobs = Queue.create ()           (* Work queue -- will store unit -> unit procedures *)
+  let jobs = Queue.create ()       (* Work queue -- will store unit -> unit procedures *)
 
-  let wakeup m a =                     (* Thread m has actually finished -- *)
-    let m = find m in                  (* updating its state *)
+  let wakeup m a =                 (* Thread m has actually finished -- *)
+    let m = find m in              (* updating its state *)
     match m.state with
     | Return _ -> assert false
     | Sleep waiters ->
-        m.state <- Return a;           (* Set the state, and only then *)
-        List.iter ((|>) a) waiters     (* wake up the waiters *)
+        m.state <- Return a;       (* Set the state, and only then *)
+        List.iter ((|>) a) waiters (* wake up the waiters *)
     | Link _ -> assert false
 
   let return a = {state = Return a}
 
-  let connect t t' =                   (* t was a placeholder for t' *)
+  let connect t t' =               (* t was a placeholder for t' *)
     let t' = find t' in
     match t'.state with
     | Sleep waiters' ->
         let t = find t in
         (match t.state with
-        | Sleep waiters ->             (* If both sleep, collect their waiters *)
+        | Sleep waiters ->         (* If both sleep, collect their waiters *)
             t.state <- Sleep (waiters' @ waiters);
-            t'.state <- Link t         (* and link one to the other *)
+            t'.state <- Link t     (* and link one to the other *)
         | _ -> assert false)
-    | Return x -> wakeup t x           (* If t' returned, wake up the placeholder *)
+    | Return x -> wakeup t x       (* If t' returned, wake up the placeholder *)
     | Link _ -> assert false
 
   let rec bind a b =
     let a = find a in
-    let m = {state = Sleep []} in      (* The resulting monad *)
+    let m = {state = Sleep []} in  (* The resulting monad *)
     (match a.state with
-    | Return x ->                      (* If a returned, we suspend further work *)
+    | Return x ->                  (* If a returned, we suspend further work *)
         let job () = connect m (b x) in  (* (In exercise 11, this should *)
-        Queue.push job jobs            (* only happen after suspend) *)
-    | Sleep waiters ->                 (* If a sleeps, we wait for it to return *)
+        Queue.push job jobs        (* only happen after suspend) *)
+    | Sleep waiters ->             (* If a sleeps, we wait for it to return *)
         let job x = connect m (b x) in
         a.state <- Sleep (job::waiters)
     | Link _ -> assert false);
     m
 
-  let parallel a b c =                 (* Since in our implementation *)
-    bind a (fun x ->                   (* the threads run as soon as they are created, *)
-    bind b (fun y ->                   (* parallel is redundant *)
+  let parallel a b c =             (* Since in our implementation *)
+    bind a (fun x ->               (* the threads run as soon as they are created, *)
+    bind b (fun y ->               (* parallel is redundant *)
     c x y))
 
-  let rec access m =                   (* Accessing not only gets the result of m, *)
-    let m = find m in                  (* but spins the thread loop till m terminates *)
+  let rec access m =               (* Accessing not only gets the result of m, *)
+    let m = find m in              (* but spins the thread loop till m terminates *)
     match m.state with
-    | Return x -> x                    (* No further work *)
+    | Return x -> x                (* No further work *)
     | Sleep _ ->
-        (try Queue.pop jobs ()         (* Perform suspended work *)
+        (try Queue.pop jobs ()     (* Perform suspended work *)
          with Queue.Empty ->
            failwith "access: result not available");
         access m
@@ -7005,18 +7005,18 @@ module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
     let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
-    if n > 0 then loop s (n-1)         (* We cannot use whenM because the thread *)
-    else return ()                     (* would be created regardless of condition *)
+    if n > 0 then loop s (n-1)     (* We cannot use whenM because the thread *)
+    else return ()                 (* would be created regardless of condition *)
 end
 
 module TT = TTest (Cooperative)
 
 let test =
-  Cooperative.kill_threads ();         (* Clean-up after previous tests *)
+  Cooperative.kill_threads ();     (* Clean-up after previous tests *)
   let thread1 = TT.loop "A" 5 in
   let thread2 = TT.loop "B" 4 in
-  Cooperative.access thread1;          (* We ensure threads finish computing *)
-  Cooperative.access thread2           (* before we proceed *)
+  Cooperative.access thread1;      (* We ensure threads finish computing *)
+  Cooperative.access thread2       (* before we proceed *)
 
 (* Output:
    -- A(5)
@@ -8464,8 +8464,8 @@ let eval_lambda eval_rec wrap unwrap subst e =
   | Some (VarL v) -> eval_var (fun v -> wrap (VarL v)) subst v
   | Some (App (l1, l2)) ->  (* but we use the option type as it is safer *)
     let l1' = eval_rec subst l1  (* and more flexible in this context *)
-    and l2' = eval_rec subst l2 in  (* Recursive processing function returns expression *)
-    (match unwrap l1' with  (* of the completed language, we need *)
+    and l2' = eval_rec subst l2 in  (* Recursive processing returns expression *)
+    (match unwrap l1' with     (* of the completed language, we need *)
     | Some (Abs (s, body)) ->  (* to unwrap it into the current sub-language *)
       eval_rec [s, l2'] body  (* The recursive call is already wrapped *)
     | _ -> wrap (App (l1', l2')))  (* Wrap into the completed language *)
@@ -8474,7 +8474,7 @@ let eval_lambda eval_rec wrap unwrap subst e =
     wrap (Abs (s', eval_rec ((s, wrap (VarL s'))::subst) l1))
   | None -> e  (* Falling-through when not in the current sub-language *)
 
-type lambda_t = Lambda_t of lambda_t lambda  (* Defining lambdas as the completed language *)
+type lambda_t = Lambda_t of lambda_t lambda  (* Lambdas as the completed language *)
 
 let rec eval1 subst =  (* and the corresponding eval function *)
   eval_lambda eval1
@@ -8508,7 +8508,7 @@ let eval_expr eval_rec wrap unwrap subst e =
     | _ -> wrap (Mult (m', n')))
   | None -> e
 
-type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed language *)
+type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed lang *)
 
 let rec eval2 subst =  (* aka "tying the recursive knot" *)
   eval_expr eval2
@@ -8518,7 +8518,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
 Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the "fall-through" property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
 
 ```ocaml env=sol1
-type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
+type 'a lexpr =  (* The language merging lambda-expressions and arithmetic exprs *)
   Lambda of 'a lambda | Expr of 'a expr  (* can also be used in further extensions *)
 
 let eval_lexpr eval_rec wrap unwrap subst e =
@@ -8572,7 +8572,8 @@ let eval_var sub = function
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
 
 type expr += Abs of string * expr | App of expr * expr
-(* The sub-languages are not differentiated by types, a shortcoming of this non-solution *)
+(* The sub-languages are not differentiated by types,
+   a shortcoming of this non-solution *)
 
 let eval_lambda eval_rec subst = function
   | Var _ as v -> eval_var subst v
@@ -8904,8 +8905,8 @@ object (self)  (* The 'visitor will determine the (sub)language *)
                (* to which a given var variant belongs *)
   method v = v
   method accept : 'visitor -> unit =  (* The visitor pattern inverts the way *)
-    fun visitor -> visitor#visitVar self  (* pattern matching proceeds: the variant *)
-end  (* selects the computation *)
+    fun visitor -> visitor#visitVar self  (* pattern matching proceeds: *)
+end                              (* the variant selects the computation *)
 let new_var v = (new var v :> 'a visitable)
 
 class ['visitor] abs (v : var_name) (body : 'visitor visitable) =
@@ -9260,7 +9261,7 @@ struct
     | #ExprX.exp as x -> ExprX.eval subst x
 
   let freevars : exp -> 'b = function
-    | #lambda as x -> LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp is fine *)
+    | #lambda as x -> LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp ok *)
     | #expr as x -> ExprX.freevars x  (* Either of #expr or #ExprX.exp is fine *)
 end
 module rec LExpr : (Operations with type exp = LExpr.exp lexpr) =
@@ -9402,7 +9403,7 @@ struct
   let runT m s p = MP.lift fst (m s p)
   let satisfy f s p =
     if p < String.length s && f s.[p]  (* Consuming a character means accessing it *)
-    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing position *)
+    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing pos *)
   let end_of_text s p =
     if p >= String.length s then MP.return ((), p) else MP.mzero
 end
@@ -9416,7 +9417,7 @@ module type PARSE_OPS = sig
   val many : 'a monad -> 'a list monad
   val opt : 'a monad -> 'a option monad
   val (?|) : 'a monad -> 'a option monad
-  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy here? *)
+  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy? *)
   val (<*>) : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Synonym for seq *)
   val lowercase : char monad
   val uppercase : char monad

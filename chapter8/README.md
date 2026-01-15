@@ -1147,7 +1147,7 @@ module HoneyIslands (M : MONAD_PLUS_OPS) = struct
     let* () = put {s with eaten = c::s.eaten;
          visited = CellSet.add c s.visited;
          more_to_eat = s.more_to_eat - 1} in
-    return ()                 (* Remaining state update actions just affect the state *)
+    return ()              (* Remaining state update actions just affect the state *)
 
   let keep_cell c =
     let* s = get in
@@ -1611,66 +1611,66 @@ The implementation uses a mutable state to track thread progress. Each thread is
 ```ocaml skip
 module Cooperative = Threads(struct
   type 'a state =
-    | Return of 'a                     (* The thread has returned *)
-    | Sleep of ('a -> unit) list       (* When thread returns, wake up waiters *)
-    | Link of 'a t                     (* A link to the actual thread *)
+    | Return of 'a                 (* The thread has returned *)
+    | Sleep of ('a -> unit) list   (* When thread returns, wake up waiters *)
+    | Link of 'a t                 (* A link to the actual thread *)
   and 'a t = {mutable state : 'a state}  (* State of the thread can change *)
-                                       (* -- it can return, or more waiters added *)
-  let rec find t =                     (* Union-find style link chasing *)
+                                   (* -- it can return, or more waiters added *)
+  let rec find t =                 (* Union-find style link chasing *)
     match t.state with
     | Link t -> find t
     | _ -> t
 
-  let jobs = Queue.create ()           (* Work queue -- will store unit -> unit procedures *)
+  let jobs = Queue.create ()       (* Work queue -- will store unit -> unit procedures *)
 
-  let wakeup m a =                     (* Thread m has actually finished -- *)
-    let m = find m in                  (* updating its state *)
+  let wakeup m a =                 (* Thread m has actually finished -- *)
+    let m = find m in              (* updating its state *)
     match m.state with
     | Return _ -> assert false
     | Sleep waiters ->
-        m.state <- Return a;           (* Set the state, and only then *)
-        List.iter ((|>) a) waiters     (* wake up the waiters *)
+        m.state <- Return a;       (* Set the state, and only then *)
+        List.iter ((|>) a) waiters (* wake up the waiters *)
     | Link _ -> assert false
 
   let return a = {state = Return a}
 
-  let connect t t' =                   (* t was a placeholder for t' *)
+  let connect t t' =               (* t was a placeholder for t' *)
     let t' = find t' in
     match t'.state with
     | Sleep waiters' ->
         let t = find t in
         (match t.state with
-        | Sleep waiters ->             (* If both sleep, collect their waiters *)
+        | Sleep waiters ->         (* If both sleep, collect their waiters *)
             t.state <- Sleep (waiters' @ waiters);
-            t'.state <- Link t         (* and link one to the other *)
+            t'.state <- Link t     (* and link one to the other *)
         | _ -> assert false)
-    | Return x -> wakeup t x           (* If t' returned, wake up the placeholder *)
+    | Return x -> wakeup t x       (* If t' returned, wake up the placeholder *)
     | Link _ -> assert false
 
   let rec bind a b =
     let a = find a in
-    let m = {state = Sleep []} in      (* The resulting monad *)
+    let m = {state = Sleep []} in  (* The resulting monad *)
     (match a.state with
-    | Return x ->                      (* If a returned, we suspend further work *)
+    | Return x ->                  (* If a returned, we suspend further work *)
         let job () = connect m (b x) in  (* (In exercise 11, this should *)
-        Queue.push job jobs            (* only happen after suspend) *)
-    | Sleep waiters ->                 (* If a sleeps, we wait for it to return *)
+        Queue.push job jobs        (* only happen after suspend) *)
+    | Sleep waiters ->             (* If a sleeps, we wait for it to return *)
         let job x = connect m (b x) in
         a.state <- Sleep (job::waiters)
     | Link _ -> assert false);
     m
 
-  let parallel a b c =                 (* Since in our implementation *)
-    bind a (fun x ->                   (* the threads run as soon as they are created, *)
-    bind b (fun y ->                   (* parallel is redundant *)
+  let parallel a b c =             (* Since in our implementation *)
+    bind a (fun x ->               (* the threads run as soon as they are created, *)
+    bind b (fun y ->               (* parallel is redundant *)
     c x y))
 
-  let rec access m =                   (* Accessing not only gets the result of m, *)
-    let m = find m in                  (* but spins the thread loop till m terminates *)
+  let rec access m =               (* Accessing not only gets the result of m, *)
+    let m = find m in              (* but spins the thread loop till m terminates *)
     match m.state with
-    | Return x -> x                    (* No further work *)
+    | Return x -> x                (* No further work *)
     | Sleep _ ->
-        (try Queue.pop jobs ()         (* Perform suspended work *)
+        (try Queue.pop jobs ()     (* Perform suspended work *)
          with Queue.Empty ->
            failwith "access: result not available");
         access m
@@ -1689,18 +1689,18 @@ module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
     let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
-    if n > 0 then loop s (n-1)         (* We cannot use whenM because the thread *)
-    else return ()                     (* would be created regardless of condition *)
+    if n > 0 then loop s (n-1)     (* We cannot use whenM because the thread *)
+    else return ()                 (* would be created regardless of condition *)
 end
 
 module TT = TTest (Cooperative)
 
 let test =
-  Cooperative.kill_threads ();         (* Clean-up after previous tests *)
+  Cooperative.kill_threads ();     (* Clean-up after previous tests *)
   let thread1 = TT.loop "A" 5 in
   let thread2 = TT.loop "B" 4 in
-  Cooperative.access thread1;          (* We ensure threads finish computing *)
-  Cooperative.access thread2           (* before we proceed *)
+  Cooperative.access thread1;      (* We ensure threads finish computing *)
+  Cooperative.access thread2       (* before we proceed *)
 
 (* Output:
    -- A(5)

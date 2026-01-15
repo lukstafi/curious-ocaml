@@ -254,12 +254,12 @@ let rec cons : 'a. 'a -> 'a seq -> 'a seq =
 
 let rec lookup : 'a. int -> 'a seq -> 'a =
   fun i s -> match i, s with
-  | _, Nil -> raise Not_found                 (* Rather than returning None : 'a option *)
-  | 0, One (x, _) -> x                        (* we raise exception, for convenience. *)
+  | _, Nil -> raise Not_found              (* Rather than returning None : 'a option *)
+  | 0, One (x, _) -> x                     (* we raise exception, for convenience. *)
   | i, One (_, ps) -> lookup (i-1) (Zero ps)
-  | i, Zero ps ->                             (* Random-access lookup works *)
-      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster *)
-      if i mod 2 = 0 then x else y            (* than in standard lists. *)
+  | i, Zero ps ->                          (* Random-access lookup works *)
+      let x, y = lookup (i / 2) ps in      (* in logarithmic time -- much faster *)
+      if i mod 2 = 0 then x else y         (* than in standard lists. *)
 ```
 
 The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.

@@ -742,17 +742,17 @@ let ( |-> ) x f = concat_map f x
 Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
 
 ```ocaml env=ch6
-let combine l r =                     (* Combine two expressions using each operator *)
+let combine l r =                  (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
 let rec exprs = function
-  | [] -> []                          (* No expressions from empty list *)
-  | [n] -> [Val n]                    (* Single number: just Val n *)
+  | [] -> []                       (* No expressions from empty list *)
+  | [n] -> [Val n]                 (* Single number: just Val n *)
   | ns ->
-    split ns |-> (fun (ls, rs) ->     (* For each way to split numbers... *)
-      exprs ls |-> (fun l ->          (* ...for each expression l from left half... *)
-        exprs rs |-> (fun r ->        (* ...for each expression r from right half... *)
-          combine l r)))              (* ...produce all l op r combinations *)
+    split ns |-> (fun (ls, rs) ->  (* For each way to split numbers... *)
+      exprs ls |-> (fun l ->       (* ...for each expression l from left half... *)
+        exprs rs |-> (fun r ->     (* ...for each expression r from right half... *)
+          combine l r)))           (* ...produce all l op r combinations *)
 ```
 
 Read the nested `|->` as "for each ... for each ... for each ...". This is the essence of backtracking: we explore all combinations systematically.
@@ -830,16 +830,16 @@ In the solution, yellow cells contain honey, black cells were initially empty, a
 We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
 
 ```ocaml env=ch6
-type cell = int * int                (* Cartesian coordinates *)
+type cell = int * int          (* Cartesian coordinates *)
 
-module CellSet =                     (* Store cells in sets for efficient membership tests *)
+module CellSet =               (* Store cells in sets for efficient membership tests *)
   Set.Make (struct type t = cell let compare = compare end)
 
-type task = {                        (* For board size N, coordinates *)
-  board_size : int;                  (* range from (-2N, -N) to (2N, N) *)
-  num_islands : int;                 (* Required number of islands *)
-  island_size : int;                 (* Required cells per island *)
-  empty_cells : CellSet.t;           (* Initially empty cells *)
+type task = {                  (* For board size N, coordinates *)
+  board_size : int;            (* range from (-2N, -N) to (2N, N) *)
+  num_islands : int;           (* Required number of islands *)
+  island_size : int;           (* Required cells per island *)
+  empty_cells : CellSet.t;     (* Initially empty cells *)
 }
 
 let cellset_of_list l =           (* Convert list to set (inverse of CellSet.elements) *)

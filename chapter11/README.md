@@ -75,8 +75,8 @@ let eval_lambda eval_rec wrap unwrap subst e =
   | Some (VarL v) -> eval_var (fun v -> wrap (VarL v)) subst v
   | Some (App (l1, l2)) ->  (* but we use the option type as it is safer *)
     let l1' = eval_rec subst l1  (* and more flexible in this context *)
-    and l2' = eval_rec subst l2 in  (* Recursive processing function returns expression *)
-    (match unwrap l1' with  (* of the completed language, we need *)
+    and l2' = eval_rec subst l2 in  (* Recursive processing returns expression *)
+    (match unwrap l1' with     (* of the completed language, we need *)
     | Some (Abs (s, body)) ->  (* to unwrap it into the current sub-language *)
       eval_rec [s, l2'] body  (* The recursive call is already wrapped *)
     | _ -> wrap (App (l1', l2')))  (* Wrap into the completed language *)
@@ -85,7 +85,7 @@ let eval_lambda eval_rec wrap unwrap subst e =
     wrap (Abs (s', eval_rec ((s, wrap (VarL s'))::subst) l1))
   | None -> e  (* Falling-through when not in the current sub-language *)
 
-type lambda_t = Lambda_t of lambda_t lambda  (* Defining lambdas as the completed language *)
+type lambda_t = Lambda_t of lambda_t lambda  (* Lambdas as the completed language *)
 
 let rec eval1 subst =  (* and the corresponding eval function *)
   eval_lambda eval1
@@ -119,7 +119,7 @@ let eval_expr eval_rec wrap unwrap subst e =
     | _ -> wrap (Mult (m', n')))
   | None -> e
 
-type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed language *)
+type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed lang *)
 
 let rec eval2 subst =  (* aka "tying the recursive knot" *)
   eval_expr eval2
@@ -129,7 +129,7 @@ let rec eval2 subst =  (* aka "tying the recursive knot" *)
 Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the "fall-through" property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
 
 ```ocaml env=sol1
-type 'a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
+type 'a lexpr =  (* The language merging lambda-expressions and arithmetic exprs *)
   Lambda of 'a lambda | Expr of 'a expr  (* can also be used in further extensions *)
 
 let eval_lexpr eval_rec wrap unwrap subst e =
@@ -183,7 +183,8 @@ let eval_var sub = function
 let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
 
 type expr += Abs of string * expr | App of expr * expr
-(* The sub-languages are not differentiated by types, a shortcoming of this non-solution *)
+(* The sub-languages are not differentiated by types,
+   a shortcoming of this non-solution *)
 
 let eval_lambda eval_rec subst = function
   | Var _ as v -> eval_var subst v
@@ -515,8 +516,8 @@ object (self)  (* The 'visitor will determine the (sub)language *)
                (* to which a given var variant belongs *)
   method v = v
   method accept : 'visitor -> unit =  (* The visitor pattern inverts the way *)
-    fun visitor -> visitor#visitVar self  (* pattern matching proceeds: the variant *)
-end  (* selects the computation *)
+    fun visitor -> visitor#visitVar self  (* pattern matching proceeds: *)
+end                              (* the variant selects the computation *)
 let new_var v = (new var v :> 'a visitable)
 
 class ['visitor] abs (v : var_name) (body : 'visitor visitable) =
@@ -871,7 +872,7 @@ struct
     | #ExprX.exp as x -> ExprX.eval subst x
 
   let freevars : exp -> 'b = function
-    | #lambda as x -> LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp is fine *)
+    | #lambda as x -> LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp ok *)
     | #expr as x -> ExprX.freevars x  (* Either of #expr or #ExprX.exp is fine *)
 end
 module rec LExpr : (Operations with type exp = LExpr.exp lexpr) =
@@ -1013,7 +1014,7 @@ struct
   let runT m s p = MP.lift fst (m s p)
   let satisfy f s p =
     if p < String.length s && f s.[p]  (* Consuming a character means accessing it *)
-    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing position *)
+    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing pos *)
   let end_of_text s p =
     if p >= String.length s then MP.return ((), p) else MP.mzero
 end
@@ -1027,7 +1028,7 @@ module type PARSE_OPS = sig
   val many : 'a monad -> 'a list monad
   val opt : 'a monad -> 'a option monad
   val (?|) : 'a monad -> 'a option monad
-  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy here? *)
+  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy? *)
   val (<*>) : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Synonym for seq *)
   val lowercase : char monad
   val uppercase : char monad

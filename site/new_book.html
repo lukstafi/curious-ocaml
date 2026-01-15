@@ -4154,12 +4154,12 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb115-1"><a hr
 <span id="cb115-6"><a href="#cb115-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb115-7"><a href="#cb115-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> lookup : &#39;a. <span class="dt">int</span> -&gt; &#39;a seq -&gt; &#39;a =</span>
 <span id="cb115-8"><a href="#cb115-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> i s -&gt; <span class="kw">match</span> i, s <span class="kw">with</span></span>
-<span id="cb115-9"><a href="#cb115-9" aria-hidden="true" tabindex="-1"></a>  | _, Nil -&gt; <span class="dt">raise</span> <span class="dt">Not_found</span>                 <span class="co">(* Rather than returning None : &#39;a option *)</span></span>
-<span id="cb115-10"><a href="#cb115-10" aria-hidden="true" tabindex="-1"></a>  | <span class="dv">0</span>, One (x, _) -&gt; x                        <span class="co">(* we raise exception, for convenience. *)</span></span>
+<span id="cb115-9"><a href="#cb115-9" aria-hidden="true" tabindex="-1"></a>  | _, Nil -&gt; <span class="dt">raise</span> <span class="dt">Not_found</span>              <span class="co">(* Rather than returning None : &#39;a option *)</span></span>
+<span id="cb115-10"><a href="#cb115-10" aria-hidden="true" tabindex="-1"></a>  | <span class="dv">0</span>, One (x, _) -&gt; x                     <span class="co">(* we raise exception, for convenience. *)</span></span>
 <span id="cb115-11"><a href="#cb115-11" aria-hidden="true" tabindex="-1"></a>  | i, One (_, ps) -&gt; lookup (i<span class="dv">-1</span>) (Zero ps)</span>
-<span id="cb115-12"><a href="#cb115-12" aria-hidden="true" tabindex="-1"></a>  | i, Zero ps -&gt;                             <span class="co">(* Random-access lookup works *)</span></span>
-<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> x, y = lookup (i / <span class="dv">2</span>) ps <span class="kw">in</span>         <span class="co">(* in logarithmic time -- much faster *)</span></span>
-<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> i <span class="kw">mod</span> <span class="dv">2</span> = <span class="dv">0</span> <span class="kw">then</span> x <span class="kw">else</span> y            <span class="co">(* than in standard lists. *)</span></span></code></pre></div>
+<span id="cb115-12"><a href="#cb115-12" aria-hidden="true" tabindex="-1"></a>  | i, Zero ps -&gt;                          <span class="co">(* Random-access lookup works *)</span></span>
+<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> x, y = lookup (i / <span class="dv">2</span>) ps <span class="kw">in</span>      <span class="co">(* in logarithmic time -- much faster *)</span></span>
+<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> i <span class="kw">mod</span> <span class="dv">2</span> = <span class="dv">0</span> <span class="kw">then</span> x <span class="kw">else</span> y         <span class="co">(* than in standard lists. *)</span></span></code></pre></div>
 <p>The <code>Zero</code> and <code>One</code> constructors correspond to
 binary digits. A <code>Zero</code> means “no singleton element at this
 level,” while <code>One</code> carries a singleton (or pair, or quad,
@@ -8116,18 +8116,18 @@ module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
     let* () = return (Printf.printf &quot;-- %s(%d)\n%!&quot; s n) in
-    if n &gt; 0 then loop s (n-1)         (* We cannot use whenM because the thread *)
-    else return ()                     (* would be created regardless of condition *)
+    if n &gt; 0 then loop s (n-1)     (* We cannot use whenM because the thread *)
+    else return ()                 (* would be created regardless of condition *)
 end
 
 module TT = TTest (Cooperative)
 
 let test =
-  Cooperative.kill_threads ();         (* Clean-up after previous tests *)
+  Cooperative.kill_threads ();     (* Clean-up after previous tests *)
   let thread1 = TT.loop &quot;A&quot; 5 in
   let thread2 = TT.loop &quot;B&quot; 4 in
-  Cooperative.access thread1;          (* We ensure threads finish computing *)
-  Cooperative.access thread2           (* before we proceed *)
+  Cooperative.access thread1;      (* We ensure threads finish computing *)
+  Cooperative.access thread2       (* before we proceed *)
 
 (* Output:
    -- A(5)
@@ -9409,8 +9409,8 @@ let eval_lambda eval_rec wrap unwrap subst e =
   | Some (VarL v) -&gt; eval_var (fun v -&gt; wrap (VarL v)) subst v
   | Some (App (l1, l2)) -&gt;  (* but we use the option type as it is safer *)
     let l1&#39; = eval_rec subst l1  (* and more flexible in this context *)
-    and l2&#39; = eval_rec subst l2 in  (* Recursive processing function returns expression *)
-    (match unwrap l1&#39; with  (* of the completed language, we need *)
+    and l2&#39; = eval_rec subst l2 in  (* Recursive processing returns expression *)
+    (match unwrap l1&#39; with     (* of the completed language, we need *)
     | Some (Abs (s, body)) -&gt;  (* to unwrap it into the current sub-language *)
       eval_rec [s, l2&#39;] body  (* The recursive call is already wrapped *)
     | _ -&gt; wrap (App (l1&#39;, l2&#39;)))  (* Wrap into the completed language *)
@@ -9419,7 +9419,7 @@ let eval_lambda eval_rec wrap unwrap subst e =
     wrap (Abs (s&#39;, eval_rec ((s, wrap (VarL s&#39;))::subst) l1))
   | None -&gt; e  (* Falling-through when not in the current sub-language *)
 
-type lambda_t = Lambda_t of lambda_t lambda  (* Defining lambdas as the completed language *)
+type lambda_t = Lambda_t of lambda_t lambda  (* Lambdas as the completed language *)
 
 let rec eval1 subst =  (* and the corresponding eval function *)
   eval_lambda eval1
@@ -9440,14 +9440,14 @@ subst n in (match unwrap m’, unwrap n’ with | Some (Num m’), Some (Num
 n’) -&gt; wrap (Num (m’ </em> n’)) | </em> -&gt; wrap (Mult (m’, n’))) |
 None -&gt; e</p>
 <p>type expr_t = Expr_t of expr_t expr (* Defining arithmetic as the
-completed language *)</p>
+completed lang *)</p>
 <p>let rec eval2 subst = (* aka “tying the recursive knot” *) eval_expr
 eval2 (fun e -&gt; Expr_t e) (fun (Expr_t e) -&gt; Some e) subst</p>
 <pre><code>
 Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the &quot;fall-through&quot; property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
 
 ```ocaml env=sol1
-type &#39;a lexpr =  (* The language merging lambda-expressions and arithmetic expressions *)
+type &#39;a lexpr =  (* The language merging lambda-expressions and arithmetic exprs *)
   Lambda of &#39;a lambda | Expr of &#39;a expr  (* can also be used in further extensions *)
 
 let eval_lexpr eval_rec wrap unwrap subst e =
@@ -9766,8 +9766,8 @@ object (self)  (* The &#39;visitor will determine the (sub)language *)
                (* to which a given var variant belongs *)
   method v = v
   method accept : &#39;visitor -&gt; unit =  (* The visitor pattern inverts the way *)
-    fun visitor -&gt; visitor#visitVar self  (* pattern matching proceeds: the variant *)
-end  (* selects the computation *)
+    fun visitor -&gt; visitor#visitVar self  (* pattern matching proceeds: *)
+end                              (* the variant selects the computation *)
 let new_var v = (new var v :&gt; &#39;a visitable)
 
 class [&#39;visitor] abs (v : var_name) (body : &#39;visitor visitable) =
@@ -10087,7 +10087,7 @@ struct
     | #ExprX.exp as x -&gt; ExprX.eval subst x
 
   let freevars : exp -&gt; &#39;b = function
-    | #lambda as x -&gt; LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp is fine *)
+    | #lambda as x -&gt; LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp ok *)
     | #expr as x -&gt; ExprX.freevars x  (* Either of #expr or #ExprX.exp is fine *)
 end
 module rec LExpr : (Operations with type exp = LExpr.exp lexpr) =
@@ -10264,7 +10264,7 @@ struct
   let runT m s p = MP.lift fst (m s p)
   let satisfy f s p =
     if p &lt; String.length s &amp;&amp; f s.[p]  (* Consuming a character means accessing it *)
-    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing position *)
+    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing pos *)
   let end_of_text s p =
     if p &gt;= String.length s then MP.return ((), p) else MP.mzero
 end</code></pre>
@@ -10272,14 +10272,14 @@ end</code></pre>
 <p>```ocaml env=parsec module type PARSE_OPS = sig include PARSE val
 many : ’a monad -&gt; ’a list monad val opt : ’a monad -&gt; ’a option
 monad val (?|) : ’a monad -&gt; ’a option monad val seq : ’a monad -&gt;
-’b monad Lazy.t -&gt; (’a * ’b) monad (* Exercise: why lazy here? <em>)
-val (&lt;</em>&gt;) : ’a monad -&gt; ’b monad Lazy.t -&gt; (’a * ’b)
-monad (* Synonym for seq <em>) val lowercase : char monad val uppercase
-: char monad val digit : char monad val alpha : char monad val alphanum
-: char monad val literal : string -&gt; unit monad (</em> Consume
-characters of the given string <em>) val (&lt;&lt;&gt;) : string -&gt;
-’a monad -&gt; ’a monad (</em> Prefix and postfix keywords *) val
-(&lt;&gt;&gt;) : ’a monad -&gt; string -&gt; ’a monad end</p>
+’b monad Lazy.t -&gt; (’a * ’b) monad (* Exercise: why lazy? <em>) val
+(&lt;</em>&gt;) : ’a monad -&gt; ’b monad Lazy.t -&gt; (’a * ’b) monad
+(* Synonym for seq <em>) val lowercase : char monad val uppercase : char
+monad val digit : char monad val alpha : char monad val alphanum : char
+monad val literal : string -&gt; unit monad (</em> Consume characters of
+the given string <em>) val (&lt;&lt;&gt;) : string -&gt; ’a monad -&gt;
+’a monad (</em> Prefix and postfix keywords *) val (&lt;&gt;&gt;) : ’a
+monad -&gt; string -&gt; ’a monad end</p>
 <p>module ParseOps (R : MONAD_PLUS_OPS) (P : PARSE with type ’a
 backtracking_monad := ’a R.monad) : PARSE_OPS with type ’a
 backtracking_monad := ’a R.monad = struct include P let rec many p =
