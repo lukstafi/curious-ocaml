@@ -19,31 +19,64 @@ In the previous chapter, we saw how monads structure effectful computations. Eve
 ```ocaml skip
 let rec loop s n =
   let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
+  let* () = yield in  (* yielding could be implicit in the monad's bind *)
   if n > 0 then loop s (n-1)
   else return ()
 ```
 
-This works, but it is infectious: once you are inside a monad, everything must be monadic. You cannot simply call a regular function that might perform effects -- you must lift it into the monad.
+This works, but it is infectious: once you are inside a monad, everything must be monadic. You cannot simply call a regular function that might perform effects -- you must lift it into the monad. Even a simple `Printf.printf` must be wrapped in `return`.
 
-Algebraic effects take a different approach. Effects are *performed* at call sites, and *handled* at a distance. The code performing an effect does not need to know how the effect will be interpreted:
+Algebraic effects take a different approach. Effects are *performed* as regular function calls, and *handled* at a distance:
 
 ```ocaml skip
 let rec loop s n =
   Printf.printf "-- %s(%d)\n%!" s n;
+  yield ();  (* explicit effect, but looks like a normal call *)
   if n > 0 then loop s (n-1)
 ```
 
-The effect of yielding control to other threads can be performed implicitly, and a handler decides what happens when the effect occurs.
+The key difference is not that effects happen implicitly -- you still call `yield ()` explicitly at suspension points. The difference is that:
+
+1. **Direct style**: Effects look like ordinary function calls, not monadic binds
+2. **Non-infectious**: Code that does not perform effects (like `Printf.printf`) remains unchanged
+3. **Separation of concerns**: The program says *what* effects occur; the handler decides *how* to interpret them
+
+#### A First Example
+
+Before diving into the full API, let us see the simplest possible effect: one that asks for an integer value.
+
+```ocaml env=ch9
+type _ Effect.t += Ask : int Effect.t
+
+let ask () = Effect.perform Ask
+
+let program () =
+  let x = ask () in
+  x + 1
+
+let answer_42 () =
+  Effect.Deep.match_with program ()
+    Effect.Deep.{ retc = Fun.id; exnc = raise;
+      effc = fun (type a) (eff : a Effect.t) ->
+        match eff with
+        | Ask -> Some (fun (k : (a, _) Effect.Deep.continuation) ->
+            Effect.Deep.continue k 42)
+        | _ -> None }
+
+let () = assert (answer_42 () = 43)
+```
+
+The key ingredient is the *continuation* `k`: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
 
 #### Declaring Effects
 
-In OCaml 5, we declare effects using the `effect` keyword. An effect declaration specifies the type of value the effect receives and the type it returns:
+Effects are declared by extending the built-in extensible GADT `Effect.t`. The type parameter indicates what the effect returns:
 
 ```ocaml env=ch9
 type _ Effect.t += Yield : unit Effect.t
 ```
 
-This declares a `Yield` effect that takes no arguments (hence `unit`) and returns nothing. The `type _ Effect.t +=` syntax extends the built-in extensible type for effects, similar to how exceptions extend the `exn` type.
+This declares a `Yield` effect that returns `unit`. The `type _ Effect.t +=` syntax is similar to how exceptions extend the `exn` type.
 
 Effects can carry data and return values:
 
@@ -52,7 +85,7 @@ type _ Effect.t += Get : int Effect.t
 type _ Effect.t += Put : int -> unit Effect.t
 ```
 
-Here `Get` is an effect that returns an `int`, and `Put` takes an `int` and returns `unit`.
+Here `Get` is an effect that returns an `int`, and `Put` takes an `int` argument and returns `unit`.
 
 #### Performing Effects
 
@@ -64,31 +97,48 @@ let get () = Effect.perform Get
 let put n = Effect.perform (Put n)
 ```
 
-When `Effect.perform` is called, control transfers to the nearest enclosing handler for that effect. If no handler exists, an `Effect.Unhandled` exception is raised.
+When `Effect.perform` is called, control transfers to the nearest enclosing handler for that effect. If no handler exists, OCaml raises `Effect.Unhandled`.
+
+**Note:** The effect system API is marked as unstable in OCaml 5.x and may change in future versions. Effects can only be performed synchronously -- not from signal handlers, finalisers, or C callbacks.
 
 #### Handling Effects
 
-Effect handlers are installed using `Effect.Deep.match_with` or `Effect.Deep.try_with`. The handler receives a *continuation* representing "the rest of the computation":
+Effect handlers are installed using `Effect.Deep.match_with`. A handler is a record with three fields:
+
+- `retc`: handles the case when the computation returns normally
+- `exnc`: handles the case when an exception is raised
+- `effc`: handles effects; returns `Some handler_fn` if the effect is handled, `None` otherwise
 
 ```ocaml skip
 let handler = Effect.Deep.{
-  retc = (fun result -> (* computation completed normally *) result);
-  exnc = (fun exn -> (* exception was raised *) raise exn);
+  retc = (fun result -> result);          (* computation completed *)
+  exnc = (fun exn -> raise exn);          (* exception was raised *)
   effc = fun (type a) (eff : a Effect.t) ->
     match eff with
-    | Yield -> Some (fun (k : (a, _) continuation) ->
-        (* Yield was performed; k is the continuation *)
-        (* We can resume k later, discard it, or invoke it multiple times *)
+    | Yield -> Some (fun (k : (a, _) Effect.Deep.continuation) ->
+        (* k is the continuation: "the rest of the computation" *)
         Effect.Deep.continue k ())
-    | _ -> None  (* Effect not handled here *)
+    | _ -> None  (* effect not handled here *)
 }
 ```
 
 The continuation `k` captures everything that would happen after `Effect.perform Yield` returns. We can:
-- **Continue** the computation by calling `Effect.Deep.continue k value`, where `value` becomes the return value of `Effect.perform`
+- **Continue** by calling `Effect.Deep.continue k value`, where `value` becomes the return value of `perform`
 - **Discontinue** by calling `Effect.Deep.discontinue k exn`, raising an exception at the effect site
-- **Discard** the continuation by not using it (though this may leak resources)
+- **Discard** the continuation (but this leaks resources and should be avoided)
 - **Store** the continuation and resume it later
+
+**Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`.
+
+#### Deep vs Shallow Handlers
+
+OCaml provides two kinds of handlers in `Effect.Deep` and `Effect.Shallow`:
+
+- **Deep handlers** (which we use throughout this chapter) automatically re-install themselves when you continue a computation. Effects performed after resumption are handled by the same handler.
+
+- **Shallow handlers** handle only the first effect encountered. After continuing, subsequent effects are not automatically handled. This gives more control but requires more explicit management.
+
+For most use cases, deep handlers are simpler and sufficient. We will use `Effect.Deep` exclusively in this chapter.
 
 This ability to capture and manipulate continuations is what makes algebraic effects so powerful. Let us see this in action.
 

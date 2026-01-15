@@ -53,9 +53,33 @@ let _ = assert (answer_42 () = 43)
 The key new ingredient here is the *continuation* `k`: it represents “the rest of the computation” from the point where the effect was performed. The handler can decide whether to:
 
 - resume it once (`continue k ...`), which is the common case in OCaml’s one-shot setting
-- abort it (do not resume)
+- stop the computation by not resuming (but then you must ensure this does not leak resources; in many cases, `discontinue` is the safer choice)
 - resume it with an exception (`Effect.Deep.discontinue k exn`)
-- (with extra machinery) resume variants of it multiple times (multi-shot), though OCaml continuations are one-shot by default
+- (importantly) it must not resume it twice: resuming a continuation more than once raises `Effect.Continuation_already_resumed`
+
+If an effect `e` is performed and no enclosing handler handles it, `Effect.perform e` raises `Effect.Unhandled e`.
+
+#### Deep vs. shallow handlers
+
+OCaml provides two handler APIs:
+
+- `Effect.Deep` handlers are **deep**: once installed, they handle all effects performed by the computation *and by any continuations resumed under the handler*, until the computation finishes.
+- `Effect.Shallow` handlers are **shallow**: they handle at most one effect, and resuming a continuation requires specifying the handler again (e.g. `Effect.Shallow.continue_with`).
+
+The surface language also supports *effect patterns* in `match`/`try` (introduced for deep handlers in OCaml 5.3). For example, the manual’s “exchange” effect can be written as:
+
+```ocaml skip
+open Effect
+open Effect.Deep
+
+type _ Effect.t += Xchg : int -> int t
+
+let comp () = perform (Xchg 0) + perform (Xchg 1)
+
+let _ =
+  try comp () with
+  | effect (Xchg n), k -> continue k (n + 1)
+```
 
 ### 9.2 Lightweight Cooperative Threads, Revisited (Effects Edition)
 
@@ -77,6 +101,11 @@ module Fiber = struct
 
   type 'a promise = { mutable state : 'a promise_state }
 
+  type packed_promise = P : 'a promise -> packed_promise
+  type packed_waiter = W : ('a, unit) Effect.Deep.continuation -> packed_waiter
+
+  exception Deadlock
+
   type _ Effect.t += Yield : unit Effect.t
   type _ Effect.t += Async : (unit -> 'a) -> 'a promise Effect.t
   type _ Effect.t += Await : 'a promise -> 'a Effect.t
@@ -87,6 +116,7 @@ module Fiber = struct
 
   let run (main : unit -> unit) : unit =
     let jobs : (unit -> unit) Queue.t = Queue.create () in
+    let promises : packed_promise list ref = ref [] in
 
     let enqueue job = Queue.push job jobs in
 
@@ -103,6 +133,7 @@ module Fiber = struct
           | Async f ->
               Some (fun (k : (a, unit) Effect.Deep.continuation) ->
                 let p = { state = Waiting [] } in
+                promises := P p :: !promises;
 
                 let resolve r =
                   match p.state with
@@ -147,9 +178,38 @@ module Fiber = struct
     in
 
     enqueue (fun () -> exec main);
-    while not (Queue.is_empty jobs) do
-      (Queue.pop jobs) ()
-    done
+    let rec drain () =
+      while not (Queue.is_empty jobs) do
+        (Queue.pop jobs) ()
+      done
+    in
+    drain ();
+
+    (* In general, every captured continuation should eventually be either
+       continued or discontinued; otherwise resources protected by
+       exception-based cleanup (e.g. Fun.protect) may be leaked. If the run queue
+       is empty but some fibers are still waiting, we are deadlocked. *)
+    let deadlocked_waiters =
+      List.filter_map
+        (fun (P p) ->
+          match p.state with
+          | Done _ -> None
+          | Waiting waiters ->
+              p.state <- Done (Error Deadlock);
+              Some (List.map (fun k -> W k) waiters))
+        !promises
+      |> List.concat
+    in
+    if deadlocked_waiters <> [] then begin
+      List.iter
+        (fun (W waiter) ->
+          enqueue (fun () ->
+            try ignore (Effect.Deep.discontinue waiter Deadlock) with
+            | _ -> ()))
+        deadlocked_waiters;
+      drain ();
+      raise Deadlock
+    end
 end
 
 let _ =
