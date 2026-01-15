@@ -13,6 +13,17 @@ header-includes:
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Curious OCaml
+# Curious OCaml
+
+*Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
+
+This book is intended for three audiences:
+
+- New to programming: ambitious students in areas with formal rigor -- math, computer science, philosophy, linguistics, etc.
+- Intermediate: OCaml programmers.
+- Advanced: programmers who are new to functional programming.
+
+
 ## Chapter 1: Logic
 
 *From logic rules to programming constructs*
@@ -3060,6 +3071,7 @@ let insert x s =
 ```
 
 The `balance` function is the heart of the algorithm. It handles four cases where a red-red violation occurs (a red node with a red child). The four cases correspond to different positions of the violation:
+
 - A red left child with a red left grandchild
 - A red left child with a red right grandchild
 - A red right child with a red left grandchild
@@ -3960,7 +3972,7 @@ More precisely: given a honeycomb with some cells initially marked black (empty)
 
 | Task: 3 islands × 3 cells | Solution |
 |:-------------------------:|:--------:|
-| ![Task](honey0.png) | ![Solution](honey1.png) |
+| ![Task](honey0.png){width=45%} | ![Solution](honey1.png){width=45%} |
 
 In the solution, yellow cells contain honey, black cells were initially empty, and purple cells are the newly "eaten" cells that separate the honey into 3 islands of 3 cells each.
 
@@ -4706,6 +4718,8 @@ Putting together the power series computation with floating-point numbers reveal
 1. Floating-point numbers have limited precision, so intermediate calculations accumulate errors.
 2. We break out of Horner method computations too quickly -- the stopping condition based on `epsilon_float` may stop before we have enough precision.
 
+![Numerical errors in sine/cosine computation](sin_cos_1.png){width=70%}
+
 For infinite precision on rational numbers we can use the `nums` library, but it does not help by itself -- the stopping condition still causes us to truncate the computation prematurely.
 
 The key insight is that instead of computing a single approximate value, we should generate a *sequence of approximations* to the power series limit at $x$. Then we can watch the sequence until it converges:
@@ -4761,6 +4775,8 @@ let n_chain ~nA0 ~nB0 ~lA ~lB =
     LCons (nB0, lazy (integ (~-.lB *:. nB +: lA *:. nA))) in
   nA, nB
 ```
+
+![Nuclear chain reaction: A decays into B decays into C](chain_reaction.png){width=70%}
 
 (See [Radioactive decay chain processes](http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes) for more information.)
 

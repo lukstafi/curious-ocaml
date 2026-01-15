@@ -261,7 +261,10 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#curious-ocaml" id="toc-curious-ocaml">Curious OCaml</a>
+<li><a href="#curious-ocaml" id="toc-curious-ocaml">Curious
+OCaml</a></li>
+<li><a href="#curious-ocaml-1" id="toc-curious-ocaml-1">Curious
+OCaml</a>
 <ul>
 <li><a href="#chapter-1-logic" id="toc-chapter-1-logic">Chapter 1:
 Logic</a>
@@ -496,6 +499,23 @@ Combinators: Dynamic Code Loading</a></li>
 </nav>
 <!-- Do NOT modify this file, it is automatically generated -->
 <h1 id="curious-ocaml">Curious OCaml</h1>
+<h1 id="curious-ocaml-1">Curious OCaml</h1>
+<p><em>Curious OCaml</em> invites you to explore programming through the
+lens of types, logic, and algebra. OCaml is a language that rewards
+curiosity—its type system catches errors before your code runs, its
+functional style encourages clear thinking about data transformations,
+and its mathematical foundations reveal deep connections between
+programming and logic. Whether you’re new to programming, experienced
+with OCaml, or a seasoned developer discovering functional programming
+for the first time, this book aims to spark that “aha!” moment when
+abstract concepts click into place.</p>
+<p>This book is intended for three audiences:</p>
+<ul>
+<li>New to programming: ambitious students in areas with formal rigor –
+math, computer science, philosophy, linguistics, etc.</li>
+<li>Intermediate: OCaml programmers.</li>
+<li>Advanced: programmers who are new to functional programming.</li>
+</ul>
 <h2 id="chapter-1-logic">Chapter 1: Logic</h2>
 <p><em>From logic rules to programming constructs</em></p>
 <h3 id="in-the-beginning-there-was-logos">1.1 In the Beginning there was
@@ -4796,9 +4816,13 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb120-1"><a hr
 <p>The <code>balance</code> function is the heart of the algorithm. It
 handles four cases where a red-red violation occurs (a red node with a
 red child). The four cases correspond to different positions of the
-violation: - A red left child with a red left grandchild - A red left
-child with a red right grandchild - A red right child with a red left
-grandchild - A red right child with a red right grandchild</p>
+violation:</p>
+<ul>
+<li>A red left child with a red left grandchild</li>
+<li>A red left child with a red right grandchild</li>
+<li>A red right child with a red left grandchild</li>
+<li>A red right child with a red right grandchild</li>
+</ul>
 <p>In each case, we perform a “rotation” that restructures the tree to
 eliminate the violation while maintaining the binary search tree
 property. Remarkably, all four cases produce the same balanced result: a
@@ -5568,9 +5592,10 @@ components, each with exactly <code>island_size</code> cells.</p>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"><img src="honey0.png" alt="Task" /></td>
+<td style="text-align: center;"><img src="honey0.png"
+style="width:45.0%" alt="Task" /></td>
 <td style="text-align: center;"><img src="honey1.png"
-alt="Solution" /></td>
+style="width:45.0%" alt="Solution" /></td>
 </tr>
 </tbody>
 </table>
@@ -6282,6 +6307,12 @@ numbers have limited precision, so intermediate calculations accumulate
 errors. 2. We break out of Horner method computations too quickly – the
 stopping condition based on <code>epsilon_float</code> may stop before
 we have enough precision.</p>
+<figure>
+<img src="sin_cos_1.png" style="width:70.0%"
+alt="Numerical errors in sine/cosine computation" />
+<figcaption aria-hidden="true">Numerical errors in sine/cosine
+computation</figcaption>
+</figure>
 <p>For infinite precision on rational numbers we can use the
 <code>nums</code> library, but it does not help by itself – the stopping
 condition still causes us to truncate the computation prematurely.</p>
@@ -6329,6 +6360,12 @@ cosine:</p>
   and nB =
     LCons (nB0, lazy (integ (~-.lB *:. nB +: lA *:. nA))) in
   nA, nB</code></pre>
+<figure>
+<img src="chain_reaction.png" style="width:70.0%"
+alt="Nuclear chain reaction: A decays into B decays into C" />
+<figcaption aria-hidden="true">Nuclear chain reaction: A decays into B
+decays into C</figcaption>
+</figure>
 <p>(See <a
 href="http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes">Radioactive
 decay chain processes</a> for more information.)</p>
