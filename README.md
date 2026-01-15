@@ -2034,7 +2034,7 @@ let cn_prev n =
     n                         (* The only thing we have is an n-step loop *)
       (fun g v -> v (g f))    (* We need sth that operates on f *)
       (fun z -> x)            (* We need to ignore the innermost step *)
-      (fun z -> z)            (* We've built a "machine" not results -- start the machine *)
+      (fun z -> z)      (* We've built a "machine" not results -- start the machine *)
 ```
 
 Addition is intuitive: to add $n$ and $m$, we first apply `f` $m$ times (giving us `m f x`), then apply `f` $n$ more times. Multiplication is even more clever: we apply the operation "apply `f` $m$ times" $n$ times, which computes $m \times n$ applications of `f`.
@@ -2705,9 +2705,9 @@ let example =
 The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
 
 ```ocaml
-let rec cons : 'a. 'a -> 'a seq -> 'a seq =  (* Appending an element to the *)
-  fun x -> function                           (* datastructure is like *)
-  | Nil -> One (x, Nil)                       (* adding one to a binary number: 1+0=1 *)
+let rec cons : 'a. 'a -> 'a seq -> 'a seq =
+  fun x -> function
+  | Nil -> One (x, Nil)                       (* 1+0=1 *)
   | Zero ps -> One (x, ps)                    (* 1+...0=...1 *)
   | One (y, ps) -> Zero (cons (x,y) ps)       (* 1+...1=[...+1]0 *)
 
@@ -2717,8 +2717,8 @@ let rec lookup : 'a. int -> 'a seq -> 'a =
   | 0, One (x, _) -> x                        (* we raise exception, for convenience. *)
   | i, One (_, ps) -> lookup (i-1) (Zero ps)
   | i, Zero ps ->                             (* Random-access lookup works *)
-      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster than *)
-      if i mod 2 = 0 then x else y            (* in standard lists. *)
+      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster *)
+      if i mod 2 = 0 then x else y            (* than in standard lists. *)
 ```
 
 The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.
@@ -2953,25 +2953,25 @@ module BTreeMap : MAP = struct
 
   let empty = Empty
 
-  let rec member k m =                    (* "Divide and conquer" search through the tree. *)
+  let rec member k m =              (* "Divide and conquer" search through the tree. *)
     match m with
     | Empty -> false
     | T (_, k2, _, _) when k = k2 -> true
     | T (m1, k2, _, _) when k < k2 -> member k m1
     | T (_, _, _, m2) -> member k m2
 
-  let rec add k v m =                     (* Searches the tree in the same way as member *)
-    match m with                          (* but copies every node along the way. *)
+  let rec add k v m =               (* Searches the tree in the same way as member *)
+    match m with                    (* but copies every node along the way. *)
     | Empty -> T (Empty, k, v, Empty)
     | T (m1, k2, _, m2) when k = k2 -> T (m1, k, v, m2)
     | T (m1, k2, v2, m2) when k < k2 -> T (add k v m1, k2, v2, m2)
     | T (m1, k2, v2, m2) -> T (m1, k2, v2, add k v m2)
 
-  let rec split_rightmost m =             (* A helper function, it does not belong *)
-    match m with                          (* to the "exported" signature. *)
+  let rec split_rightmost m =       (* A helper function, it does not belong *)
+    match m with                    (* to the "exported" signature. *)
     | Empty -> raise Not_found
     | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
-    | T (m1, k, v, m2) ->                 (* the one that is on the bottom right. *)
+    | T (m1, k, v, m2) ->           (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
 
@@ -3061,7 +3061,7 @@ let balance = function                   (* Restoring the invariants. *)
   | B, a, x, T (R, T (R,b,y,c), z, d)    (* bottom, *)
   | B, a, x, T (R, b, y, T (R,c,z,d))    (* right, *)
       -> T (R, T (B,a,x,b), y, T (B,c,z,d))    (* center tree. *)
-  | color, a, x, b -> T (color, a, x, b)       (* We allow red-red violation for now. *)
+  | color, a, x, b -> T (color, a, x, b)   (* We allow red-red violation for now. *)
 
 let insert x s =
   let rec ins = function                 (* Like in unbalanced binary search tree, *)
@@ -3071,8 +3071,8 @@ let insert x s =
         else if x > y then balance (color, a, y, ins b)
         else s
   in
-  match ins s with                       (* We could still have red-red violation at root, *)
-  | T (_, a, y, b) -> T (B, a, y, b)     (* fixed by coloring it black. *)
+  match ins s with                       (* We could still have red-red violation *)
+  | T (_, a, y, b) -> T (B, a, y, b)     (* at root, fixed by coloring it black. *)
   | E -> failwith "insert: impossible"
 ```
 
@@ -3689,13 +3689,13 @@ The first step is to collect elements from an association list, grouping all val
 ```ocaml env=ch6
 let collect l =
   match List.sort (fun x y -> compare (fst x) (fst y)) l with
-  | [] -> []                                (* Start with associations sorted by key *)
+  | [] -> []                           (* Start with associations sorted by key *)
   | (k0, v0)::tl ->
     let k0, vs, l = List.fold_left
-      (fun (k0, vs, l) (kn, vn) ->           (* Collect values for current key *)
-        if k0 = kn then k0, vn::vs, l        (* Same key: add value to current group *)
-        else kn, [vn], (k0, List.rev vs)::l) (* New key: save current group, start new *)
-      (k0, [v0], []) tl in                   (* Why reverse? To preserve original order *)
+      (fun (k0, vs, l) (kn, vn) ->     (* Collect values for current key *)
+        if k0 = kn then k0, vn::vs, l  (* Same key: add value to current group *)
+        else kn, [vn], (k0, List.rev vs)::l) (* New: save current group, start new *)
+      (k0, [v0], []) tl in             (* Why reverse? To preserve original order *)
     List.rev ((k0, List.rev vs)::l)
 ```
 
@@ -3902,17 +3902,17 @@ let ( |-> ) x f = concat_map f x
 Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
 
 ```ocaml env=ch6
-let combine l r =                           (* Combine two expressions using each operator *)
+let combine l r =                     (* Combine two expressions using each operator *)
   List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
 
 let rec exprs = function
-  | [] -> []                                (* No expressions from empty list *)
-  | [n] -> [Val n]                          (* Single number: just Val n *)
+  | [] -> []                          (* No expressions from empty list *)
+  | [n] -> [Val n]                    (* Single number: just Val n *)
   | ns ->
-    split ns |-> (fun (ls, rs) ->           (* For each way to split numbers... *)
-      exprs ls |-> (fun l ->                (* ...for each expression l from left half... *)
-        exprs rs |-> (fun r ->              (* ...for each expression r from right half... *)
-          combine l r)))                    (* ...produce all l op r combinations *)
+    split ns |-> (fun (ls, rs) ->     (* For each way to split numbers... *)
+      exprs ls |-> (fun l ->          (* ...for each expression l from left half... *)
+        exprs rs |-> (fun r ->        (* ...for each expression r from right half... *)
+          combine l r)))              (* ...produce all l op r combinations *)
 ```
 
 Read the nested `|->` as "for each ... for each ... for each ...". This is the essence of backtracking: we explore all combinations systematically.
@@ -3990,19 +3990,19 @@ In the solution, yellow cells contain honey, black cells were initially empty, a
 We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
 
 ```ocaml env=ch6
-type cell = int * int                       (* Cartesian coordinates *)
+type cell = int * int                (* Cartesian coordinates *)
 
-module CellSet =                            (* Store cells in sets for efficient membership tests *)
+module CellSet =                     (* Store cells in sets for efficient membership tests *)
   Set.Make (struct type t = cell let compare = compare end)
 
-type task = {                               (* For board size N, coordinates *)
-  board_size : int;                         (* range from (-2N, -N) to (2N, N) *)
-  num_islands : int;                        (* Required number of islands *)
-  island_size : int;                        (* Required cells per island *)
-  empty_cells : CellSet.t;                  (* Initially empty cells *)
+type task = {                        (* For board size N, coordinates *)
+  board_size : int;                  (* range from (-2N, -N) to (2N, N) *)
+  num_islands : int;                 (* Required number of islands *)
+  island_size : int;                 (* Required cells per island *)
+  empty_cells : CellSet.t;           (* Initially empty cells *)
 }
 
-let cellset_of_list l =                     (* Convert list to set (inverse of CellSet.elements) *)
+let cellset_of_list l =           (* Convert list to set (inverse of CellSet.elements) *)
   List.fold_right CellSet.add l CellSet.empty
 ```
 
@@ -4244,7 +4244,7 @@ let keep_cell c s =                         (* c is actually unused *)
   {s with been_size = s.been_size + 1;
     visited = CellSet.add c s.visited}
 
-let fresh_island s =                        (* Increment been_size at start of find_island *)
+let fresh_island s =                 (* Increment been_size at start of find_island *)
   {s with been_size = 0;
     been_islands = s.been_islands + 1}
 
@@ -4590,11 +4590,11 @@ let rec lazy_foldr f l base =
 Now we need a stopping condition in the Horner algorithm step. We stop when the coefficient becomes small enough that further terms are negligible:
 
 ```ocaml env=ch7
-let lhorner x l =                         (* This is a bit of a hack: *)
-  let upd c sum =                         (* we hope to "hit" the interval (0, epsilon]. *)
+let lhorner x l =                    (* This is a bit of a hack: *)
+  let upd c sum =                    (* we hope to "hit" the interval (0, epsilon]. *)
     if c = 0. || abs_float c > epsilon_float
     then c +. x *. Lazy.force sum
-    else 0. in                            (* Stop when c is tiny but nonzero. *)
+    else 0. in                       (* Stop when c is tiny but nonzero. *)
   lazy_foldr upd l 0.
 
 let inv_fact = lmap (fun n -> 1. /. float_of_int n) lfact
@@ -4744,8 +4744,8 @@ let infhorner x l =
 The function `infhorner` returns a lazy list of partial sums. Each element is a better approximation than the previous one. Now we need to find where the series has converged to the precision we need:
 
 ```ocaml env=ch7
-let rec exact f = function           (* We arbitrarily decide that convergence is *)
-  | LNil -> assert false             (* when three consecutive results are the same. *)
+let rec exact f = function         (* We arbitrarily decide that convergence is *)
+  | LNil -> assert false           (* when three consecutive results are the same. *)
   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))
       when f x0 = f x1 && f x0 = f x2 -> f x0
   | LCons (_, lazy tl) -> exact f tl
@@ -4931,13 +4931,13 @@ Composition of pipes is like "concatenating them in space" or connecting boxes. 
 ```ocaml env=ch7
 let rec compose pf pg =
   match pg with
-  | EOP -> EOP                              (* pg is done -- composition is done. *)
-  | Yield (z, pg') -> Yield (z, compose pf pg')   (* pg has output ready -- pass it through. *)
-  | Await g ->                              (* pg needs input -- try to get it from pf. *)
+  | EOP -> EOP                            (* pg is done -- composition is done. *)
+  | Yield (z, pg') -> Yield (z, compose pf pg')  (* pg has output -- pass it through. *)
+  | Await g ->                            (* pg needs input -- try to get it from pf. *)
     match pf with
-    | EOP -> EOP                            (* pf is done -- no more input for pg. *)
-    | Yield (y, pf') -> compose pf' (g y)   (* pf has output -- feed it to pg. *)
-    | Await f ->                            (* Both are waiting -- wait for external input. *)
+    | EOP -> EOP                          (* pf is done -- no more input for pg. *)
+    | Yield (y, pf') -> compose pf' (g y)  (* pf has output -- feed it to pg. *)
+    | Await f ->                          (* Both waiting -- wait for external input. *)
       let update x = compose (f x) pg in
       Await update
 
@@ -5021,23 +5021,23 @@ Document First part Second part
 Before diving into pipes, let us implement a straightforward recursive solution:
 
 ```ocaml env=ch7
-let pretty w d =                     (* Allowed width of line w. *)
-  let rec width = function           (* Compute total length of subdocument. *)
+let pretty w d =               (* Allowed width of line w. *)
+  let rec width = function     (* Compute total length of subdocument. *)
     | Text z -> String.length z
-    | Line -> 1                      (* A line break takes 1 character (space or newline). *)
+    | Line -> 1                (* A line break takes 1 character (space or newline). *)
     | Cat (d1, d2) -> width d1 + width d2
     | Group d -> width d in
-  let rec format f r = function      (* f: flatten (no breaks)? r: remaining space. *)
+  let rec format f r = function  (* f: flatten (no breaks)? r: remaining space. *)
     | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1        (* Flatten mode: render as space. *)
-    | Line -> "\n", w                (* Break mode: newline, reset remaining to full width. *)
+    | Line when f -> " ", r-1  (* Flatten mode: render as space. *)
+    | Line -> "\n", w          (* Break mode: newline, reset remaining to full width. *)
     | Cat (d1, d2) ->
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
       s1 ^ s2, r
     | Group d -> format (f || width d <= r) r d  (* Flatten if group fits. *)
   in
-  fst (format false w d)             (* Start outside any group (not flattening). *)
+  fst (format false w d)       (* Start outside any group (not flattening). *)
 ```
 
 The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
@@ -5049,7 +5049,7 @@ The straightforward solution works, but it has a problem: for each group, we com
 First, we define a type for document elements that can carry annotations:
 
 ```ocaml env=ch7
-type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)
+type ('a, 'b) doc_e =          (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
@@ -5084,18 +5084,18 @@ The next pipe computes the position (character count from the beginning) of each
 
 ```ocaml env=ch7
 let rec docpos curpos =
-  Await (function                         (* Input from a doc_e pipe, *)
+  Await (function                   (* Input from a doc_e pipe, *)
   | TE (_, z) ->
-    Yield (TE (curpos, z),                (* output doc_e annotated with position. *)
+    Yield (TE (curpos, z),          (* output doc_e annotated with position. *)
            docpos (curpos + String.length z))
-  | LE _ ->                               (* Spaces and line breaks: 1 character. *)
+  | LE _ ->                         (* Spaces and line breaks: 1 character. *)
     Yield (LE curpos, docpos (curpos + 1))
-  | GBeg _ ->                             (* Groups themselves have no width. *)
+  | GBeg _ ->                       (* Groups themselves have no width. *)
     Yield (GBeg curpos, docpos curpos)
   | GEnd _ ->
     Yield (GEnd curpos, docpos curpos))
 
-let docpos = docpos 0                     (* The whole document starts at position 0. *)
+let docpos = docpos 0               (* The whole document starts at position 0. *)
 ```
 
 Now comes the tricky part. We want to annotate each `GBeg` with the position where the group *ends*, so we can decide whether the group fits on the line. But we see `GBeg` before we see `GEnd`! We need to buffer elements until we see the end of each group:
@@ -5105,19 +5105,19 @@ let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
     (match grstack with
-    | [] -> Yield (e, grends [])          (* No groups waiting -- yield immediately. *)
-    | gr::grs -> grends ((e::gr)::grs))   (* Inside a group -- buffer the element. *)
-  | GBeg _ -> grends ([]::grstack)        (* Start a new group: push empty buffer. *)
+    | [] -> Yield (e, grends [])         (* No groups waiting -- yield immediately. *)
+    | gr::grs -> grends ((e::gr)::grs))  (* Inside a group -- buffer the element. *)
+  | GBeg _ -> grends ([]::grstack)       (* Start a new group: push empty buffer. *)
   | GEnd endp ->
-    match grstack with                    (* End the group on top of stack. *)
+    match grstack with                   (* End the group on top of stack. *)
     | [] -> failwith "grends: unmatched group end marker"
-    | [gr] ->                             (* Outermost group -- yield everything now. *)
+    | [gr] ->                          (* Outermost group -- yield everything now. *)
       yield_all
         (GBeg endp::List.rev (GEnd endp::gr))  (* Annotate GBeg with end position. *)
         (grends [])
-    | gr::par::grs ->                     (* Nested group -- add to parent's buffer. *)
+    | gr::par::grs ->                    (* Nested group -- add to parent's buffer. *)
       let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))                  (* Could use catenable lists for efficiency. *)
+      grends (par::grs))               (* Could use catenable lists for efficiency. *)
 ```
 
 This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
@@ -5127,7 +5127,7 @@ type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
   let flush tail =                   (* When a group exceeds width w, *)
-    yield_all                        (* flush the stack -- yield everything buffered. *)
+    yield_all                     (* flush the stack -- yield everything buffered. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
       tail in                        (* Mark flushed groups as Too_far. *)
   Await (function
@@ -5137,7 +5137,7 @@ let rec grends w grstack =
     | (begp, _)::_ when curp-begp > w ->
       flush (Yield (e, grends w []))    (* Group too wide -- flush and yield. *)
     | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))  (* Buffer element. *)
-  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start position. *)
+  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start pos. *)
   | GEnd endp as e ->
     match grstack with               (* No longer fail when stack is empty -- *)
     | [] -> Yield (e, grends w [])   (* could have been flushed earlier. *)
@@ -5158,19 +5158,19 @@ let grends w = grends w []           (* Initial stack is empty. *)
 Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
 
 ```ocaml skip
-let rec format w (inline, endlpos as st) =  (* inline: stack of "flatten this group?" *)
-  Await (function                           (* endlpos: position where line ends *)
-  | TE (_, z) -> Yield (z, format w st)     (* Text: output directly. *)
+let rec format w (inline, endlpos as st) = (* inline: stack of "flatten this group?" *)
+  Await (function                          (* endlpos: position where line ends *)
+  | TE (_, z) -> Yield (z, format w st)    (* Text: output directly. *)
   | LE p when List.hd inline ->
-    Yield (" ", format w st)                (* In flatten mode: line break -> space. *)
-  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: newline, update endlpos. *)
-  | GBeg Too_far ->                         (* Group too wide -- don't flatten. *)
+    Yield (" ", format w st)               (* In flatten mode: line break -> space. *)
+  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: update endlpos. *)
+  | GBeg Too_far ->                        (* Group too wide -- don't flatten. *)
     format w (false::inline, endlpos)
-  | GBeg (Pos p) ->                         (* Group fits if it ends before endlpos. *)
+  | GBeg (Pos p) ->                        (* Group fits if it ends before endlpos. *)
     format w ((p<=endlpos)::inline, endlpos)
   | GEnd _ -> format w (List.tl inline, endlpos))  (* Pop the inline stack. *)
 
-let format w = format w ([false], w)        (* Start with no flattening, full line width. *)
+let format w = format w ([false], w)   (* Start with no flattening, full line width. *)
 ```
 
 Put the pipes together into a complete pipeline:
@@ -5316,7 +5316,7 @@ type 'a doc =
 
 ## Chapter 8: Monads
 
-This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
+This chapter explores one of functional programming's most powerful abstractions: monads. We begin with equivalents of list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
 
 The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."
 
@@ -5355,19 +5355,11 @@ The key insight is that we introduced the operator `|->` defined as:
 let ( |-> ) x f = concat_map f x
 ```
 
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax extension that originated in languages like Haskell and Python.
-
-In older versions of OCaml with Camlp4, list comprehensions were loaded via:
-
-```
-#load "dynlink.cma";;
-#load "camlp4o.cma";;
-#load "Camlp4Parsers/Camlp4ListComprehension.cmo";;
-```
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in languages like Haskell and Python.
 
 With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
-```
+```ocaml skip
 let test = [i * 2 | i <- from_to 2 22; i mod 3 = 0]
 ```
 
@@ -5379,11 +5371,13 @@ The translation rules that define list comprehension semantics are straightforwa
 - `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])` -- draw from a generator, then recurse
 - `[expr | condition; more]` translates to `if condition then [expr | more] else []` -- filter by a condition
 
+The list comprehension syntax has not caught on in modern OCaml; there were a couple syntax extensions providing it, but none gained popularity. It is a nice syntax to build intuition but the examples in this section need additional setup to compile, you can treat them as pseudo-code.
+
 #### Revisiting Countdown with List Comprehensions
 
 Now let us revisit the Countdown Problem code with list comprehensions. The brute-force generation becomes dramatically cleaner -- compare this to the deeply nested version above:
 
-```
+```ocaml skip
 let rec exprs = function
   | [] -> []
   | [n] -> [Val n]
@@ -5395,7 +5389,7 @@ let rec exprs = function
 
 The intent is immediately clear: we split the numbers, recursively build expressions for left and right parts, and try each operator. The generate-and-test scheme becomes equally elegant:
 
-```
+```ocaml skip
 let solutions ns n =
   [e | ns' <- choices ns;
    e <- exprs ns'; eval e = Some n]
@@ -5407,7 +5401,7 @@ The guard condition `eval e = Some n` filters out expressions that do not evalua
 
 List comprehensions shine when expressing combinatorial algorithms. Here is computing all subsequences of a list (note that this generates some intermediate garbage, but the intent is clear):
 
-```
+```ocaml skip
 let rec subseqs l =
   match l with
   | [] -> [[]]
@@ -5418,7 +5412,7 @@ For each element `x`, we recursively compute subsequences of the tail, then for 
 
 Computing permutations can be done via insertion -- inserting an element at every possible position:
 
-```
+```ocaml skip
 let rec insert x = function
   | [] -> [[x]]
   | y::ys' as ys ->
@@ -5433,7 +5427,7 @@ The `insert` function generates all ways to insert `x` into a list. Then `ins_pe
 
 Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
 
-```
+```ocaml skip
 let rec select = function
   | [x] -> [x, []]
   | x::xs -> (x, xs) :: [y, x::ys | y, ys <- select xs]
@@ -7056,7 +7050,7 @@ The key insight is that monadic structure gives us precise control over concurre
 
 For example: if Bono and Larry walk across first, 10 minutes have elapsed when they get to the other side of the bridge. If Larry then returns with the flashlight, a total of 20 minutes have passed and you have failed the mission.
 
-Find all answers to the puzzle using a list comprehension. The comprehension will be a bit long but recursion is not needed.
+Find all answers to the puzzle using `let*` notation. The expression will be a bit long but recursion is not needed.
 
 **Exercise 2.** Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
 

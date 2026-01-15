@@ -246,9 +246,9 @@ let example =
 The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
 
 ```ocaml
-let rec cons : 'a. 'a -> 'a seq -> 'a seq =  (* Appending an element to the *)
-  fun x -> function                           (* datastructure is like *)
-  | Nil -> One (x, Nil)                       (* adding one to a binary number: 1+0=1 *)
+let rec cons : 'a. 'a -> 'a seq -> 'a seq =
+  fun x -> function
+  | Nil -> One (x, Nil)                       (* 1+0=1 *)
   | Zero ps -> One (x, ps)                    (* 1+...0=...1 *)
   | One (y, ps) -> Zero (cons (x,y) ps)       (* 1+...1=[...+1]0 *)
 
@@ -258,8 +258,8 @@ let rec lookup : 'a. int -> 'a seq -> 'a =
   | 0, One (x, _) -> x                        (* we raise exception, for convenience. *)
   | i, One (_, ps) -> lookup (i-1) (Zero ps)
   | i, Zero ps ->                             (* Random-access lookup works *)
-      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster than *)
-      if i mod 2 = 0 then x else y            (* in standard lists. *)
+      let x, y = lookup (i / 2) ps in         (* in logarithmic time -- much faster *)
+      if i mod 2 = 0 then x else y            (* than in standard lists. *)
 ```
 
 The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.
@@ -494,25 +494,25 @@ module BTreeMap : MAP = struct
 
   let empty = Empty
 
-  let rec member k m =                    (* "Divide and conquer" search through the tree. *)
+  let rec member k m =              (* "Divide and conquer" search through the tree. *)
     match m with
     | Empty -> false
     | T (_, k2, _, _) when k = k2 -> true
     | T (m1, k2, _, _) when k < k2 -> member k m1
     | T (_, _, _, m2) -> member k m2
 
-  let rec add k v m =                     (* Searches the tree in the same way as member *)
-    match m with                          (* but copies every node along the way. *)
+  let rec add k v m =               (* Searches the tree in the same way as member *)
+    match m with                    (* but copies every node along the way. *)
     | Empty -> T (Empty, k, v, Empty)
     | T (m1, k2, _, m2) when k = k2 -> T (m1, k, v, m2)
     | T (m1, k2, v2, m2) when k < k2 -> T (add k v m1, k2, v2, m2)
     | T (m1, k2, v2, m2) -> T (m1, k2, v2, add k v m2)
 
-  let rec split_rightmost m =             (* A helper function, it does not belong *)
-    match m with                          (* to the "exported" signature. *)
+  let rec split_rightmost m =       (* A helper function, it does not belong *)
+    match m with                    (* to the "exported" signature. *)
     | Empty -> raise Not_found
     | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
-    | T (m1, k, v, m2) ->                 (* the one that is on the bottom right. *)
+    | T (m1, k, v, m2) ->           (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
 
@@ -602,7 +602,7 @@ let balance = function                   (* Restoring the invariants. *)
   | B, a, x, T (R, T (R,b,y,c), z, d)    (* bottom, *)
   | B, a, x, T (R, b, y, T (R,c,z,d))    (* right, *)
       -> T (R, T (B,a,x,b), y, T (B,c,z,d))    (* center tree. *)
-  | color, a, x, b -> T (color, a, x, b)       (* We allow red-red violation for now. *)
+  | color, a, x, b -> T (color, a, x, b)   (* We allow red-red violation for now. *)
 
 let insert x s =
   let rec ins = function                 (* Like in unbalanced binary search tree, *)
@@ -612,8 +612,8 @@ let insert x s =
         else if x > y then balance (color, a, y, ins b)
         else s
   in
-  match ins s with                       (* We could still have red-red violation at root, *)
-  | T (_, a, y, b) -> T (B, a, y, b)     (* fixed by coloring it black. *)
+  match ins s with                       (* We could still have red-red violation *)
+  | T (_, a, y, b) -> T (B, a, y, b)     (* at root, fixed by coloring it black. *)
   | E -> failwith "insert: impossible"
 ```
 

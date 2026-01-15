@@ -310,7 +310,7 @@ let cn_prev n =
     n                         (* The only thing we have is an n-step loop *)
       (fun g v -> v (g f))    (* We need sth that operates on f *)
       (fun z -> x)            (* We need to ignore the innermost step *)
-      (fun z -> z)            (* We've built a "machine" not results -- start the machine *)
+      (fun z -> z)      (* We've built a "machine" not results -- start the machine *)
 ```
 
 Addition is intuitive: to add $n$ and $m$, we first apply `f` $m$ times (giving us `m f x`), then apply `f` $n$ more times. Multiplication is even more clever: we apply the operation "apply `f` $m$ times" $n$ times, which computes $m \times n$ applications of `f`.

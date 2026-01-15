@@ -3259,7 +3259,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb86-1"><a hre
 <span id="cb86-14"><a href="#cb86-14" aria-hidden="true" tabindex="-1"></a>    n                         <span class="co">(* The only thing we have is an n-step loop *)</span></span>
 <span id="cb86-15"><a href="#cb86-15" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">fun</span> g v -&gt; v (g f))    <span class="co">(* We need sth that operates on f *)</span></span>
 <span id="cb86-16"><a href="#cb86-16" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">fun</span> z -&gt; x)            <span class="co">(* We need to ignore the innermost step *)</span></span>
-<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">fun</span> z -&gt; z)            <span class="co">(* We&#39;ve built a &quot;machine&quot; not results -- start the machine *)</span></span></code></pre></div>
+<span id="cb86-17"><a href="#cb86-17" aria-hidden="true" tabindex="-1"></a>      (<span class="kw">fun</span> z -&gt; z)      <span class="co">(* We&#39;ve built a &quot;machine&quot; not results -- start the machine *)</span></span></code></pre></div>
 <p>Addition is intuitive: to add <span class="math inline">n</span> and
 <span class="math inline">m</span>, we first apply <code>f</code> <span
 class="math inline">m</span> times (giving us <code>m f x</code>), then
@@ -4146,9 +4146,9 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb114-1"><a hr
 Remarkably, appending an element to this data structure works exactly
 like adding one to a binary number:</p>
 <div class="sourceCode" id="cb115"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> cons : &#39;a. &#39;a -&gt; &#39;a seq -&gt; &#39;a seq =  <span class="co">(* Appending an element to the *)</span></span>
-<span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> x -&gt; <span class="kw">function</span>                           <span class="co">(* datastructure is like *)</span></span>
-<span id="cb115-3"><a href="#cb115-3" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; One (x, Nil)                       <span class="co">(* adding one to a binary number: 1+0=1 *)</span></span>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb115-1"><a href="#cb115-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> cons : &#39;a. &#39;a -&gt; &#39;a seq -&gt; &#39;a seq =</span>
+<span id="cb115-2"><a href="#cb115-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> x -&gt; <span class="kw">function</span></span>
+<span id="cb115-3"><a href="#cb115-3" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; One (x, Nil)                       <span class="co">(* 1+0=1 *)</span></span>
 <span id="cb115-4"><a href="#cb115-4" aria-hidden="true" tabindex="-1"></a>  | Zero ps -&gt; One (x, ps)                    <span class="co">(* 1+...0=...1 *)</span></span>
 <span id="cb115-5"><a href="#cb115-5" aria-hidden="true" tabindex="-1"></a>  | One (y, ps) -&gt; Zero (cons (x,y) ps)       <span class="co">(* 1+...1=[...+1]0 *)</span></span>
 <span id="cb115-6"><a href="#cb115-6" aria-hidden="true" tabindex="-1"></a></span>
@@ -4158,8 +4158,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb115-1"><a hr
 <span id="cb115-10"><a href="#cb115-10" aria-hidden="true" tabindex="-1"></a>  | <span class="dv">0</span>, One (x, _) -&gt; x                        <span class="co">(* we raise exception, for convenience. *)</span></span>
 <span id="cb115-11"><a href="#cb115-11" aria-hidden="true" tabindex="-1"></a>  | i, One (_, ps) -&gt; lookup (i<span class="dv">-1</span>) (Zero ps)</span>
 <span id="cb115-12"><a href="#cb115-12" aria-hidden="true" tabindex="-1"></a>  | i, Zero ps -&gt;                             <span class="co">(* Random-access lookup works *)</span></span>
-<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> x, y = lookup (i / <span class="dv">2</span>) ps <span class="kw">in</span>         <span class="co">(* in logarithmic time -- much faster than *)</span></span>
-<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> i <span class="kw">mod</span> <span class="dv">2</span> = <span class="dv">0</span> <span class="kw">then</span> x <span class="kw">else</span> y            <span class="co">(* in standard lists. *)</span></span></code></pre></div>
+<span id="cb115-13"><a href="#cb115-13" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> x, y = lookup (i / <span class="dv">2</span>) ps <span class="kw">in</span>         <span class="co">(* in logarithmic time -- much faster *)</span></span>
+<span id="cb115-14"><a href="#cb115-14" aria-hidden="true" tabindex="-1"></a>      <span class="kw">if</span> i <span class="kw">mod</span> <span class="dv">2</span> = <span class="dv">0</span> <span class="kw">then</span> x <span class="kw">else</span> y            <span class="co">(* than in standard lists. *)</span></span></code></pre></div>
 <p>The <code>Zero</code> and <code>One</code> constructors correspond to
 binary digits. A <code>Zero</code> means “no singleton element at this
 level,” while <code>One</code> carries a singleton (or pair, or quad,
@@ -4645,25 +4645,25 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb119-1"><a hr
 <span id="cb119-3"><a href="#cb119-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb119-4"><a href="#cb119-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = Empty</span>
 <span id="cb119-5"><a href="#cb119-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb119-6"><a href="#cb119-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> member k m =                    <span class="co">(* &quot;Divide and conquer&quot; search through the tree. *)</span></span>
+<span id="cb119-6"><a href="#cb119-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> member k m =              <span class="co">(* &quot;Divide and conquer&quot; search through the tree. *)</span></span>
 <span id="cb119-7"><a href="#cb119-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span></span>
 <span id="cb119-8"><a href="#cb119-8" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; <span class="kw">false</span></span>
 <span id="cb119-9"><a href="#cb119-9" aria-hidden="true" tabindex="-1"></a>    | T (_, k2, _, _) <span class="kw">when</span> k = k2 -&gt; <span class="kw">true</span></span>
 <span id="cb119-10"><a href="#cb119-10" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, _, _) <span class="kw">when</span> k &lt; k2 -&gt; member k m1</span>
 <span id="cb119-11"><a href="#cb119-11" aria-hidden="true" tabindex="-1"></a>    | T (_, _, _, m2) -&gt; member k m2</span>
 <span id="cb119-12"><a href="#cb119-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb119-13"><a href="#cb119-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> add k v m =                     <span class="co">(* Searches the tree in the same way as member *)</span></span>
-<span id="cb119-14"><a href="#cb119-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                          <span class="co">(* but copies every node along the way. *)</span></span>
+<span id="cb119-13"><a href="#cb119-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> add k v m =               <span class="co">(* Searches the tree in the same way as member *)</span></span>
+<span id="cb119-14"><a href="#cb119-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                    <span class="co">(* but copies every node along the way. *)</span></span>
 <span id="cb119-15"><a href="#cb119-15" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; T (Empty, k, v, Empty)</span>
 <span id="cb119-16"><a href="#cb119-16" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, _, m2) <span class="kw">when</span> k = k2 -&gt; T (m1, k, v, m2)</span>
 <span id="cb119-17"><a href="#cb119-17" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, v2, m2) <span class="kw">when</span> k &lt; k2 -&gt; T (add k v m1, k2, v2, m2)</span>
 <span id="cb119-18"><a href="#cb119-18" aria-hidden="true" tabindex="-1"></a>    | T (m1, k2, v2, m2) -&gt; T (m1, k2, v2, add k v m2)</span>
 <span id="cb119-19"><a href="#cb119-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb119-20"><a href="#cb119-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> split_rightmost m =             <span class="co">(* A helper function, it does not belong *)</span></span>
-<span id="cb119-21"><a href="#cb119-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                          <span class="co">(* to the &quot;exported&quot; signature. *)</span></span>
+<span id="cb119-20"><a href="#cb119-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> split_rightmost m =       <span class="co">(* A helper function, it does not belong *)</span></span>
+<span id="cb119-21"><a href="#cb119-21" aria-hidden="true" tabindex="-1"></a>    <span class="kw">match</span> m <span class="kw">with</span>                    <span class="co">(* to the &quot;exported&quot; signature. *)</span></span>
 <span id="cb119-22"><a href="#cb119-22" aria-hidden="true" tabindex="-1"></a>    | Empty -&gt; <span class="dt">raise</span> <span class="dt">Not_found</span></span>
 <span id="cb119-23"><a href="#cb119-23" aria-hidden="true" tabindex="-1"></a>    | T (Empty, k, v, Empty) -&gt; k, v, Empty   <span class="co">(* We remove one element, *)</span></span>
-<span id="cb119-24"><a href="#cb119-24" aria-hidden="true" tabindex="-1"></a>    | T (m1, k, v, m2) -&gt;                 <span class="co">(* the one that is on the bottom right. *)</span></span>
+<span id="cb119-24"><a href="#cb119-24" aria-hidden="true" tabindex="-1"></a>    | T (m1, k, v, m2) -&gt;           <span class="co">(* the one that is on the bottom right. *)</span></span>
 <span id="cb119-25"><a href="#cb119-25" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> rk, rv, rm = split_rightmost m2 <span class="kw">in</span></span>
 <span id="cb119-26"><a href="#cb119-26" aria-hidden="true" tabindex="-1"></a>        rk, rv, T (m1, k, v, rm)</span>
 <span id="cb119-27"><a href="#cb119-27" aria-hidden="true" tabindex="-1"></a></span>
@@ -4797,7 +4797,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb120-1"><a hr
 <span id="cb120-16"><a href="#cb120-16" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, T (R,b,y,c), z, d)    <span class="co">(* bottom, *)</span></span>
 <span id="cb120-17"><a href="#cb120-17" aria-hidden="true" tabindex="-1"></a>  | B, a, x, T (R, b, y, T (R,c,z,d))    <span class="co">(* right, *)</span></span>
 <span id="cb120-18"><a href="#cb120-18" aria-hidden="true" tabindex="-1"></a>      -&gt; T (R, T (B,a,x,b), y, T (B,c,z,d))    <span class="co">(* center tree. *)</span></span>
-<span id="cb120-19"><a href="#cb120-19" aria-hidden="true" tabindex="-1"></a>  | color, a, x, b -&gt; T (color, a, x, b)       <span class="co">(* We allow red-red violation for now. *)</span></span>
+<span id="cb120-19"><a href="#cb120-19" aria-hidden="true" tabindex="-1"></a>  | color, a, x, b -&gt; T (color, a, x, b)   <span class="co">(* We allow red-red violation for now. *)</span></span>
 <span id="cb120-20"><a href="#cb120-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb120-21"><a href="#cb120-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> insert x s =</span>
 <span id="cb120-22"><a href="#cb120-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> <span class="kw">rec</span> ins = <span class="kw">function</span>                 <span class="co">(* Like in unbalanced binary search tree, *)</span></span>
@@ -4807,8 +4807,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb120-1"><a hr
 <span id="cb120-26"><a href="#cb120-26" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> <span class="kw">if</span> x &gt; y <span class="kw">then</span> balance (color, a, y, ins b)</span>
 <span id="cb120-27"><a href="#cb120-27" aria-hidden="true" tabindex="-1"></a>        <span class="kw">else</span> s</span>
 <span id="cb120-28"><a href="#cb120-28" aria-hidden="true" tabindex="-1"></a>  <span class="kw">in</span></span>
-<span id="cb120-29"><a href="#cb120-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> ins s <span class="kw">with</span>                       <span class="co">(* We could still have red-red violation at root, *)</span></span>
-<span id="cb120-30"><a href="#cb120-30" aria-hidden="true" tabindex="-1"></a>  | T (_, a, y, b) -&gt; T (B, a, y, b)     <span class="co">(* fixed by coloring it black. *)</span></span>
+<span id="cb120-29"><a href="#cb120-29" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> ins s <span class="kw">with</span>                       <span class="co">(* We could still have red-red violation *)</span></span>
+<span id="cb120-30"><a href="#cb120-30" aria-hidden="true" tabindex="-1"></a>  | T (_, a, y, b) -&gt; T (B, a, y, b)     <span class="co">(* at root, fixed by coloring it black. *)</span></span>
 <span id="cb120-31"><a href="#cb120-31" aria-hidden="true" tabindex="-1"></a>  | E -&gt; <span class="dt">failwith</span> <span class="st">&quot;insert: impossible&quot;</span></span></code></pre></div>
 <p>The <code>balance</code> function is the heart of the algorithm. It
 handles four cases where a red-red violation occurs (a red node with a
@@ -5392,7 +5392,7 @@ computing).</p>
 <h4 id="collecting-by-key">Collecting by Key</h4>
 <p>The first step is to collect elements from an association list,
 grouping all values that share the same key:</p>
-<p><code>ocaml env=ch6 let collect l =   match List.sort (fun x y -&gt; compare (fst x) (fst y)) l with   | [] -&gt; []                                (* Start with associations sorted by key *)   | (k0, v0)::tl -&gt;     let k0, vs, l = List.fold_left       (fun (k0, vs, l) (kn, vn) -&gt;           (* Collect values for current key *)         if k0 = kn then k0, vn::vs, l        (* Same key: add value to current group *)         else kn, [vn], (k0, List.rev vs)::l) (* New key: save current group, start new *)       (k0, [v0], []) tl in                   (* Why reverse? To preserve original order *)     List.rev ((k0, List.rev vs)::l)</code></p>
+<p><code>ocaml env=ch6 let collect l =   match List.sort (fun x y -&gt; compare (fst x) (fst y)) l with   | [] -&gt; []                           (* Start with associations sorted by key *)   | (k0, v0)::tl -&gt;     let k0, vs, l = List.fold_left       (fun (k0, vs, l) (kn, vn) -&gt;     (* Collect values for current key *)         if k0 = kn then k0, vn::vs, l  (* Same key: add value to current group *)         else kn, [vn], (k0, List.rev vs)::l) (* New: save current group, start new *)       (k0, [v0], []) tl in             (* Why reverse? To preserve original order *)     List.rev ((k0, List.rev vs)::l)</code></p>
 <p>Now we can group elements by an arbitrary property – we just need to
 extract the property as the key:</p>
 <p><code>ocaml env=ch6 let group_by p l = collect (List.map (fun e -&gt; p e, e) l)</code></p>
@@ -5756,7 +5756,7 @@ let keep_cell c s =                         (* c is actually unused *)
   {s with been_size = s.been_size + 1;
     visited = CellSet.add c s.visited}
 
-let fresh_island s =                        (* Increment been_size at start of find_island *)
+let fresh_island s =                 (* Increment been_size at start of find_island *)
   {s with been_size = 0;
     been_islands = s.been_islands + 1}
 
@@ -6325,7 +6325,7 @@ watch the sequence until it converges:</p>
 sums. Each element is a better approximation than the previous one. Now
 we need to find where the series has converged to the precision we
 need:</p>
-<p><code>ocaml env=ch7 let rec exact f = function           (* We arbitrarily decide that convergence is *)   | LNil -&gt; assert false             (* when three consecutive results are the same. *)   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))       when f x0 = f x1 &amp;&amp; f x0 = f x2 -&gt; f x0   | LCons (_, lazy tl) -&gt; exact f tl</code></p>
+<p><code>ocaml env=ch7 let rec exact f = function         (* We arbitrarily decide that convergence is *)   | LNil -&gt; assert false           (* when three consecutive results are the same. *)   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))       when f x0 = f x1 &amp;&amp; f x0 = f x2 -&gt; f x0   | LCons (_, lazy tl) -&gt; exact f tl</code></p>
 <p>The function <code>exact</code> applies a test function
 <code>f</code> to the approximations and stops when three consecutive
 results give the same answer. Why three? Because some power series (like
@@ -6469,13 +6469,12 @@ connecting boxes. We plug the output of pipe <code>pf</code> into the
 input of pipe <code>pg</code>:</p>
 <p>```ocaml env=ch7 let rec compose pf pg = match pg with | EOP -&gt;
 EOP (* pg is done – composition is done. <em>) | Yield (z, pg’) -&gt;
-Yield (z, compose pf pg’) (</em> pg has output ready – pass it through.
-<em>) | Await g -&gt; (</em> pg needs input – try to get it from pf.
-<em>) match pf with | EOP -&gt; EOP (</em> pf is done – no more input
-for pg. <em>) | Yield (y, pf’) -&gt; compose pf’ (g y) (</em> pf has
-output – feed it to pg. <em>) | Await f -&gt; (</em> Both are waiting –
-wait for external input. *) let update x = compose (f x) pg in Await
-update</p>
+Yield (z, compose pf pg’) (</em> pg has output – pass it through. <em>)
+| Await g -&gt; (</em> pg needs input – try to get it from pf. <em>)
+match pf with | EOP -&gt; EOP (</em> pf is done – no more input for pg.
+<em>) | Yield (y, pf’) -&gt; compose pf’ (g y) (</em> pf has output –
+feed it to pg. <em>) | Await f -&gt; (</em> Both waiting – wait for
+external input. *) let update x = compose (f x) pg in Await update</p>
 <p>let (&gt;-&gt;) pf pg = compose pf pg</p>
 <pre><code>
 The `&gt;-&gt;` operator lets us chain pipes together like Unix pipes: `source &gt;-&gt; transform &gt;-&gt; sink`.
@@ -6532,23 +6531,23 @@ The pretty-printer should produce different outputs depending on the available w
 Before diving into pipes, let us implement a straightforward recursive solution:
 
 ```ocaml env=ch7
-let pretty w d =                     (* Allowed width of line w. *)
-  let rec width = function           (* Compute total length of subdocument. *)
+let pretty w d =               (* Allowed width of line w. *)
+  let rec width = function     (* Compute total length of subdocument. *)
     | Text z -&gt; String.length z
-    | Line -&gt; 1                      (* A line break takes 1 character (space or newline). *)
+    | Line -&gt; 1                (* A line break takes 1 character (space or newline). *)
     | Cat (d1, d2) -&gt; width d1 + width d2
     | Group d -&gt; width d in
-  let rec format f r = function      (* f: flatten (no breaks)? r: remaining space. *)
+  let rec format f r = function  (* f: flatten (no breaks)? r: remaining space. *)
     | Text z -&gt; z, r - String.length z
-    | Line when f -&gt; &quot; &quot;, r-1        (* Flatten mode: render as space. *)
-    | Line -&gt; &quot;\n&quot;, w                (* Break mode: newline, reset remaining to full width. *)
+    | Line when f -&gt; &quot; &quot;, r-1  (* Flatten mode: render as space. *)
+    | Line -&gt; &quot;\n&quot;, w          (* Break mode: newline, reset remaining to full width. *)
     | Cat (d1, d2) -&gt;
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
       s1 ^ s2, r
     | Group d -&gt; format (f || width d &lt;= r) r d  (* Flatten if group fits. *)
   in
-  fst (format false w d)             (* Start outside any group (not flattening). *)</code></pre>
+  fst (format false w d)       (* Start outside any group (not flattening). *)</code></pre>
 <p>The <code>format</code> function takes a boolean <code>f</code> (are
 we in “flatten” mode?) and the remaining space <code>r</code>. When we
 enter a <code>Group</code>, we check if the whole group fits in the
@@ -6561,7 +6560,7 @@ potentially doing redundant work. The stream-based solution processes
 the document incrementally, computing positions as we go.</p>
 <p>First, we define a type for document elements that can carry
 annotations:</p>
-<p><code>ocaml env=ch7 type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a</code></p>
+<p><code>ocaml env=ch7 type ('a, 'b) doc_e =          (* Annotated nodes, special for group beginning. *)   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a</code></p>
 <p>The type parameters <code>'a</code> and <code>'b</code> allow
 different annotations for different elements. <code>GBeg</code> (group
 beginning) has a different type because it will eventually carry the end
@@ -6589,19 +6588,19 @@ let rec grends grstack =
   Await (function
   | TE _ | LE _ as e -&gt;
     (match grstack with
-    | [] -&gt; Yield (e, grends [])          (* No groups waiting -- yield immediately. *)
-    | gr::grs -&gt; grends ((e::gr)::grs))   (* Inside a group -- buffer the element. *)
-  | GBeg _ -&gt; grends ([]::grstack)        (* Start a new group: push empty buffer. *)
+    | [] -&gt; Yield (e, grends [])         (* No groups waiting -- yield immediately. *)
+    | gr::grs -&gt; grends ((e::gr)::grs))  (* Inside a group -- buffer the element. *)
+  | GBeg _ -&gt; grends ([]::grstack)       (* Start a new group: push empty buffer. *)
   | GEnd endp -&gt;
-    match grstack with                    (* End the group on top of stack. *)
+    match grstack with                   (* End the group on top of stack. *)
     | [] -&gt; failwith &quot;grends: unmatched group end marker&quot;
-    | [gr] -&gt;                             (* Outermost group -- yield everything now. *)
+    | [gr] -&gt;                          (* Outermost group -- yield everything now. *)
       yield_all
         (GBeg endp::List.rev (GEnd endp::gr))  (* Annotate GBeg with end position. *)
         (grends [])
-    | gr::par::grs -&gt;                     (* Nested group -- add to parent&#39;s buffer. *)
+    | gr::par::grs -&gt;                    (* Nested group -- add to parent&#39;s buffer. *)
       let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))                  (* Could use catenable lists for efficiency. *)</code></pre>
+      grends (par::grs))               (* Could use catenable lists for efficiency. *)</code></pre>
 <p>This works, but it has a problem: we wait until the entire group is
 processed before yielding anything. For large groups (or groups that
 exceed the line width), this is wasteful. We can optimize by flushing
@@ -6618,12 +6617,12 @@ of each group. <em>) | [] -&gt; Yield (e, grends w []) (</em> No groups
 -&gt; flush (Yield (e, grends w [])) (</em> Group too wide – flush and
 yield. <em>) | (begp, gr)::grs -&gt; grends w ((begp, e::gr)::grs))
 (</em> Buffer element. <em>) | GBeg begp -&gt; grends w ((begp,
-[])::grstack) (</em> New group: remember start position. <em>) | GEnd
-endp as e -&gt; match grstack with (</em> No longer fail when stack is
-empty – <em>) | [] -&gt; Yield (e, grends w []) (</em> could have been
-flushed earlier. <em>) | (begp, <em>)::</em> when endp-begp &gt; w -&gt;
-flush (Yield (e, grends w [])) (</em> Group exceeded width – flush.
-<em>) | [_, gr] -&gt; (</em> Group fits – annotate with end position. *)
+[])::grstack) (</em> New group: remember start pos. <em>) | GEnd endp as
+e -&gt; match grstack with (</em> No longer fail when stack is empty –
+<em>) | [] -&gt; Yield (e, grends w []) (</em> could have been flushed
+earlier. <em>) | (begp, <em>)::</em> when endp-begp &gt; w -&gt; flush
+(Yield (e, grends w [])) (</em> Group exceeded width – flush. <em>) |
+[_, gr] -&gt; (</em> Group fits – annotate with end position. *)
 yield_all (GBeg (Pos endp)::List.rev (GEnd endp::gr)) (grends w []) |
 (_, gr)::(par_begp, par)::grs -&gt; (* Nested group fits – add to
 parent. *) let par = GEnd endp::gr @ [GBeg (Pos endp)] @ par in grends w
@@ -6633,19 +6632,19 @@ parent. *) let par = GEnd endp::gr @ [GBeg (Pos endp)] @ par in grends w
 Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being &quot;flattened&quot; (rendered inline), and the position where the current line would end:
 
 ```ocaml skip
-let rec format w (inline, endlpos as st) =  (* inline: stack of &quot;flatten this group?&quot; *)
-  Await (function                           (* endlpos: position where line ends *)
-  | TE (_, z) -&gt; Yield (z, format w st)     (* Text: output directly. *)
+let rec format w (inline, endlpos as st) = (* inline: stack of &quot;flatten this group?&quot; *)
+  Await (function                          (* endlpos: position where line ends *)
+  | TE (_, z) -&gt; Yield (z, format w st)    (* Text: output directly. *)
   | LE p when List.hd inline -&gt;
-    Yield (&quot; &quot;, format w st)                (* In flatten mode: line break -&gt; space. *)
-  | LE p -&gt; Yield (&quot;\n&quot;, format w (inline, p+w))  (* Break mode: newline, update endlpos. *)
-  | GBeg Too_far -&gt;                         (* Group too wide -- don&#39;t flatten. *)
+    Yield (&quot; &quot;, format w st)               (* In flatten mode: line break -&gt; space. *)
+  | LE p -&gt; Yield (&quot;\n&quot;, format w (inline, p+w))  (* Break mode: update endlpos. *)
+  | GBeg Too_far -&gt;                        (* Group too wide -- don&#39;t flatten. *)
     format w (false::inline, endlpos)
-  | GBeg (Pos p) -&gt;                         (* Group fits if it ends before endlpos. *)
+  | GBeg (Pos p) -&gt;                        (* Group fits if it ends before endlpos. *)
     format w ((p&lt;=endlpos)::inline, endlpos)
   | GEnd _ -&gt; format w (List.tl inline, endlpos))  (* Pop the inline stack. *)
 
-let format w = format w ([false], w)        (* Start with no flattening, full line width. *)</code></pre>
+let format w = format w ([false], w)   (* Start with no flattening, full line width. *)</code></pre>
 <p>Put the pipes together into a complete pipeline:</p>
 <pre><code>+--------+     +-------+     +---------+     +--------+     +----------------+
 | gen doc| --&gt; |docpos | --&gt; |grends w | --&gt; |format w| --&gt; |iterate print_s |
@@ -6774,13 +6773,13 @@ pipes. Such duplicated arrows would behave nicely with pipes reading
 from files.</p>
 <h2 id="chapter-8-monads">Chapter 8: Monads</h2>
 <p>This chapter explores one of functional programming’s most powerful
-abstractions: monads. We begin with list comprehensions as a motivating
-example, then introduce monadic concepts and examine the monad laws. We
-explore the monad-plus extension that adds non-determinism, then work
-through various monad instances including the lazy, list, state,
-exception, and probability monads. We conclude with monad transformers
-for combining monads and cooperative lightweight threads for
-concurrency.</p>
+abstractions: monads. We begin with equivalents of list comprehensions
+as a motivating example, then introduce monadic concepts and examine the
+monad laws. We explore the monad-plus extension that adds
+non-determinism, then work through various monad instances including the
+lazy, list, state, exception, and probability monads. We conclude with
+monad transformers for combining monads and cooperative lightweight
+threads for concurrency.</p>
 <p>The material draws on several excellent resources: Jeff Newbern’s
 “All About Monads,” Martin Erwig and Steve Kollmansberger’s
 “Probabilistic Functional Programming in Haskell,” and Jerome Vouillon’s
@@ -6812,16 +6811,10 @@ let solutions ns n =
 returns a list, then flatten the results” is so common that many
 languages provide special syntax for it. We can express such
 computations much more elegantly with <em>list comprehensions</em>, a
-syntax extension that originated in languages like Haskell and
-Python.</p>
-<p>In older versions of OCaml with Camlp4, list comprehensions were
-loaded via:</p>
-<pre><code>#load &quot;dynlink.cma&quot;;;
-#load &quot;camlp4o.cma&quot;;;
-#load &quot;Camlp4Parsers/Camlp4ListComprehension.cmo&quot;;;</code></pre>
+syntax that originated in languages like Haskell and Python.</p>
 <p>With list comprehensions, we can write expressions that read almost
 like set-builder notation in mathematics:</p>
-<pre><code>let test = [i * 2 | i &lt;- from_to 2 22; i mod 3 = 0]</code></pre>
+<p><code>ocaml skip let test = [i * 2 | i &lt;- from_to 2 22; i mod 3 = 0]</code></p>
 <p>This reads as: “the list of <code>i * 2</code> for each
 <code>i</code> drawn from <code>from_to 2 22</code> where
 <code>i mod 3 = 0</code>.” The <code>&lt;-</code> arrow draws elements
@@ -6838,24 +6831,21 @@ generator, then recurse</li>
 <code>if condition then [expr | more] else []</code> – filter by a
 condition</li>
 </ul>
+<p>The list comprehension syntax has not caught on in modern OCaml;
+there were a couple syntax extensions providing it, but none gained
+popularity. It is a nice syntax to build intuition but the examples in
+this section need additional setup to compile, you can treat them as
+pseudo-code.</p>
 <h4 id="revisiting-countdown-with-list-comprehensions">Revisiting
 Countdown with List Comprehensions</h4>
 <p>Now let us revisit the Countdown Problem code with list
 comprehensions. The brute-force generation becomes dramatically cleaner
 – compare this to the deeply nested version above:</p>
-<pre><code>let rec exprs = function
-  | [] -&gt; []
-  | [n] -&gt; [Val n]
-  | ns -&gt;
-      [App (o, l, r) | (ls, rs) &lt;- split ns;
-       l &lt;- exprs ls; r &lt;- exprs rs;
-       o &lt;- [Add; Sub; Mul; Div]]</code></pre>
+<p><code>ocaml skip let rec exprs = function   | [] -&gt; []   | [n] -&gt; [Val n]   | ns -&gt;       [App (o, l, r) | (ls, rs) &lt;- split ns;        l &lt;- exprs ls; r &lt;- exprs rs;        o &lt;- [Add; Sub; Mul; Div]]</code></p>
 <p>The intent is immediately clear: we split the numbers, recursively
 build expressions for left and right parts, and try each operator. The
 generate-and-test scheme becomes equally elegant:</p>
-<pre><code>let solutions ns n =
-  [e | ns&#39; &lt;- choices ns;
-   e &lt;- exprs ns&#39;; eval e = Some n]</code></pre>
+<p><code>ocaml skip let solutions ns n =   [e | ns' &lt;- choices ns;    e &lt;- exprs ns'; eval e = Some n]</code></p>
 <p>The guard condition <code>eval e = Some n</code> filters out
 expressions that do not evaluate to the target value.</p>
 <h4 id="more-list-comprehension-examples">More List Comprehension
@@ -6863,30 +6853,24 @@ Examples</h4>
 <p>List comprehensions shine when expressing combinatorial algorithms.
 Here is computing all subsequences of a list (note that this generates
 some intermediate garbage, but the intent is clear):</p>
-<pre><code>let rec subseqs l =
-  match l with
-  | [] -&gt; [[]]
-  | x::xs -&gt; [ys | px &lt;- subseqs xs; ys &lt;- [px; x::px]]</code></pre>
+<p><code>ocaml skip let rec subseqs l =   match l with   | [] -&gt; [[]]   | x::xs -&gt; [ys | px &lt;- subseqs xs; ys &lt;- [px; x::px]]</code></p>
 <p>For each element <code>x</code>, we recursively compute subsequences
 of the tail, then for each such subsequence we include both the version
 without <code>x</code> and the version with <code>x</code>
 prepended.</p>
 <p>Computing permutations can be done via insertion – inserting an
 element at every possible position:</p>
-<pre><code>let rec insert x = function
-  | [] -&gt; [[x]]
-  | y::ys&#39; as ys -&gt;
-      (x::ys) :: [y::zs | zs &lt;- insert x ys&#39;]
+<p>```ocaml skip let rec insert x = function | [] -&gt; [[x]] | y::ys’
+as ys -&gt; (x::ys) :: [y::zs | zs &lt;- insert x ys’]</p>
+<p>let rec ins_perms = function | [] -&gt; [[]] | x::xs -&gt; [zs | ys
+&lt;- ins_perms xs; zs &lt;- insert x ys]</p>
+<pre><code>
+The `insert` function generates all ways to insert `x` into a list. Then `ins_perms` recursively permutes the tail and inserts the head at every position.
 
-let rec ins_perms = function
-  | [] -&gt; [[]]
-  | x::xs -&gt; [zs | ys &lt;- ins_perms xs; zs &lt;- insert x ys]</code></pre>
-<p>The <code>insert</code> function generates all ways to insert
-<code>x</code> into a list. Then <code>ins_perms</code> recursively
-permutes the tail and inserts the head at every position.</p>
-<p>Alternatively, we can compute permutations via selection – repeatedly
-choosing which element comes first:</p>
-<pre><code>let rec select = function
+Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
+
+```ocaml skip
+let rec select = function
   | [x] -&gt; [x, []]
   | x::xs -&gt; (x, xs) :: [y, x::ys | y, ys &lt;- select xs]
 
@@ -8187,8 +8171,8 @@ pace:</p>
 elapsed when they get to the other side of the bridge. If Larry then
 returns with the flashlight, a total of 20 minutes have passed and you
 have failed the mission.</p>
-<p>Find all answers to the puzzle using a list comprehension. The
-comprehension will be a bit long but recursion is not needed.</p>
+<p>Find all answers to the puzzle using <code>let*</code> notation. The
+expression will be a bit long but recursion is not needed.</p>
 <p><strong>Exercise 2.</strong> Assume <code>concat_map</code> as
 defined in lecture 6 and the binding operators defined above. What will
 the following expressions return? Why?</p>

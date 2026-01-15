@@ -1,6 +1,6 @@
 ## Chapter 8: Monads
 
-This chapter explores one of functional programming's most powerful abstractions: monads. We begin with list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
+This chapter explores one of functional programming's most powerful abstractions: monads. We begin with equivalents of list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
 
 The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."
 
@@ -39,19 +39,11 @@ The key insight is that we introduced the operator `|->` defined as:
 let ( |-> ) x f = concat_map f x
 ```
 
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax extension that originated in languages like Haskell and Python.
-
-In older versions of OCaml with Camlp4, list comprehensions were loaded via:
-
-```
-#load "dynlink.cma";;
-#load "camlp4o.cma";;
-#load "Camlp4Parsers/Camlp4ListComprehension.cmo";;
-```
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in languages like Haskell and Python.
 
 With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
-```
+```ocaml skip
 let test = [i * 2 | i <- from_to 2 22; i mod 3 = 0]
 ```
 
@@ -63,11 +55,13 @@ The translation rules that define list comprehension semantics are straightforwa
 - `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])` -- draw from a generator, then recurse
 - `[expr | condition; more]` translates to `if condition then [expr | more] else []` -- filter by a condition
 
+The list comprehension syntax has not caught on in modern OCaml; there were a couple syntax extensions providing it, but none gained popularity. It is a nice syntax to build intuition but the examples in this section need additional setup to compile, you can treat them as pseudo-code.
+
 #### Revisiting Countdown with List Comprehensions
 
 Now let us revisit the Countdown Problem code with list comprehensions. The brute-force generation becomes dramatically cleaner -- compare this to the deeply nested version above:
 
-```
+```ocaml skip
 let rec exprs = function
   | [] -> []
   | [n] -> [Val n]
@@ -79,7 +73,7 @@ let rec exprs = function
 
 The intent is immediately clear: we split the numbers, recursively build expressions for left and right parts, and try each operator. The generate-and-test scheme becomes equally elegant:
 
-```
+```ocaml skip
 let solutions ns n =
   [e | ns' <- choices ns;
    e <- exprs ns'; eval e = Some n]
@@ -91,7 +85,7 @@ The guard condition `eval e = Some n` filters out expressions that do not evalua
 
 List comprehensions shine when expressing combinatorial algorithms. Here is computing all subsequences of a list (note that this generates some intermediate garbage, but the intent is clear):
 
-```
+```ocaml skip
 let rec subseqs l =
   match l with
   | [] -> [[]]
@@ -102,7 +96,7 @@ For each element `x`, we recursively compute subsequences of the tail, then for 
 
 Computing permutations can be done via insertion -- inserting an element at every possible position:
 
-```
+```ocaml skip
 let rec insert x = function
   | [] -> [[x]]
   | y::ys' as ys ->
@@ -117,7 +111,7 @@ The `insert` function generates all ways to insert `x` into a list. Then `ins_pe
 
 Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
 
-```
+```ocaml skip
 let rec select = function
   | [x] -> [x, []]
   | x::xs -> (x, xs) :: [y, x::ys | y, ys <- select xs]
@@ -1740,7 +1734,7 @@ The key insight is that monadic structure gives us precise control over concurre
 
 For example: if Bono and Larry walk across first, 10 minutes have elapsed when they get to the other side of the bridge. If Larry then returns with the flashlight, a total of 20 minutes have passed and you have failed the mission.
 
-Find all answers to the puzzle using a list comprehension. The comprehension will be a bit long but recursion is not needed.
+Find all answers to the puzzle using `let*` notation. The expression will be a bit long but recursion is not needed.
 
 **Exercise 2.** Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
 

@@ -252,11 +252,11 @@ let rec lazy_foldr f l base =
 Now we need a stopping condition in the Horner algorithm step. We stop when the coefficient becomes small enough that further terms are negligible:
 
 ```ocaml env=ch7
-let lhorner x l =                         (* This is a bit of a hack: *)
-  let upd c sum =                         (* we hope to "hit" the interval (0, epsilon]. *)
+let lhorner x l =                    (* This is a bit of a hack: *)
+  let upd c sum =                    (* we hope to "hit" the interval (0, epsilon]. *)
     if c = 0. || abs_float c > epsilon_float
     then c +. x *. Lazy.force sum
-    else 0. in                            (* Stop when c is tiny but nonzero. *)
+    else 0. in                       (* Stop when c is tiny but nonzero. *)
   lazy_foldr upd l 0.
 
 let inv_fact = lmap (fun n -> 1. /. float_of_int n) lfact
@@ -406,8 +406,8 @@ let infhorner x l =
 The function `infhorner` returns a lazy list of partial sums. Each element is a better approximation than the previous one. Now we need to find where the series has converged to the precision we need:
 
 ```ocaml env=ch7
-let rec exact f = function           (* We arbitrarily decide that convergence is *)
-  | LNil -> assert false             (* when three consecutive results are the same. *)
+let rec exact f = function         (* We arbitrarily decide that convergence is *)
+  | LNil -> assert false           (* when three consecutive results are the same. *)
   | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))
       when f x0 = f x1 && f x0 = f x2 -> f x0
   | LCons (_, lazy tl) -> exact f tl
@@ -593,13 +593,13 @@ Composition of pipes is like "concatenating them in space" or connecting boxes. 
 ```ocaml env=ch7
 let rec compose pf pg =
   match pg with
-  | EOP -> EOP                              (* pg is done -- composition is done. *)
-  | Yield (z, pg') -> Yield (z, compose pf pg')   (* pg has output ready -- pass it through. *)
-  | Await g ->                              (* pg needs input -- try to get it from pf. *)
+  | EOP -> EOP                            (* pg is done -- composition is done. *)
+  | Yield (z, pg') -> Yield (z, compose pf pg')  (* pg has output -- pass it through. *)
+  | Await g ->                            (* pg needs input -- try to get it from pf. *)
     match pf with
-    | EOP -> EOP                            (* pf is done -- no more input for pg. *)
-    | Yield (y, pf') -> compose pf' (g y)   (* pf has output -- feed it to pg. *)
-    | Await f ->                            (* Both are waiting -- wait for external input. *)
+    | EOP -> EOP                          (* pf is done -- no more input for pg. *)
+    | Yield (y, pf') -> compose pf' (g y)  (* pf has output -- feed it to pg. *)
+    | Await f ->                          (* Both waiting -- wait for external input. *)
       let update x = compose (f x) pg in
       Await update
 
@@ -683,23 +683,23 @@ Document First part Second part
 Before diving into pipes, let us implement a straightforward recursive solution:
 
 ```ocaml env=ch7
-let pretty w d =                     (* Allowed width of line w. *)
-  let rec width = function           (* Compute total length of subdocument. *)
+let pretty w d =               (* Allowed width of line w. *)
+  let rec width = function     (* Compute total length of subdocument. *)
     | Text z -> String.length z
-    | Line -> 1                      (* A line break takes 1 character (space or newline). *)
+    | Line -> 1                (* A line break takes 1 character (space or newline). *)
     | Cat (d1, d2) -> width d1 + width d2
     | Group d -> width d in
-  let rec format f r = function      (* f: flatten (no breaks)? r: remaining space. *)
+  let rec format f r = function  (* f: flatten (no breaks)? r: remaining space. *)
     | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1        (* Flatten mode: render as space. *)
-    | Line -> "\n", w                (* Break mode: newline, reset remaining to full width. *)
+    | Line when f -> " ", r-1  (* Flatten mode: render as space. *)
+    | Line -> "\n", w          (* Break mode: newline, reset remaining to full width. *)
     | Cat (d1, d2) ->
       let s1, r = format f r d1 in
       let s2, r = format f r d2 in
       s1 ^ s2, r
     | Group d -> format (f || width d <= r) r d  (* Flatten if group fits. *)
   in
-  fst (format false w d)             (* Start outside any group (not flattening). *)
+  fst (format false w d)       (* Start outside any group (not flattening). *)
 ```
 
 The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
@@ -711,7 +711,7 @@ The straightforward solution works, but it has a problem: for each group, we com
 First, we define a type for document elements that can carry annotations:
 
 ```ocaml env=ch7
-type ('a, 'b) doc_e =                (* Annotated nodes, special for group beginning. *)
+type ('a, 'b) doc_e =          (* Annotated nodes, special for group beginning. *)
   TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
 ```
 
@@ -746,18 +746,18 @@ The next pipe computes the position (character count from the beginning) of each
 
 ```ocaml env=ch7
 let rec docpos curpos =
-  Await (function                         (* Input from a doc_e pipe, *)
+  Await (function                   (* Input from a doc_e pipe, *)
   | TE (_, z) ->
-    Yield (TE (curpos, z),                (* output doc_e annotated with position. *)
+    Yield (TE (curpos, z),          (* output doc_e annotated with position. *)
            docpos (curpos + String.length z))
-  | LE _ ->                               (* Spaces and line breaks: 1 character. *)
+  | LE _ ->                         (* Spaces and line breaks: 1 character. *)
     Yield (LE curpos, docpos (curpos + 1))
-  | GBeg _ ->                             (* Groups themselves have no width. *)
+  | GBeg _ ->                       (* Groups themselves have no width. *)
     Yield (GBeg curpos, docpos curpos)
   | GEnd _ ->
     Yield (GEnd curpos, docpos curpos))
 
-let docpos = docpos 0                     (* The whole document starts at position 0. *)
+let docpos = docpos 0               (* The whole document starts at position 0. *)
 ```
 
 Now comes the tricky part. We want to annotate each `GBeg` with the position where the group *ends*, so we can decide whether the group fits on the line. But we see `GBeg` before we see `GEnd`! We need to buffer elements until we see the end of each group:
@@ -767,19 +767,19 @@ let rec grends grstack =
   Await (function
   | TE _ | LE _ as e ->
     (match grstack with
-    | [] -> Yield (e, grends [])          (* No groups waiting -- yield immediately. *)
-    | gr::grs -> grends ((e::gr)::grs))   (* Inside a group -- buffer the element. *)
-  | GBeg _ -> grends ([]::grstack)        (* Start a new group: push empty buffer. *)
+    | [] -> Yield (e, grends [])         (* No groups waiting -- yield immediately. *)
+    | gr::grs -> grends ((e::gr)::grs))  (* Inside a group -- buffer the element. *)
+  | GBeg _ -> grends ([]::grstack)       (* Start a new group: push empty buffer. *)
   | GEnd endp ->
-    match grstack with                    (* End the group on top of stack. *)
+    match grstack with                   (* End the group on top of stack. *)
     | [] -> failwith "grends: unmatched group end marker"
-    | [gr] ->                             (* Outermost group -- yield everything now. *)
+    | [gr] ->                          (* Outermost group -- yield everything now. *)
       yield_all
         (GBeg endp::List.rev (GEnd endp::gr))  (* Annotate GBeg with end position. *)
         (grends [])
-    | gr::par::grs ->                     (* Nested group -- add to parent's buffer. *)
+    | gr::par::grs ->                    (* Nested group -- add to parent's buffer. *)
       let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))                  (* Could use catenable lists for efficiency. *)
+      grends (par::grs))               (* Could use catenable lists for efficiency. *)
 ```
 
 This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
@@ -789,7 +789,7 @@ type grp_pos = Pos of int | Too_far
 
 let rec grends w grstack =
   let flush tail =                   (* When a group exceeds width w, *)
-    yield_all                        (* flush the stack -- yield everything buffered. *)
+    yield_all                     (* flush the stack -- yield everything buffered. *)
       (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
       tail in                        (* Mark flushed groups as Too_far. *)
   Await (function
@@ -799,7 +799,7 @@ let rec grends w grstack =
     | (begp, _)::_ when curp-begp > w ->
       flush (Yield (e, grends w []))    (* Group too wide -- flush and yield. *)
     | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))  (* Buffer element. *)
-  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start position. *)
+  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start pos. *)
   | GEnd endp as e ->
     match grstack with               (* No longer fail when stack is empty -- *)
     | [] -> Yield (e, grends w [])   (* could have been flushed earlier. *)
@@ -820,19 +820,19 @@ let grends w = grends w []           (* Initial stack is empty. *)
 Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
 
 ```ocaml skip
-let rec format w (inline, endlpos as st) =  (* inline: stack of "flatten this group?" *)
-  Await (function                           (* endlpos: position where line ends *)
-  | TE (_, z) -> Yield (z, format w st)     (* Text: output directly. *)
+let rec format w (inline, endlpos as st) = (* inline: stack of "flatten this group?" *)
+  Await (function                          (* endlpos: position where line ends *)
+  | TE (_, z) -> Yield (z, format w st)    (* Text: output directly. *)
   | LE p when List.hd inline ->
-    Yield (" ", format w st)                (* In flatten mode: line break -> space. *)
-  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: newline, update endlpos. *)
-  | GBeg Too_far ->                         (* Group too wide -- don't flatten. *)
+    Yield (" ", format w st)               (* In flatten mode: line break -> space. *)
+  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: update endlpos. *)
+  | GBeg Too_far ->                        (* Group too wide -- don't flatten. *)
     format w (false::inline, endlpos)
-  | GBeg (Pos p) ->                         (* Group fits if it ends before endlpos. *)
+  | GBeg (Pos p) ->                        (* Group fits if it ends before endlpos. *)
     format w ((p<=endlpos)::inline, endlpos)
   | GEnd _ -> format w (List.tl inline, endlpos))  (* Pop the inline stack. *)
 
-let format w = format w ([false], w)        (* Start with no flattening, full line width. *)
+let format w = format w ([false], w)   (* Start with no flattening, full line width. *)
 ```
 
 Put the pipes together into a complete pipeline:
