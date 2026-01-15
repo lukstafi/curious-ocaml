@@ -10,6 +10,13 @@ header-includes:
   - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
        onload="renderMathInElement(document.body);"></script>
+documentclass: report
+classoption:
+  - openany
+fontsize: 11pt
+geometry:
+  - margin=1in
+toc-depth: 3
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Curious OCaml
@@ -3301,6 +3308,7 @@ Note that the `average` example is slightly trickier than `list_rev` because we 
 
 This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
+::: {.figure}
 ```
     Input list              Result computation
 
@@ -3314,6 +3322,8 @@ This "backward" structure of `fold_left` can be visualized by comparing the shap
                 /  \        / \
                d    []  accu   a
 ```
+**Figure: List spine vs. fold_left computation tree**
+:::
 
 This reversal of structure is why `fold_left` naturally reverses lists when the combining operation is `cons`.
 

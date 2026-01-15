@@ -1,0 +1,210 @@
+% Pandoc LaTeX template for Curious OCaml
+% Based on default template with customizations for better PDF output
+
+\documentclass[$if(fontsize)$$fontsize$,$endif$$if(papersize)$$papersize$paper,$endif$$for(classoption)$$classoption$$sep$,$endfor$]{$documentclass$}
+
+% Package imports
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp}
+\else
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+
+% Use upquote for straight quotes in verbatim environments
+\usepackage{upquote}
+
+% Use microtype for better typography
+\usepackage{microtype}
+
+% Prevent overfull lines
+\setlength{\emergencystretch}{3em}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Graphics
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% Color
+\usepackage{xcolor}
+
+% Tables
+\usepackage{longtable,booktabs,array}
+\usepackage{calc}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+$if(title-meta)$
+  pdftitle={$title-meta$},
+$endif$
+$if(author-meta)$
+  pdfauthor={$author-meta$},
+$endif$
+  colorlinks=true,
+  linkcolor={blue!60!black},
+  citecolor={blue!60!black},
+  urlcolor={blue!60!black},
+  pdfcreator={Pandoc via LaTeX}}
+
+% Float package for figure placement control
+\usepackage{float}
+
+% ============================================
+% CHAPTER STYLING - Make chapters more prominent
+% ============================================
+\usepackage{titlesec}
+
+% Chapter styling: large bold title with extra space
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptertitlename\ \thechapter}
+  {20pt}
+  {\Huge}
+
+% Section styling
+\titleformat{\section}
+  {\normalfont\Large\bfseries}
+  {\thesection}
+  {1em}
+  {}
+
+% Subsection styling
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}
+  {\thesubsection}
+  {1em}
+  {}
+
+% ============================================
+% PAGE BREAKS BEFORE CHAPTERS
+% ============================================
+% Force page break before each chapter
+\let\oldchapter\chapter
+\renewcommand{\chapter}{\clearpage\oldchapter}
+
+% Also handle # headers (mapped to sections by pandoc with --top-level-division=chapter)
+% For book class, chapters already get page breaks; for article we need this:
+$if(book)$
+$else$
+% In article mode, sections are top-level, so add page breaks before them
+\let\oldsection\section
+\renewcommand{\section}{\clearpage\oldsection}
+$endif$
+
+% ============================================
+% CODE BLOCK STYLING - Prevent page breaks within
+% ============================================
+\usepackage{fancyvrb}
+\usepackage{framed}
+
+% Redefine verbatim/code environments to discourage page breaks
+\makeatletter
+\preto{\@verbatim}{\topsep=0pt \partopsep=0pt}
+\makeatother
+
+% Make Shaded environment (used by pandoc for code blocks) unbreakable
+\usepackage{mdframed}
+
+% Define shadecolor if not already defined (for code blocks)
+\definecolor{shadecolor}{RGB}{248,248,248}
+
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% Redefine Shaded to prevent page breaks (works whether highlighting is on or not)
+\renewenvironment{Shaded}{%
+  \begin{mdframed}[
+    backgroundcolor=shadecolor,
+    linewidth=0pt,
+    innerleftmargin=3pt,
+    innerrightmargin=3pt,
+    innertopmargin=3pt,
+    innerbottommargin=3pt,
+    skipabove=\baselineskip,
+    skipbelow=\baselineskip,
+    nobreak=true
+  ]%
+}{%
+  \end{mdframed}%
+}
+
+% For plain verbatim, also discourage breaks
+\BeforeBeginEnvironment{verbatim}{\begin{minipage}{\linewidth}}
+\AfterEndEnvironment{verbatim}{\end{minipage}}
+
+% ============================================
+% FIGURE ENVIRONMENT FOR ASCII ART
+% ============================================
+% The figure environment already prevents page breaks within
+% We'll use it in the markdown via pandoc divs
+
+% ============================================
+% DOCUMENT METADATA
+% ============================================
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{%
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}%
+}
+\makeatother
+\subtitle{$subtitle$}
+$endif$
+$if(author)$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+$endif$
+\date{$date$}
+
+% ============================================
+% DOCUMENT BODY
+% ============================================
+\begin{document}
+
+$if(title)$
+\maketitle
+$endif$
+
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+
+$for(include-before)$
+$include-before$
+$endfor$
+
+$if(toc)$
+{
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+
+$body$
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+\end{document}

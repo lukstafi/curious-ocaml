@@ -147,6 +147,7 @@ Note that the `average` example is slightly trickier than `list_rev` because we 
 
 This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
+::: {.figure}
 ```
     Input list              Result computation
 
@@ -160,6 +161,8 @@ This "backward" structure of `fold_left` can be visualized by comparing the shap
                 /  \        / \
                d    []  accu   a
 ```
+**Figure: List spine vs. fold_left computation tree**
+:::
 
 This reversal of structure is why `fold_left` naturally reverses lists when the combining operation is `cons`.
 
