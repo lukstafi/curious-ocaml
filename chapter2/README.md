@@ -1,12 +1,19 @@
 ## Chapter 2: Algebra
 
-*Algebraic Data Types and some curious analogies*
+*Algebraic data types and some curious analogies*
 
 In this chapter, we will deepen our understanding of OCaml's type system by working through type inference examples by hand. Then we will explore algebraic data types---a cornerstone of functional programming that allows us to define rich, structured data. Along the way, we will discover a surprising and beautiful connection between these types and ordinary polynomials from high-school algebra.
 
+**In this chapter, you will:**
+
+- Practice type inference by hand (constraints, unification intuition)
+- Define and manipulate algebraic data types (variants, records, recursion, parameters)
+- Interpret types as polynomials (and learn what this analogy buys you)
+- Differentiate types to compute “one-hole contexts” (derivatives of data structures)
+
 ### 2.1 A Glimpse at Type Inference
 
-For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means "dunno yet" (type unknown).
+For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means “unknown (to be inferred)”.
 
 We begin with an incomplete derivation:
 

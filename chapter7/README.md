@@ -6,6 +6,13 @@ Well, perhaps you have some questions? This chapter explores one of the most ele
 
 We will examine different evaluation strategies, implement streams and lazy lists, apply them to power series computation and differential equations, build circular data structures, and develop a sophisticated pipe-based pretty-printer. Along the way, we will see how laziness transforms the way we think about computation itself.
 
+**In this chapter, you will:**
+
+- Distinguish evaluation strategies (call-by-value/name/need) and their consequences
+- Build infinite data structures safely using streams and lazy values
+- Apply laziness to nontrivial examples (power series, differential equations, pretty-printing)
+- Learn where laziness interacts poorly with effects (I/O) and how to reason about it
+
 ### 7.1 Evaluation Strategies and Parameter Passing
 
 **Evaluation strategy** is the order in which expressions are computed -- primarily, when arguments are computed. Recall our problems with using *flow control* expressions like `if_then_else` in examples from the lambda-calculus lecture. There are many technical terms describing various evaluation strategies:
@@ -942,7 +949,7 @@ let rec merge xs ys =
 let hamming k =
   let _pr = ltake k primes in  (* TODO: use primes to generate smooth numbers *)
   let rec h = LCons (1, lazy (
-     (* TODO *)h
+     (* TODO: replace this placeholder with the real generator; `h` keeps the snippet compiling. *) h
   )) in h
 ```
 

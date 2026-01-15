@@ -2,6 +2,13 @@
 
 *Programming in untyped lambda-calculus*
 
+**In this chapter, you will:**
+
+- Rehearse reduction-by-hand on a non-trivial recursive program
+- Learn the syntax and $\u03b2$-reduction rules of the untyped lambda-calculus
+- Encode booleans, pairs, naturals, lists, and trees using functions alone
+- Understand recursion via fixpoint combinators (and how evaluation order matters)
+
 This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We embark on a fascinating journey that reveals a surprising truth: every computation can be expressed using nothing but functions. No numbers, no booleans, no data structures---just functions all the way down.
 
 We begin with a review of computation by hand using our reduction semantics, then introduce the lambda-calculus notation and show how to encode fundamental data types---booleans, pairs, and natural numbers---using only functions. The chapter concludes with an examination of recursion through fixpoint combinators and practical considerations for avoiding infinite loops in eager evaluation.

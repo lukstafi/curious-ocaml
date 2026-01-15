@@ -1,5 +1,13 @@
 ## Chapter 8: Monads
 
+**In this chapter, you will:**
+
+- Recognize the “bind + return” pattern behind list comprehensions and other effects
+- Learn the monad laws (and what they do and do not guarantee)
+- Use monad-plus for nondeterministic/backtracking computation
+- Work through several concrete monads (lazy, list, exception, state, probability)
+- Combine effects with monad transformers and model cooperative concurrency
+
 This chapter explores one of functional programming's most powerful abstractions: monads. We begin with equivalents of list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
 
 The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."

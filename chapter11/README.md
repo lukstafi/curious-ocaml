@@ -1,5 +1,12 @@
 ## Chapter 11: The Expression Problem
 
+**In this chapter, you will:**
+
+- Understand the expression problem and why it matters for evolving codebases
+- Compare extensibility trade-offs across ADTs, objects, and variants in OCaml
+- Learn how polymorphic variants and recursive modules enable modular extension
+- Build a practical capstone: parser combinators (including dynamic loading)
+
 This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
 
 We will examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. Each approach has different trade-offs in terms of type safety, code organization, and ease of use. The chapter concludes with a practical application: parser combinators with dynamic code loading, demonstrating how these techniques apply to real-world problems.

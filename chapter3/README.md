@@ -2,6 +2,13 @@
 
 *Reduction semantics and operational reasoning*
 
+**In this chapter, you will:**
+
+- Use function composition to build reusable “pipelines”
+- Learn reduction semantics to reason about evaluation step by step
+- Recognize and write tail-recursive programs (and understand what TCO buys you)
+- Get a first working intuition for continuation-passing style (CPS)
+
 **References:**
 
 - "Using, Understanding and Unraveling the OCaml Language" by Didier Remy, Chapter 1
@@ -28,7 +35,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 
 This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
 
-```
+```ocaml skip
 let iso2 = step1l -| step2l -| step3l
 ```
 
@@ -41,7 +48,7 @@ While backward composition matches traditional mathematical notation, many progr
 
 With forward composition, you can read a pipeline of transformations in the natural order:
 
-```
+```ocaml skip
 let iso1 = step1r |- step2r |- step3r
 ```
 

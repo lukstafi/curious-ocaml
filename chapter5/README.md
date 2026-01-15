@@ -1,8 +1,15 @@
 ## Chapter 5: Polymorphism and Abstract Data Types
 
+**In this chapter, you will:**
+
+- Understand “unknowns vs parameters” in OCaml’s inferred types (and why the value restriction exists)
+- Connect type inference to solving constraint systems (unification intuition)
+- Use parametric types to design reusable, type-safe data structures
+- Specify ADTs algebraically and implement maps with increasing efficiency (lists → BSTs → red-black trees)
+
 This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We begin by examining how type inference actually works -- the process by which OCaml determines types for your code. Then we explore parametric types and show how they enable polymorphic functions to work with data of any shape. The second half of the chapter introduces algebraic specifications, the mathematical foundation for describing data structures, and applies these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in the elegant red-black tree.
 
-*If you see any error in this chapter, please let us know!*
+*Reader feedback welcome: if you spot an error or unclear passage, please report it.*
 
 ### 5.1 Type Inference
 

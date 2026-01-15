@@ -1,5 +1,12 @@
 ## Chapter 6: Folding and Backtracking
 
+**In this chapter, you will:**
+
+- Identify common recursion patterns and refactor them into `map`/`fold` abstractions
+- Make folds tail-recursive using accumulators (and understand the trade-offs)
+- Generalize `map`/`fold` beyond lists to trees and expression grammars
+- Use backtracking (via lists) to solve search problems and puzzles
+
 This chapter explores two fundamental programming paradigms in functional programming: **folding** (also known as reduction) and **backtracking**. We begin with the classic `map` and `fold` higher-order functions, examine how they generalize to trees and other data structures, then move on to solving puzzles using backtracking with lists.
 
 The material in this chapter draws from Martin Odersky's "Functional Programming Fundamentals," Ralf Laemmel's "Going Bananas," Graham Hutton's "Programming in Haskell" (Chapter 11 on the Countdown Problem), and Tomasz Wierzbicki's Honey Islands Puzzle Solver.

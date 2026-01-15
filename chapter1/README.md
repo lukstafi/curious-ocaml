@@ -2,6 +2,15 @@
 
 *From logic rules to programming constructs*
 
+**In this chapter, you will:**
+
+- Learn natural-deduction rules for the core connectives ($\\top, \\bot, \\wedge, \\vee, \\rightarrow$)
+- Practice reading and building derivation trees (including hypothetical derivations)
+- See the Curry–Howard correspondence emerge in OCaml typing rules
+- Connect logical reasoning patterns (cases, induction) to programming patterns (pattern matching, recursion)
+
+**Conventions.** OCaml code blocks are intended to be runnable unless marked with `ocaml skip` (used for illustrative or partial snippets).
+
 ### 1.1 In the Beginning there was Logos
 
 What logical connectives do you know? Before we write any code, let us take a step back and think about logic itself. The connectives listed below form the foundation of reasoning, and as we will discover, they also form the foundation of programming.
@@ -174,7 +183,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
   ```
   This allows us to write `A(s) : int_string_choice`.
 
-- Why do we need to define variant types? The reasons are: exhaustiveness checks, performnance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
+- Why do we need to define variant types? The reasons are: exhaustiveness checks, performance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
 
 - OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, we will discuss them in chapter 11.
 
