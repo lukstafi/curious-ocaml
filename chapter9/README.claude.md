@@ -55,18 +55,14 @@ let program () =
   x + 1
 
 let answer_42 () =
-  Effect.Deep.match_with program ()
-    Effect.Deep.{ retc = Fun.id; exnc = raise;
-      effc = fun (type a) (eff : a Effect.t) ->
-        match eff with
-        | Ask -> Some (fun (k : (a, _) Effect.Deep.continuation) ->
-            Effect.Deep.continue k 42)
-        | _ -> None }
+  match program () with
+  | result -> result
+  | effect Ask, k -> Effect.Deep.continue k 42
 
 let () = assert (answer_42 () = 43)
 ```
 
-The key ingredient is the *continuation* `k`: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
+The syntax `effect Ask, k` matches when the `Ask` effect is performed. The variable `k` is the *continuation*: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
 
 #### Declaring Effects
 
@@ -103,32 +99,33 @@ When `Effect.perform` is called, control transfers to the nearest enclosing hand
 
 #### Handling Effects
 
-Effect handlers are installed using `Effect.Deep.match_with`. A handler is a record with three fields:
+OCaml 5.3+ provides a convenient syntax for handling effects using `match` with effect patterns:
 
-- `retc`: handles the case when the computation returns normally
-- `exnc`: handles the case when an exception is raised
-- `effc`: handles effects; returns `Some handler_fn` if the effect is handled, `None` otherwise
-
-```ocaml skip
-let handler = Effect.Deep.{
-  retc = (fun result -> result);          (* computation completed *)
-  exnc = (fun exn -> raise exn);          (* exception was raised *)
-  effc = fun (type a) (eff : a Effect.t) ->
-    match eff with
-    | Yield -> Some (fun (k : (a, _) Effect.Deep.continuation) ->
-        (* k is the continuation: "the rest of the computation" *)
-        Effect.Deep.continue k ())
-    | _ -> None  (* effect not handled here *)
-}
+```ocaml env=ch9
+let () =
+  let state = ref 0 in
+  let result =
+    match put 10; get () + get () with
+    | result -> result
+    | effect Get, k -> Effect.Deep.continue k !state
+    | effect (Put n), k -> state := n; Effect.Deep.continue k ()
+  in
+  assert (result = 20)
 ```
 
-The continuation `k` captures everything that would happen after `Effect.perform Yield` returns. We can:
+The `effect E, k` pattern matches when effect `E` is performed. The continuation `k` captures everything that would happen after `Effect.perform` returns. We can:
 - **Continue** by calling `Effect.Deep.continue k value`, where `value` becomes the return value of `perform`
 - **Discontinue** by calling `Effect.Deep.discontinue k exn`, raising an exception at the effect site
-- **Discard** the continuation (but this leaks resources and should be avoided)
-- **Store** the continuation and resume it later
+- **Store** the continuation and resume it later (useful for schedulers)
 
 **Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`.
+
+The three kinds of patterns in a handler correspond to three cases:
+- Regular patterns handle normal return values
+- `exception` patterns handle raised exceptions
+- `effect` patterns handle performed effects
+
+This mirrors the explicit handler record form `{ retc; exnc; effc }` used by `Effect.Deep.match_with`, which we will see later for cases requiring explicit type annotations.
 
 #### Deep vs Shallow Handlers
 
@@ -203,53 +200,37 @@ module Threads : THREADS = struct
   let await p = Effect.perform (Await p)
   let yield () = Effect.perform TYield
 
-  (* Run queue: ready-to-run continuations *)
   let run_queue : (unit -> unit) Queue.t = Queue.create ()
-
   let enqueue f = Queue.push f run_queue
+  let dequeue () = if Queue.is_empty run_queue then () else Queue.pop run_queue ()
 
-  let dequeue () =
-    if Queue.is_empty run_queue then ()
-    else Queue.pop run_queue ()
-
-  (* Complete a promise and wake up waiters *)
   let fulfill p v =
     match !p with
     | Done _ -> failwith "Promise already fulfilled"
     | Pending waiters ->
         p := Done v;
-        List.iter (fun k -> enqueue (fun () ->
-          Effect.Deep.continue k v)) waiters
+        List.iter (fun k -> enqueue (fun () -> Effect.Deep.continue k v)) waiters
 
   let rec run_thread : 'a. (unit -> 'a) -> 'a promise = fun f ->
     let p = ref (Pending []) in
-    let handler = Effect.Deep.{
-      retc = (fun v -> fulfill p v; dequeue ());
-      exnc = (fun e -> raise e);
-      effc = fun (type b) (eff : b Effect.t) ->
-        match eff with
-        | Async g -> Some (fun (k : (b, _) continuation) ->
-            let p' = run_thread g in              (* Start child thread *)
-            Effect.Deep.continue k p')            (* Return promise to parent *)
-        | Await p' -> Some (fun k ->
-            match !p' with
-            | Done v -> Effect.Deep.continue k v  (* Already done: continue *)
-            | Pending ks -> p' := Pending (k :: ks); dequeue ())  (* Wait *)
-        | TYield -> Some (fun k ->
-            enqueue (fun () -> Effect.Deep.continue k ());  (* Re-queue self *)
-            dequeue ())                           (* Run next thread *)
-        | _ -> None                               (* Effect not handled here *)
-    } in
-    Effect.Deep.match_with f () handler;
-    p
+    let () = match f () with
+      | v -> fulfill p v; dequeue ()
+      | effect (Async g), k ->
+          let p' = run_thread g in
+          Effect.Deep.continue k p'
+      | effect (Await p'), k ->
+          (match !p' with
+           | Done v -> Effect.Deep.continue k v
+           | Pending ks -> p' := Pending (k :: ks); dequeue ())
+      | effect TYield, k ->
+          enqueue (fun () -> Effect.Deep.continue k ());
+          dequeue ()
+    in p
 
   let run f =
-    Queue.clear run_queue;                 (* Clear any leftover state *)
+    Queue.clear run_queue;
     let p = run_thread f in
-    (* Drain the queue until all threads complete *)
-    while not (Queue.is_empty run_queue) do
-      dequeue ()
-    done;
+    while not (Queue.is_empty run_queue) do dequeue () done;
     match !p with
     | Done v -> v
     | Pending _ -> failwith "Main thread did not complete"
@@ -315,15 +296,10 @@ module State = struct
 
   let run : type a. int -> (unit -> a) -> a = fun init f ->
     let state = ref init in
-    Effect.Deep.match_with f ()
-      Effect.Deep.{ retc = Fun.id; exnc = raise;
-        effc = fun (type b) (eff : b Effect.t) ->
-          match eff with
-          | SGet -> Some (fun (k : (b, _) Effect.Deep.continuation) ->
-              Effect.Deep.continue k !state)
-          | SPut n -> Some (fun (k : (b, _) Effect.Deep.continuation) ->
-              state := n; Effect.Deep.continue k ())
-          | _ -> None }
+    match f () with
+    | result -> result
+    | effect SGet, k -> Effect.Deep.continue k !state
+    | effect (SPut n), k -> state := n; Effect.Deep.continue k ()
 end
 ```
 
@@ -472,20 +448,15 @@ module Rejection = struct
 
   let run_once : type a. (unit -> a) -> a option = fun f ->
     try
-      Effect.Deep.match_with f ()
-        Effect.Deep.{ retc = Option.some; exnc = raise;
-          effc = fun (type b) (eff : b Effect.t) ->
-            match eff with
-            | Sample (_, weights) ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  Effect.Deep.continue k (sample_index weights))
-            | Observe w ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  if Random.float 1.0 < w
-                  then Effect.Deep.continue k ()
-                  else raise Rejected)
-            | Fail -> Some (fun _ -> raise Rejected)
-            | _ -> None }
+      match f () with
+      | result -> Some result
+      | effect (Sample (_, weights)), k ->
+          Effect.Deep.continue k (sample_index weights)
+      | effect (Observe w), k ->
+          if Random.float 1.0 < w
+          then Effect.Deep.continue k ()
+          else raise Rejected
+      | effect Fail, _ -> raise Rejected
     with Rejected -> None
 
   let infer ?(samples=10000) f =
@@ -569,19 +540,14 @@ module Importance = struct
   let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
     let weight = ref 1.0 in
     try
-      Effect.Deep.match_with f ()
-        Effect.Deep.{ retc = (fun x -> Some (x, !weight)); exnc = raise;
-          effc = fun (type b) (eff : b Effect.t) ->
-            match eff with
-            | Sample (_, weights) ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  Effect.Deep.continue k (sample_index weights))
-            | Observe likelihood ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  weight := !weight *. likelihood;
-                  Effect.Deep.continue k ())
-            | Fail -> Some (fun _ -> raise HardFail)
-            | _ -> None }
+      match f () with
+      | result -> Some (result, !weight)
+      | effect (Sample (_, weights)), k ->
+          Effect.Deep.continue k (sample_index weights)
+      | effect (Observe likelihood), k ->
+          weight := !weight *. likelihood;
+          Effect.Deep.continue k ()
+      | effect Fail, _ -> raise HardFail
     with HardFail -> None
 
   let infer ?(samples=10000) f =
@@ -670,24 +636,18 @@ module ParticleFilter = struct
     let recorded = ref [] in
     let weight = ref 1.0 in
     try
-      Effect.Deep.match_with f ()
-        Effect.Deep.{ retc = (fun x -> Some (x, List.rev !recorded, !weight));
-          exnc = raise;
-          effc = fun (type b) (eff : b Effect.t) ->
-            match eff with
-            | Sample (_, weights) ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  let i = match !remaining with
-                    | choice :: rest -> remaining := rest; choice
-                    | [] -> sample_index weights in
-                  recorded := i :: !recorded;
-                  Effect.Deep.continue k i)
-            | Observe likelihood ->
-                Some (fun (k : (b, _) Effect.Deep.continuation) ->
-                  weight := !weight *. likelihood;
-                  Effect.Deep.continue k ())
-            | Fail -> Some (fun _ -> raise HardFail)
-            | _ -> None }
+      match f () with
+      | result -> Some (result, List.rev !recorded, !weight)
+      | effect (Sample (_, weights)), k ->
+          let i = match !remaining with
+            | choice :: rest -> remaining := rest; choice
+            | [] -> sample_index weights in
+          recorded := i :: !recorded;
+          Effect.Deep.continue k i
+      | effect (Observe likelihood), k ->
+          weight := !weight *. likelihood;
+          Effect.Deep.continue k ()
+      | effect Fail, _ -> raise HardFail
     with HardFail -> None
 
   (* Resample: select n indices according to weights *)
