@@ -11,6 +11,9 @@
  (files ../chapter7/*.eps))
 
 (copy_files
+ (files ../chapter7/*.png))
+
+(copy_files
  (files ../chapter8/*.eps))
 
 (copy_files

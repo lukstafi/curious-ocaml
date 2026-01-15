@@ -818,7 +818,7 @@ More precisely: given a honeycomb with some cells initially marked black (empty)
 
 | Task: 3 islands × 3 cells | Solution |
 |:-------------------------:|:--------:|
-| ![Task](honey0.png) | ![Solution](honey1.png) |
+| ![Task](honey0.png){width=45%} | ![Solution](honey1.png){width=45%} |
 
 In the solution, yellow cells contain honey, black cells were initially empty, and purple cells are the newly "eaten" cells that separate the honey into 3 islands of 3 cells each.
 
