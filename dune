@@ -22,6 +22,8 @@
     (echo
      "<!-- Do NOT modify this file, it is automatically generated -->\n")
     (echo "# Curious OCaml\n")
+    (cat intro.md)
+    (echo "\n\n")
     (cat chapter1/README.md)
     (echo "\n\n")
     (cat chapter2/README.md)

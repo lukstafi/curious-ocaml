@@ -618,6 +618,7 @@ let insert x s =
 ```
 
 The `balance` function is the heart of the algorithm. It handles four cases where a red-red violation occurs (a red node with a red child). The four cases correspond to different positions of the violation:
+
 - A red left child with a red left grandchild
 - A red left child with a red right grandchild
 - A red right child with a red left grandchild

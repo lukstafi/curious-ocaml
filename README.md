@@ -124,6 +124,7 @@ The power of induction lies in this: once we have the base case and the inductiv
 We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry-Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. This deep correspondence reveals that logical proofs and computer programs are, in a precise sense, the same thing!
 
 Under this correspondence:
+
 - **Propositions** (logical statements) correspond to **types**
 - **Proofs** (derivations showing a proposition is true) correspond to **programs** (expressions of a given type)
 - **Introduction rules** correspond to **constructors** (ways to build values)
@@ -188,15 +189,17 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
   ```
   This allows us to write `A(s) : int_string_choice`.
 
-- Why do we need to define variant types? The key reason is *type inference*. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist.
+- Why do we need to define variant types? The reasons are: exhaustiveness checks, performnance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
 
-- OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, but we will not focus on them in this book.
+- OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, we will discuss them in chapter 11.
 
 - Tuple elements do not need labels because we always know at which position a tuple element stands: the first element is first, the second is second, and so on. However, having labels makes code much clearer, especially when tuples have many components or components of the same type. For this reason, we can define a *record type*:
-  ```ocaml
+
+  ```ocaml skip
   type int_string_record = {a: int; b: string}
   ```
-  and create its values: `{a = 7; b = "Mary"}`.
+
+  and create its values: `{a = 7; b = "Mary"}`. OCaml 5.4 and newer also support labeled tuples, we will not discuss these.
 
 - We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
 
@@ -614,7 +617,7 @@ let day =
   {year = 2012; month = Feb; day = 14; weekday = Wed};;
 
 match day with
-  | {weekday = Sat | Sun} -> "Weekend!"
+  | {weekday = Sat | Sun; _} -> "Weekend!"
   | _ -> "Work day"
 ```
 
@@ -626,13 +629,14 @@ Sometimes we want to both destructure a value *and* keep a reference to the whol
 
 ```
 match day with
-  | {weekday = (Mon | Tue | Wed | Thu | Fri as wday)}
+  | {weekday = (Mon | Tue | Wed | Thu | Fri as wday); _}
       when not (day.month = Dec && day.day = 24) ->
     Some (work (get_plan wday))
   | _ -> None
 ```
 
 This example demonstrates several features working together:
+
 - An or-pattern matches any weekday from Monday to Friday
 - The `as wday` clause binds the matched weekday to the variable `wday`
 - A `when` guard checks that it is not Christmas Eve

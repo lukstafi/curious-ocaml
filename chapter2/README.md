@@ -301,7 +301,7 @@ let day =
   {year = 2012; month = Feb; day = 14; weekday = Wed};;
 
 match day with
-  | {weekday = Sat | Sun} -> "Weekend!"
+  | {weekday = Sat | Sun; _} -> "Weekend!"
   | _ -> "Work day"
 ```
 
@@ -313,13 +313,14 @@ Sometimes we want to both destructure a value *and* keep a reference to the whol
 
 ```
 match day with
-  | {weekday = (Mon | Tue | Wed | Thu | Fri as wday)}
+  | {weekday = (Mon | Tue | Wed | Thu | Fri as wday); _}
       when not (day.month = Dec && day.day = 24) ->
     Some (work (get_plan wday))
   | _ -> None
 ```
 
 This example demonstrates several features working together:
+
 - An or-pattern matches any weekday from Monday to Friday
 - The `as wday` clause binds the matched weekday to the variable `wday`
 - A `when` guard checks that it is not Christmas Eve
