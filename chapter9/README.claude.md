@@ -382,8 +382,12 @@ let monty_hall ~switch =
   let prize = uniform doors in
   let chosen = uniform doors in
   (* Host opens a door that is neither prize nor chosen *)
-  let can_open = Array.of_list (
-    List.filter (fun d -> d <> prize && d <> chosen) [A; B; C]) in
+  let can_open =
+    doors
+    |> Array.to_list
+    |> List.filter (fun d -> d <> prize && d <> chosen)
+    |> Array.of_list
+  in
   let opened = uniform can_open in
   (* Player's final choice *)
   let final =
@@ -807,7 +811,7 @@ Algebraic effects provide a powerful alternative to monads for structuring effec
 
 3. **Flexibility**: The same effectful code can be interpreted different ways by different handlers.
 
-4. **Continuations**: Handlers receive continuations, enabling sophisticated control flow patterns like coroutines, backtracking, and particle filtering.
+4. **Continuations**: Handlers receive continuations, enabling sophisticated control flow patterns like coroutines and particle filtering.
 
 We saw two substantial applications:
 

@@ -34,6 +34,15 @@ This book is intended for three audiences:
 
 *From logic rules to programming constructs*
 
+**In this chapter, you will:**
+
+- Learn natural-deduction rules for the core connectives ($\\top, \\bot, \\wedge, \\vee, \\rightarrow$)
+- Practice reading and building derivation trees (including hypothetical derivations)
+- See the Curry–Howard correspondence emerge in OCaml typing rules
+- Connect logical reasoning patterns (cases, induction) to programming patterns (pattern matching, recursion)
+
+**Conventions.** OCaml code blocks are intended to be runnable unless marked with `ocaml skip` (used for illustrative or partial snippets).
+
 ### 1.1 In the Beginning there was Logos
 
 What logical connectives do you know? Before we write any code, let us take a step back and think about logic itself. The connectives listed below form the foundation of reasoning, and as we will discover, they also form the foundation of programming.
@@ -206,7 +215,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
   ```
   This allows us to write `A(s) : int_string_choice`.
 
-- Why do we need to define variant types? The reasons are: exhaustiveness checks, performnance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
+- Why do we need to define variant types? The reasons are: exhaustiveness checks, performance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
 
 - OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, we will discuss them in chapter 11.
 
@@ -333,13 +342,20 @@ The following exercises are adapted from *Think OCaml: How to Think Like a Compu
 
 ## Chapter 2: Algebra
 
-*Algebraic Data Types and some curious analogies*
+*Algebraic data types and some curious analogies*
 
 In this chapter, we will deepen our understanding of OCaml's type system by working through type inference examples by hand. Then we will explore algebraic data types---a cornerstone of functional programming that allows us to define rich, structured data. Along the way, we will discover a surprising and beautiful connection between these types and ordinary polynomials from high-school algebra.
 
+**In this chapter, you will:**
+
+- Practice type inference by hand (constraints, unification intuition)
+- Define and manipulate algebraic data types (variants, records, recursion, parameters)
+- Interpret types as polynomials (and learn what this analogy buys you)
+- Differentiate types to compute “one-hole contexts” (derivatives of data structures)
+
 ### 2.1 A Glimpse at Type Inference
 
-For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means "dunno yet" (type unknown).
+For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means “unknown (to be inferred)”.
 
 We begin with an incomplete derivation:
 
@@ -1098,6 +1114,13 @@ This function lets you "search" a tree and get back a context pointing to the fo
 
 *Reduction semantics and operational reasoning*
 
+**In this chapter, you will:**
+
+- Use function composition to build reusable “pipelines”
+- Learn reduction semantics to reason about evaluation step by step
+- Recognize and write tail-recursive programs (and understand what TCO buys you)
+- Get a first working intuition for continuation-passing style (CPS)
+
 **References:**
 
 - "Using, Understanding and Unraveling the OCaml Language" by Didier Remy, Chapter 1
@@ -1124,7 +1147,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 
 This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
 
-```
+```ocaml skip
 let iso2 = step1l -| step2l -| step3l
 ```
 
@@ -1137,7 +1160,7 @@ While backward composition matches traditional mathematical notation, many progr
 
 With forward composition, you can read a pipeline of transformations in the natural order:
 
-```
+```ocaml skip
 let iso1 = step1r |- step2r |- step3r
 ```
 
@@ -1725,6 +1748,13 @@ Which of these algorithms can be implemented in a tail-recursive manner? What ab
 ## Chapter 4: Functions
 
 *Programming in untyped lambda-calculus*
+
+**In this chapter, you will:**
+
+- Rehearse reduction-by-hand on a non-trivial recursive program
+- Learn the syntax and $\u03b2$-reduction rules of the untyped lambda-calculus
+- Encode booleans, pairs, naturals, lists, and trees using functions alone
+- Understand recursion via fixpoint combinators (and how evaluation order matters)
 
 This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We embark on a fascinating journey that reveals a surprising truth: every computation can be expressed using nothing but functions. No numbers, no booleans, no data structures---just functions all the way down.
 
@@ -2459,9 +2489,16 @@ let repeat_until p f s =
 
 ## Chapter 5: Polymorphism and Abstract Data Types
 
+**In this chapter, you will:**
+
+- Understand “unknowns vs parameters” in OCaml’s inferred types (and why the value restriction exists)
+- Connect type inference to solving constraint systems (unification intuition)
+- Use parametric types to design reusable, type-safe data structures
+- Specify ADTs algebraically and implement maps with increasing efficiency (lists → BSTs → red-black trees)
+
 This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We begin by examining how type inference actually works -- the process by which OCaml determines types for your code. Then we explore parametric types and show how they enable polymorphic functions to work with data of any shape. The second half of the chapter introduces algebraic specifications, the mathematical foundation for describing data structures, and applies these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in the elegant red-black tree.
 
-*If you see any error in this chapter, please let us know!*
+*Reader feedback welcome: if you spot an error or unclear passage, please report it.*
 
 ### 5.1 Type Inference
 
@@ -3159,6 +3196,13 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 
 ## Chapter 6: Folding and Backtracking
+
+**In this chapter, you will:**
+
+- Identify common recursion patterns and refactor them into `map`/`fold` abstractions
+- Make folds tail-recursive using accumulators (and understand the trade-offs)
+- Generalize `map`/`fold` beyond lists to trees and expression grammars
+- Use backtracking (via lists) to solve search problems and puzzles
 
 This chapter explores two fundamental programming paradigms in functional programming: **folding** (also known as reduction) and **backtracking**. We begin with the classic `map` and `fold` higher-order functions, examine how they generalize to trees and other data structures, then move on to solving puzzles using backtracking with lists.
 
@@ -4344,6 +4388,13 @@ Well, perhaps you have some questions? This chapter explores one of the most ele
 
 We will examine different evaluation strategies, implement streams and lazy lists, apply them to power series computation and differential equations, build circular data structures, and develop a sophisticated pipe-based pretty-printer. Along the way, we will see how laziness transforms the way we think about computation itself.
 
+**In this chapter, you will:**
+
+- Distinguish evaluation strategies (call-by-value/name/need) and their consequences
+- Build infinite data structures safely using streams and lazy values
+- Apply laziness to nontrivial examples (power series, differential equations, pretty-printing)
+- Learn where laziness interacts poorly with effects (I/O) and how to reason about it
+
 ### 7.1 Evaluation Strategies and Parameter Passing
 
 **Evaluation strategy** is the order in which expressions are computed -- primarily, when arguments are computed. Recall our problems with using *flow control* expressions like `if_then_else` in examples from the lambda-calculus lecture. There are many technical terms describing various evaluation strategies:
@@ -5280,7 +5331,7 @@ let rec merge xs ys =
 let hamming k =
   let _pr = ltake k primes in  (* TODO: use primes to generate smooth numbers *)
   let rec h = LCons (1, lazy (
-     (* TODO *)h
+     (* TODO: replace this placeholder with the real generator; `h` keeps the snippet compiling. *) h
   )) in h
 ```
 
@@ -5315,6 +5366,14 @@ type 'a doc =
 
 
 ## Chapter 8: Monads
+
+**In this chapter, you will:**
+
+- Recognize the “bind + return” pattern behind list comprehensions and other effects
+- Learn the monad laws (and what they do and do not guarantee)
+- Use monad-plus for nondeterministic/backtracking computation
+- Work through several concrete monads (lazy, list, exception, state, probability)
+- Combine effects with monad transformers and model cooperative concurrency
 
 This chapter explores one of functional programming's most powerful abstractions: monads. We begin with equivalents of list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
 
@@ -8388,6 +8447,13 @@ Implement an example that uses this compositionality-increasing capability.
 
 
 ## Chapter 11: The Expression Problem
+
+**In this chapter, you will:**
+
+- Understand the expression problem and why it matters for evolving codebases
+- Compare extensibility trade-offs across ADTs, objects, and variants in OCaml
+- Learn how polymorphic variants and recursive modules enable modular extension
+- Build a practical capstone: parser combinators (including dynamic loading)
 
 This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
 

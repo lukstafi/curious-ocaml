@@ -19,7 +19,7 @@ This chapter focuses on small, runnable libraries and interpreters. The goal is 
 
 An algebraic effect is a user-defined operation that can be *performed* (requested) inside a computation. A **handler** decides what to do when that operation is performed.
 
-In OCaml, effects live in the extensible GADT `Effect.t`. You **declare** an effect by extending `Effect.t`, you **perform** it with `Effect.perform`, and you **handle** it with `Effect.Deep.match_with`. (The interactive toplevel also supports a lighter effect-syntax, but in this book we stick to the standard library API so the examples compile as ordinary `.ml` code.)
+In OCaml, effects live in the extensible GADT `Effect.t`. You **declare** an effect by extending `Effect.t`, you **perform** it with `Effect.perform`, and you **handle** it either with handler records (`Effect.Deep.match_with`) or, more conveniently, with the *effect pattern* syntax in `match`/`try` (syntax sugar for deep handlers). In this syntax, regular cases correspond to `retc`, `exception ...` cases correspond to `exnc`, and `effect ...` cases correspond to `effc`.
 
 Here is the smallest possible example: an effect that asks for an `int`.
 
@@ -33,19 +33,8 @@ let program () =
   x + 1
 
 let answer_42 () =
-  let effc (type a) (eff : a Effect.t)
-      : ((a, int) Effect.Deep.continuation -> int) option =
-    match eff with
-    | Ask -> Some (fun k -> Effect.Deep.continue k 42)
-    | _ -> None
-  in
-  let handler : (int, int) Effect.Deep.handler =
-    { retc = (fun v -> v)
-    ; exnc = raise
-    ; effc
-    }
-  in
-  Effect.Deep.match_with program () handler
+  try program () with
+  | effect Ask, k -> Effect.Deep.continue k 42
 
 let _ = assert (answer_42 () = 43)
 ```
@@ -121,60 +110,52 @@ module Fiber = struct
     let enqueue job = Queue.push job jobs in
 
     let rec exec (thunk : unit -> unit) : unit =
-      Effect.Deep.match_with thunk () {
-        retc = (fun () -> ());
-        exnc = raise;
-        effc = fun (type a) (eff : a Effect.t) ->
-          match eff with
-          | Yield ->
-              Some (fun (k : (a, unit) Effect.Deep.continuation) ->
-                enqueue (fun () -> exec (fun () -> Effect.Deep.continue k ()));
-                ())
-          | Async f ->
-              Some (fun (k : (a, unit) Effect.Deep.continuation) ->
-                let p = { state = Waiting [] } in
-                promises := P p :: !promises;
+      match thunk () with
+      | () -> ()
+      | effect Yield, k ->
+          enqueue (fun () -> exec (fun () -> Effect.Deep.continue k ()));
+          ()
+      | effect (Async f), k ->
+          let p = { state = Waiting [] } in
+          promises := P p :: !promises;
 
-                let resolve r =
-                  match p.state with
-                  | Done _ -> invalid_arg "Fiber: promise resolved twice"
-                  | Waiting waiters ->
-                      p.state <- Done r;
-                      List.iter
-                        (fun waiter ->
-                          enqueue (fun () ->
-                            exec (fun () ->
-                              match r with
-                              | Ok x -> Effect.Deep.continue waiter x
-                              | Error exn -> Effect.Deep.discontinue waiter exn)))
-                        waiters
-                in
+          let resolve r =
+            match p.state with
+            | Done _ -> invalid_arg "Fiber: promise resolved twice"
+            | Waiting waiters ->
+                p.state <- Done r;
+                List.iter
+                  (fun waiter ->
+                    enqueue (fun () ->
+                      exec (fun () ->
+                        match r with
+                        | Ok x -> Effect.Deep.continue waiter x
+                        | Error exn -> Effect.Deep.discontinue waiter exn)))
+                  waiters
+          in
 
-                (* Enqueue continuation first: the parent keeps running and can
-                   spawn more work before children start. *)
-                enqueue (fun () -> exec (fun () -> Effect.Deep.continue k p));
-                enqueue (fun () ->
-                  exec (fun () ->
-                    let r =
-                      try Ok (f ()) with
-                      | exn -> Error exn
-                    in
-                    resolve r));
-                ())
-          | Await p ->
-              Some (fun (k : (a, unit) Effect.Deep.continuation) ->
-                match p.state with
-                | Done (Ok x) ->
-                    enqueue (fun () -> exec (fun () -> Effect.Deep.continue k x));
-                    ()
-                | Done (Error exn) ->
-                    enqueue (fun () -> exec (fun () -> Effect.Deep.discontinue k exn));
-                    ()
-                | Waiting waiters ->
-                    p.state <- Waiting (k :: waiters);
-                    ())
-          | _ -> None
-      }
+          (* Enqueue continuation first: the parent keeps running and can spawn
+             more work before children start. *)
+          enqueue (fun () -> exec (fun () -> Effect.Deep.continue k p));
+          enqueue (fun () ->
+            exec (fun () ->
+              let r =
+                try Ok (f ()) with
+                | exn -> Error exn
+              in
+              resolve r));
+          ()
+      | effect (Await p), k -> (
+          match p.state with
+          | Done (Ok x) ->
+              enqueue (fun () -> exec (fun () -> Effect.Deep.continue k x));
+              ()
+          | Done (Error exn) ->
+              enqueue (fun () -> exec (fun () -> Effect.Deep.discontinue k exn));
+              ()
+          | Waiting waiters ->
+              p.state <- Waiting (k :: waiters);
+              ())
     in
 
     enqueue (fun () -> exec main);
@@ -326,29 +307,19 @@ This corresponds closely to `SamplingMP` from Chapter 8 (which used an exception
 
 ```ocaml env=ch9_prob
 module Rejection = struct
-  exception Rejected
-
-  let run_once (rng : Random.State.t) (thunk : unit -> 'a) : 'a option =
-    let handler : ('a, 'a) Effect.Deep.handler =
-      { retc = (fun v -> v)
-      ; exnc = raise
-      ; effc =
-          (fun (type a) (eff : a Effect.t) ->
-            match eff with
-            | Sample d ->
-                Some (fun k ->
-                  let x = Dist.roulette rng d in
-                  Effect.Deep.continue k x)
-            | Factor _w ->
-                (* Rejection sampling does not use soft weights; we just ignore them. *)
-                Some (fun k -> Effect.Deep.continue k ())
-            | Tick -> Some (fun k -> Effect.Deep.continue k ())
-            | Reject -> Some (fun _k -> raise Rejected)
-            | _ -> None)
-      }
-    in
-    try Some (Effect.Deep.match_with thunk () handler) with
-    | Rejected -> None
+  let rec run_once (rng : Random.State.t) (thunk : unit -> 'a) : 'a option =
+    match thunk () with
+    | v -> Some v
+    | effect (Sample d), k ->
+        let x = Dist.roulette rng d in
+        Effect.Deep.continue k x
+    | effect (Factor _w), k ->
+        (* Rejection sampling does not use soft weights; we just ignore them. *)
+        Effect.Deep.continue k ()
+    | effect Tick, k ->
+        Effect.Deep.continue k ()
+    | effect Reject, _k ->
+        None
 
   let rec sample (rng : Random.State.t) (thunk : unit -> 'a) : 'a =
     match run_once rng thunk with
@@ -430,65 +401,48 @@ module Replay = struct
     let suffix = ref replay in
     let prefix_rev : trace ref = ref [] in
     let log_w = ref 0.0 in
-
-    let handler : ('a, 'a) Effect.Deep.handler =
-      { retc = (fun v -> v)
-      ; exnc = raise
-      ; effc =
-          (fun (type a) (eff : a Effect.t) ->
-            match eff with
-            | Sample d ->
-                Some (fun k ->
-                  (match !suffix with
-                  | Sample x :: suffix' ->
-                      suffix := suffix';
-                      prefix_rev := Sample x :: !prefix_rev;
-                      let xv = Obj.obj x in
-                      Effect.Deep.continue k xv
-                  | Tick :: _ ->
-                      invalid_arg
-                        "Replay.run: trace mismatch (expected Tick, got Sample)"
-                  | [] ->
-                      let x = Dist.roulette rng d in
-                      prefix_rev := Sample (Obj.repr x) :: !prefix_rev;
-                      Effect.Deep.continue k x))
-            | Factor w ->
-                Some (fun k ->
-                  let lw =
-                    if w <= 0.0 then neg_infinity else !log_w +! Float.log w
-                  in
-                  log_w := lw;
-                  Effect.Deep.continue k ())
-            | Reject ->
-                Some (fun _k -> raise Rejected)
-            | Tick ->
-                Some (fun k ->
-                  match !suffix with
-                  | Tick :: suffix' ->
-                      suffix := suffix';
-                      prefix_rev := Tick :: !prefix_rev;
-                      log_w := 0.0;
-                      Effect.Deep.continue k ()
-                  | Sample _ :: _ ->
-                      invalid_arg
-                        "Replay.run: trace mismatch (expected Sample, got Tick)"
-                  | [] ->
-                      prefix_rev := Tick :: !prefix_rev;
-                      raise (Pause (List.rev !prefix_rev, !log_w)))
-            | _ -> None)
-      }
+    let rec go (th : unit -> 'a) : 'a =
+      match th () with
+      | v -> v
+      | effect (Sample d), k -> (
+          match !suffix with
+          | Sample x :: suffix' ->
+              suffix := suffix';
+              prefix_rev := Sample x :: !prefix_rev;
+              let xv = Obj.obj x in
+              go (fun () -> Effect.Deep.continue k xv)
+          | Tick :: _ ->
+              invalid_arg "Replay.run: trace mismatch (expected Tick, got Sample)"
+          | [] ->
+              let x = Dist.roulette rng d in
+              prefix_rev := Sample (Obj.repr x) :: !prefix_rev;
+              go (fun () -> Effect.Deep.continue k x))
+      | effect (Factor w), k ->
+          let lw = if w <= 0.0 then neg_infinity else !log_w +! Float.log w in
+          log_w := lw;
+          go (fun () -> Effect.Deep.continue k ())
+      | effect Reject, _k ->
+          raise Rejected
+      | effect Tick, k -> (
+          match !suffix with
+          | Tick :: suffix' ->
+              suffix := suffix';
+              prefix_rev := Tick :: !prefix_rev;
+              log_w := 0.0;
+              go (fun () -> Effect.Deep.continue k ())
+          | Sample _ :: _ ->
+              invalid_arg "Replay.run: trace mismatch (expected Sample, got Tick)"
+          | [] ->
+              prefix_rev := Tick :: !prefix_rev;
+              raise (Pause (List.rev !prefix_rev, !log_w)))
     in
-    try
-      let value = Effect.Deep.match_with thunk () handler in
-      Done
-        { value
-        ; trace = List.rev_append !prefix_rev !suffix
-        ; log_w = !log_w
-        }
-    with
+    (try
+       let value = go thunk in
+       Done { value; trace = List.rev_append !prefix_rev !suffix; log_w = !log_w }
+     with
     | Pause (trace, log_w) -> Paused { trace; log_w }
     | Rejected ->
-        Paused { trace = List.rev_append !prefix_rev !suffix; log_w = neg_infinity }
+        Paused { trace = List.rev_append !prefix_rev !suffix; log_w = neg_infinity })
 
   let run_to_end
       (rng : Random.State.t)
@@ -496,45 +450,37 @@ module Replay = struct
       (thunk : unit -> 'a) : 'a * trace =
     let suffix = ref replay in
     let prefix_rev : trace ref = ref [] in
-
-    let handler : ('a, 'a) Effect.Deep.handler =
-      { retc = (fun v -> v)
-      ; exnc = raise
-      ; effc =
-          (fun (type a) (eff : a Effect.t) ->
-            match eff with
-            | Sample d ->
-                Some (fun k ->
-                  (match !suffix with
-                  | Sample x :: suffix' ->
-                      suffix := suffix';
-                      prefix_rev := Sample x :: !prefix_rev;
-                      let xv = Obj.obj x in
-                      Effect.Deep.continue k xv
-                  | Tick :: _ ->
-                      invalid_arg
-                        "Replay.run_to_end: trace mismatch (expected Tick, got Sample)"
-                  | [] ->
-                      let x = Dist.roulette rng d in
-                      prefix_rev := Sample (Obj.repr x) :: !prefix_rev;
-                      Effect.Deep.continue k x))
-            | Factor _w -> Some (fun k -> Effect.Deep.continue k ())
-            | Reject ->
-                Some (fun _k ->
-                  invalid_arg "Replay.run_to_end: rejection after final resampling")
-            | Tick ->
-                Some (fun k ->
-                  match !suffix with
-                  | Tick :: suffix' ->
-                      suffix := suffix';
-                      prefix_rev := Tick :: !prefix_rev;
-                      Effect.Deep.continue k ()
-                  | _ ->
-                      invalid_arg "Replay.run_to_end: missing Tick in replay trace")
-            | _ -> None)
-      }
+    let rec go (th : unit -> 'a) : 'a =
+      match th () with
+      | v -> v
+      | effect (Sample d), k -> (
+          match !suffix with
+          | Sample x :: suffix' ->
+              suffix := suffix';
+              prefix_rev := Sample x :: !prefix_rev;
+              let xv = Obj.obj x in
+              go (fun () -> Effect.Deep.continue k xv)
+          | Tick :: _ ->
+              invalid_arg
+                "Replay.run_to_end: trace mismatch (expected Tick, got Sample)"
+          | [] ->
+              let x = Dist.roulette rng d in
+              prefix_rev := Sample (Obj.repr x) :: !prefix_rev;
+              go (fun () -> Effect.Deep.continue k x))
+      | effect (Factor _w), k ->
+          go (fun () -> Effect.Deep.continue k ())
+      | effect Reject, _k ->
+          invalid_arg "Replay.run_to_end: rejection after final resampling"
+      | effect Tick, k -> (
+          match !suffix with
+          | Tick :: suffix' ->
+              suffix := suffix';
+              prefix_rev := Tick :: !prefix_rev;
+              go (fun () -> Effect.Deep.continue k ())
+          | _ ->
+              invalid_arg "Replay.run_to_end: missing Tick in replay trace")
     in
-    let value = Effect.Deep.match_with thunk () handler in
+    let value = go thunk in
     (value, List.rev_append !prefix_rev !suffix)
 end
 ```
