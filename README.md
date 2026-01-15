@@ -20,7 +20,6 @@ toc-depth: 3
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Curious OCaml
-# Curious OCaml
 
 *Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
 
@@ -195,7 +194,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   In recursion, the function being defined can refer to itself. This corresponds to induction: we can use the property we are trying to prove (the induction hypothesis) in the inductive step.
 
-#### 1.3.1 Definitions
+#### Definitions
 
 Writing out expressions and types repetitively quickly becomes tedious. More importantly, without definitions we cannot give names to our concepts, making code harder to understand and maintain. This is why we need definitions.
 
@@ -221,7 +220,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 
 - We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
 
-#### 1.3.2 Expression Definitions
+#### Expression Definitions
 
 The recursive expression `rec x = e` that appeared in our table was a simplification: `rec` (usually called `fix` in programming language theory) cannot appear alone in OCaml! It must always be part of a `let` definition.
 
@@ -243,7 +242,7 @@ Notice the crucial difference: in the recursive case, $x$ can appear in $e_1$ it
 
 These rules are slightly simplified. The full rules involve a concept called **polymorphism**, which we will cover in a later chapter. Polymorphism explains how the same function can work with different types.
 
-#### 1.3.3 Scoping Rules
+#### Scoping Rules
 
 Understanding *scope*—where names are visible—is essential for reading and writing OCaml programs.
 
@@ -255,7 +254,7 @@ Understanding *scope*—where names are visible—is essential for reading and w
 
 - In the interactive session (toplevel/REPL), we mark the end of a top-level "sentence" with `;;`. This tells OCaml "I am done typing, please evaluate this." In source files compiled by the build system, `;;` is unnecessary because the end of each definition is clear from context.
 
-#### 1.3.4 Operators
+#### Operators
 
 Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there is nothing magical about operators; they are ordinary functions that happen to have special characters in their names and can be used in infix position (between their arguments).
 
@@ -403,7 +402,7 @@ $$
 \frac{\frac{\frac{\frac{\,}{\texttt{(+)} : \texttt{int} \rightarrow \texttt{int} \rightarrow \texttt{int}}^{\text{(constant)}} \quad \frac{\,}{\texttt{x} : \texttt{int}}^x}{\texttt{(+) x} : \texttt{int} \rightarrow \texttt{int}} \quad \frac{\,}{\texttt{1} : \texttt{int}}^{\text{(constant)}}}{\texttt{((+) x) 1} : \texttt{int}}}{\texttt{fun x -> ((+) x) 1} : \texttt{int} \rightarrow \texttt{int}}
 $$
 
-#### 2.1.1 Curried Form
+#### Curried Form
 
 When there are several arrows "on the same depth" in a function type, it means that the function returns a function. For example, `(+) : int -> int -> int` is just a shorthand for `(+) : int -> (int -> int)`. The arrow associates to the right, so we can omit the parentheses.
 
@@ -2468,7 +2467,7 @@ This chapter explores how OCaml's type system supports generic programming throu
 
 We have seen the rules that govern the assignment of types to expressions, but how does OCaml actually guess what types to use? And how does it know when no correct types exist? The answer lies in a beautiful algorithm: OCaml solves equations. When you write code, the type checker generates a set of equations that must hold for the program to be well-typed, and then it solves those equations to discover the types.
 
-#### 5.1.1 Variables: Unknowns and Parameters
+#### Variables: Unknowns and Parameters
 
 Variables in type inference play two distinct roles, and understanding this distinction is crucial for mastering OCaml's type system. A type variable can be either an *unknown* (standing for a specific but not-yet-determined type) or a *parameter* (standing for any type whatsoever).
 
@@ -2501,11 +2500,11 @@ val f : 'a list -> 'a list = <fun>
 
 In the second definition, the eta-expanded form `let f l = List.append [] l` allows full generalization, giving us a truly polymorphic function that can work with lists of any type.
 
-#### 5.1.2 Type Environments
+#### Type Environments
 
 Before diving into the equation-solving process, we need to understand how the type checker keeps track of what names are available. A *type environment* specifies what names (corresponding to parameters and definitions) are available for an expression because they were introduced above it, and it specifies their types. Think of it as a dictionary that maps variable names to their types at any given point in your program.
 
-#### 5.1.3 Solving Type Equations
+#### Solving Type Equations
 
 Type inference works by solving equations over unknowns. The central question the algorithm asks is: "What has to hold so that $e : \tau$ in type environment $\Gamma$?" The answer takes the form of equations that constrain the possible types.
 
@@ -2523,7 +2522,7 @@ Let us walk through how the algorithm handles different expression forms:
 
 - To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown $\beta$ and ask for $e : \beta$ (in $\Gamma$). The algorithm then generates and solves equations until either a solution is found or a contradiction reveals a type error.
 
-#### 5.1.4 Polymorphism
+#### Polymorphism
 
 The "top-level" definitions for which the system infers types with variables are called *polymorphic*, which informally means "working with different shapes of data." A polymorphic function like `List.hd` can operate on lists containing any type of element -- the function itself doesn't care what the elements are, only that it's working with a list.
 
@@ -2551,7 +2550,7 @@ This is a polymorphic function: it works for lists with elements of any type. Wh
 
 A crucial point to understand: a *parametric type* like `'a my_list` *is not* itself a data type but rather a *family* of data types. The types `bool my_list`, `int my_list`, etc. *are* different types -- you cannot mix elements of different types in a single list. We say that the type `int my_list` *instantiates* the parametric type `'a my_list`.
 
-#### 5.2.1 Multiple Type Parameters
+#### Multiple Type Parameters
 
 Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
 
@@ -2573,7 +2572,7 @@ val get_int : (int, bool) choice -> int = <fun>
 
 Here, the pattern matching on `Left i` and `Right b` with arithmetic operations constrains the type to `(int, bool) choice`.
 
-#### 5.2.2 Syntax in Other Languages
+#### Syntax in Other Languages
 
 Different functional languages have different syntactic conventions for type parameters. In F#, we provide parameters (when more than one) after the type name, using angle brackets:
 
@@ -2645,7 +2644,7 @@ The notation $[\![ \Sigma \vdash p \downarrow \tau_1 ]\!]$ derives constraints o
 
 By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some length: $\alpha_1 \ldots \alpha_n$. By $\bigwedge_i \varphi_i$ we denote a conjunction of $\overline{\varphi_i}$: $\varphi_1 \wedge \ldots \wedge \varphi_n$.
 
-#### 5.3.1 Polymorphic Recursion
+#### Polymorphic Recursion
 
 There is an interesting limitation in standard type inference for recursive functions. Note the limited polymorphism of `let rec f = ...` -- we cannot use `f` polymorphically within its own definition. Why? Because when type-checking the body of a recursive definition, we don't yet know the final type of `f`, so we must treat it as having a single, unknown type.
 
@@ -2742,7 +2741,7 @@ We say that an algebraic structure does not have *junk* when all its elements (i
 
 We allow parametric types as sorts. In that case, strictly speaking, we define a family of algebraic specifications (a different specification for each instantiation of the parametric type).
 
-#### 5.4.1 Algebraic Specifications: Examples
+#### Algebraic Specifications: Examples
 
 Let us look at some concrete examples to make these abstract ideas tangible. An algebraic specification can also use an earlier specification, building up complexity layer by layer. In "impure" languages like OCaml and F# we allow that the result of any operation be an $\text{error}$. In Haskell we would use `Maybe` to explicitly model potential failure.
 
@@ -3017,7 +3016,7 @@ In *red-black trees* we achieve balance by:
 
 These invariants together guarantee that the tree cannot become too unbalanced: the depth is at most twice the depth of a perfectly balanced tree with the same number of nodes. Why? The "black height" (number of black nodes on any root-to-leaf path) is the same everywhere, and red nodes can only appear between black nodes, so the longest path can have at most twice as many nodes as the shortest.
 
-#### 5.10.1 B-trees of Order 4 (2-3-4 Trees)
+#### B-trees of Order 4 (2-3-4 Trees)
 
 To understand where red-black trees come from, it helps to first understand 2-3-4 trees (also known as B-trees of order 4).
 
@@ -3031,7 +3030,7 @@ To insert into a 2-3-4 tree, we descend toward the appropriate leaf position. Bu
 
 The remarkable fact is that red-black trees are just a clever way to represent 2-3-4 trees as binary trees! To represent a 2-3-4 tree as a binary tree with one element per node, we color the "primary" element of each node black (the middle element of a 4-node, or the first element of a 2-/3-node) and make it the parent of its neighbor elements colored red. The red elements then become parents of the original subtrees. This correspondence provides the deep intuition behind red-black trees: the colors encode the structure of the underlying 2-3-4 tree.
 
-#### 5.10.2 Red-Black Trees, Without Deletion
+#### Red-Black Trees, Without Deletion
 
 Now let us implement red-black trees in OCaml. Red-black trees maintain two invariants:
 
@@ -4411,7 +4410,7 @@ let rec s_from n =
 
 The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
 
-#### 7.2.1 Stream Operations
+#### Stream Operations
 
 Just as we can define higher-order functions on lists, streams admit similar operations. The key difference is that we must wrap recursive calls in functions to maintain laziness:
 
@@ -4444,7 +4443,7 @@ This remarkably concise definition creates a stream where each element is comput
 
 The `+` operation between corresponding elements produces the next values.
 
-#### 7.2.2 Streams and Input-Output
+#### Streams and Input-Output
 
 Streams can be used to read from files lazily, but there is a catch -- they are less functional than one might expect in the context of input-output effects:
 
@@ -4476,7 +4475,7 @@ There are two ways to use a lazy value. Be careful to understand when the result
 - In patterns: `match l_expr with lazy v -> ...` -- forces evaluation during pattern matching
   - Syntactically `lazy` behaves like a data constructor, which is why it can appear in patterns.
 
-#### 7.3.1 Lazy Lists
+#### Lazy Lists
 
 Lazy lists are the "memoizing" version of streams. Instead of a function that recomputes the tail each time, we use a lazy value that computes it once:
 
@@ -4513,7 +4512,7 @@ let file_llist name =
 
 With `file_llist`, you can traverse the resulting list multiple times and get the same data each time (as long as you keep a reference to the head of the list). The file is read lazily, but each line is cached after being read.
 
-#### 7.3.2 Lazy List Operations
+#### Lazy List Operations
 
 We can define the familiar higher-order functions on lazy lists. Notice the subtle but important difference from streams -- we must use `Lazy.force` to access the lazy tail before passing it to recursive calls:
 
@@ -4604,7 +4603,7 @@ let e = lhorner 1. inv_fact
 
 The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
 
-#### 7.4.1 Power Series / Polynomial Operations
+#### Power Series / Polynomial Operations
 
 To work with power series, we need to define arithmetic operations on lazy lists of coefficients. For floating-point coefficients, we first need a float-based version of positive numbers:
 
@@ -4676,7 +4675,7 @@ let differentiate xs =
   lmap (uncurry ( *.)) (lzip (ltail xs, posnums_f))
 ```
 
-#### 7.4.2 Differential Equations
+#### Differential Equations
 
 Now for the remarkable part: we can solve differential equations by representing the solutions as power series! Consider the differential equations for sine and cosine:
 
@@ -4767,7 +4766,7 @@ let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
 
 If a power series had every third term contributing (zeros in a regular pattern), we would have to check more terms in the function `exact`. We could also use a different stopping criterion like `f x0 = f x1 && not (x0 =. x1)` (stop when the transformed values match but the raw values are still changing), similar to what we did in `lhorner`.
 
-#### 7.5.1 Example: Nuclear Chain Reaction
+#### Example: Nuclear Chain Reaction
 
 Consider a nuclear chain reaction where substance A decays into B, which then decays into C. This is a classic problem in nuclear physics. The differential equations are:
 
@@ -4925,7 +4924,7 @@ type 'a opipe = ('a, void) pipe
 
 Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an abstract type with no values, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
 
-#### 7.8.1 Pipe Composition
+#### Pipe Composition
 
 Composition of pipes is like "concatenating them in space" or connecting boxes. We plug the output of pipe `pf` into the input of pipe `pg`:
 
@@ -5017,7 +5016,7 @@ Second part
 Document First part Second part
 ```
 
-#### 7.9.1 Straightforward Solution
+#### Straightforward Solution
 
 Before diving into pipes, let us implement a straightforward recursive solution:
 
@@ -5043,7 +5042,7 @@ let pretty w d =                     (* Allowed width of line w. *)
 
 The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
 
-#### 7.9.2 Stream-Based Solution
+#### Stream-Based Solution
 
 The straightforward solution works, but it has a problem: for each group, we compute `width` by traversing the entire subtree, potentially doing redundant work. The stream-based solution processes the document incrementally, computing positions as we go.
 
@@ -5184,7 +5183,7 @@ Put the pipes together into a complete pipeline:
 
 The data flows from left to right: `gen` produces document elements, `docpos` annotates them with positions, `grends` annotates group beginnings with their end positions, `format` decides where to break lines and produces strings, and `iterate print_string` prints the strings.
 
-#### 7.9.3 Factored Solution
+#### Factored Solution
 
 For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
 

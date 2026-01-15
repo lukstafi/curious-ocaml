@@ -8,6 +8,7 @@
   <title>Curious OCaml</title>
   <style>
     html {
+      font-size: 11pt;
       color: #1a1a1a;
       background-color: #fdfdfd;
     }
@@ -261,10 +262,7 @@
 </header>
 <nav id="TOC" role="doc-toc">
 <ul>
-<li><a href="#curious-ocaml" id="toc-curious-ocaml">Curious
-OCaml</a></li>
-<li><a href="#curious-ocaml-1" id="toc-curious-ocaml-1">Curious
-OCaml</a>
+<li><a href="#curious-ocaml" id="toc-curious-ocaml">Curious OCaml</a>
 <ul>
 <li><a href="#chapter-1-logic" id="toc-chapter-1-logic">Chapter 1:
 Logic</a>
@@ -499,7 +497,6 @@ Combinators: Dynamic Code Loading</a></li>
 </nav>
 <!-- Do NOT modify this file, it is automatically generated -->
 <h1 id="curious-ocaml">Curious OCaml</h1>
-<h1 id="curious-ocaml-1">Curious OCaml</h1>
 <p><em>Curious OCaml</em> invites you to explore programming through the
 lens of types, logic, and algebra. OCaml is a language that rewards
 curiosity—its type system catches errors before your code runs, its
@@ -911,7 +908,7 @@ a}}{\texttt{rec}~x = e : a}</span></p>
 corresponds to induction: we can use the property we are trying to prove
 (the induction hypothesis) in the inductive step.</p></li>
 </ul>
-<h4 id="definitions">1.3.1 Definitions</h4>
+<h4 id="definitions">Definitions</h4>
 <p>Writing out expressions and types repetitively quickly becomes
 tedious. More importantly, without definitions we cannot give names to
 our concepts, making code harder to understand and maintain. This is why
@@ -957,7 +954,7 @@ these.</p></li>
 remember “the second element is the name”, with records you can write
 <code>.b</code> to get the field named <code>b</code>.</p></li>
 </ul>
-<h4 id="expression-definitions">1.3.2 Expression Definitions</h4>
+<h4 id="expression-definitions">Expression Definitions</h4>
 <p>The recursive expression <code>rec x = e</code> that appeared in our
 table was a simplification: <code>rec</code> (usually called
 <code>fix</code> in programming language theory) cannot appear alone in
@@ -995,7 +992,7 @@ class="math inline">e_2</span>).</p>
 called <strong>polymorphism</strong>, which we will cover in a later
 chapter. Polymorphism explains how the same function can work with
 different types.</p>
-<h4 id="scoping-rules">1.3.3 Scoping Rules</h4>
+<h4 id="scoping-rules">Scoping Rules</h4>
 <p>Understanding <em>scope</em>—where names are visible—is essential for
 reading and writing OCaml programs.</p>
 <ul>
@@ -1022,7 +1019,7 @@ typing, please evaluate this.” In source files compiled by the build
 system, <code>;;</code> is unnecessary because the end of each
 definition is clear from context.</p></li>
 </ul>
-<h4 id="operators">1.3.4 Operators</h4>
+<h4 id="operators">Operators</h4>
 <p>Operators like <code>+</code>, <code>*</code>, <code>&lt;</code>,
 <code>=</code> are simply names of functions. In OCaml, there is nothing
 magical about operators; they are ordinary functions that happen to have
@@ -1227,7 +1224,7 @@ class="math inline">[?\alpha] = \texttt{int}</span>:</p>
 \texttt{int}}}{\texttt{fun x -&gt; ((+) x) 1} : \texttt{int} \rightarrow
 \texttt{int}}
 </span></p>
-<h4 id="curried-form">2.1.1 Curried Form</h4>
+<h4 id="curried-form">Curried Form</h4>
 <p>When there are several arrows “on the same depth” in a function type,
 it means that the function returns a function. For example,
 <code>(+) : int -&gt; int -&gt; int</code> is just a shorthand for
@@ -3793,7 +3790,7 @@ beautiful algorithm: OCaml solves equations. When you write code, the
 type checker generates a set of equations that must hold for the program
 to be well-typed, and then it solves those equations to discover the
 types.</p>
-<h4 id="variables-unknowns-and-parameters">5.1.1 Variables: Unknowns and
+<h4 id="variables-unknowns-and-parameters">Variables: Unknowns and
 Parameters</h4>
 <p>Variables in type inference play two distinct roles, and
 understanding this distinction is crucial for mastering OCaml’s type
@@ -3839,7 +3836,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb104-1"><a hr
 <code>let f l = List.append [] l</code> allows full generalization,
 giving us a truly polymorphic function that can work with lists of any
 type.</p>
-<h4 id="type-environments">5.1.2 Type Environments</h4>
+<h4 id="type-environments">Type Environments</h4>
 <p>Before diving into the equation-solving process, we need to
 understand how the type checker keeps track of what names are available.
 A <em>type environment</em> specifies what names (corresponding to
@@ -3847,7 +3844,7 @@ parameters and definitions) are available for an expression because they
 were introduced above it, and it specifies their types. Think of it as a
 dictionary that maps variable names to their types at any given point in
 your program.</p>
-<h4 id="solving-type-equations">5.1.3 Solving Type Equations</h4>
+<h4 id="solving-type-equations">Solving Type Equations</h4>
 <p>Type inference works by solving equations over unknowns. The central
 question the algorithm asks is: “What has to hold so that <span
 class="math inline">e : \tau</span> in type environment <span
@@ -3900,7 +3897,7 @@ class="math inline">\Gamma</span>). The algorithm then generates and
 solves equations until either a solution is found or a contradiction
 reveals a type error.</p></li>
 </ul>
-<h4 id="polymorphism">5.1.4 Polymorphism</h4>
+<h4 id="polymorphism">Polymorphism</h4>
 <p>The “top-level” definitions for which the system infers types with
 variables are called <em>polymorphic</em>, which informally means
 “working with different shapes of data.” A polymorphic function like
@@ -3940,7 +3937,7 @@ lists, the same <code>tail</code> function handles them all.</p>
 mix elements of different types in a single list. We say that the type
 <code>int my_list</code> <em>instantiates</em> the parametric type
 <code>'a my_list</code>.</p>
-<h4 id="multiple-type-parameters">5.2.1 Multiple Type Parameters</h4>
+<h4 id="multiple-type-parameters">Multiple Type Parameters</h4>
 <p>Types can have multiple type parameters. In OCaml, the syntax might
 seem a bit unusual at first: type parameters precede the type name,
 enclosed in parentheses. For example:</p>
@@ -3962,7 +3959,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb108-1"><a hr
 <p>Here, the pattern matching on <code>Left i</code> and
 <code>Right b</code> with arithmetic operations constrains the type to
 <code>(int, bool) choice</code>.</p>
-<h4 id="syntax-in-other-languages">5.2.2 Syntax in Other Languages</h4>
+<h4 id="syntax-in-other-languages">Syntax in Other Languages</h4>
 <p>Different functional languages have different syntactic conventions
 for type parameters. In F#, we provide parameters (when more than one)
 after the type name, using angle brackets:</p>
@@ -4074,7 +4071,7 @@ By <span class="math inline">\bigwedge_i \varphi_i</span> we denote a
 conjunction of <span class="math inline">\overline{\varphi_i}</span>:
 <span class="math inline">\varphi_1 \wedge \ldots \wedge
 \varphi_n</span>.</p>
-<h4 id="polymorphic-recursion">5.3.1 Polymorphic Recursion</h4>
+<h4 id="polymorphic-recursion">Polymorphic Recursion</h4>
 <p>There is an interesting limitation in standard type inference for
 recursive functions. Note the limited polymorphism of
 <code>let rec f = ...</code> – we cannot use <code>f</code>
@@ -4210,8 +4207,8 @@ constructed using the provided operations.</p>
 <p>We allow parametric types as sorts. In that case, strictly speaking,
 we define a family of algebraic specifications (a different
 specification for each instantiation of the parametric type).</p>
-<h4 id="algebraic-specifications-examples">5.4.1 Algebraic
-Specifications: Examples</h4>
+<h4 id="algebraic-specifications-examples">Algebraic Specifications:
+Examples</h4>
 <p>Let us look at some concrete examples to make these abstract ideas
 tangible. An algebraic specification can also use an earlier
 specification, building up complexity layer by layer. In “impure”
@@ -4732,7 +4729,7 @@ tree with the same number of nodes. Why? The “black height” (number of
 black nodes on any root-to-leaf path) is the same everywhere, and red
 nodes can only appear between black nodes, so the longest path can have
 at most twice as many nodes as the shortest.</p>
-<h4 id="b-trees-of-order-4-2-3-4-trees">5.10.1 B-trees of Order 4 (2-3-4
+<h4 id="b-trees-of-order-4-2-3-4-trees">B-trees of Order 4 (2-3-4
 Trees)</h4>
 <p>To understand where red-black trees come from, it helps to first
 understand 2-3-4 trees (also known as B-trees of order 4).</p>
@@ -4762,8 +4759,8 @@ a 2-/3-node) and make it the parent of its neighbor elements colored
 red. The red elements then become parents of the original subtrees. This
 correspondence provides the deep intuition behind red-black trees: the
 colors encode the structure of the underlying 2-3-4 tree.</p>
-<h4 id="red-black-trees-without-deletion">5.10.2 Red-Black Trees,
-Without Deletion</h4>
+<h4 id="red-black-trees-without-deletion">Red-Black Trees, Without
+Deletion</h4>
 <p>Now let us implement red-black trees in OCaml. Red-black trees
 maintain two invariants:</p>
 <p><strong>Invariant 1.</strong> No red node has a red child. (No two
@@ -5112,7 +5109,8 @@ Note that the `average` example is slightly trickier than `list_rev` because we 
   `List.fold_left f a [b1; ...; bn]` is `f (... (f (f a b1) b2) ...) bn`
 
 This &quot;backward&quot; structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
-</code></pre>
+
+::: {.figure}</code></pre>
 <pre><code>Input list              Result computation
 
     ::                         f
@@ -5124,7 +5122,9 @@ This &quot;backward&quot; structure of `fold_left` can be visualized by comparin
         c    ::          f   b
             /  \        / \
            d    []  accu   a</code></pre>
-<pre><code>
+<pre><code>**Figure: List spine vs. fold_left computation tree**
+:::
+
 This reversal of structure is why `fold_left` naturally reverses lists when the combining operation is `cons`.
 
 #### Useful Derived Functions
@@ -5977,7 +5977,7 @@ delayed evaluation, streams can easily be infinite:</p>
 <pre><code>
 The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
 
-#### 7.2.1 Stream Operations
+#### Stream Operations
 
 Just as we can define higher-order functions on lists, streams admit similar operations. The key difference is that we must wrap recursive calls in functions to maintain laziness:
 
@@ -6037,7 +6037,7 @@ referring to its own earlier elements:</p>
 </table>
 <p>The <code>+</code> operation between corresponding elements produces
 the next values.</p>
-<h4 id="streams-and-input-output">7.2.2 Streams and Input-Output</h4>
+<h4 id="streams-and-input-output">Streams and Input-Output</h4>
 <p>Streams can be used to read from files lazily, but there is a catch –
 they are less functional than one might expect in the context of
 input-output effects:</p>
@@ -6078,7 +6078,7 @@ the result is computed! - In expressions: <code>Lazy.force l_expr</code>
 <code>match l_expr with lazy v -&gt; ...</code> – forces evaluation
 during pattern matching - Syntactically <code>lazy</code> behaves like a
 data constructor, which is why it can appear in patterns.</p>
-<h4 id="lazy-lists">7.3.1 Lazy Lists</h4>
+<h4 id="lazy-lists">Lazy Lists</h4>
 <p>Lazy lists are the “memoizing” version of streams. Instead of a
 function that recomputes the tail each time, we use a lazy value that
 computes it once:</p>
@@ -6106,7 +6106,7 @@ let file_llist name =
 multiple times and get the same data each time (as long as you keep a
 reference to the head of the list). The file is read lazily, but each
 line is cached after being read.</p>
-<h4 id="lazy-list-operations">7.3.2 Lazy List Operations</h4>
+<h4 id="lazy-list-operations">Lazy List Operations</h4>
 <p>We can define the familiar higher-order functions on lazy lists.
 Notice the subtle but important difference from streams – we must use
 <code>Lazy.force</code> to access the lazy tail before passing it to
@@ -6215,7 +6215,7 @@ lhorner 1. inv_fact</p>
 <pre><code>
 The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
 
-#### 7.4.1 Power Series / Polynomial Operations
+#### Power Series / Polynomial Operations
 
 To work with power series, we need to define arithmetic operations on lazy lists of coefficients. For floating-point coefficients, we first need a float-based version of positive numbers:
 
@@ -6257,7 +6257,7 @@ lazy tl) -&gt; tl</p>
 a_1 + 2<em>a_2</em>x + 3<em>a_3</em>x^2 + … <em>) let differentiate xs =
 lmap (uncurry ( </em>.)) (lzip (ltail xs, posnums_f))</p>
 <pre><code>
-#### 7.4.2 Differential Equations
+#### Differential Equations
 
 Now for the remarkable part: we can solve differential equations by representing the solutions as power series! Consider the differential equations for sine and cosine:
 
@@ -6339,7 +6339,7 @@ regular pattern), we would have to check more terms in the function
 like <code>f x0 = f x1 &amp;&amp; not (x0 =. x1)</code> (stop when the
 transformed values match but the raw values are still changing), similar
 to what we did in <code>lhorner</code>.</p>
-<h4 id="example-nuclear-chain-reaction">7.5.1 Example: Nuclear Chain
+<h4 id="example-nuclear-chain-reaction">Example: Nuclear Chain
 Reaction</h4>
 <p>Consider a nuclear chain reaction where substance A decays into B,
 which then decays into C. This is a classic problem in nuclear physics.
@@ -6463,7 +6463,7 @@ used <code>unit</code> as the output type, it could still yield
 no values, making it impossible for an <code>opipe</code> to yield
 anything. This is a type-level guarantee that output pipes only
 consume.</p>
-<h4 id="pipe-composition">7.8.1 Pipe Composition</h4>
+<h4 id="pipe-composition">Pipe Composition</h4>
 <p>Composition of pipes is like “concatenating them in space” or
 connecting boxes. We plug the output of pipe <code>pf</code> into the
 input of pipe <code>pg</code>:</p>
@@ -6527,7 +6527,7 @@ The pretty-printer should produce different outputs depending on the available w
 (pretty 60 test_doc);;</h1>
 <p>Document First part Second part</p>
 <pre><code>
-#### 7.9.1 Straightforward Solution
+#### Straightforward Solution
 
 Before diving into pipes, let us implement a straightforward recursive solution:
 
@@ -6554,7 +6554,7 @@ we in “flatten” mode?) and the remaining space <code>r</code>. When we
 enter a <code>Group</code>, we check if the whole group fits in the
 remaining space. If so, we format it in flatten mode (all
 <code>Line</code>s become spaces).</p>
-<h4 id="stream-based-solution">7.9.2 Stream-Based Solution</h4>
+<h4 id="stream-based-solution">Stream-Based Solution</h4>
 <p>The straightforward solution works, but it has a problem: for each
 group, we compute <code>width</code> by traversing the entire subtree,
 potentially doing redundant work. The stream-based solution processes
@@ -6655,7 +6655,7 @@ elements, <code>docpos</code> annotates them with positions,
 <code>grends</code> annotates group beginnings with their end positions,
 <code>format</code> decides where to break lines and produces strings,
 and <code>iterate print_string</code> prints the strings.</p>
-<h4 id="factored-solution">7.9.3 Factored Solution</h4>
+<h4 id="factored-solution">Factored Solution</h4>
 <p>For maximum flexibility, we can factorize <code>format</code> into
 two parts: one that decides where to break lines (producing annotated
 document elements), and one that converts those to strings. This allows

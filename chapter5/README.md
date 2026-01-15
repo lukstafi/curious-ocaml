@@ -8,7 +8,7 @@ This chapter explores how OCaml's type system supports generic programming throu
 
 We have seen the rules that govern the assignment of types to expressions, but how does OCaml actually guess what types to use? And how does it know when no correct types exist? The answer lies in a beautiful algorithm: OCaml solves equations. When you write code, the type checker generates a set of equations that must hold for the program to be well-typed, and then it solves those equations to discover the types.
 
-#### 5.1.1 Variables: Unknowns and Parameters
+#### Variables: Unknowns and Parameters
 
 Variables in type inference play two distinct roles, and understanding this distinction is crucial for mastering OCaml's type system. A type variable can be either an *unknown* (standing for a specific but not-yet-determined type) or a *parameter* (standing for any type whatsoever).
 
@@ -41,11 +41,11 @@ val f : 'a list -> 'a list = <fun>
 
 In the second definition, the eta-expanded form `let f l = List.append [] l` allows full generalization, giving us a truly polymorphic function that can work with lists of any type.
 
-#### 5.1.2 Type Environments
+#### Type Environments
 
 Before diving into the equation-solving process, we need to understand how the type checker keeps track of what names are available. A *type environment* specifies what names (corresponding to parameters and definitions) are available for an expression because they were introduced above it, and it specifies their types. Think of it as a dictionary that maps variable names to their types at any given point in your program.
 
-#### 5.1.3 Solving Type Equations
+#### Solving Type Equations
 
 Type inference works by solving equations over unknowns. The central question the algorithm asks is: "What has to hold so that $e : \tau$ in type environment $\Gamma$?" The answer takes the form of equations that constrain the possible types.
 
@@ -63,7 +63,7 @@ Let us walk through how the algorithm handles different expression forms:
 
 - To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown $\beta$ and ask for $e : \beta$ (in $\Gamma$). The algorithm then generates and solves equations until either a solution is found or a contradiction reveals a type error.
 
-#### 5.1.4 Polymorphism
+#### Polymorphism
 
 The "top-level" definitions for which the system infers types with variables are called *polymorphic*, which informally means "working with different shapes of data." A polymorphic function like `List.hd` can operate on lists containing any type of element -- the function itself doesn't care what the elements are, only that it's working with a list.
 
@@ -91,7 +91,7 @@ This is a polymorphic function: it works for lists with elements of any type. Wh
 
 A crucial point to understand: a *parametric type* like `'a my_list` *is not* itself a data type but rather a *family* of data types. The types `bool my_list`, `int my_list`, etc. *are* different types -- you cannot mix elements of different types in a single list. We say that the type `int my_list` *instantiates* the parametric type `'a my_list`.
 
-#### 5.2.1 Multiple Type Parameters
+#### Multiple Type Parameters
 
 Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
 
@@ -113,7 +113,7 @@ val get_int : (int, bool) choice -> int = <fun>
 
 Here, the pattern matching on `Left i` and `Right b` with arithmetic operations constrains the type to `(int, bool) choice`.
 
-#### 5.2.2 Syntax in Other Languages
+#### Syntax in Other Languages
 
 Different functional languages have different syntactic conventions for type parameters. In F#, we provide parameters (when more than one) after the type name, using angle brackets:
 
@@ -185,7 +185,7 @@ The notation $[\![ \Sigma \vdash p \downarrow \tau_1 ]\!]$ derives constraints o
 
 By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some length: $\alpha_1 \ldots \alpha_n$. By $\bigwedge_i \varphi_i$ we denote a conjunction of $\overline{\varphi_i}$: $\varphi_1 \wedge \ldots \wedge \varphi_n$.
 
-#### 5.3.1 Polymorphic Recursion
+#### Polymorphic Recursion
 
 There is an interesting limitation in standard type inference for recursive functions. Note the limited polymorphism of `let rec f = ...` -- we cannot use `f` polymorphically within its own definition. Why? Because when type-checking the body of a recursive definition, we don't yet know the final type of `f`, so we must treat it as having a single, unknown type.
 
@@ -282,7 +282,7 @@ We say that an algebraic structure does not have *junk* when all its elements (i
 
 We allow parametric types as sorts. In that case, strictly speaking, we define a family of algebraic specifications (a different specification for each instantiation of the parametric type).
 
-#### 5.4.1 Algebraic Specifications: Examples
+#### Algebraic Specifications: Examples
 
 Let us look at some concrete examples to make these abstract ideas tangible. An algebraic specification can also use an earlier specification, building up complexity layer by layer. In "impure" languages like OCaml and F# we allow that the result of any operation be an $\text{error}$. In Haskell we would use `Maybe` to explicitly model potential failure.
 
@@ -557,7 +557,7 @@ In *red-black trees* we achieve balance by:
 
 These invariants together guarantee that the tree cannot become too unbalanced: the depth is at most twice the depth of a perfectly balanced tree with the same number of nodes. Why? The "black height" (number of black nodes on any root-to-leaf path) is the same everywhere, and red nodes can only appear between black nodes, so the longest path can have at most twice as many nodes as the shortest.
 
-#### 5.10.1 B-trees of Order 4 (2-3-4 Trees)
+#### B-trees of Order 4 (2-3-4 Trees)
 
 To understand where red-black trees come from, it helps to first understand 2-3-4 trees (also known as B-trees of order 4).
 
@@ -571,7 +571,7 @@ To insert into a 2-3-4 tree, we descend toward the appropriate leaf position. Bu
 
 The remarkable fact is that red-black trees are just a clever way to represent 2-3-4 trees as binary trees! To represent a 2-3-4 tree as a binary tree with one element per node, we color the "primary" element of each node black (the middle element of a 4-node, or the first element of a 2-/3-node) and make it the parent of its neighbor elements colored red. The red elements then become parents of the original subtrees. This correspondence provides the deep intuition behind red-black trees: the colors encode the structure of the underlying 2-3-4 tree.
 
-#### 5.10.2 Red-Black Trees, Without Deletion
+#### Red-Black Trees, Without Deletion
 
 Now let us implement red-black trees in OCaml. Red-black trees maintain two invariants:
 

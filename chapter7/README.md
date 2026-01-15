@@ -72,7 +72,7 @@ let rec s_from n =
 
 The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
 
-#### 7.2.1 Stream Operations
+#### Stream Operations
 
 Just as we can define higher-order functions on lists, streams admit similar operations. The key difference is that we must wrap recursive calls in functions to maintain laziness:
 
@@ -105,7 +105,7 @@ This remarkably concise definition creates a stream where each element is comput
 
 The `+` operation between corresponding elements produces the next values.
 
-#### 7.2.2 Streams and Input-Output
+#### Streams and Input-Output
 
 Streams can be used to read from files lazily, but there is a catch -- they are less functional than one might expect in the context of input-output effects:
 
@@ -137,7 +137,7 @@ There are two ways to use a lazy value. Be careful to understand when the result
 - In patterns: `match l_expr with lazy v -> ...` -- forces evaluation during pattern matching
   - Syntactically `lazy` behaves like a data constructor, which is why it can appear in patterns.
 
-#### 7.3.1 Lazy Lists
+#### Lazy Lists
 
 Lazy lists are the "memoizing" version of streams. Instead of a function that recomputes the tail each time, we use a lazy value that computes it once:
 
@@ -174,7 +174,7 @@ let file_llist name =
 
 With `file_llist`, you can traverse the resulting list multiple times and get the same data each time (as long as you keep a reference to the head of the list). The file is read lazily, but each line is cached after being read.
 
-#### 7.3.2 Lazy List Operations
+#### Lazy List Operations
 
 We can define the familiar higher-order functions on lazy lists. Notice the subtle but important difference from streams -- we must use `Lazy.force` to access the lazy tail before passing it to recursive calls:
 
@@ -265,7 +265,7 @@ let e = lhorner 1. inv_fact
 
 The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
 
-#### 7.4.1 Power Series / Polynomial Operations
+#### Power Series / Polynomial Operations
 
 To work with power series, we need to define arithmetic operations on lazy lists of coefficients. For floating-point coefficients, we first need a float-based version of positive numbers:
 
@@ -337,7 +337,7 @@ let differentiate xs =
   lmap (uncurry ( *.)) (lzip (ltail xs, posnums_f))
 ```
 
-#### 7.4.2 Differential Equations
+#### Differential Equations
 
 Now for the remarkable part: we can solve differential equations by representing the solutions as power series! Consider the differential equations for sine and cosine:
 
@@ -428,7 +428,7 @@ let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
 
 If a power series had every third term contributing (zeros in a regular pattern), we would have to check more terms in the function `exact`. We could also use a different stopping criterion like `f x0 = f x1 && not (x0 =. x1)` (stop when the transformed values match but the raw values are still changing), similar to what we did in `lhorner`.
 
-#### 7.5.1 Example: Nuclear Chain Reaction
+#### Example: Nuclear Chain Reaction
 
 Consider a nuclear chain reaction where substance A decays into B, which then decays into C. This is a classic problem in nuclear physics. The differential equations are:
 
@@ -586,7 +586,7 @@ type 'a opipe = ('a, void) pipe
 
 Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an abstract type with no values, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
 
-#### 7.8.1 Pipe Composition
+#### Pipe Composition
 
 Composition of pipes is like "concatenating them in space" or connecting boxes. We plug the output of pipe `pf` into the input of pipe `pg`:
 
@@ -678,7 +678,7 @@ Second part
 Document First part Second part
 ```
 
-#### 7.9.1 Straightforward Solution
+#### Straightforward Solution
 
 Before diving into pipes, let us implement a straightforward recursive solution:
 
@@ -704,7 +704,7 @@ let pretty w d =                     (* Allowed width of line w. *)
 
 The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
 
-#### 7.9.2 Stream-Based Solution
+#### Stream-Based Solution
 
 The straightforward solution works, but it has a problem: for each group, we compute `width` by traversing the entire subtree, potentially doing redundant work. The stream-based solution processes the document incrementally, computing positions as we go.
 
@@ -845,7 +845,7 @@ Put the pipes together into a complete pipeline:
 
 The data flows from left to right: `gen` produces document elements, `docpos` annotates them with positions, `grends` annotates group beginnings with their end positions, `format` decides where to break lines and produces strings, and `iterate print_string` prints the strings.
 
-#### 7.9.3 Factored Solution
+#### Factored Solution
 
 For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
 

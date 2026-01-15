@@ -162,7 +162,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   In recursion, the function being defined can refer to itself. This corresponds to induction: we can use the property we are trying to prove (the induction hypothesis) in the inductive step.
 
-#### 1.3.1 Definitions
+#### Definitions
 
 Writing out expressions and types repetitively quickly becomes tedious. More importantly, without definitions we cannot give names to our concepts, making code harder to understand and maintain. This is why we need definitions.
 
@@ -188,7 +188,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 
 - We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
 
-#### 1.3.2 Expression Definitions
+#### Expression Definitions
 
 The recursive expression `rec x = e` that appeared in our table was a simplification: `rec` (usually called `fix` in programming language theory) cannot appear alone in OCaml! It must always be part of a `let` definition.
 
@@ -210,7 +210,7 @@ Notice the crucial difference: in the recursive case, $x$ can appear in $e_1$ it
 
 These rules are slightly simplified. The full rules involve a concept called **polymorphism**, which we will cover in a later chapter. Polymorphism explains how the same function can work with different types.
 
-#### 1.3.3 Scoping Rules
+#### Scoping Rules
 
 Understanding *scope*—where names are visible—is essential for reading and writing OCaml programs.
 
@@ -222,7 +222,7 @@ Understanding *scope*—where names are visible—is essential for reading and w
 
 - In the interactive session (toplevel/REPL), we mark the end of a top-level "sentence" with `;;`. This tells OCaml "I am done typing, please evaluate this." In source files compiled by the build system, `;;` is unnecessary because the end of each definition is clear from context.
 
-#### 1.3.4 Operators
+#### Operators
 
 Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there is nothing magical about operators; they are ordinary functions that happen to have special characters in their names and can be used in infix position (between their arguments).
 

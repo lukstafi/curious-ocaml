@@ -10,6 +10,13 @@ header-includes:
   - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
        onload="renderMathInElement(document.body);"></script>
+documentclass: report
+classoption:
+  - openany
+fontsize: 11pt
+geometry:
+  - margin=1in
+toc-depth: 3
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
 # Lecture 1: Logic

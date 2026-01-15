@@ -199,6 +199,7 @@ $if(toc)$
 \setcounter{tocdepth}{$toc-depth$}
 \tableofcontents
 }
+\clearpage
 $endif$
 
 $body$
