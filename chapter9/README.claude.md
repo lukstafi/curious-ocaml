@@ -55,14 +55,13 @@ let program () =
   x + 1
 
 let answer_42 () =
-  match program () with
-  | result -> result
+  try program () with
   | effect Ask, k -> Effect.Deep.continue k 42
 
 let () = assert (answer_42 () = 43)
 ```
 
-The syntax `effect Ask, k` matches when the `Ask` effect is performed. The variable `k` is the *continuation*: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
+The `try ... with | effect Ask, k -> ...` syntax handles effects similarly to how `try ... with` handles exceptions. When the `Ask` effect is performed, the pattern `effect Ask, k` matches. The variable `k` is the *continuation*: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
 
 #### Declaring Effects
 
@@ -99,14 +98,13 @@ When `Effect.perform` is called, control transfers to the nearest enclosing hand
 
 #### Handling Effects
 
-OCaml 5.3+ provides a convenient syntax for handling effects using `match` with effect patterns:
+OCaml 5.3+ provides a convenient syntax for handling effects. The simplest form uses `try ... with` when you just want to return the result unchanged. When you need to transform the result, and especially if you want to pattern match on it, `match ... with` is more elegant.
 
 ```ocaml env=ch9
 let () =
   let state = ref 0 in
   let result =
-    match put 10; get () + get () with
-    | result -> result
+    try put 10; get () + get () with
     | effect Get, k -> Effect.Deep.continue k !state
     | effect (Put n), k -> state := n; Effect.Deep.continue k ()
   in
@@ -118,14 +116,14 @@ The `effect E, k` pattern matches when effect `E` is performed. The continuation
 - **Discontinue** by calling `Effect.Deep.discontinue k exn`, raising an exception at the effect site
 - **Store** the continuation and resume it later (useful for schedulers)
 
-**Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`.
+**Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`. Not resuming a continuation might work in specific cases but risks leaking resources (e.g. open files).
 
 The three kinds of patterns in a handler correspond to three cases:
 - Regular patterns handle normal return values
 - `exception` patterns handle raised exceptions
 - `effect` patterns handle performed effects
 
-This mirrors the explicit handler record form `{ retc; exnc; effc }` used by `Effect.Deep.match_with`, which we will see later for cases requiring explicit type annotations.
+This mirrors the explicit handler record form `{ retc; exnc; effc }` used by `Effect.Deep.match_with`.
 
 #### Deep vs Shallow Handlers
 
@@ -296,8 +294,7 @@ module State = struct
 
   let run : type a. int -> (unit -> a) -> a = fun init f ->
     let state = ref init in
-    match f () with
-    | result -> result
+    try f () with
     | effect SGet, k -> Effect.Deep.continue k !state
     | effect (SPut n), k -> state := n; Effect.Deep.continue k ()
 end
@@ -451,17 +448,16 @@ module Rejection = struct
     find 0 0.0
 
   let run_once : type a. (unit -> a) -> a option = fun f ->
-    try
-      match f () with
-      | result -> Some result
-      | effect (Sample (_, weights)), k ->
-          Effect.Deep.continue k (sample_index weights)
-      | effect (Observe w), k ->
-          if Random.float 1.0 < w
-          then Effect.Deep.continue k ()
-          else raise Rejected
-      | effect Fail, _ -> raise Rejected
-    with Rejected -> None
+    match f () with
+    | result -> Some result
+    | effect (Sample (_, weights)), k ->
+        Effect.Deep.continue k (sample_index weights)
+    | effect (Observe w), k ->
+        if Random.float 1.0 < w
+        then Effect.Deep.continue k ()
+        else Effect.Deep.discontinue k Rejected
+    | effect Fail, k -> Effect.Deep.discontinue k Rejected
+    | exception Rejected -> None
 
   let infer ?(samples=10000) f =
     let results = Hashtbl.create 16 in
@@ -543,16 +539,15 @@ module Importance = struct
 
   let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
     let weight = ref 1.0 in
-    try
-      match f () with
-      | result -> Some (result, !weight)
-      | effect (Sample (_, weights)), k ->
-          Effect.Deep.continue k (sample_index weights)
-      | effect (Observe likelihood), k ->
-          weight := !weight *. likelihood;
-          Effect.Deep.continue k ()
-      | effect Fail, _ -> raise HardFail
-    with HardFail -> None
+    match f () with
+    | result -> Some (result, !weight)
+    | effect (Sample (_, weights)), k ->
+        Effect.Deep.continue k (sample_index weights)
+    | effect (Observe likelihood), k ->
+        weight := !weight *. likelihood;
+        Effect.Deep.continue k ()
+    | effect Fail, k -> Effect.Deep.discontinue k HardFail
+    | exception HardFail -> None
 
   let infer ?(samples=10000) f =
     let results = Hashtbl.create 16 in
@@ -639,20 +634,19 @@ module ParticleFilter = struct
     let remaining = ref trace in
     let recorded = ref [] in
     let weight = ref 1.0 in
-    try
-      match f () with
-      | result -> Some (result, List.rev !recorded, !weight)
-      | effect (Sample (_, weights)), k ->
-          let i = match !remaining with
-            | choice :: rest -> remaining := rest; choice
-            | [] -> sample_index weights in
-          recorded := i :: !recorded;
-          Effect.Deep.continue k i
-      | effect (Observe likelihood), k ->
-          weight := !weight *. likelihood;
-          Effect.Deep.continue k ()
-      | effect Fail, _ -> raise HardFail
-    with HardFail -> None
+    match f () with
+    | result -> Some (result, List.rev !recorded, !weight)
+    | effect (Sample (_, weights)), k ->
+        let i = match !remaining with
+          | choice :: rest -> remaining := rest; choice
+          | [] -> sample_index weights in
+        recorded := i :: !recorded;
+        Effect.Deep.continue k i
+    | effect (Observe likelihood), k ->
+        weight := !weight *. likelihood;
+        Effect.Deep.continue k ()
+    | effect Fail, k -> Effect.Deep.discontinue k HardFail
+    | exception HardFail -> None
 
   (* Resample: select n indices according to weights *)
   let resample_indices n weights =
