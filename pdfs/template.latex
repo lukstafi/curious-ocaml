@@ -128,7 +128,9 @@ $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
 
-% Redefine Shaded to prevent page breaks (works whether highlighting is on or not)
+% Redefine Shaded to discourage page breaks but allow them for large blocks
+% needspace=4\baselineskip means: try to keep at least 4 lines together before breaking
+% splittopskip/splitbottomskip provide visual continuity when breaks occur
 \renewenvironment{Shaded}{%
   \begin{mdframed}[
     backgroundcolor=shadecolor,
@@ -139,15 +141,17 @@ $endif$
     innerbottommargin=3pt,
     skipabove=\baselineskip,
     skipbelow=\baselineskip,
-    nobreak=true
+    needspace=4\baselineskip,
+    splittopskip=\topsep,
+    splitbottomskip=\topsep
   ]%
 }{%
   \end{mdframed}%
 }
 
-% For plain verbatim, also discourage breaks
-\BeforeBeginEnvironment{verbatim}{\begin{minipage}{\linewidth}}
-\AfterEndEnvironment{verbatim}{\end{minipage}}
+% For plain verbatim, use samepage to discourage breaks but allow overflow
+\BeforeBeginEnvironment{verbatim}{\begin{samepage}}
+\AfterEndEnvironment{verbatim}{\end{samepage}}
 
 % ============================================
 % FIGURE ENVIRONMENT FOR ASCII ART

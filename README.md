@@ -6463,7 +6463,7 @@ module HoneyIslands (M : MONAD_PLUS_OPS) = struct
     let* () = put {s with eaten = c::s.eaten;
          visited = CellSet.add c s.visited;
          more_to_eat = s.more_to_eat - 1} in
-    return ()                       (* Remaining state update actions just affect the state *)
+    return ()                 (* Remaining state update actions just affect the state *)
 
   let keep_cell c =
     let* s = get in
@@ -6588,7 +6588,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 ```ocaml skip
 module DistribM : PROBABILITY = struct
-  module M = struct           (* Exact probability distribution -- naive implementation *)
+  module M = struct       (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
     let bind a b = merge             (* x w.p. p and then y w.p. q happens = *)
       (List.concat_map (fun (x, p) ->
@@ -6714,7 +6714,7 @@ module DistribMP : COND_PROBAB = struct
   end
   include MP
   include MonadPlusOps (MP)
-  let choose p a b =                   (* It isn't a w.p. p & b w.p. (1-p) since a and b *)
+  let choose p a b =              (* It isn't a w.p. p & b w.p. (1-p) since a and b *)
     List.map (fun (e,w) -> e, p *. w) a @  (* are not normalized! *)
       List.map (fun (e,w) -> e, (1. -. p) *. w) b
   let pick dist = dist
@@ -6730,8 +6730,8 @@ module DistribMP : COND_PROBAB = struct
 end
 
 module SamplingMP (S : sig val samples : int end) : COND_PROBAB = struct
-  exception Rejected                   (* For rejecting current sample *)
-  module MP = struct                   (* Monad operations are exactly as for SamplingM *)
+  exception Rejected              (* For rejecting current sample *)
+  module MP = struct              (* Monad operations are exactly as for SamplingM *)
     type 'a t = unit -> 'a
     let bind a b () = b (a ()) ()
     let return a = fun () -> a
@@ -6749,7 +6749,7 @@ module SamplingMP (S : sig val samples : int end) : COND_PROBAB = struct
     fun () -> List.nth elems (Random.int n)
   let coin = Random.bool
   let flip p = choose p (return true) (return false)
-  let prob p m =                       (* Getting out of monad: handle rejected samples *)
+  let prob p m =                  (* Getting out of monad: handle rejected samples *)
     let count = ref 0 and tot = ref 0 in
     while !tot < S.samples do          (* Count up to the required *)
       try                              (* number of samples *)
