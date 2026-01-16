@@ -843,13 +843,12 @@ The key insight is that effects are a *programming interface* that can have mult
 
 **Exercise 5.** Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
 
-**Exercise 6.** Add a `Choose : 'a list -> 'a Effect.t` effect that nondeterministically picks from a list. Implement handlers that:
-1. Return all possible results (like the list monad)
-2. Return the first successful result (with backtracking on failure)
-3. Return a random result (like importance sampling)
+**Exercise 6.** Our probabilistic programming interface uses `Sample : int -> int` to choose an index, which callers then use to select from their list of options. Consider a more direct `Choose : 'a list -> 'a` effect.
 
-**Exercise 7.** The sprinkler problem: It might be cloudy (50%). If cloudy, rain is likely (80%); otherwise rain is unlikely (20%). If cloudy, the sprinkler is unlikely (10%); otherwise likely (50%). Rain wets the grass with 90% probability, and so does the sprinkler. We observe that the grass is wet. What is the probability that it rained? Encode this as a probabilistic program and run inference.
+1. Why is `Choose : 'a list -> 'a Effect.t` problematic for OCaml's type system? (Hint: effect handlers must handle all occurrences of an effect uniformly, but different `Choose` calls may have different types.)
+2. Even if we could define the effect, explain why replay-based handlers (rejection sampling, importance sampling, particle filter) face additional difficulty: traces would need to store values of different types.
+3. One workaround uses existential types: `type packed = Pack : 'a -> packed` with traces as `packed list`, and `Obj.magic` during replay. Implement this for the rejection sampler and discuss why it's unsafe.
 
-**Exercise 8.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
+**Exercise 7.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
 
-**Exercise 9.** (Harder) Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
+**Exercise 8.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
