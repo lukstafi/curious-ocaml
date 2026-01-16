@@ -745,14 +745,14 @@ An *animation* is simply a scene behavior -- a time-varying scene. The `reactima
 For the game logic, we define lifted operators so we can write behavior expressions naturally:
 
 ```ocaml skip
-let (+*) = liftB2 (+)    (* Addition on behaviors *)
-let (-*) = liftB2 (-)    (* Subtraction on behaviors *)
-let ( *** ) = liftB2 ( * )  (* Multiplication on behaviors *)
-let (/*) = liftB2 (/)    (* Division on behaviors *)
-let (&&*) = liftB2 (&&)  (* Logical AND on behaviors *)
-let (||*) = liftB2 (||)  (* Logical OR on behaviors *)
-let (<*) = liftB2 (<)    (* Less-than on behaviors *)
-let (>*) = liftB2 (>)    (* Greater-than on behaviors *)
+let (+*) = liftB2 (+)
+let (-*) = liftB2 (-)
+let ( *** ) = liftB2 ( * )
+let (/*) = liftB2 (/)
+let (&&*) = liftB2 (&&)
+let (||*) = liftB2 (||)
+let (<*) = liftB2 (<)
+let (>*) = liftB2 (>)
 ```
 
 Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
