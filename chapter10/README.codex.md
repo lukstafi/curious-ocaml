@@ -282,6 +282,30 @@ When a leaf changes, the system does two logically separate things:
 
 Different libraries make different choices about *when* recomputation happens (eager stabilization vs. lazy sampling), *how* they avoid redundant work (timestamps vs. boolean dirty flags), and *what* extra guarantees they provide (cutoffs, resource lifetimes, “no glitches”).
 
+#### The Core Idea: Write Normal Code, Get a DAG
+
+Consider a simple expression:
+
+```
+u = v / w + x * y + z
+```
+
+As ordinary code, this just computes a number. As an *incremental* computation, it implicitly defines a dependency graph:
+
+- `n0 = v / w`
+- `n1 = x * y`
+- `n2 = n0 + n1`
+- `u  = n2 + z`
+
+When `v` changes, we should update `n0`, then `n2`, then `u`. When `z` changes, we should update only `u`. The point of incremental computing is that you should not have to maintain this update order yourself.
+
+Most libraries expose a “lifted arithmetic” style: you still write expressions like `v / w + x * y + z`, but the operators build graph nodes rather than eagerly computing.
+
+Two practical lessons fall out of this:
+
+- **Prefer applicative combinators** (`map`, `map2`, `map3`, …) for static dependency structure.
+- Use **dynamic dependency** (`bind`/`join`) only when the structure truly depends on values (conditionals, switching, dynamic collections).
+
 #### Conditional Dependencies (Dynamic Graphs)
 
 The most interesting case is when the dependency graph itself depends on data:
@@ -298,6 +322,17 @@ If `use_fast` flips, we must stop depending on the old branch and start dependin
 - `bind` / `join` / `switch` (names vary): pick which subgraph is active *based on a value*.
 
 Operationally, this means: detach edges to the old branch, attach edges to the new branch, then recompute along the newly relevant dependencies. This is also where “glitch freedom” matters: we want each observed root to be updated as if we recomputed in a topological order on a single, consistent snapshot of inputs.
+
+Here is the classic pitfall:
+
+```ocaml skip
+(* Pseudocode: [x] is a changeable input. *)
+let b  = map x ~f:(fun x -> x = 0)
+let n0 = map x ~f:(fun x -> 100 / x)
+let y  = bind b ~f:(fun b -> if b then return 0 else n0)
+```
+
+If we naïvely “recompute everything that ever depended on `x`”, then changing `x` to `0` would try to compute `100 / 0` even though the branch containing `n0` is no longer relevant. Dynamic dependency operators solve this by making *reachability* part of correctness: when the branch switches, the old subgraph becomes inactive and stops being demanded by observers.
 
 #### Two Modern OCaml Libraries: `lwd` and `incremental`
 
@@ -395,6 +430,11 @@ Both libraries implement self-adjusting computation, but they optimize for diffe
   - `Lwd`: explicit `acquire`/`release` on primitives; roots control liveness.
   - `Incremental`: observers/scopes and finalizers; “necessary” vs “unnecessary” nodes.
 
+As a rule of thumb:
+
+- Choose **`Lwd`** when your reactive graph is primarily a *view tree* (documents/widgets/DOM-ish nodes), and you care about explicit resource lifetimes and keeping the runtime lightweight.
+- Choose **`Incremental`** when you have a large shared DAG, you need cutoffs and richer scheduling/inspection tools, or you want to build higher-level frameworks (e.g. component systems) on top.
+
 The moral is not “one is better”; it is that incremental computing is a *design space*. Your choice should match how you expect your graph to evolve (tree vs. DAG, dynamic dependencies, scale) and how much control you need over scheduling and cutoffs.
 
 #### When Incremental Computing Wins (and When It Doesn’t)
@@ -423,6 +463,66 @@ Two constraints shape every FRP design:
 2. **Efficiency and consistency**. We want to avoid replaying the entire history of the world on every sample, and we want to avoid *glitches*—temporarily observing inconsistent intermediate states because dependencies update in the wrong order.
 
 In practice, FRP systems implement some notion of an **update step** (also called a tick, a frame, a stabilization pass). During an update step we incorporate all inputs that “happened simultaneously” and then recompute derived signals in a schedule that respects dependencies.
+
+#### Idealized Definitions (and Why We Don’t Implement Them Directly)
+
+In the most mathematical presentation, we might write:
+
+```ocaml skip
+type time = float
+type 'a behavior = time -> 'a
+type 'a event = (time * 'a) stream  (* increasing time stamps *)
+```
+
+This says: a behavior has a value at every time; an event is a (possibly infinite) stream of timestamped occurrences.
+
+The trouble is that real programs must react to *external* events (mouse moves, clicks, window resize). If we define behaviors as “functions of time”, we still need some representation of “the history of inputs so far”, and we need to compute behavior values without rescanning that history from the beginning each time.
+
+The usual move is to turn behaviors into **stream transformers** that process time and inputs incrementally:
+
+```ocaml skip
+type 'a behavior = user_action event -> time -> 'a
+type 'a behavior = user_action event -> time stream -> 'a stream
+type 'a behavior = (user_action option * time) stream -> 'a stream
+```
+
+Once behaviors are stream transformers, a very convenient representation for events is:
+
+```ocaml skip
+type 'a event = 'a option behavior
+```
+
+An event is just a behavior that yields `None` most of the time and `Some v` at the instants where the event occurs.
+
+#### Behaviors as Applicative (Static Wiring)
+
+Pointwise behaviors form an applicative functor (and, in idealized presentations, a monad). For `type 'a behavior = time -> 'a` we can define:
+
+```ocaml skip
+let pure a = fun _t -> a
+let map f b = fun t -> f (b t)
+let ap bf ba = fun t -> (bf t) (ba t)
+```
+
+From `ap` we get the familiar lifting operators:
+
+```ocaml skip
+let lift2 f a b = ap (map f a) b
+let lift3 f a b c = ap (lift2 f a b) c
+```
+
+In practice, most FRP code is written in this *applicative* style: it gives a static “wiring diagram”, which is easier to implement efficiently and avoids surprising dynamic dependencies.
+
+#### Converting Between Events and Behaviors
+
+Four combinators show up again and again:
+
+- `step : 'a -> 'a event -> 'a behavior` (hold last event value)
+- `switch : 'a behavior -> 'a behavior event -> 'a behavior` (switch behaviors over time)
+- `until : 'a behavior -> 'a behavior event -> 'a behavior` (switch once)
+- `snapshot : 'a event -> 'b behavior -> ('a * 'b) event` (sample a behavior when an event fires)
+
+Section 10.5 builds a small stream-based FRP core where these are concrete functions on lazy streams.
 
 #### A Concrete Input Model
 
@@ -504,6 +604,8 @@ let ($) = memo1_app  (* Convenient infix for memoized application *)
 
 type 'a behavior =
   ((user_action option * time) stream, 'a stream) memo1
+
+type 'a event = 'a option behavior
 ```
 
 We use physical equality (`==`) rather than structural equality (`=`) because the external input stream is a single physical object -- if we see the same pointer, we know it is the same stream. During debugging, we can verify that `memo_r` is `None` before the first call and `Some` afterwards.
@@ -609,19 +711,19 @@ We define behaviors for user actions by extracting them from the input stream:
 (* Left button press event *)
 let lbp : unit event =
   memo1 (fun uts -> lmap
-    (function Some(Button(_,_)), _ -> Some() | _ -> None)
+    (function Some (Button (_, _, true, _)), _ -> Some () | _ -> None)
     uts)
 
 (* Mouse movement event (carries coordinates) *)
 let mm : (int * int) event =
   memo1 (fun uts -> lmap
-    (function Some(MouseMove(x, y)), _ -> Some(x, y) | _ -> None)
+    (function Some (MouseMove (x, y)), _ -> Some (x, y) | _ -> None)
     uts)
 
 (* Window resize event *)
 let screen : (int * int) event =
   memo1 (fun uts -> lmap
-    (function Some(Resize(x, y)), _ -> Some(x, y) | _ -> None)
+    (function Some (Resize (x, y)), _ -> Some (x, y) | _ -> None)
     uts)
 
 (* Behaviors derived from events using step *)
@@ -712,31 +814,32 @@ The key ideas in the ball implementation:
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
-### 10.6 Reactivity by Incremental Computing (Lwd)
+### 10.6 FRP by Incremental Computing (Lwd)
 
-The stream-based implementation made time explicit and computed everything by consuming a stream. A different, often more *practical* approach is:
+The stream-processing implementation from Section 10.5 makes time explicit and computes signals by consuming an input stream. An alternative is to let an incremental engine maintain the dependency graph for you, and to put “time” and “inputs” into mutable cells.
 
-1. Keep the “outside world” in **mutable input cells** (mouse position, current time, a queue of clicks, …).
-2. Define derived values as a **pure dependency graph** over these cells.
-3. After each input update (or once per frame), **sample** the root result.
+This is the same picture as Section 10.3:
 
-This is exactly the incremental-computing picture from Section 10.3, specialized to reactive programs.
+1. **Inputs** live in mutable variables (`Lwd.var`).
+2. **Derived signals** are pure computations over those vars (`Lwd.map`, `Lwd.map2`, `Lwd.join`, …).
+3. The host program chooses an **update step** and calls `sample` once per step.
 
-#### Behaviors and Events in an Incremental World
+#### Mapping FRP Concepts to Lwd
 
-One clean way to phrase this with `Lwd` is:
+A useful correspondence is:
 
-- A **behavior** is just an `Lwd.t`: a value recomputed when needed.
-- An **event** is an `Lwd.t` that is `None` most of the time and `Some v` for one update step.
+- **Behavior**: `'a Lwd.t`
+- **Event**: `'a option Lwd.t` (a pulse) or a queue/list carried by a var
+- **Observer/root**: `'a Lwd.root`
 
 ```ocaml skip
-module Lwd_frp = struct
+module LwdFrp = struct
   type 'a behavior = 'a Lwd.t
   type 'a event = 'a option Lwd.t
 
-  let returnB x = Lwd.pure x
-  let mapB b ~f = Lwd.map b ~f
-  let mapB2 a b ~f = Lwd.map2 a b ~f
+  let returnB = Lwd.return
+  let mapB = Lwd.map
+  let mapB2 = Lwd.map2
 
   let mapE e ~f = Lwd.map e ~f:(Option.map f)
   let filterE e ~f =
@@ -747,66 +850,135 @@ module Lwd_frp = struct
 end
 ```
 
-The missing piece is *time*. `Lwd` does not “know” about time; you supply it as another input variable and decide when to sample:
+`Lwd` does not have a built-in notion of time; you supply one (usually as a `float` variable updated each frame):
 
 ```ocaml skip
-(* Inputs *)
 let time_v : float Lwd.var = Lwd.var 0.0
-let mouse_v : (int * int) Lwd.var = Lwd.var (0, 0)
-let click_v : unit option Lwd.var = Lwd.var None  (* pulse: set to Some () for one step *)
-
-(* Behaviors (derived values) *)
 let time_b : float Lwd.t = Lwd.get time_v
-let mouse_b : (int * int) Lwd.t = Lwd.get mouse_v
 
+let mouse_v : (int * int) Lwd.var = Lwd.var (0, 0)
+let mouse_b : (int * int) Lwd.t = Lwd.get mouse_v
 let mouse_x : int Lwd.t = Lwd.map mouse_b ~f:fst
 let mouse_y : int Lwd.t = Lwd.map mouse_b ~f:snd
+```
 
-(* An event view of clicks *)
+#### Events as Pulses (and a Caveat)
+
+The simplest event representation is a one-step pulse:
+
+```ocaml skip
+let click_v : unit option Lwd.var = Lwd.var None
 let click_e : unit option Lwd.t = Lwd.get click_v
 ```
 
-Now we can define a derived “model” value (or a view tree) and observe it:
+In the host program, you set `click_v` to `Some ()` for one update step and then clear it to `None` after sampling. This gives you “happened this step?” semantics.
+
+The caveat: if many events can occur between samples, a single `option` cell will lose information. In that case, represent events as a list/queue (e.g. `user_action list`) accumulated by the host program and drained once per step.
+
+#### Stateful Signal Combinators (One-Step Memory)
+
+In FRP, feedback loops require *delay* (“previous value”). In a stream-based model, delay falls out of stream processing. With incremental engines, you can implement the same idea with a bit of internal state.
+
+Here are two classic combinators implemented with internal references. They are intentionally “single-sample” oriented: sample once per step.
 
 ```ocaml skip
-(* A toy “reactive model”: show either the mouse or the time, depending on a toggle. *)
-let show_mouse_v : bool Lwd.var = Lwd.var true
+(* step: hold the last event value, starting from [init] *)
+let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
+  let last = ref init in
+  Lwd.map e ~f:(function
+    | None -> !last
+    | Some v -> last := v; v)
 
-let display : string Lwd.t =
-  Lwd.join
-    (Lwd.map (Lwd.get show_mouse_v) ~f:(function
-       | true ->
-         Lwd.map2 mouse_x mouse_y ~f:(fun x y -> Printf.sprintf "mouse=(%d,%d)" x y)
-       | false ->
-         Lwd.map time_b ~f:(fun t -> Printf.sprintf "t=%.3f" t)))
-
-let root : string Lwd.root = Lwd.observe display
-let sample () = Lwd.quick_sample root
+(* rising_edge: None most of the time, Some () exactly when b flips false->true *)
+let rising_edge (b : bool Lwd.t) : unit option Lwd.t =
+  let was_true = ref false in
+  Lwd.map b ~f:(fun now ->
+    let fire = now && not !was_true in
+    was_true := now;
+    if fire then Some () else None)
 ```
 
-An update step is then an ordinary loop:
+These are not “pure” in the mathematical FRP sense, but they capture a key idea: **signals can have local memory**, and that memory is exactly what causality demands.
+
+#### Integration (Discrete Time)
+
+We can also integrate a velocity signal by accumulating over time. This is effectively a discrete-time integrator driven by your chosen update step:
 
 ```ocaml skip
-let step ~t ~mouse ~clicked =
-  Lwd.set time_v t;
-  Lwd.set mouse_v mouse;
-  if clicked then Lwd.set click_v (Some ());
-  let s = sample () in
-  (* Clear pulses after sampling (one-step event semantics). *)
-  Lwd.set click_v None;
-  s
+let integral (v : float Lwd.t) (t : float Lwd.t) : float Lwd.t =
+  let acc = ref 0.0 in
+  let prev_t = ref 0.0 in
+  Lwd.map2 v t ~f:(fun v t ->
+    let dt = t -. !prev_t in
+    prev_t := t;
+    acc := !acc +. dt *. v;
+    !acc)
 ```
 
-This style is *deliberately simple*: the incremental engine is responsible for “what depends on what” and for caching; the host program is responsible for choosing the update-step boundaries and for turning external effects into input-cell updates.
+#### Example: Reimplementing the Paddle Scene with Lwd
 
-#### Where `Lwd` Fits (and Where `Incremental` Fits)
+We reuse the `scene` type and `draw` function from Section 10.5. The idea is:
 
-The same high-level pattern works with `Incremental` too (vars + derived graph + stabilize + read observers). The big practical difference is that:
+- treat `mouse_x`, `width`, `height`, `time` as input behaviors,
+- build a reactive scene graph as an `Lwd.t`,
+- sample and draw once per frame.
 
-- `Lwd` is naturally **pull-based**: you update inputs and then `sample` the root(s) you care about.
-- `Incremental` is naturally **push/stabilize-based**: you update inputs, call `stabilize`, and then all observers have up-to-date values.
+```ocaml skip
+let time_v : float Lwd.var = Lwd.var 0.0
+let time_b : float Lwd.t = Lwd.get time_v
 
-Both can host FRP-like code; the question is which runtime model matches the rest of your application.
+let mouse_v : (int * int) Lwd.var = Lwd.var (0, 0)
+let mouse_x : int Lwd.t = Lwd.map (Lwd.get mouse_v) ~f:fst
+
+let width_v : int Lwd.var = Lwd.var 640
+let height_v : int Lwd.var = Lwd.var 512
+let width : int Lwd.t = Lwd.get width_v
+let height : int Lwd.t = Lwd.get height_v
+
+let walls : scene Lwd.t =
+  Lwd.map2 width height ~f:(fun w h ->
+    Color (Graphics.blue, Group
+      [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
+       Rect (w-21, 0, 20, h-1)]))
+
+let paddle : scene Lwd.t =
+  Lwd.map mouse_x ~f:(fun mx ->
+    Color (Graphics.black, Rect (mx, 0, 50, 10)))
+
+let ball : scene Lwd.t =
+  let wall_margin = 27 in
+  let x = ref 0.0 in
+  let y = ref 0.0 in
+  let xvel = ref 120.0 in
+  let yvel = ref 160.0 in
+  let prev_t : float option ref = ref None in
+  Lwd.map2 (Lwd.pair width height) time_b ~f:(fun (w, h) t ->
+    let dt =
+      match !prev_t with
+      | None -> 0.0
+      | Some t0 -> t -. t0
+    in
+    prev_t := Some t;
+    x := !x +. dt *. !xvel;
+    y := !y +. dt *. !yvel;
+    let xi = int_of_float !x + w / 2 in
+    let yi = int_of_float !y + h / 2 in
+    if xi > w - wall_margin || xi < wall_margin then xvel := -. !xvel;
+    if yi > h - wall_margin || yi < wall_margin then yvel := -. !yvel;
+    Color (Graphics.red, Circle (xi, yi, 7)))
+
+let game : scene Lwd.t =
+  Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
+```
+
+Because `ball` above uses internal mutable state, you should sample the root scene **exactly once per update step** (otherwise the physics will advance multiple times).
+
+This is “FRP by incremental computing” in a nutshell: the engine caches and reuses computations in the scene graph; the host program decides what constitutes a step and updates the input vars accordingly.
+
+#### Stream FRP vs. Lwd FRP (A Practical Contrast)
+
+- Stream-based FRP is *purely functional* and makes time explicit, but in strict OCaml mutual recursion can be awkward.
+- Lwd-based FRP makes dependency tracking automatic and integrates naturally with an imperative “main loop”, but stateful signal combinators must be handled with care (sample once per step; avoid depending on evaluation order).
 
 ### 10.7 Direct Control (Effects)
 
@@ -824,20 +996,33 @@ Here is a tiny effect-based interface for staged reactive programs:
 ```ocaml skip
 type _ Effect.t +=
   | Await : (user_action -> 'a option) -> 'a Effect.t
-  | Emit : 'o -> unit Effect.t
+  | Emit : string -> unit Effect.t
 
 let await p = Effect.perform (Await p)
-let emit x = Effect.perform (Emit x)
+let emit (s : string) = Effect.perform (Emit s)
 ```
 
 `Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”.
+
+Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
+
+```ocaml skip
+let await_either p q =
+  await (fun u ->
+    match p u with
+    | Some a -> Some (`A a)
+    | None ->
+      match q u with
+      | Some b -> Some (`B b)
+      | None -> None)
+```
 
 #### A Handler: Replay a Script of Inputs
 
 To make the idea testable (and independent of GUIs), we can interpret `Await` by consuming a pre-recorded list of `user_action`s:
 
 ```ocaml skip
-let run_script ~(inputs : user_action list) ~(on_emit : 'o -> unit) (f : unit -> 'a) : 'a =
+let run_script ~(inputs : user_action list) ~(on_emit : string -> unit) (f : unit -> 'a) : 'a =
   let inputs = ref inputs in
   let rec handle : type a. (unit -> a) -> a =
     fun th ->
@@ -878,32 +1063,40 @@ let is_up = function
   | _ -> None
 
 let rec drag_loop acc =
-  match await (fun u -> match is_move u with Some p -> Some (`Move p) | None ->
-                        match is_up u with Some () -> Some `Up | None -> None) with
-  | `Move p ->
+  match await_either is_move is_up with
+  | `A p ->
     let acc = p :: acc in
-    emit (List.rev acc);  (* “render” the polyline *)
+    emit (Printf.sprintf "polyline points=%d" (List.length acc));
     drag_loop acc
-  | `Up ->
+  | `B () ->
     List.rev acc
 
 let paint_once () =
   let start = await is_down in
-  emit [start];
+  emit "start";
   let path = drag_loop [start] in
-  emit ("done, points=" ^ string_of_int (List.length path))
+  emit (Printf.sprintf "done, points=%d" (List.length path));
+  path
 ```
 
 This is the same idea as the old “flow” construction, but in OCaml 5 direct style. Crucially, the *program* `paint_once` does not commit to any particular GUI framework: it only commits to “there exists some source of `user_action`s and some place to send outputs”.
 
-### 10.8 Notes on Practice
+### 10.8 Summary
 
-If you build UIs in OCaml today, you will often find incremental engines *under the hood*:
+This chapter explored a progression of techniques for handling change and interaction in functional programming.
 
-- `Lwd` is commonly used to build reactive document/view trees, with explicit resource lifetimes (`prim` acquire/release).
-- Jane Street’s `Bonsai` builds on `Incremental` and adds a disciplined component model on top.
+**Zippers** make “where am I in the structure?” explicit, by representing a location as *context + focused subtree*. This turns local navigation and rewriting problems (like our algebraic manipulation example) into simple, efficient code.
 
-Even if you do not adopt a full FRP library, the ideas in this chapter are broadly useful: represent dependencies explicitly, choose a clear update-step boundary, and keep effectful interaction at the edge of your program.
+**Incremental computing** makes “what depends on what?” explicit, by building a dependency graph behind the scenes. You write normal-looking code; the system tracks dependencies and recomputes only what is necessary after an update. We compared two modern OCaml libraries:
+
+- `Lwd`: lightweight, pull-based sampling, explicit resource lifetimes (`prim` acquire/release); a good fit for reactive view trees.
+- `Incremental`: stabilization-based recomputation with cutoffs and rich observer tooling; a good fit for large DAGs and complex dependency structure.
+
+**Functional Reactive Programming (FRP)** adds the time dimension. We modernized the standard vocabulary (behaviors, events, signals), emphasized causality and glitch freedom, and kept a stream-based implementation that makes time explicit.
+
+**Direct control with effects** complements FRP: many interactions are staged state machines. With algebraic effects (Chapter 9), we can write reactive “scripts” in direct style (`await`, `race`, …) and interpret them with different handlers (real GUI loop, replayed test script, simulation).
+
+A note on practice: OCaml UI and dataflow systems today often embed an incremental engine under the hood (`Lwd`, or `Incremental` via frameworks like Bonsai). Even without adopting a full FRP framework, the core ideas transfer: choose a clear update-step boundary, keep effectful input/output at the edge, and make dependencies explicit so the runtime can do less work.
 
 ### 10.9 Exercises
 
@@ -925,4 +1118,10 @@ and design a simple accuracy test. (Hint: integrate a function with a known clos
 
 **Exercise 6.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
-**Exercise 7.** Extend the effect-based interface in Section 10.7 with a combinator `await_either : (user_action -> 'a option) -> (user_action -> 'b option) -> [\`A of 'a | \`B of 'b]` that returns whichever happens first. Implement it in direct style using just `await`.
+**Exercise 7.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
+
+```ocaml skip
+val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
+```
+
+The function should return `Some v` if the awaited action happens before the deadline, and `None` otherwise. Write a small scripted test with `run_script`.
