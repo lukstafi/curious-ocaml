@@ -8900,8 +8900,8 @@ synchronization point.</p>
 exception HardFail</p>
 <p>(* Result of running one step <em>) type ’a step = | Done of ’a </em>
 trace * float (* completed with result, trace, weight <em>) | Paused of
-trace </em> float * int (* paused at Sample with trace, weight, observes
-<em>) | Failed (</em> hard failure *)</p>
+trace </em> float (* paused at Sample with trace, weight <em>) | Failed
+(</em> hard failure *)</p>
 <p>let sample_index weights = let total = Array.fold_left (+.) 0.0
 weights in let r = Random.float total in let rec find i acc = if i &gt;=
 Array.length weights then Array.length weights - 1 else if r &lt; acc +.
@@ -8910,17 +8910,16 @@ weights.(i) then i else find (i + 1) (acc +. weights.(i)) in find 0
 <p>(* Run until the next fresh Sample, replaying recorded choices *) let
 run_one_step : type a. (unit -&gt; a) -&gt; trace -&gt; a step = fun f
 trace -&gt; let remaining = ref trace in let recorded = ref [] in let
-weight = ref 1.0 in let observes = ref 0 in match f () with | result
--&gt; Done (result, List.rev !recorded, !weight) | effect (Sample (_,
-weights)), k -&gt; (match !remaining with | choice :: rest -&gt; (*
-Replay: use recorded choice <em>) remaining := rest; recorded := choice
-:: !recorded; Effect.Deep.continue k choice | [] -&gt; (</em> Fresh
-sample: make choice and pause <em>) let choice = sample_index weights in
-recorded := choice :: !recorded; Paused (List.rev !recorded, !weight,
-!observes)) | effect (Observe likelihood), k -&gt; weight := !weight
-</em>. likelihood; incr observes; Effect.Deep.continue k () | effect
-Fail, k -&gt; Effect.Deep.discontinue k HardFail | exception HardFail
--&gt; Failed</p>
+weight = ref 1.0 in match f () with | result -&gt; Done (result,
+List.rev !recorded, !weight) | effect (Sample (_, weights)), k -&gt;
+(match !remaining with | choice :: rest -&gt; (* Replay: use recorded
+choice <em>) remaining := rest; recorded := choice :: !recorded;
+Effect.Deep.continue k choice | [] -&gt; (</em> Fresh sample: make
+choice and pause <em>) let choice = sample_index weights in recorded :=
+choice :: !recorded; Paused (List.rev !recorded, !weight)) | effect
+(Observe likelihood), k -&gt; weight := !weight </em>. likelihood;
+Effect.Deep.continue k () | effect Fail, k -&gt; Effect.Deep.discontinue
+k HardFail | exception HardFail -&gt; Failed</p>
 <p>(* Resample: select n indices according to weights *) let
 resample_indices n weights = let total = Array.fold_left (+.) 0.0
 weights in if total &lt;= 0.0 then Array.init n (fun i -&gt; i mod n)
@@ -8935,11 +8934,10 @@ else find (i + 1) in find 0) end</p>
 in if total &lt;= 0.0 then 0.0 else begin let sum_sq = Array.fold_left
 (fun acc w -&gt; let nw = w /. total in acc +. nw </em>. nw) 0.0 weights
 in 1.0 /. sum_sq /. n end</p>
-<p>let infer ?(n=1000) ?(resample_threshold=0.5) ?(observe_threshold=1)
-f = (* Each particle: trace, weight, observes since last resample *) let
-traces = Array.make n [] in let weights = Array.make n 1.0 in let
-observes = Array.make n 0 in let active = Array.make n true in let
-final_results = ref [] in let n_active = ref n in</p>
+<p>let infer ?(n=1000) ?(resample_threshold=0.5) f = (* Each particle:
+trace, weight *) let traces = Array.make n [] in let weights =
+Array.make n 1.0 in let active = Array.make n true in let final_results
+= ref [] in let n_active = ref n in</p>
 <pre><code>while !n_active &gt; 0 do
   (* Advance each active particle by one Sample *)
   for i = 0 to n - 1 do
@@ -8949,38 +8947,29 @@ final_results = ref [] in let n_active = ref n in</p>
           final_results := (result, weights.(i) *. w) :: !final_results;
           active.(i) &lt;- false;
           decr n_active
-      | Paused (trace, w, obs) -&gt;
+      | Paused (trace, w) -&gt;
           traces.(i) &lt;- trace;
-          weights.(i) &lt;- weights.(i) *. w;
-          observes.(i) &lt;- observes.(i) + obs
+          weights.(i) &lt;- weights.(i) *. w
       | Failed -&gt;
           active.(i) &lt;- false;
           decr n_active
   done;
 
-  (* Check if we should resample: need active particles and enough observes *)
+  (* Resample if ESS is low and there are still active particles *)
   if !n_active &gt; 0 then begin
-    let min_obs = Array.fold_left (fun acc i -&gt;
-      if active.(i) then min acc observes.(i) else acc) max_int
-      (Array.init n (fun i -&gt; i)) in
-    if min_obs &gt;= observe_threshold then begin
-      (* Extract active weights for ESS calculation *)
-      let active_weights = Array.of_list (
-        Array.to_list weights |&gt; List.filteri (fun i _ -&gt; active.(i))) in
-      if effective_sample_size active_weights &lt; resample_threshold then begin
-        (* Resample among active particles *)
-        let active_indices = Array.of_list (
-          List.init n (fun i -&gt; i) |&gt; List.filter (fun i -&gt; active.(i))) in
-        let active_n = Array.length active_indices in
-        let indices = resample_indices active_n active_weights in
-        let new_traces = Array.map (fun j -&gt;
-          traces.(active_indices.(j))) indices in
-        let new_weight = 1.0 /. float_of_int active_n in
-        Array.iteri (fun j idx -&gt;
-          traces.(active_indices.(j)) &lt;- new_traces.(idx);
-          weights.(active_indices.(j)) &lt;- new_weight;
-          observes.(active_indices.(j)) &lt;- 0) (Array.init active_n (fun i -&gt; i))
-      end
+    let active_weights = Array.of_list (
+      Array.to_list weights |&gt; List.filteri (fun i _ -&gt; active.(i))) in
+    if effective_sample_size active_weights &lt; resample_threshold then begin
+      let active_indices = Array.of_list (
+        List.init n (fun i -&gt; i) |&gt; List.filter (fun i -&gt; active.(i))) in
+      let active_n = Array.length active_indices in
+      let indices = resample_indices active_n active_weights in
+      let new_traces = Array.map (fun j -&gt;
+        traces.(active_indices.(j))) indices in
+      let new_weight = 1.0 /. float_of_int active_n in
+      Array.iteri (fun j _ -&gt;
+        traces.(active_indices.(j)) &lt;- new_traces.(j);
+        weights.(active_indices.(j)) &lt;- new_weight) indices
     end
   end
 done;
@@ -9003,7 +8992,7 @@ The particle filter works by:
 1. **Initialization**: Start n particles with empty traces and equal weights
 2. **Extension**: Advance each particle to the next `Sample`. During replay, recorded choices are reused; at a fresh `Sample`, we make a new choice and pause
 3. **Weight accumulation**: `Observe` effects multiply the particle&#39;s weight
-4. **Resampling**: After particles accumulate enough observations (controlled by `observe_threshold`), if the effective sample size drops below the threshold, we resample traces proportional to weights
+4. **Resampling**: If the effective sample size drops below the threshold, resample traces proportional to weights
 5. **Completion**: When a particle finishes, record its result weighted by its final weight
 
 Let us test the particle filter:
@@ -9130,27 +9119,40 @@ and full importance sampling. In likelihood weighting, we sample from
 the prior for <code>Sample</code> effects but weight by the likelihood
 for <code>Observe</code> effects. Compare with rejection sampling on the
 burglary example.</p>
-<p><strong>Exercise 6.</strong> Add a
-<code>Choose : 'a list -&gt; 'a Effect.t</code> effect that
-nondeterministically picks from a list. Implement handlers that: 1.
-Return all possible results (like the list monad) 2. Return the first
-successful result (with backtracking on failure) 3. Return a random
-result (like importance sampling)</p>
-<p><strong>Exercise 7.</strong> The sprinkler problem: It might be
-cloudy (50%). If cloudy, rain is likely (80%); otherwise rain is
-unlikely (20%). If cloudy, the sprinkler is unlikely (10%); otherwise
-likely (50%). Rain wets the grass with 90% probability, and so does the
-sprinkler. We observe that the grass is wet. What is the probability
-that it rained? Encode this as a probabilistic program and run
-inference.</p>
-<p><strong>Exercise 8.</strong> (Harder) Optimize the particle filter by
-storing the suspended continuation alongside the trace in
-<code>Paused</code>. When advancing a particle, first try to resume the
-stored continuation directly. If resampling duplicated the particle
-(i.e., another particle already consumed the continuation), the resume
-will raise <code>Effect.Continuation_already_resumed</code> – catch this
-and fall back to replay. This avoids replay overhead for particles that
-weren’t duplicated during resampling.</p>
+<p><strong>Exercise 6.</strong> Our probabilistic programming interface
+uses <code>Sample : int -&gt; int</code> to choose an index, which
+callers then use to select from their list of options. Consider a more
+direct <code>Choose : 'a list -&gt; 'a</code> effect.</p>
+<ol type="1">
+<li>Why is <code>Choose : 'a list -&gt; 'a Effect.t</code> problematic
+for OCaml’s type system? (Hint: effect handlers must handle all
+occurrences of an effect uniformly, but different <code>Choose</code>
+calls may have different types.)</li>
+<li>Even if we could define the effect, explain why replay-based
+handlers (rejection sampling, importance sampling, particle filter) face
+additional difficulty: traces would need to store values of different
+types.</li>
+<li>One workaround uses existential types:
+<code>type packed = Pack : 'a -&gt; packed</code> with traces as
+<code>packed list</code>, and <code>Obj.magic</code> during replay.
+Implement this for the rejection sampler and discuss why it’s
+unsafe.</li>
+</ol>
+<p><strong>Exercise 7.</strong> The particle filter currently pauses at
+every <code>Sample</code>, which may cause excessive resampling
+overhead. Modify it to pause more selectively: only pause at a
+<code>Sample</code> that occurs after at least one <code>Observe</code>
+since the last pause. This focuses resampling on points where weights
+have actually changed. (Hint: track whether any <code>Observe</code> has
+occurred since the last pause.)</p>
+<p><strong>Exercise 8.</strong> Optimize the particle filter by storing
+the suspended continuation alongside the trace in <code>Paused</code>.
+When advancing a particle, first try to resume the stored continuation
+directly. If resampling duplicated the particle (i.e., another particle
+already consumed the continuation), the resume will raise
+<code>Effect.Continuation_already_resumed</code> – catch this and fall
+back to replay. This avoids replay overhead for particles that weren’t
+duplicated during resampling.</p>
 <h2 id="chapter-10-functional-reactive-programming">Chapter 10:
 Functional Reactive Programming</h2>
 <p>How do we deal with change and interaction in functional programming?

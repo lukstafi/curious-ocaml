@@ -5,7 +5,7 @@
 **In this chapter, you will:**
 
 - Rehearse reduction-by-hand on a non-trivial recursive program
-- Learn the syntax and $\u03b2$-reduction rules of the untyped lambda-calculus
+- Learn the syntax and $\beta$-reduction rules of the untyped lambda-calculus
 - Encode booleans, pairs, naturals, lists, and trees using functions alone
 - Understand recursion via fixpoint combinators (and how evaluation order matters)
 

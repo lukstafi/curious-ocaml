@@ -1752,7 +1752,7 @@ Which of these algorithms can be implemented in a tail-recursive manner? What ab
 **In this chapter, you will:**
 
 - Rehearse reduction-by-hand on a non-trivial recursive program
-- Learn the syntax and $\u03b2$-reduction rules of the untyped lambda-calculus
+- Learn the syntax and $\beta$-reduction rules of the untyped lambda-calculus
 - Encode booleans, pairs, naturals, lists, and trees using functions alone
 - Understand recursion via fixpoint combinators (and how evaluation order matters)
 
@@ -7822,9 +7822,9 @@ module ParticleFilter = struct
 
   (* Result of running one step *)
   type 'a step =
-    | Done of 'a * trace * float      (* completed with result, trace, weight *)
-    | Paused of trace * float * int   (* paused at Sample with trace, weight, observes *)
-    | Failed                          (* hard failure *)
+    | Done of 'a * trace * float   (* completed with result, trace, weight *)
+    | Paused of trace * float      (* paused at Sample with trace, weight *)
+    | Failed                       (* hard failure *)
 
   let sample_index weights =
     let total = Array.fold_left (+.) 0.0 weights in
@@ -7840,7 +7840,6 @@ module ParticleFilter = struct
     let remaining = ref trace in
     let recorded = ref [] in
     let weight = ref 1.0 in
-    let observes = ref 0 in
     match f () with
     | result -> Done (result, List.rev !recorded, !weight)
     | effect (Sample (_, weights)), k ->
@@ -7854,10 +7853,9 @@ module ParticleFilter = struct
              (* Fresh sample: make choice and pause *)
              let choice = sample_index weights in
              recorded := choice :: !recorded;
-             Paused (List.rev !recorded, !weight, !observes))
+             Paused (List.rev !recorded, !weight))
     | effect (Observe likelihood), k ->
         weight := !weight *. likelihood;
-        incr observes;
         Effect.Deep.continue k ()
     | effect Fail, k -> Effect.Deep.discontinue k HardFail
     | exception HardFail -> Failed
@@ -7891,11 +7889,10 @@ module ParticleFilter = struct
       1.0 /. sum_sq /. n
     end
 
-  let infer ?(n=1000) ?(resample_threshold=0.5) ?(observe_threshold=1) f =
-    (* Each particle: trace, weight, observes since last resample *)
+  let infer ?(n=1000) ?(resample_threshold=0.5) f =
+    (* Each particle: trace, weight *)
     let traces = Array.make n [] in
     let weights = Array.make n 1.0 in
-    let observes = Array.make n 0 in
     let active = Array.make n true in
     let final_results = ref [] in
     let n_active = ref n in
@@ -7909,38 +7906,29 @@ module ParticleFilter = struct
               final_results := (result, weights.(i) *. w) :: !final_results;
               active.(i) <- false;
               decr n_active
-          | Paused (trace, w, obs) ->
+          | Paused (trace, w) ->
               traces.(i) <- trace;
-              weights.(i) <- weights.(i) *. w;
-              observes.(i) <- observes.(i) + obs
+              weights.(i) <- weights.(i) *. w
           | Failed ->
               active.(i) <- false;
               decr n_active
       done;
 
-      (* Check if we should resample: need active particles and enough observes *)
+      (* Resample if ESS is low and there are still active particles *)
       if !n_active > 0 then begin
-        let min_obs = Array.fold_left (fun acc i ->
-          if active.(i) then min acc observes.(i) else acc) max_int
-          (Array.init n (fun i -> i)) in
-        if min_obs >= observe_threshold then begin
-          (* Extract active weights for ESS calculation *)
-          let active_weights = Array.of_list (
-            Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
-          if effective_sample_size active_weights < resample_threshold then begin
-            (* Resample among active particles *)
-            let active_indices = Array.of_list (
-              List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
-            let active_n = Array.length active_indices in
-            let indices = resample_indices active_n active_weights in
-            let new_traces = Array.map (fun j ->
-              traces.(active_indices.(j))) indices in
-            let new_weight = 1.0 /. float_of_int active_n in
-            Array.iteri (fun j idx ->
-              traces.(active_indices.(j)) <- new_traces.(idx);
-              weights.(active_indices.(j)) <- new_weight;
-              observes.(active_indices.(j)) <- 0) (Array.init active_n (fun i -> i))
-          end
+        let active_weights = Array.of_list (
+          Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
+        if effective_sample_size active_weights < resample_threshold then begin
+          let active_indices = Array.of_list (
+            List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
+          let active_n = Array.length active_indices in
+          let indices = resample_indices active_n active_weights in
+          let new_traces = Array.map (fun j ->
+            traces.(active_indices.(j))) indices in
+          let new_weight = 1.0 /. float_of_int active_n in
+          Array.iteri (fun j _ ->
+            traces.(active_indices.(j)) <- new_traces.(j);
+            weights.(active_indices.(j)) <- new_weight) indices
         end
       end
     done;
@@ -7964,7 +7952,7 @@ The particle filter works by:
 1. **Initialization**: Start n particles with empty traces and equal weights
 2. **Extension**: Advance each particle to the next `Sample`. During replay, recorded choices are reused; at a fresh `Sample`, we make a new choice and pause
 3. **Weight accumulation**: `Observe` effects multiply the particle's weight
-4. **Resampling**: After particles accumulate enough observations (controlled by `observe_threshold`), if the effective sample size drops below the threshold, we resample traces proportional to weights
+4. **Resampling**: If the effective sample size drops below the threshold, resample traces proportional to weights
 5. **Completion**: When a particle finishes, record its result weighted by its final weight
 
 Let us test the particle filter:
@@ -8055,14 +8043,15 @@ The key insight is that effects are a *programming interface* that can have mult
 
 **Exercise 5.** Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
 
-**Exercise 6.** Add a `Choose : 'a list -> 'a Effect.t` effect that nondeterministically picks from a list. Implement handlers that:
-1. Return all possible results (like the list monad)
-2. Return the first successful result (with backtracking on failure)
-3. Return a random result (like importance sampling)
+**Exercise 6.** Our probabilistic programming interface uses `Sample : int -> int` to choose an index, which callers then use to select from their list of options. Consider a more direct `Choose : 'a list -> 'a` effect.
 
-**Exercise 7.** The sprinkler problem: It might be cloudy (50%). If cloudy, rain is likely (80%); otherwise rain is unlikely (20%). If cloudy, the sprinkler is unlikely (10%); otherwise likely (50%). Rain wets the grass with 90% probability, and so does the sprinkler. We observe that the grass is wet. What is the probability that it rained? Encode this as a probabilistic program and run inference.
+1. Why is `Choose : 'a list -> 'a Effect.t` problematic for OCaml's type system? (Hint: effect handlers must handle all occurrences of an effect uniformly, but different `Choose` calls may have different types.)
+2. Even if we could define the effect, explain why replay-based handlers (rejection sampling, importance sampling, particle filter) face additional difficulty: traces would need to store values of different types.
+3. One workaround uses existential types: `type packed = Pack : 'a -> packed` with traces as `packed list`, and `Obj.magic` during replay. Implement this for the rejection sampler and discuss why it's unsafe.
 
-**Exercise 8.** (Harder) Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
+**Exercise 7.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
+
+**Exercise 8.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
 
 
 ## Chapter 10: Functional Reactive Programming
