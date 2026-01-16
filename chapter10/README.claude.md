@@ -268,6 +268,21 @@ While zippers are elegant for navigating and modifying data structures, they are
 
 *Incremental computing*, also known as *adaptive programming* or *self-adjusting computation*, offers a more elegant solution. The idea is beautifully simple: we write programs in a straightforward functional manner, but the runtime system tracks dependencies between computations. When we later modify any input data, only the minimal amount of work required to update the results is performed -- everything else is reused from before.
 
+#### A Mental Model: Dependency Graphs
+
+Think of an incremental program as building a directed acyclic graph (DAG):
+
+- **Leaves** are *mutable inputs* (changeable cells that can be updated from outside)
+- **Internal nodes** are *pure computations* (maps, combinations, binds over other nodes)
+- **Roots** are *observers* (the results we care to keep up-to-date)
+
+When a leaf changes, the system does two logically separate things:
+
+1. **Invalidate**: Mark cached results that (transitively) depend on the changed leaf as stale
+2. **Recompute**: Bring the observed roots back to a consistent state, doing only the necessary work
+
+Different libraries make different choices about *when* recomputation happens (eager stabilization vs. lazy sampling), *how* they avoid redundant work (timestamps vs. boolean dirty flags), and *what* extra guarantees they provide (cutoffs, resource lifetimes, glitch freedom).
+
 #### The Core Idea
 
 Consider a simple computation:
@@ -294,6 +309,28 @@ let (/) = lift2 (/)
 let ( * ) = lift2 ( * )
 let (+) = lift2 (+)
 let u = v / w + x * y + z  (* Looks like normal code, but tracks dependencies! *)
+```
+
+These ideas can be packaged behind a conceptual API:
+
+```ocaml skip
+module type INCREMENTAL = sig
+  type 'a t              (* A computation producing 'a *)
+  type 'a var            (* A mutable input cell *)
+  type 'a obs            (* An observer/root *)
+
+  val var : 'a -> 'a var              (* Create a mutable input *)
+  val get : 'a var -> 'a t            (* Read a variable as a computation *)
+  val set : 'a var -> 'a -> unit      (* Update a variable *)
+
+  val return : 'a -> 'a t             (* Constant computation *)
+  val map : 'a t -> f:('a -> 'b) -> 'b t
+  val map2 : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t
+  val bind : 'a t -> f:('a -> 'b t) -> 'b t   (* Dynamic dependencies *)
+
+  val observe : 'a t -> 'a obs        (* Create an observer *)
+  val sample : 'a obs -> 'a           (* Get the current value *)
+end
 ```
 
 Two OCaml libraries implement these ideas with different design philosophies: **Lwd** (Lightweight Documents) for UI rendering, and **Incremental** (from Jane Street) for large-scale financial systems.
@@ -1408,6 +1445,51 @@ let handle_race : type a b c. a event_source -> b event_source ->
     src_b.listeners <- !listener_b :: src_b.listeners
 ```
 
+#### Testing with Scripted Inputs
+
+One major benefit of effect-based programming is testability. We can write a handler that replays a pre-recorded sequence of events:
+
+```ocaml skip
+let run_script (inputs : 'a list) (on_emit : 'b -> unit) (f : unit -> 'c) : 'c =
+  let inputs = ref inputs in
+  Effect.Deep.match_with f ()
+    { retc = (fun x -> x);
+      exnc = raise;
+      effc = fun (type a) (eff : a Effect.t) ->
+        match eff with
+        | Await _ ->
+            Some (fun (k : (a, _) Effect.Deep.continuation) ->
+              match !inputs with
+              | [] -> failwith "run_script: no more inputs"
+              | v :: rest ->
+                  inputs := rest;
+                  Effect.Deep.continue k v)
+        | Emit v ->
+            Some (fun k ->
+              on_emit v;
+              Effect.Deep.continue k ())
+        | _ -> None }
+```
+
+Now we can test interactive logic without any GUI:
+
+```ocaml skip
+let test_painter () =
+  let outputs = ref [] in
+  let on_emit v = outputs := v :: !outputs in
+  let clicks = [(10, 20); (30, 40); (50, 60)] in
+  run_script clicks on_emit (fun () ->
+    let p1 = await mouse_click in
+    emit [p1];
+    let p2 = await mouse_click in
+    emit [p1; p2];
+    let p3 = await mouse_click in
+    emit [p1; p2; p3]);
+  assert (List.length !outputs = 3)
+```
+
+This separation of the reactive logic from its runtime interpretation is a key advantage of the effect-based approach.
+
 #### Benefits of Effects for Reactive Programming
 
 Using effects for reactive flows has several advantages:
@@ -1447,6 +1529,8 @@ Each technique has its place:
 - Use incremental computing when changes are small relative to total computation
 - Use FRP for continuous behaviors and animations
 - Use effect-based flows for sequential, state-machine-like interactions
+
+**A note on practice**: If you build UIs in OCaml today, you will often find incremental engines under the hood. Lwd is commonly paired with Nottui for terminal UIs and with reactive document/view trees. Jane Street's Bonsai builds on Incremental and adds a disciplined component model. Even if you do not adopt a full FRP library, the ideas in this chapter are broadly useful: represent dependencies explicitly, choose a clear update-step boundary, and keep effectful interaction at the edge of your program.
 
 ### 10.9 Exercises
 
@@ -1518,4 +1602,13 @@ This is valuable for testing animations and physics without waiting real time.
 2. The dependency graph should update automatically when cell values change
 3. Detect and report circular dependencies
 4. Support basic functions: `SUM`, `AVERAGE`, `MAX`, `MIN` over cell ranges
+
+**Exercise 13.** Using only the basic `await` effect from Section 10.7, implement a combinator:
+```
+val await_either :
+  ('a -> 'b option) -> ('a -> 'c option) -> [`Left of 'b | `Right of 'c]
+```
+that returns whichever predicate matches first. Compare your implementation with the `race` combinator. When would you prefer one over the other?
+
+**Exercise 14.** The Lwd-based FRP implementation uses mutable references inside `Lwd.map` to track state across samples. This works but has subtle issues when the dependency graph structure changes (a node might be "sampled" in a different context). Design and implement an alternative approach using a separate state store indexed by node identity. What are the tradeoffs?
 
