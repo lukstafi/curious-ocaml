@@ -613,12 +613,18 @@ The soft conditioning version is more efficient because every particle contribut
 
 For models where observations occur at multiple points during execution, we can do even better with *particle filtering*. The key idea is to run multiple particles in parallel, periodically *resampling* to focus computation on high-weight particles.
 
-The challenge is that we need to "replay" particles from the beginning after resampling, but fast-forward through the choices they already made. This is the "replay with fast-forward" pattern.
+The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a natural synchronization point.
 
 ```ocaml env=ch9
 module ParticleFilter = struct
   type trace = int list
   exception HardFail
+
+  (* Result of running one step *)
+  type 'a step =
+    | Done of 'a * trace * float      (* completed with result, trace, weight *)
+    | Paused of trace * float * int   (* paused at Sample with trace, weight, observes *)
+    | Failed                          (* hard failure *)
 
   let sample_index weights =
     let total = Array.fold_left (+.) 0.0 weights in
@@ -629,29 +635,37 @@ module ParticleFilter = struct
       else find (i + 1) (acc +. weights.(i)) in
     find 0 0.0
 
-  let run_with_trace : type a. (unit -> a) -> trace ->
-                       (a * trace * float) option = fun f trace ->
+  (* Run until the next fresh Sample, replaying recorded choices *)
+  let run_one_step : type a. (unit -> a) -> trace -> a step = fun f trace ->
     let remaining = ref trace in
     let recorded = ref [] in
     let weight = ref 1.0 in
+    let observes = ref 0 in
     match f () with
-    | result -> Some (result, List.rev !recorded, !weight)
+    | result -> Done (result, List.rev !recorded, !weight)
     | effect (Sample (_, weights)), k ->
-        let i = match !remaining with
-          | choice :: rest -> remaining := rest; choice
-          | [] -> sample_index weights in
-        recorded := i :: !recorded;
-        Effect.Deep.continue k i
+        (match !remaining with
+         | choice :: rest ->
+             (* Replay: use recorded choice *)
+             remaining := rest;
+             recorded := choice :: !recorded;
+             Effect.Deep.continue k choice
+         | [] ->
+             (* Fresh sample: make choice and pause *)
+             let choice = sample_index weights in
+             recorded := choice :: !recorded;
+             Paused (List.rev !recorded, !weight, !observes))
     | effect (Observe likelihood), k ->
         weight := !weight *. likelihood;
+        incr observes;
         Effect.Deep.continue k ()
     | effect Fail, k -> Effect.Deep.discontinue k HardFail
-    | exception HardFail -> None
+    | exception HardFail -> Failed
 
   (* Resample: select n indices according to weights *)
   let resample_indices n weights =
     let total = Array.fold_left (+.) 0.0 weights in
-    if total <= 0.0 then Array.init n (fun i -> i)
+    if total <= 0.0 then Array.init n (fun i -> i mod n)
     else begin
       let cumulative = Array.make n 0.0 in
       let acc = ref 0.0 in
@@ -666,7 +680,7 @@ module ParticleFilter = struct
         find 0)
     end
 
-  (* Effective sample size: measure of weight degeneracy *)
+  (* Effective sample size relative to n (returns value in [0, 1]) *)
   let effective_sample_size weights =
     let n = float_of_int (Array.length weights) in
     let total = Array.fold_left (+.) 0.0 weights in
@@ -677,46 +691,57 @@ module ParticleFilter = struct
       1.0 /. sum_sq /. n
     end
 
-  let infer ?(n=1000) ?(resample_threshold=0.5) f =
-    (* Each particle has a trace and weight *)
+  let infer ?(n=1000) ?(resample_threshold=0.5) ?(observe_threshold=1) f =
+    (* Each particle: trace, weight, observes since last resample *)
     let traces = Array.make n [] in
-    let weights = Array.make n (1.0 /. float_of_int n) in
+    let weights = Array.make n 1.0 in
+    let observes = Array.make n 0 in
+    let active = Array.make n true in
     let final_results = ref [] in
+    let n_active = ref n in
 
-    (* Keep running until all particles complete *)
-    let active = ref n in
-    while !active > 0 do
-      (* Try to extend each particle by one more sample *)
+    while !n_active > 0 do
+      (* Advance each active particle by one Sample *)
       for i = 0 to n - 1 do
-        if weights.(i) > 0.0 then begin
-          match run_with_trace f traces.(i) with
-          | None ->
-              (* Particle failed *)
-              weights.(i) <- 0.0;
-              decr active
-          | Some (result, new_trace, new_weight) ->
-              if List.length new_trace > List.length traces.(i) then begin
-                (* Made progress: record new trace and weight *)
-                traces.(i) <- new_trace;
-                weights.(i) <- weights.(i) *. new_weight
-              end else begin
-                (* Completed: record result *)
-                final_results := (result, weights.(i)) :: !final_results;
-                weights.(i) <- 0.0;
-                decr active
-              end
-        end
+        if active.(i) then
+          match run_one_step f traces.(i) with
+          | Done (result, trace, w) ->
+              final_results := (result, weights.(i) *. w) :: !final_results;
+              active.(i) <- false;
+              decr n_active
+          | Paused (trace, w, obs) ->
+              traces.(i) <- trace;
+              weights.(i) <- weights.(i) *. w;
+              observes.(i) <- observes.(i) + obs
+          | Failed ->
+              active.(i) <- false;
+              decr n_active
       done;
 
-      (* Resample if ESS is low and there are still active particles *)
-      if !active > 0 && effective_sample_size weights < resample_threshold then begin
-        let indices = resample_indices n weights in
-        let new_traces = Array.map (fun i -> traces.(i)) indices in
-        let new_weight = 1.0 /. float_of_int !active in
-        Array.blit new_traces 0 traces 0 n;
-        for i = 0 to n - 1 do
-          if weights.(i) > 0.0 then weights.(i) <- new_weight
-        done
+      (* Check if we should resample: need active particles and enough observes *)
+      if !n_active > 0 then begin
+        let min_obs = Array.fold_left (fun acc i ->
+          if active.(i) then min acc observes.(i) else acc) max_int
+          (Array.init n (fun i -> i)) in
+        if min_obs >= observe_threshold then begin
+          (* Extract active weights for ESS calculation *)
+          let active_weights = Array.of_list (
+            Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
+          if effective_sample_size active_weights < resample_threshold then begin
+            (* Resample among active particles *)
+            let active_indices = Array.of_list (
+              List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
+            let active_n = Array.length active_indices in
+            let indices = resample_indices active_n active_weights in
+            let new_traces = Array.map (fun j ->
+              traces.(active_indices.(j))) indices in
+            let new_weight = 1.0 /. float_of_int active_n in
+            Array.iteri (fun j idx ->
+              traces.(active_indices.(j)) <- new_traces.(idx);
+              weights.(active_indices.(j)) <- new_weight;
+              observes.(active_indices.(j)) <- 0) (Array.init active_n (fun i -> i))
+          end
+        end
       end
     done;
 
@@ -736,10 +761,11 @@ end
 
 The particle filter works by:
 
-1. **Initialization**: Start n particles with empty traces
-2. **Extension**: Run each particle forward, either replaying recorded choices or making fresh samples
-3. **Resampling**: When the effective sample size drops too low, resample particles proportional to their weights
-4. **Completion**: When particles finish, record their results
+1. **Initialization**: Start n particles with empty traces and equal weights
+2. **Extension**: Advance each particle to the next `Sample`. During replay, recorded choices are reused; at a fresh `Sample`, we make a new choice and pause
+3. **Weight accumulation**: `Observe` effects multiply the particle's weight
+4. **Resampling**: After particles accumulate enough observations (controlled by `observe_threshold`), if the effective sample size drops below the threshold, we resample traces proportional to weights
+5. **Completion**: When a particle finishes, record its result weighted by its final weight
 
 Let us test the particle filter:
 
@@ -836,4 +862,4 @@ The key insight is that effects are a *programming interface* that can have mult
 
 **Exercise 7.** The sprinkler problem: It might be cloudy (50%). If cloudy, rain is likely (80%); otherwise rain is unlikely (20%). If cloudy, the sprinkler is unlikely (10%); otherwise likely (50%). Rain wets the grass with 90% probability, and so does the sprinkler. We observe that the grass is wet. What is the probability that it rained? Encode this as a probabilistic program and run inference.
 
-**Exercise 8.** (Harder) Implement a version of the particle filter that tracks particles as suspended continuations rather than traces. When resampling, clone the continuation rather than replaying from the start. Compare the performance.
+**Exercise 8.** (Harder) Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
