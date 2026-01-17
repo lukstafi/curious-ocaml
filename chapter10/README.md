@@ -892,7 +892,13 @@ This is the same picture as Section 10.3:
 
 1. **Inputs** live in mutable variables (`Lwd.var`).
 2. **Derived signals** are pure computations over those vars (`Lwd.map`, `Lwd.map2`, `Lwd.join`, …).
-3. The host program chooses an **update step** and calls `sample` once per step.
+3. The host program chooses an **update step** and samples a root once per step.
+
+This “one sample per step” discipline establishes an **update cycle**:
+
+- You may update many input vars; the step ends when you sample the root.
+- Inputs updated within the same step are treated as **simultaneous** (one consistent snapshot).
+- Glitch-freedom -- do not interleave “half-updated inputs” with sampling: set everything first, then sample once.
 
 #### Mapping FRP Concepts to Lwd
 
@@ -944,6 +950,8 @@ let click_e : unit option Lwd.t = Lwd.get click_v
 In the host program, you set `click_v` to `Some ()` for one update step and then clear it to `None` after sampling. This gives you “happened this step?” semantics.
 
 The caveat: if many events can occur between samples, a single `option` cell will lose information. In that case, represent events as a list/queue (e.g. `user_action list`) accumulated by the host program and drained once per step.
+
+One more practical rule: keep mutations (`Lwd.set`) in the host program. If a derived signal needs to “request” an output event, model that request as data (e.g. return `Some msg`) and let the host send it on the next step.
 
 #### Stateful Signal Combinators (One-Step Memory)
 
@@ -1042,6 +1050,8 @@ let game : scene Lwd.t =
 ```
 
 Because `ball` above uses internal mutable state, you should sample the root scene **exactly once per update step** (otherwise the physics will advance multiple times).
+
+Keep the sampled root (and anything you need for its computation) reachable. In `Lwd`, nodes not reachable from any root are considered dead and can be released.
 
 This is “FRP by incremental computing” in a nutshell: the engine caches and reuses computations in the scene graph; the host program decides what constitutes a step and updates the input vars accordingly.
 
