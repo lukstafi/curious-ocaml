@@ -352,7 +352,6 @@ Given any monad-plus, we can define useful derived operations:
 
 ```ocaml env=ch8
 let fail = mzero
-let failwith _ = fail
 let (++) = mplus
 let (>>=) a b = bind a b
 let guard p = if p then return () else fail
@@ -1006,10 +1005,12 @@ type term =
   | Lam of string * term
   | App of term * term
 
-let (!) x = Var x
-let (|->) x t = Lam (x, t)
-let (@) t1 t2 = App (t1, t2)
-let test = "x" |-> ("x" |-> !"y" @ !"x") @ !"x"
+module TermOps = struct
+  let (!) x = Var x
+  let (|->) x t = Lam (x, t)
+  let (@) t1 t2 = App (t1, t2)
+end
+let test = TermOps.("x" |-> ("x" |-> !"y" @ !"x") @ !"x")
 
 module S = StateM (struct type t = int * (string * string) list end)
 open S
@@ -1033,7 +1034,6 @@ let rec alpha_conv = function
       let* t2 = alpha_conv t2 in       (* and the currently fresh number *)
       return (App (t1, t2))            (* is done by the monad *)
 
-let test = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var "x"))
 (* # StateM.run (alpha_conv test) (5, []);; *)
 ```
 
@@ -1288,8 +1288,9 @@ module DistribM : PROBABILITY = struct
   include M
   include MonadOps (M)
   let choose p a b =
-    List.map (fun (e,w) -> e, p *. w) a @
-      List.map (fun (e,w) -> e, (1. -. p) *. w) b
+    List.append
+      (List.map (fun (e,w) -> e, p *. w) a)
+      (List.map (fun (e,w) -> e, (1. -. p) *. w) b)
   let pick dist = dist
   let uniform elems = normalize
     (List.map (fun e -> e, 1.) elems)
@@ -1305,7 +1306,7 @@ end
 
 #### Sampling Monad
 
-```ocaml skip
+```ocaml env=ch8
 module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   module M = struct                      (* Parameterized by how many samples *)
     type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
@@ -1343,7 +1344,7 @@ The Monty Hall problem is a famous probability puzzle. In search of a new car, t
 
 Most people's intuition says it does not matter, but let us compute the actual probabilities:
 
-```ocaml skip
+```ocaml env=ch8
 module MontyHall (P : PROBABILITY) = struct
   open P
   type door = A | B | C
@@ -1364,11 +1365,8 @@ module Sampling1000 =
   SamplingM (struct let samples = 1000 end)
 module MontySimul = MontyHall (Sampling1000)
 
-(* DistribM.distrib (MontyExact.monty_win false);;
-   - : (bool * float) list = [(true, 0.333...); (false, 0.666...)]
-
-   DistribM.distrib (MontyExact.monty_win true);;
-   - : (bool * float) list = [(true, 0.666...); (false, 0.333...)] *)
+(* DistribM.distrib (MontyExact.monty_win false);; *)
+(* DistribM.distrib (MontyExact.monty_win true);; *)
 ```
 
 The famous result: switching doubles your chances of winning! Counter-intuitively, the host's choice of which door to open gives you information -- by switching, you are betting that your initial choice was wrong (which it is 2/3 of the time).
@@ -1386,7 +1384,7 @@ To compute $P(A|B)$:
 
 For the exact distribution monad, we allow intermediate distributions to be *unnormalized* (probabilities sum to less than 1) and normalize at the end. For the sampling monad, we use *rejection sampling*: generate samples and discard those that do not satisfy the condition (though `mplus` has no straightforward correct implementation in this approach).
 
-```ocaml skip
+```ocaml env=ch8
 module type COND_PROBAB = sig
   include PROBABILITY
   include MONAD_PLUS_OPS with type 'a monad := 'a monad
@@ -1481,7 +1479,7 @@ Probability tables:
 - $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
 - $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
 
-```ocaml skip
+```ocaml env=ch8
 module Burglary (P : COND_PROBAB) = struct
   open P
   type what_happened =
@@ -1515,12 +1513,6 @@ module BurglaryExact = Burglary (DistribMP)
 module Sampling2000 =
   SamplingMP (struct let samples = 2000 end)
 module BurglarySimul = Burglary (Sampling2000)
-
-(* DistribMP.distrib
-     (BurglaryExact.check ~john_called:true ~mary_called:true ~radio:None);;
-   - : (BurglaryExact.what_happened * float) list =
-   [(Burgl_n_earthq, 0.000574...); (Earthq, 0.175...);
-    (Burgl, 0.283...); (Safe, 0.540...)] *)
 ```
 
 ### 8.14 Lightweight Cooperative Threads
@@ -1614,7 +1606,7 @@ end
 
 The implementation uses a mutable state to track thread progress. Each thread is in one of three states: completed (`Return`), waiting (`Sleep` with a list of callbacks to invoke when done), or forwarded to another thread (`Link`):
 
-```ocaml skip
+```ocaml env=ch8
 module Cooperative = Threads(struct
   type 'a state =
     | Return of 'a                 (* The thread has returned *)
@@ -1690,7 +1682,7 @@ end)
 
 Let us test the implementation with two threads that each print a sequence of numbers:
 
-```ocaml skip
+```ocaml env=ch8
 module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
@@ -1707,20 +1699,6 @@ let test =
   let thread2 = TT.loop "B" 4 in
   Cooperative.access thread1;      (* We ensure threads finish computing *)
   Cooperative.access thread2       (* before we proceed *)
-
-(* Output:
-   -- A(5)
-   -- B(4)
-   -- A(4)
-   -- B(3)
-   -- A(3)
-   -- B(2)
-   -- A(2)
-   -- B(1)
-   -- A(1)
-   -- B(0)
-   -- A(0)
-   val test : unit = () *)
 ```
 
 The output shows that the threads interleave their execution beautifully: A(5), B(4), A(4), B(3), and so on. Each `bind` (the `let*`) causes a context switch to the other thread. This is fine-grained concurrency in action.
