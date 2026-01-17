@@ -4,10 +4,13 @@ How do we deal with change and interaction in functional programming? This is on
 
 **Recommended Reading:**
 
-- *"Zipper"* in Haskell Wikibook and *"The Zipper"* by Gerard Huet
-- *"How `froc` works"* by Jacob Donham
-- *"The Haskell School of Expression"* by Paul Hudak
+- *"The Zipper"* by Gerard Huet -- the original paper introducing zippers
+- *"Zipper"* in Haskell Wikibook -- excellent visualizations and examples
+- *Lwd documentation* at https://github.com/let-def/lwd -- lightweight reactive documents for OCaml
+- *Incremental documentation* at https://github.com/janestreet/incremental -- Jane Street's self-adjusting computation library
+- *"The Haskell School of Expression"* by Paul Hudak -- classic introduction to FRP
 - *"Deprecating the Observer Pattern with `Scala.React`"* by Ingo Maier, Martin Odersky
+- *"Algebraic Effects for the Rest of Us"* by Dan Abramov -- accessible introduction to effects
 
 ### 10.1 Zippers
 
@@ -415,7 +418,7 @@ let () =
 
 ##### Comparing Design Choices (Why Two Libraries?)
 
-Both libraries implement self-adjusting computation, but they optimize for different problem shapes. A quick high-level summary (see `chapter10/lwd_vs_incremental_comparison.md` for more detail):
+Both libraries implement self-adjusting computation, but they optimize for different problem shapes. A quick high-level summary:
 
 - **When recomputation happens**
   - `Lwd`: recompute on `sample` (pull), after eager invalidation (push).
@@ -486,6 +489,8 @@ type 'a behavior = user_action event -> time stream -> 'a stream
 type 'a behavior = (user_action option * time) stream -> 'a stream
 ```
 
+This transformation from functions-of-time to stream transformers is analogous to a classic algorithm optimization. Computing the intersection of two lists naively checks every pair, giving $O(mn)$ time. If the lists are sorted, the smart approach walks through both lists simultaneously, giving $O(m + n)$ time. Similarly, our stream-based behaviors process time and events together in a single pass.
+
 Once behaviors are stream transformers, a very convenient representation for events is:
 
 ```ocaml skip
@@ -517,8 +522,8 @@ In practice, most FRP code is written in this *applicative* style: it gives a st
 
 Four combinators show up again and again:
 
-- `step : 'a -> 'a event -> 'a behavior` (hold last event value)
-- `switch : 'a behavior -> 'a behavior event -> 'a behavior` (switch behaviors over time)
+- `step : init:'a -> 'a event -> 'a behavior` (hold last event value)
+- `switch : init:'a behavior -> 'a behavior event -> 'a behavior` (switch behaviors over time)
 - `until : 'a behavior -> 'a behavior event -> 'a behavior` (switch once)
 - `snapshot : 'a event -> 'b behavior -> ('a * 'b) event` (sample a behavior when an event fires)
 
@@ -802,7 +807,7 @@ let paddle = liftB (fun mx ->
   Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
 ```
 
-The ball has a velocity in pixels per second and bounces from the walls. Unfortunately, OCaml being an eager language does not let us encode mutually recursive behaviors as elegantly as we might in a lazy language like Haskell. We need to unpack behaviors and events as explicit functions of the input stream and tie the knot manually using mutable record fields.
+The ball has a velocity in pixels per second and bounces from the walls.
 
 The key ideas in the ball implementation:
 
@@ -813,6 +818,71 @@ The key ideas in the ball implementation:
 - `liftB int_of_float (integral xvel) +* width /* !*2` -- Integrate velocity to get position (as a float), truncate to integers, and offset to center the ball in the window.
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
+
+```ocaml skip
+let ball : scene behavior =
+  let wall_margin = 27 in  (* ball radius + wall thickness *)
+  let vel = 100.0 in       (* initial velocity in pixels/sec *)
+
+  (* Horizontal motion with bouncing *)
+  let rec xvel_pos () =
+    let xvel = step_accum vel (xbounce () ->> (~-.)) in
+    let xpos = liftB int_of_float (integral xvel) +* width /* !*2 in
+    xvel, xpos
+  and xbounce () =
+    let _, xpos = xvel_pos () in
+    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin))
+  in
+
+  (* Vertical motion with bouncing *)
+  let rec yvel_pos () =
+    let yvel = step_accum vel (ybounce () ->> (~-.)) in
+    let ypos = liftB int_of_float (integral yvel) +* height /* !*2 in
+    yvel, ypos
+  and ybounce () =
+    let _, ypos = yvel_pos () in
+    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin))
+  in
+
+  let _, xpos = xvel_pos () in
+  let _, ypos = yvel_pos () in
+  liftB2 (fun x y -> Color (Graphics.red, Circle (x, y, 7))) xpos ypos
+```
+
+Finally, we compose everything into the complete game scene:
+
+```ocaml skip
+let game : scene behavior =
+  liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
+```
+
+The animation loop drives the system:
+
+```ocaml skip
+let reactimate (scene : scene behavior) =
+  let open Graphics in
+  open_graph " 640x480";
+  auto_synchronize false;
+  let rec loop uts =
+    let Cons (sc, uts') = Lazy.force (scene $ uts) in
+    draw sc;
+    let t = Unix.gettimeofday () in
+    let action =
+      if key_pressed () then Some (Key (read_key (), true))
+      else if button_down () then
+        let st = wait_next_event [Poll] in
+        Some (Button (st.mouse_x, st.mouse_y, true))
+      else
+        let st = wait_next_event [Poll] in
+        Some (MouseMove (st.mouse_x, st.mouse_y))
+    in
+    loop (lazy (Cons ((action, t), uts')))
+  in
+  let t0 = Unix.gettimeofday () in
+  loop (lazy (Cons ((None, t0), lazy (Cons ((None, t0), lazy assert false)))))
+```
+
+The stream-based implementation is elegant but has a limitation: OCaml being strict, we cannot easily define mutually recursive behaviors. We had to use functions (`xvel_pos`, `ybounce`) to tie the knot. In a lazy language like Haskell, this would be more natural.
 
 ### 10.6 FRP by Incremental Computing (Lwd)
 
