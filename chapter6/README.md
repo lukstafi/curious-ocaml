@@ -938,26 +938,38 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
   Printf.fprintf f "</svg>%!"
 ```
 
-**Drawing to screen:** We can also draw interactively using the *Bogue* library.
+**Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.
 
 ```ocaml env=ch6
 let draw_to_screen ~w ~h curves =
-  Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);
-  Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)
-  Graphics.fill_rect 0 0 (Graphics.size_x ()) (Graphics.size_y ());
-  List.iter (fun (points, (r, g, b)) ->
-    Graphics.set_color (Graphics.rgb r g b);
-    Graphics.fill_poly points) curves;
-  if Graphics.read_key () = 'q'                (* Wait so solutions can be seen *)
-  then failwith "User interrupted finding solutions.";
-  Graphics.close_graph ()
+  let open Bogue in
+  let area_widget = Widget.sdl_area ~w ~h () in
+  let area = Widget.get_sdl_area area_widget in
+  (* Queue drawing commands for when the area is rendered *)
+  Sdl_area.add area (fun _renderer ->
+    (* Draw brown background *)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "saddlebrown"))
+      ~w ~h (0, 0);
+    (* Draw each hexagon as connected line segments *)
+    List.iter (fun (points, (r, g, b)) ->
+      let color = Draw.opaque (r, g, b) in
+      let n = Array.length points in
+      for i = 0 to n - 2 do
+        let (x0, y0) = points.(i) in
+        let (x1, y1) = points.(i + 1) in
+        (* Flip y-coordinate: Bogue uses top-left origin *)
+        Sdl_area.draw_line area ~color ~thick:3 (x0, h - y0) (x1, h - y1)
+      done) curves);
+  let layout = Layout.resident area_widget in
+  let board = Main.of_layout layout in
+  Main.run board
 ```
 
 #### Testing Correctness
 
 Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
 
-```ocaml skip
+```ocaml env=ch6
 let check_correct n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -1011,7 +1023,7 @@ The key insight is that we can transform the *testing* code into *generation* co
 2. Returning results in a list (empty list means no solutions from this path)
 3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
 
-```ocaml skip
+```ocaml env=ch6
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 

@@ -742,37 +742,43 @@ let height : int behavior = step 512 (liftE snd screen) (* Window height *)
 
 Now let us put all these pieces together to build a classic paddle game (similar to Pong). A ball bounces around the screen, and the player controls a paddle at the bottom to prevent the ball from falling.
 
-First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen:
+First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen. Since we will use Bogue's `Sdl_area` for rendering, we use simple line-based shapes (rectangles drawn as outlines, circles approximated by line segments):
 
 ```ocaml skip
+type color = int * int * int  (* RGB components *)
+
 type scene =
-  | Rect of int * int * int * int  (* position, width, height *)
-  | Circle of int * int * int  (* position, radius *)
+  | Rect of int * int * int * int  (* x, y, width, height *)
+  | Circle of int * int * int      (* x, y, radius *)
   | Group of scene list
-  | Color of Graphics.color * scene  (* color of subscene objects *)
-  | Translate of float * float * scene  (* additional offset of origin *)
+  | Color of color * scene         (* color of subscene objects *)
+  | Translate of float * float * scene  (* offset *)
 ```
 
-The drawing function interprets the scene graph, accumulating translations as it traverses:
+The drawing function interprets the scene graph. We use Bogue's `Sdl_area` to draw lines:
 
 ```ocaml skip
-let draw sc =
+let draw area ~h sc =
+  let open Bogue in
   let f2i = int_of_float in
-  let open Graphics in
-  let rec aux t_x t_y = function  (* t_x, t_y accumulate translations *)
-    | Rect (x, y, w, h) ->
-      fill_rect (f2i t_x + x) (f2i t_y + y) w h
-    | Circle (x, y, r) ->
-      fill_circle (f2i t_x + x) (f2i t_y + y) r
+  let flip_y y = h - y in  (* Bogue uses top-left origin *)
+  let rec aux t_x t_y (r, g, b) = function
+    | Rect (x, y, w, ht) ->
+      let color = Draw.opaque (r, g, b) in
+      let x0, y0 = f2i t_x + x, flip_y (f2i t_y + y + ht) in
+      Sdl_area.draw_rectangle area ~color ~thick:2 ~w ~h:ht (x0, y0)
+    | Circle (x, y, rad) ->
+      let color = Draw.opaque (r, g, b) in
+      let cx, cy = f2i t_x + x, flip_y (f2i t_y + y) in
+      Sdl_area.draw_circle area ~color ~thick:2 ~radius:rad (cx, cy)
     | Group scs ->
-      List.iter (aux t_x t_y) scs
+      List.iter (aux t_x t_y (r, g, b)) scs
     | Color (c, sc) ->
-      set_color c; aux t_x t_y sc  (* Set color, then draw *)
-    | Translate (x, y, sc) ->
-      aux (t_x +. x) (t_y +. y) sc in  (* Add to accumulated offset *)
-  clear_graph ();  (* Clear the back buffer *)
-  aux 0. 0. sc;
-  synchronize ()  (* Swap buffers -- this avoids flickering *)
+      aux t_x t_y c sc
+    | Translate (dx, dy, sc) ->
+      aux (t_x +. dx) (t_y +. dy) (r, g, b) sc
+  in
+  aux 0. 0. (255, 255, 255) sc  (* Default color: white *)
 ```
 
 An *animation* is simply a scene behavior -- a time-varying scene. The `reactimate` function runs the animation loop: it creates the input stream (user actions paired with sampling times), feeds it to the scene behavior to get a stream of scenes, and draws each scene. We use double buffering to avoid flickering.
@@ -793,8 +799,10 @@ let (>*) = liftB2 (>)
 Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
 
 ```ocaml skip
+let blue = (0, 0, 255)
+
 let walls =
-  liftB2 (fun w h -> Color (Graphics.blue, Group
+  liftB2 (fun w h -> Color (blue, Group
     [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
      Rect (w-21, 0, 20, h-1)]))
     width height
@@ -803,8 +811,10 @@ let walls =
 The paddle is tied to the mouse at the bottom border of the window:
 
 ```ocaml skip
+let black = (0, 0, 0)
+
 let paddle = liftB (fun mx ->
-  Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
+  Color (black, Rect (mx, 0, 50, 10))) mouse_x
 ```
 
 The ball has a velocity in pixels per second and bounces from the walls.
@@ -820,6 +830,8 @@ The key ideas in the ball implementation:
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
 ```ocaml skip
+let red = (255, 0, 0)
+
 let ball : scene behavior =
   let wall_margin = 27 in  (* ball radius + wall thickness *)
   let vel = 100.0 in       (* initial velocity in pixels/sec *)
@@ -846,7 +858,7 @@ let ball : scene behavior =
 
   let _, xpos = xvel_pos () in
   let _, ypos = yvel_pos () in
-  liftB2 (fun x y -> Color (Graphics.red, Circle (x, y, 7))) xpos ypos
+  liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
 ```
 
 Finally, we compose everything into the complete game scene:
@@ -856,30 +868,38 @@ let game : scene behavior =
   liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
 ```
 
-The animation loop drives the system:
+The animation loop drives the system. With Bogue, we integrate with its event loop by using a timer and connection callbacks:
 
 ```ocaml skip
 let reactimate (scene : scene behavior) =
-  let open Graphics in
-  open_graph " 640x480";
-  auto_synchronize false;
-  let rec loop uts =
-    let Cons (sc, uts') = Lazy.force (scene $ uts) in
-    draw sc;
-    let t = Unix.gettimeofday () in
-    let action =
-      if key_pressed () then Some (Key (read_key (), true))
-      else if button_down () then
-        let st = wait_next_event [Poll] in
-        Some (Button (st.mouse_x, st.mouse_y, true))
-      else
-        let st = wait_next_event [Poll] in
-        Some (MouseMove (st.mouse_x, st.mouse_y))
-    in
-    loop (lazy (Cons ((action, t), uts')))
-  in
+  let open Bogue in
+  let w, h = 640, 480 in
+  let area_widget = Widget.sdl_area ~w ~h () in
+  let area = Widget.get_sdl_area area_widget in
+  let uts_ref = ref (lazy (assert false)) in  (* Input stream state *)
   let t0 = Unix.gettimeofday () in
-  loop (lazy (Cons ((None, t0), lazy (Cons ((None, t0), lazy assert false)))))
+  uts_ref := lazy (Cons ((None, t0), lazy (Cons ((None, t0), !uts_ref))));
+  (* Redraw on each frame *)
+  Sdl_area.add area (fun _renderer ->
+    (* Clear the area *)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.grey 50))
+      ~w ~h (0, 0);
+    let Cons (sc, uts') = Lazy.force (scene $ !uts_ref) in
+    draw area ~h sc;
+    let t = Unix.gettimeofday () in
+    (* For simplicity, we poll mouse position as the action *)
+    uts_ref := lazy (Cons ((Some (MouseMove (0, 0)), t), uts')));
+  let layout = Layout.resident area_widget in
+  (* Use Bogue's connection to handle mouse motion events *)
+  let action _w _l ev =
+    let mx, my = Trigger.pointer_pos ev in
+    let t = Unix.gettimeofday () in
+    uts_ref := lazy (Cons ((Some (MouseMove (mx, my)), t), Lazy.force !uts_ref));
+    Sdl_area.update area
+  in
+  Widget.add_connection area_widget area_widget action Trigger.pointer_motion;
+  let board = Main.of_layout layout in
+  Main.run board
 ```
 
 The stream-based implementation is elegant but has a limitation: OCaml being strict, we cannot easily define mutually recursive behaviors. We had to use functions (`xvel_pos`, `ybounce`) to tie the knot. In a lazy language like Haskell, this would be more natural.
@@ -1013,15 +1033,19 @@ let height_v : int Lwd.var = Lwd.var 512
 let width : int Lwd.t = Lwd.get width_v
 let height : int Lwd.t = Lwd.get height_v
 
+let blue = (0, 0, 255)
+let black = (0, 0, 0)
+let red = (255, 0, 0)
+
 let walls : scene Lwd.t =
   Lwd.map2 width height ~f:(fun w h ->
-    Color (Graphics.blue, Group
+    Color (blue, Group
       [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
        Rect (w-21, 0, 20, h-1)]))
 
 let paddle : scene Lwd.t =
   Lwd.map mouse_x ~f:(fun mx ->
-    Color (Graphics.black, Rect (mx, 0, 50, 10)))
+    Color (black, Rect (mx, 0, 50, 10)))
 
 let ball : scene Lwd.t =
   let wall_margin = 27 in
@@ -1043,7 +1067,7 @@ let ball : scene Lwd.t =
     let yi = int_of_float !y + h / 2 in
     if xi > w - wall_margin || xi < wall_margin then xvel := -. !xvel;
     if yi > h - wall_margin || yi < wall_margin then yvel := -. !yvel;
-    Color (Graphics.red, Circle (xi, yi, 7)))
+    Color (red, Circle (xi, yi, 7)))
 
 let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
