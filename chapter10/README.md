@@ -1069,7 +1069,18 @@ FRP shines when the program is mostly “wiring”: combine signals, transform v
 - then wait for the next click,
 - and so on.
 
-You *can* encode staged workflows in pure FRP, but it often becomes awkward: you start building explicit state machines “in the large”. We want a *flow* that can proceed through events in sequence: when the first event arrives, we process it and then wait for the next event. Crucially, we *ignore* any further occurrences of the first event after we have moved on. Standard FRP constructs like mapping events do not give us this "move forward and never look back" semantics. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
+You *can* encode staged workflows in pure FRP, but it often becomes awkward: you start building explicit state machines “in the large”.
+
+Think of a recipe:
+
+1. preheat the oven,
+2. mix ingredients,
+3. bake,
+4. take out and cool.
+
+That is not a static wiring diagram: it is a program that *proceeds through stages*. We want a *flow* that can proceed through events in sequence: when the first relevant event arrives, we process it and then wait for the next event—**ignoring** any further occurrences of the “earlier-stage” event after we have moved on.
+
+Standard FRP combinators like “map an event” (or “whenever behavior changes, do …”) are not designed to express this “move forward and never look back” semantics. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
 
 Here is a tiny effect-based interface for staged reactive programs:
 
@@ -1082,7 +1093,9 @@ let await p = Effect.perform (Await p)
 let emit (s : string) = Effect.perform (Emit s)
 ```
 
-`Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. We implement *coarse-grained threads*, that yield on `Await` without an explicit `Yield`.
+`Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. Operationally, this is the effect-based analog of the old `next e` idea (“the next occurrence of event `e`, and only that one”).
+
+We are implementing *coarse-grained threads* (cooperative scripts): a script runs in direct style until it reaches `Await`, at which point it yields back to the surrounding driver. There is no explicit `Yield`: `Await` is the suspension point.
 
 Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
 
@@ -1095,34 +1108,65 @@ let await_either p q =
       match q u with
       | Some b -> Some (`B b)
       | None -> None)
+
+let race = await_either
 ```
+
+#### A Driver: “Step Until You Need Input”
+
+To integrate a script with a GUI event loop (and to make it testable), it is useful to *step* the script until it blocks on `Await`, and then resume it only when an input arrives.
+
+One convenient representation is a paused computation that either finished, or is waiting and provides a function to feed the next input action:
+
+```ocaml skip
+type 'a paused =
+  | Done of 'a
+  | Awaiting of {feed : user_action -> 'a paused}
+
+let rec step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
+  try Done (th ()) with
+  | effect (Emit x), k ->
+    on_emit x;
+    step ~on_emit (fun () -> Effect.Deep.continue k ())
+  | effect (Await p), k ->
+    let rec feed (u : user_action) =
+      match p u with
+      | None -> Awaiting {feed}  (* ignore and keep waiting *)
+      | Some v -> step ~on_emit (fun () -> Effect.Deep.continue k v)
+    in
+    Awaiting {feed}
+```
+
+This is the “flow as a lightweight thread” idea, but without a monad: the state of the thread is the (closed-over) continuation stored inside `feed`.
 
 #### A Handler: Replay a Script of Inputs
 
-To make the idea testable (and independent of GUIs), we can interpret `Await` by consuming a pre-recorded list of `user_action`s:
+Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of `user_action`s (useful for tests and examples):
 
 ```ocaml skip
 let run_script ~(inputs : user_action list) ~(on_emit : string -> unit) (f : unit -> 'a) : 'a =
-  let inputs = ref inputs in
-  let rec handle : type a. (unit -> a) -> a =
-    fun th ->
-      try th () with
-      | effect (Emit x), k ->
-        on_emit x;
-        handle (fun () -> Effect.Deep.continue k ())
-      | effect (Await p), k ->
-        let rec next () =
-          match !inputs with
-          | [] -> failwith "run_script: no more inputs"
-          | u :: us ->
-            inputs := us;
-            match p u with
-            | None -> next ()
-            | Some v -> handle (fun () -> Effect.Deep.continue k v)
-        in
-        next ()
+  let rec drive (st : 'a paused) (inputs : user_action list) : 'a =
+    match st with
+    | Done a -> a
+    | Awaiting {feed} ->
+      (match inputs with
+       | [] -> failwith "run_script: no more inputs"
+       | u :: us -> drive (feed u) us)
   in
-  handle f
+  drive (step ~on_emit f) inputs
+```
+
+In a real GUI, you keep the current `paused` state in a mutable cell. On each incoming event `u`, if the script is `Awaiting {feed}`, you update the state to `feed u`; if the script is `Done _`, you stop. This also gives a simple form of **cancellation**: to cancel a running script “from the outside”, you overwrite the stored state (dropping the continuation) and stop feeding it inputs.
+
+Here is the basic shape of such a driver loop:
+
+```ocaml skip
+let st : unit paused ref = ref (step ~on_emit:(fun _ -> ()) paint_forever)
+
+let on_user_action (u : user_action) =
+  match !st with
+  | Done () -> ()
+  | Awaiting {feed} -> st := feed u
 ```
 
 #### Example: “Click-and-Drag” in Direct Style
@@ -1159,7 +1203,19 @@ let paint_once () =
   path
 ```
 
-This is the same idea as the old “flow” construction, but in OCaml 5 direct style. Crucially, the *program* `paint_once` does not commit to any particular GUI framework: it only commits to “there exists some source of `user_action`s and some place to send outputs”.
+This is the same idea as the old “flow” construction, but in OCaml 5 direct style: the code reads like a state machine, yet it is still *interpretable*. The script `paint_once` does not commit to any particular GUI framework: it only commits to “there exists some source of `user_action`s and some place to send outputs”.
+
+Looping a flow is now just recursion:
+
+```ocaml skip
+let rec paint_forever () =
+  ignore (paint_once ());
+  paint_forever ()
+```
+
+Because each `await` suspends until a *future* input is fed to the script, each new iteration automatically starts “after” the previous one (you do not need a special `repeat` combinator to get the timing right).
+
+One practical tip (mirroring the “flows and state” warning from the monadic version): keep the script itself as a thunk `unit -> _`, and run it *inside* a handler/driver. If you accidentally *call* it while *building* a larger structure, you may trigger effects too early (or outside any handler).
 
 ### 10.8 Summary
 
