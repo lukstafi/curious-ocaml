@@ -826,7 +826,7 @@ Now let us explore a practical question: what if we only want *one* solution, no
 
 Let us sketch how you might measure execution times to find out (the numbers will vary wildly between machines, and the full Countdown search is expensive enough that it is better left out of mdx tests):
 
-```ocaml skip
+```ocaml env=ch8
 let time f =
   let tbeg = Sys.time () in
   let res = f () in
@@ -1000,7 +1000,7 @@ The `bind` operation sequences two stateful computations: it runs the first one 
 
 The state monad is useful to hide the threading of a "current" value through a computation. Here is an example that renames variables in lambda-terms to eliminate potential name clashes (alpha-conversion):
 
-```ocaml skip
+```ocaml env=ch8
 type term =
   | Var of string
   | Lam of string * term
@@ -1033,10 +1033,8 @@ let rec alpha_conv = function
       let* t2 = alpha_conv t2 in       (* and the currently fresh number *)
       return (App (t1, t2))            (* is done by the monad *)
 
-(* val test : term = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var "x")) *)
-(* # StateM.run (alpha_conv test) (5, []);;
-   - : term * (int * (string * string) list) =
-   (Lam ("x5", App (Lam ("x6", App (Var "y", Var "x6")), Var "x5")), (7, [])) *)
+let test = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var "x"))
+(* # StateM.run (alpha_conv test) (5, []);; *)
 ```
 
 The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
@@ -1055,7 +1053,7 @@ Why do we need monad transformers in OCaml? Because "monads are contagious": alt
 
 To understand how the transformer works, let us compare the regular state monad with the transformed version. The regular state monad uses ordinary OCaml binding:
 
-```
+```ocaml skip
 type 'a state = store -> ('a * store)
 
 let return (a : 'a) : 'a state =
@@ -1067,7 +1065,7 @@ let bind (u : 'a state) (f : 'a -> 'b state) : 'b state =
 
 The transformed version wraps everything in the underlying monad `M`:
 
-```
+```ocaml skip
 (* Monad M transformed to add state, in pseudo-code: *)
 type 'a stateT(M) = store -> ('a * store) M
 (* Note: this is store -> ('a * store) M, not ('a M) state *)
@@ -1114,7 +1112,7 @@ end
 
 Now we can combine backtracking with state for our puzzle solver. The state tracks which cells have been visited, eaten, and how many islands we have found. The monad-plus structure handles the backtracking when a choice leads to a dead end:
 
-```ocaml skip
+```ocaml env=ch8
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   type state = {
     been_size : int;
@@ -1256,7 +1254,7 @@ end
 
 Helper functions:
 
-```ocaml skip
+```ocaml env=ch8
 let total dist =
   List.fold_left (fun a (_,b) -> a +. b) 0. dist
 
@@ -1278,7 +1276,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 #### Exact Distribution Monad
 
-```ocaml skip
+```ocaml env=ch8
 module DistribM : PROBABILITY = struct
   module M = struct       (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list

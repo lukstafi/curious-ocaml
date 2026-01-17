@@ -686,14 +686,14 @@ In OCaml, functions can have labeled arguments and optional arguments (parameter
 
 Labels can differ from the names of argument values:
 
-```ocaml skip
+```ocaml env=ch2
 let f ~meaningfulname:n = n + 1
 let _ = f ~meaningfulname:5  (* We do not need the result so we ignore it. *)
 ```
 
 When the label and value names are the same, the syntax is shorter:
 
-```ocaml skip
+```ocaml env=ch2
 let g ~pos ~len =
   StringLabels.sub "0123456789abcdefghijklmnopqrstuvwxyz" ~pos ~len
 
@@ -705,14 +705,14 @@ let () =  (* A nicer way to mark computations that return unit. *)
 
 When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
 
-```ocaml skip
+```ocaml env=ch2
 let h ?(len=1) pos = g ~pos ~len
 let () = print_string (h 10)
 ```
 
 Optional arguments are implemented as parameters of an option type. This allows checking whether the argument was provided:
 
-```ocaml skip
+```ocaml env=ch2
 let foo ?bar n =
   match bar with
     | None -> "Argument = " ^ string_of_int n
@@ -721,14 +721,14 @@ let foo ?bar n =
 
 We can use it in various ways:
 
-```ocaml skip
+```ocaml env=ch2
 let _ = foo 5
 let _ = foo ~bar:5 7
 ```
 
 We can also provide the option value directly:
 
-```ocaml skip
+```ocaml env=ch2
 let test_foo () =
   let bar = if Random.int 10 < 5 then None else Some 7 in
   foo ?bar 7
@@ -736,7 +736,7 @@ let test_foo () =
 
 1. Observe the types that functions with labeled and optional arguments have. Come up with coding style guidelines for when to use labeled arguments. When might they improve readability? When might they be overkill?
 
-2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two of the three arguments are given (since any two determine the third), and raise an exception otherwise. Load the graphics library with `#load "graphics.cma";;`. Use `invalid_arg`, `Graphics.open_graph`, and `Graphics.draw_rect`.
+2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two of the three arguments are given (since any two determine the third), and raise an exception otherwise. Use the *Bogue* library.
 
 3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it. This tests your understanding of how optional arguments work at the type level.
 

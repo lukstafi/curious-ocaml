@@ -114,3 +114,19 @@ let honey_cells n eaten =
     fromto (-n) n |-> (fun y ->
      pred_guard (inside_board n eaten)
         (x, y)))
+
+let collect l =
+  match List.sort (fun x y -> compare (fst x) (fst y)) l with
+  | [] -> []                           (* Start with associations sorted by key *)
+  | (k0, v0)::tl ->
+    let k0, vs, l = List.fold_left
+      (fun (k0, vs, l) (kn, vn) ->     (* Collect values for current key *)
+        if k0 = kn then k0, vn::vs, l  (* Same key: add value to current group *)
+        else kn, [vn], (k0, List.rev vs)::l) (* New: save current group, start new *)
+      (k0, [v0], []) tl in             (* Why reverse? To preserve original order *)
+    List.rev ((k0, List.rev vs)::l)
+
+let map_reduce mapf redf base l =
+  List.map mapf l
+  |> collect
+  |> List.map (fun (k, vs) -> k, List.fold_right redf vs base)

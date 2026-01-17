@@ -791,8 +791,14 @@ let rec grends grstack =
 
 This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
 
-```ocaml skip
+```ocaml env=ch7
 type grp_pos = Pos of int | Too_far
+
+let rev_concat_map ~prep f l =
+  let rec cmap_f accu = function
+    | [] -> accu
+    | a::l -> cmap_f (prep::List.rev_append (f a) accu) l in
+  cmap_f [] l
 
 let rec grends w grstack =
   let flush tail =                   (* When a group exceeds width w, *)
@@ -826,7 +832,7 @@ let grends w = grends w []           (* Initial stack is empty. *)
 
 Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
 
-```ocaml skip
+```ocaml env=ch7
 let rec format w (inline, endlpos as st) = (* inline: stack of "flatten this group?" *)
   Await (function                          (* endlpos: position where line ends *)
   | TE (_, z) -> Yield (z, format w st)    (* Text: output directly. *)
@@ -856,7 +862,7 @@ The data flows from left to right: `gen` produces document elements, `docpos` an
 
 For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
 
-```ocaml skip
+```ocaml env=ch7
 (* breaks: decides where to break, outputs annotated doc_e elements *)
 let rec breaks w (inline, endlpos as st) =
   Await (function
@@ -975,7 +981,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```ocaml skip
+```ocaml env=ch7
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of 'a doc * 'a doc | Group of 'a * 'a doc
 ```
