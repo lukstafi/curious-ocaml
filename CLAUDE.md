@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI agents when working with code in this repository.
 
 ## Project Overview
 
@@ -30,17 +30,17 @@ dune build @pdfs/new_book
 - `chapter1/` through `chapter11/`: Main lecture content
   - `functional-lectureNN.md`: Primary lecture content with embedded OCaml code
   - `lectureNN-exercises.md`: Exercise files
-  - `README.md`: Chapter summary/introduction
+  - `README.md`: The translation and expansion of the lecture into a textbook chapter 
   - `prelude.ml`: Prelude code loaded before mdx tests for that chapter
-  - `LecN*.ml`: Standalone OCaml example files
+  - `LecN*.ml`: Standalone OCaml example files (outdated)
 - `exam/`: Exam problems and solutions
 
 ### Build System
 - Uses dune with mdx plugin (version 0.4) for testing OCaml code blocks in markdown
 - Each chapter has a `dune` file with `(mdx (files README.md) (preludes prelude.ml))`
 - Root `dune` file concatenates chapter files into:
-  - `README.md`: Combined chapter READMEs (auto-generated, do not edit)
-  - `old_lectures_as_book.md`: Full book combining all lectures and exercises (auto-generated)
+  - `README.md`: Combined textbook content i.e. READMEs (auto-generated, do not edit)
+  - `old_lectures_as_book.md`: Full non-adapted content combining all outdated lectures and exercises (auto-generated)
 - `site/dune`: Generates HTML via pandoc with KaTeX for math rendering
 - `pdfs/dune`: Generates PDF via pandoc
 
