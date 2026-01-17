@@ -885,7 +885,7 @@ let honey_cells n eaten =
 To visualize the honeycomb, we generate colored polygons. Each cell is drawn as a hexagon
 by placing 6 points evenly spaced on a circumcircle:
 
-```ocaml skip
+```ocaml env=ch6
 let draw_honeycomb ~w ~h task eaten =
   let i2f = float_of_int in
   let nx = i2f (4 * task.board_size + 2) in
@@ -897,8 +897,8 @@ let draw_honeycomb ~w ~h task eaten =
   let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)
   let draw_cell (x, y) =
     Array.init 7                               (* Draw a closed polygon *)
-      (fun i ->                                (* with 6 points evenly *)
-        let phi = float_of_int i *. pi /. 3. in   (* spaced on circumcircle *)
+      (fun i ->                            (* with 6 points evenly spaced *)
+        let phi = float_of_int i *. Float.pi /. 3. in   (* on circumcircle *)
         x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),
         y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in
   let honey =
@@ -915,7 +915,7 @@ let draw_honeycomb ~w ~h task eaten =
 
 **Drawing to SVG:** We can render the polygons to an SVG image file:
 
-```ocaml skip
+```ocaml env=ch6
 let draw_to_svg file ~w ~h ?title ?desc curves =
   let f = open_out file in
   Printf.fprintf f "<?xml version=\"1.0\" standalone=\"no\"?>
@@ -938,11 +938,9 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
   Printf.fprintf f "</svg>%!"
 ```
 
-**Drawing to screen:** We can also draw interactively using the `Graphics` library.
-In the toplevel, load it with `#load "graphics.cma";;`. When compiling, provide
-`graphics.cma` to the command.
+**Drawing to screen:** We can also draw interactively using the *Bogue* library.
 
-```ocaml skip
+```ocaml env=ch6
 let draw_to_screen ~w ~h curves =
   Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);
   Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)

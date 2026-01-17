@@ -32,6 +32,8 @@
   base
   core
   mdx
+  lwd
+  bogue
   printbox
   printbox-text
   printbox-html

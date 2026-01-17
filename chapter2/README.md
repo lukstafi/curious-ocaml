@@ -35,7 +35,7 @@ $$
 
 Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
 
-```ocaml
+```ocaml env=ch2
 # fun x -> x;;
 - : 'a -> 'a = <fun>
 ```
@@ -102,7 +102,7 @@ We will become more familiar with functions returning functions when we study th
 
 In Chapter 1, we learned about the `unit` type and variant types like:
 
-```ocaml
+```ocaml env=ch2
 type int_string_choice = A of int | B of string
 ```
 
@@ -112,7 +112,7 @@ We also covered tuple types, record types, and type definitions. Now let us expl
 
 Variants do not have to carry arguments. Instead of writing `A of unit`, we can simply use `A`. This is more convenient and idiomatic:
 
-```ocaml
+```ocaml env=ch2
 type color = Red | Green | Blue
 ```
 
@@ -124,7 +124,7 @@ This defines a type with exactly three possible values---no more, no less. The c
 
 Here is where things get really interesting: type definitions can be recursive! This allows us to define data structures of arbitrary size using a finite definition:
 
-```ocaml
+```ocaml env=ch2
 type int_list = Empty | Cons of int * int_list
 ```
 
@@ -145,7 +145,7 @@ Our `int_list` type only works with integers. But what if we want a list of stri
 
 Type definitions can be *parametric* with respect to the types of their components. This allows us to define generic data structures that work with any element type. OCaml already has a built-in parametric list type, so to avoid shadowing it we will define our own simplified list type:
 
-```ocaml skip
+```ocaml env=ch2
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
@@ -156,14 +156,14 @@ Several conventions and syntax rules apply to parametric types:
 - Type variables must start with `'`. When printing inferred types, OCaml may rename these variables, so it is customary to stick to the standard names `'a`, `'b`, `'c`, `'d`, etc.
 
 - The OCaml syntax places the type parameter before the type name, mimicking English word order. A silly example that reads almost like English:
-  ```ocaml
+  ```ocaml env=ch2
   type 'white_color dog = Dog of 'white_color
   ```
 
   This defines a "white-color dog" type---the syntax reads naturally!
 
 - With multiple parameters, OCaml uses parentheses:
-  ```ocaml
+  ```ocaml env=ch2
   type ('a, 'b) choice = Left of 'a | Right of 'b
   ```
 
@@ -181,7 +181,7 @@ OCaml provides various syntactic conveniences---sometimes called *syntactic suga
 
 Names of variants, called *constructors*, must start with a capital letter. If we wanted to define our own booleans, we would write:
 
-```ocaml
+```ocaml env=ch2
 type my_bool = True | False
 ```
 
@@ -211,7 +211,7 @@ Pattern matching is one of the most powerful features of OCaml and similar langu
 
 Recall that we introduced `fst` and `snd` as means to access elements of a pair. But what about larger tuples? There is no built-in `thd` for the third element. The fundamental way to access any tuple---or any algebraic data type---uses the `match` construct. In fact, `fst` and `snd` can easily be defined using pattern matching:
 
-```ocaml
+```ocaml env=ch2
 let fst p = match p with (a, b) -> a
 let snd p = match p with (a, b) -> b
 ```
@@ -222,7 +222,7 @@ The pattern `(a, b)` *destructures* the pair, binding its first component to `a`
 
 Pattern matching also works with records, letting us extract multiple fields at once:
 
-```ocaml
+```ocaml env=ch2
 type person = { name : string; surname : string; age : int }
 
 let greet_person () =
@@ -243,7 +243,7 @@ The left-hand sides of `->` in `match` expressions are called **patterns**. Patt
 
 Patterns can be nested to arbitrary depth, allowing us to match complex structures in one go:
 
-```ocaml
+```ocaml env=ch2
 match Some (5, 7) with
 | None -> "sum: nothing"
 | Some (x, y) -> "sum: " ^ string_of_int (x + y)
@@ -257,7 +257,7 @@ A pattern can simply bind the entire value without destructuring. Writing `match
 
 When we do not need a value in a pattern, it is good practice to use the underscore `_`, which is a *wildcard*. The wildcard matches anything but does not bind it to a name. This signals to the reader (and the compiler) that we are intentionally ignoring that part:
 
-```ocaml
+```ocaml env=ch2
 let fst (a, _) = a
 let snd (_, b) = b
 ```
@@ -270,7 +270,7 @@ A variable can only appear once in a pattern. This property is called *linearity
 
 However, we can add conditions to patterns using `when`, so linearity is not really a limitation in practice:
 
-```ocaml
+```ocaml env=ch2
 let describe_point p =
   match p with
   | (x, y) when x = y -> "diag"
@@ -281,7 +281,7 @@ The `when` clause acts as a guard: the pattern matches only if both the structur
 
 Here is a more elaborate example showing how to implement a comparison function (without shadowing the standard `compare`):
 
-```ocaml
+```ocaml env=ch2
 let compare_int a b =
   match a, b with
   | (x, y) when x < y -> -1
@@ -299,7 +299,7 @@ We can skip unused fields of a record in a pattern. Only the fields we care abou
 
 We can compress patterns by using `|` inside a single pattern to match multiple alternatives. This is different from having multiple pattern clauses---it lets us share a single right-hand side for several patterns:
 
-```ocaml
+```ocaml env=ch2
 type month =
   | Jan | Feb | Mar | Apr | May | Jun
   | Jul | Aug | Sep | Oct | Nov | Dec
@@ -354,7 +354,7 @@ The translation from types to mathematical expressions works as follows:
 We also need translations for some special types:
 
 - The **void type** (a type with no constructors, hence no values):
-  ```ocaml
+  ```ocaml env=ch2
   type void = |
   ```
   Since no values can be constructed, it represents emptiness---translate it as $0$.
@@ -373,7 +373,7 @@ This might seem like a mere curiosity, but it leads to real insights. Let us hav
 
 #### Example: Date Type
 
-```ocaml
+```ocaml env=ch2
 type ymd = { year : int; month : int; day : int }
 ```
 
@@ -411,7 +411,7 @@ This is a recursive equation! A list is either empty ($1$) or an element times a
 
 #### Example: Binary Tree Type
 
-```ocaml
+```ocaml env=ch2
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -441,7 +441,7 @@ Each step uses standard algebraic manipulations: substituting $T = 1 + xT^2$, ex
 
 Now let us translate this resulting expression back to a type:
 
-```ocaml
+```ocaml env=ch2
 type repr =
   (int * (int * btree * btree * btree option) option) option
 ```
@@ -484,7 +484,7 @@ Have you found it on your first try? If so, congratulations! Most people do not.
 
 Let us divide the task into smaller steps corresponding to intermediate points in the polynomial transformation. Instead of jumping from $T = 1 + xT^2$ directly to the final form, we will introduce intermediate types for each algebraic step:
 
-```ocaml
+```ocaml env=ch2
 type ('a, 'b) choice = Left of 'a | Right of 'b
 
 type interm1 =
@@ -498,7 +498,7 @@ type interm2 =
 
 Now we can define each step:
 
-```ocaml
+```ocaml env=ch2
 let step1r (t : btree) : interm1 =
   match t with
     | Tip -> None
@@ -550,7 +550,7 @@ It turns out that taking the partial derivative of a polynomial (translated from
 
 Let us start with a simple record type:
 
-```ocaml skip
+```ocaml env=ch2
 type ymd = { year : int; month : int; day : int }
 ```
 
@@ -567,7 +567,7 @@ We could have left it as $3 \cdot x \cdot x$, but expanding it as a sum shows th
 
 Translating the expanded form back to a type:
 
-```ocaml
+```ocaml env=ch2
 type ymd_ctx =
   Year of int * int | Month of int * int | Day of int * int
 ```
@@ -579,7 +579,7 @@ Each variant represents a "hole" at a different position:
 
 Now we can define functions to introduce and eliminate this derivative type:
 
-```ocaml
+```ocaml env=ch2
 let ymd_deriv ({ year = y; month = m; day = d } : ymd) =
   [ Year (m, d); Month (y, d); Day (y, m) ]
 
@@ -620,7 +620,7 @@ Something interesting happened: the derivative is recursive! It refers to itself
 
 Instead of translating $2$ as `bool`, we introduce a more descriptive type to make the code clearer:
 
-```ocaml
+```ocaml env=ch2
 type btree_dir = LeftBranch | RightBranch
 
 type btree_deriv =
@@ -639,7 +639,7 @@ The `Here` constructor means the hole is at the current position, and we have th
 
 The integration function fills the hole with a value. It must be recursive because the derivative type is recursive---we may need to descend through multiple `Below` constructors before reaching the `Here` where the hole actually is:
 
-```ocaml
+```ocaml env=ch2
 let rec btree_integr n = function
   | Here (ltree, rtree) -> Node (n, ltree, rtree)
   | Below (LeftBranch, m, rtree, deriv) ->

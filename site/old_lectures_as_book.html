@@ -10314,19 +10314,14 @@ around.</li>
 types that represent a data structure with one of elements stored in it
 missing.</li>
 </ul>
-<div class="sourceCode" id="cb76"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree = Tip | Node <span class="kw">of</span> <span class="dt">int</span> * btree * btree</span></code></pre></div>
+<p><code>ocaml env=ch10 type btree = Tip | Node of int * btree * btree</code></p>
 <p><span class="math display"> \begin{matrix}
   T &amp; = &amp; 1 + xT^2\\\\\\
   \frac{\partial T}{\partial x} &amp; = &amp; 0 + T^2 + 2 xT
 \frac{\partial
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
 \end{matrix} </span></p>
-<div class="sourceCode" id="cb77"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_dir = LeftBranch | RightBranch</span>
-<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> btree_deriv =</span>
-<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>  | Here <span class="kw">of</span> btree * btree</span>
-<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>  | Below <span class="kw">of</span> btree_dir * <span class="dt">int</span> * btree * btree_deriv</span></code></pre></div>
+<p><code>ocaml env=ch1 type btree_dir = LeftBranch | RightBranch type btree_deriv =   | Here of btree * btree   | Below of btree_dir * int * btree * btree_deriv</code></p>
 <ul>
 <li><p><strong>Location = context + subtree</strong>! But there’s a
 problem above.</p></li>
@@ -11101,19 +11096,19 @@ opengraph ““; displaymode false; loop 0 0 640 512 false
 (Unix.gettimeofday ()); closegraph ()</p></li>
 <li><p>The simple behaviors as in <code>Lec10b.ml</code>. Pragmatic
 (impure) bouncing:</p>
-<div class="sourceCode" id="cb78"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pbal vel =  <span class="kw">let</span> xbounce, bouncex = makeevent () <span class="kw">in</span>  <span class="kw">let</span> ybounce, bouncey </span>
-<span id="cb78-2"><a href="#cb78-2" aria-hidden="true" tabindex="-1"></a>=</span>
-<span id="cb78-3"><a href="#cb78-3" aria-hidden="true" tabindex="-1"></a>makeevent () <span class="kw">in</span>  <span class="kw">let</span> xvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel xbounce</span>
-<span id="cb78-4"><a href="#cb78-4" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span>  <span class="kw">let</span> yvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel ybounce <span class="kw">in</span>  <span class="kw">let</span> xpos =</span>
-<span id="cb78-5"><a href="#cb78-5" aria-hidden="true" tabindex="-1"></a>integres xvel +* width /* !*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> ypos = integres yvel +* height /*</span>
-<span id="cb78-6"><a href="#cb78-6" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> xbounce = whentrue    ((xpos &gt;* width -* !*<span class="dv">27</span>) ||*</span>
-<span id="cb78-7"><a href="#cb78-7" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* !*<span class="dv">27</span>)) <span class="kw">in</span>  notifye xbounce (send bouncex);  <span class="kw">let</span> ybounce =</span>
-<span id="cb78-8"><a href="#cb78-8" aria-hidden="true" tabindex="-1"></a>whentrue (    (ypos &gt;* height -* !*<span class="dv">27</span>) ||*      ((ypos &lt;*</span>
-<span id="cb78-9"><a href="#cb78-9" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">17</span>) &amp;&amp;* (ypos &gt;* !*<span class="dv">7</span>) &amp;&amp;*          (xpos &gt;* mousex) &amp;&amp;*</span>
-<span id="cb78-10"><a href="#cb78-10" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* mousex +* !*<span class="dv">50</span>))) <span class="kw">in</span>  notifye ybounce (send bouncey);</span>
-<span id="cb78-11"><a href="#cb78-11" aria-hidden="true" tabindex="-1"></a>lift4 (<span class="kw">fun</span> x y   -&gt; Color (Graphics.red, Circle (x, y, <span class="dv">6</span>)))    xpos ypos</span>
-<span id="cb78-12"><a href="#cb78-12" aria-hidden="true" tabindex="-1"></a>(hold () xbounce) (hold () ybounce)</span></code></pre></div></li>
+<div class="sourceCode" id="cb76"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pbal vel =  <span class="kw">let</span> xbounce, bouncex = makeevent () <span class="kw">in</span>  <span class="kw">let</span> ybounce, bouncey </span>
+<span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>=</span>
+<span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>makeevent () <span class="kw">in</span>  <span class="kw">let</span> xvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel xbounce</span>
+<span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a><span class="kw">in</span>  <span class="kw">let</span> yvel = collectb (<span class="kw">fun</span> v  -&gt; $\sim$-.v) vel ybounce <span class="kw">in</span>  <span class="kw">let</span> xpos =</span>
+<span id="cb76-5"><a href="#cb76-5" aria-hidden="true" tabindex="-1"></a>integres xvel +* width /* !*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> ypos = integres yvel +* height /*</span>
+<span id="cb76-6"><a href="#cb76-6" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">2</span> <span class="kw">in</span>  <span class="kw">let</span> xbounce = whentrue    ((xpos &gt;* width -* !*<span class="dv">27</span>) ||*</span>
+<span id="cb76-7"><a href="#cb76-7" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* !*<span class="dv">27</span>)) <span class="kw">in</span>  notifye xbounce (send bouncex);  <span class="kw">let</span> ybounce =</span>
+<span id="cb76-8"><a href="#cb76-8" aria-hidden="true" tabindex="-1"></a>whentrue (    (ypos &gt;* height -* !*<span class="dv">27</span>) ||*      ((ypos &lt;*</span>
+<span id="cb76-9"><a href="#cb76-9" aria-hidden="true" tabindex="-1"></a>!*<span class="dv">17</span>) &amp;&amp;* (ypos &gt;* !*<span class="dv">7</span>) &amp;&amp;*          (xpos &gt;* mousex) &amp;&amp;*</span>
+<span id="cb76-10"><a href="#cb76-10" aria-hidden="true" tabindex="-1"></a>(xpos &lt;* mousex +* !*<span class="dv">50</span>))) <span class="kw">in</span>  notifye ybounce (send bouncey);</span>
+<span id="cb76-11"><a href="#cb76-11" aria-hidden="true" tabindex="-1"></a>lift4 (<span class="kw">fun</span> x y   -&gt; Color (Graphics.red, Circle (x, y, <span class="dv">6</span>)))    xpos ypos</span>
+<span id="cb76-12"><a href="#cb76-12" aria-hidden="true" tabindex="-1"></a>(hold () xbounce) (hold () ybounce)</span></code></pre></div></li>
 <li><p>We hold on to xbounce and ybounce above to prevent garbage
 collecting them. We could instead remember them in the “toplevel”:</p>
 <p>let pbal vel = … xbounce, ybounce, lift2 (fun x y -&gt; Color

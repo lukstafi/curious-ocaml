@@ -21,7 +21,7 @@ Variables in type inference play two distinct roles, and understanding this dist
 
 Consider this example:
 
-```ocaml
+```ocaml env=ch5
 # let f = List.hd;;
 val f : 'a list -> 'a = <fun>
 ```
@@ -82,13 +82,13 @@ This kind of polymorphism is called *parametric polymorphism*, since the types h
 
 Polymorphic functions truly shine when used with polymorphic data types. The combination of the two is what makes ML-family languages so expressive. Consider this definition of our own list type:
 
-```ocaml
+```ocaml env=ch5
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
 We define lists that can store elements of any type `'a`. The type parameter `'a` acts as a placeholder that gets filled in when we create actual lists. Now we can write functions that work on these lists:
 
-```ocaml
+```ocaml env=ch5
 # let tail l =
     match l with
     | Empty -> invalid_arg "tail"
@@ -104,7 +104,7 @@ A crucial point to understand: a *parametric type* like `'a my_list` *is not* it
 
 Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
 
-```ocaml
+```ocaml env=ch5
 type ('a, 'b) choice = Left of 'a | Right of 'b
 ```
 
@@ -112,7 +112,7 @@ This type has two parameters and represents a value that is either something of 
 
 Not all functions that use parametric types need to be polymorphic. A function may constrain the type parameters to specific types:
 
-```ocaml
+```ocaml env=ch5
 # let get_int c =
     match c with
     | Left i -> i
@@ -212,7 +212,7 @@ Using the recursively defined function with different types in its definition is
 
 Here is a fascinating example: a list that alternates between two different types of elements. Notice how the recursive occurrence swaps the type parameters:
 
-```ocaml
+```ocaml env=ch5
 type ('x, 'o) alternating =
   | Stop
   | One of 'x * ('o, 'x) alternating
@@ -238,7 +238,7 @@ Notice how the recursive call to `to_list` swaps `o2a` and `x2a` -- this is nece
 
 Here is another powerful example of polymorphic recursion: a sequence data structure that stores elements in exponentially increasing chunks. This technique, known as *data-structural bootstrapping*, achieves logarithmic-time random access -- much faster than standard lists which require linear time.
 
-```ocaml
+```ocaml env=ch5
 type 'a seq =
   | Nil
   | Zero of ('a * 'a) seq
@@ -247,14 +247,14 @@ type 'a seq =
 
 The key insight is that this type is *non-uniform*: the recursive occurrences use `('a * 'a) seq` rather than `'a seq`. This means that as we go deeper into the structure, elements get paired together, effectively doubling the "width" at each level. We store a list of elements in exponentially increasing chunks:
 
-```ocaml
+```ocaml env=ch5
 let example =
   One (0, One ((1,2), Zero (One ((((3,4),(5,6)), ((7,8),(9,10))), Nil))))
 ```
 
 The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
 
-```ocaml
+```ocaml env=ch5
 let rec cons : 'a. 'a -> 'a seq -> 'a seq =
   fun x -> function
   | Nil -> One (x, Nil)                       (* 1+0=1 *)
@@ -391,7 +391,7 @@ Module (and module type) names have to start with a capital letter (in ML langua
 
 Here is how we translate our map specification into an OCaml module signature:
 
-```ocaml
+```ocaml env=ch5
 module type MAP = sig
   type ('a, 'b) t
   val empty : ('a, 'b) t
@@ -417,7 +417,7 @@ The `ListMap` module implements `MAP` using OCaml's built-in list functions for 
 
 Let us now build an implementation of maps from the ground up, exploring different approaches and their trade-offs. The most straightforward implementation... might not be what you expected:
 
-```ocaml
+```ocaml env=ch5
 module TrivialMap : MAP = struct
   type ('a, 'b) t =
     | Empty
@@ -453,7 +453,7 @@ This implementation illustrates an important point: there are many ways to satis
 
 Here is a more conventional implementation based on association lists, i.e., on lists of key-value pairs without the `Remove` constructor:
 
-```ocaml
+```ocaml env=ch5
 module MyListMap : MAP = struct
   type ('a, 'b) t = Empty | Add of 'a * 'b * ('a, 'b) t
 
@@ -497,7 +497,7 @@ On average, binary search trees are fast -- $O(\log n)$ complexity for all opera
 
 A note on our design: the simple polymorphic signature for maps is only possible because OCaml provides polymorphic comparison (and equality) operators that work on elements of most types (but not on functions). These operators may not behave as you expect for all types! Our signature for polymorphic maps is not the standard approach because of this limitation; it is just to keep things simple for pedagogical purposes.
 
-```ocaml
+```ocaml env=ch5
 module BTreeMap : MAP = struct
   type ('a, 'b) t = Empty | T of ('a, 'b) t * 'a * 'b * ('a, 'b) t
 
@@ -592,7 +592,7 @@ For simplicity, we first implement red-black tree based *sets* (not maps) withou
 
 The beautiful insight of Okasaki's approach is that by keeping balance at each step of constructing a node, it is enough to check *locally* (around the root of the subtree) whether a violation has occurred. We never need to examine the entire tree. For an understandable implementation of deletion, we need to introduce more colors -- see Matt Might's post for details.
 
-```ocaml
+```ocaml env=ch5
 type color = R | B
 type 'a t = E | T of color * 'a t * 'a * 'a t
 
@@ -641,7 +641,7 @@ The `insert` function works like insertion into an ordinary binary search tree, 
 
 **Exercise 1.** Derive the equations and solve them to find the type for:
 
-```ocaml
+```ocaml env=ch5
 let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
 ```
 
@@ -680,7 +680,7 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 1. Does the example `ListMap` meet the requirements of the algebraic specification for maps? Hint: here is the definition of `List.remove_assoc`; `compare a x` equals `0` if and only if `a = x`.
 
-   ```ocaml
+   ```ocaml env=ch5
    let rec remove_assoc x = function
      | [] -> []
      | (a, b as pair) :: l ->

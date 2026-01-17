@@ -56,7 +56,7 @@ Here, the data first passes through `step1r`, then the result goes to `step2r`, 
 
 In the table above, the operator is written as `\|-` because Markdown tables use `|` to separate columns. In actual OCaml code, the operator name is `(|-)`.
 
-```ocaml
+```ocaml env=ch3
 let (|-) f g x = g (f x)
 ```
 
@@ -85,7 +85,7 @@ $$
 
 In other words, $f^0$ is the identity function, $f^1 = f$, $f^2 = f \circ f$, and so on. In OCaml, we first define the backward composition operator, then use it to implement `power`:
 
-```ocaml
+```ocaml env=ch3
 let (-|) f g x = f (g x)
 
 let rec power f n =
@@ -96,13 +96,13 @@ When `n <= 0`, we return the identity function `fun x -> x`. Otherwise, we compo
 
 This `power` function is surprisingly versatile. For example, we can use it to define addition in terms of the successor function:
 
-```ocaml
+```ocaml env=ch3
 let add n = power ((+) 1) n
 ```
 
 Here `add 5 7` would compute $7 + 1 + 1 + 1 + 1 + 1 = 12$. We could even define multiplication:
 
-```ocaml
+```ocaml env=ch3
 let mult k n = power ((+) k) n 0
 ```
 
@@ -112,7 +112,7 @@ This computes $0 + k + k + \ldots + k$ (adding $k$ a total of $n$ times), giving
 
 A beautiful application of `power` is computing higher-order derivatives. First, let us define a numerical approximation of the derivative using the standard finite difference formula:
 
-```ocaml
+```ocaml env=ch3
 let derivative dx f = fun x -> (f (x +. dx) -. f x) /. dx
 ```
 
@@ -120,7 +120,7 @@ This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x
 
 We can write the same definition more concisely using OCaml's curried function syntax:
 
-```ocaml
+```ocaml env=ch3
 let derivative dx f x = (f (x +. dx) -. f x) /. dx
 ```
 
@@ -132,7 +132,7 @@ Both definitions are equivalent, but the first makes the "function returning a f
 
 Now comes the payoff. With `power` and `derivative`, we can elegantly compute higher-order derivatives:
 
-```ocaml
+```ocaml env=ch3
 let pi = 4.0 *. atan 1.0
 let sin''' = (power (derivative 1e-5) 3) sin
 let _approx = sin''' pi
@@ -321,7 +321,7 @@ This delayed evaluation is what prevents infinite loops. If `(fix v1)` were eval
 
 `fix` is not an OCaml primitive; it is a pedagogical device. If you *did* want to define it directly in OCaml, you could (ironically) do so using `let rec`:
 
-```ocaml
+```ocaml env=ch3
 let fix f =
   let rec self x = f self x in
   self
@@ -343,7 +343,7 @@ Let us see the reduction rules in action with a more substantial example. We wil
 
 Consider the symbolic expression type from `Lec3.ml`:
 
-```ocaml
+```ocaml env=ch3
 type expression =
   | Const of float
   | Var of string
@@ -369,7 +369,7 @@ The `expression` type represents mathematical expressions as a tree structure. E
 
 We can also define *symbolic differentiation*---computing the derivative of an expression without evaluating it numerically:
 
-```ocaml
+```ocaml env=ch3
 let rec deriv exp dv =
   match exp with
   | Const _ -> Const 0.0
@@ -390,7 +390,7 @@ The `deriv` function implements the standard rules of calculus:
 
 For convenience, let us define some operators and variables so we can write expressions more naturally:
 
-```ocaml
+```ocaml env=ch3
 let x = Var "x"
 let y = Var "y"
 let z = Var "z"
@@ -405,14 +405,14 @@ These custom operators (ending in `:`) let us write symbolic expressions that lo
 
 Now let us evaluate the expression $3x + 2y + x^2 y$ at $x = 1, y = 2$:
 
-```ocaml
+```ocaml env=ch3
 let example = !:3.0 *: x +: !:2.0 *: y +: x *: x *: y
 let env = ["x", 1.0; "y", 2.0]
 ```
 
 For nicer output, it is helpful to define a pretty-printer that displays expressions in infix notation (this is adapted from `Lec3.ml`):
 
-```ocaml
+```ocaml env=ch3
 let print_expr ppf exp =
   let open_paren prec op_prec =
     if prec > op_prec then Format.fprintf ppf "(@["
@@ -446,7 +446,7 @@ let print_expr ppf exp =
 
 And for tracing, we define a specialized evaluator `eval_1_2` with the environment baked in (so the trace focuses on the expression structure):
 
-```ocaml
+```ocaml env=ch3
 let rec eval_1_2 exp =
   match exp with
   | Const c -> c
@@ -546,7 +546,7 @@ The key insight is that with an accumulator, results are computed in "reverse or
 
 Let us see this in action with a simple counting function. Compare these two versions:
 
-```ocaml
+```ocaml env=ch3
 let rec count n =
   if n <= 0 then 0 else 1 + (count (n-1))
 ```
@@ -555,7 +555,7 @@ This version is *not* tail recursive. Look at the recursive case: after `count (
 
 Now compare with the tail recursive version:
 
-```ocaml
+```ocaml env=ch3
 let rec count_tcall acc n =
   if n <= 0 then acc else count_tcall (acc+1) (n-1)
 ```
@@ -566,7 +566,7 @@ Here, the recursive call `count_tcall (acc+1) (n-1)` is the very last thing the 
 
 The counting example does not really show the practical impact because the numbers are so small. Let us see a more dramatic example with lists:
 
-```ocaml
+```ocaml env=ch3
 let rec unfold n = if n <= 0 then [] else n :: unfold (n-1)
 ```
 
@@ -584,7 +584,7 @@ With 100,000 elements, it works. But with a million elements, we run out of stac
 
 Now consider the tail-recursive version:
 
-```ocaml
+```ocaml env=ch3
 let rec unfold_tcall acc n =
   if n <= 0 then acc else unfold_tcall (n::acc) (n-1)
 ```
@@ -605,13 +605,13 @@ The tail-recursive version handles a million elements effortlessly. The trade-of
 
 Not all recursive functions can be easily converted to tail recursive form. Consider this problem: can we find the depth of a binary tree using a tail-recursive function?
 
-```ocaml
+```ocaml env=ch3
 type btree = Tip | Node of int * btree * btree
 ```
 
 Here is the natural recursive approach:
 
-```ocaml
+```ocaml env=ch3
 let rec depth tree = match tree with
   | Tip -> 0
   | Node(_, left, right) -> 1 + max (depth left) (depth right)
@@ -633,7 +633,7 @@ We can solve the tree depth problem using **Continuation Passing Style (CPS)**. 
 
 The key idea is to postpone doing actual work until the very last moment by passing around a continuation---a function that represents "what to do next with this result."
 
-```ocaml
+```ocaml env=ch3
 let rec depth_cps tree k = match tree with
   | Tip -> k 0
   | Node(_, left, right) ->

@@ -8013,7 +8013,7 @@ If you see any error on the slides, let me know!
 * Recall how we have defined *context types* for datatypes: types that 
   represent a data structure with one of elements stored in it missing.
 
-```ocaml
+```ocaml env=ch10
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -8023,7 +8023,7 @@ $$ \begin{matrix}
   T}{\partial x} = TT + 2 xT \frac{\partial T}{\partial x}
 \end{matrix} $$
 
-```ocaml
+```ocaml env=ch1
 type btree_dir = LeftBranch | RightBranch
 type btree_deriv =
   | Here of btree * btree

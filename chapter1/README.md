@@ -141,7 +141,7 @@ The following table shows how each logical connective corresponds to a programmi
 
 For example, the identity function corresponds to the tautology $a \rightarrow a$:
 
-```ocaml
+```ocaml env=ch1
 # fun x -> x;;
 - : 'a -> 'a = <fun>
 ```
@@ -156,13 +156,13 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Empty type (falsehood):** in OCaml we can *define* an empty type (a type with no constructors):
 
-  ```ocaml
+  ```ocaml env=ch1
   type void = |
   ```
 
   There is no way to construct a value of type `void` using ordinary, terminating code. But if we somehow have a `v : void`, then we can derive anything from it (falsity elimination):
 
-  ```ocaml
+  ```ocaml env=ch1
   let absurd (v : void) : 'a =
     match v with _ -> .
   ```
@@ -183,7 +183,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Variant (disjunction):** first, we define a sum type (a two-way choice):
 
-  ```ocaml
+  ```ocaml env=ch1
   type ('a, 'b) either = Left of 'a | Right of 'b
   ```
 
@@ -192,7 +192,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   The shape of the elimination rule is exactly “reasoning by cases”: to use an `either`, you must handle both `Left` and `Right`.
 
-  ```ocaml
+  ```ocaml env=ch1
   let either f g = function
     | Left x -> f x
     | Right y -> g y
@@ -200,7 +200,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   A built-in example is `bool`, which you can think of as a two-constructor variant; the `if ... then ... else ...` expression is just a specialized form of case analysis on a boolean.
 
-  ```ocaml
+  ```ocaml env=ch1
   let choose b x y =
     if b then x else y
 
@@ -229,7 +229,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 **Type definitions** are written: `type ty =` some type.
 
 - In OCaml, disjunction-like types are not written as something like `a | b` directly; instead, you define a *variant type* and then use its constructors. For example:
-  ```ocaml
+  ```ocaml env=ch1
   type int_string_choice = A of int | B of string
   ```
   This allows us to write `A x : int_string_choice` for any `x : int`, and `B y : int_string_choice` for any `y : string`.
@@ -240,7 +240,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 
 - Tuple elements do not need labels because we always know at which position a tuple element stands: the first element is first, the second is second, and so on. However, having labels makes code much clearer, especially when tuples have many components or components of the same type. For this reason, we can define a *record type*:
 
-  ```ocaml
+  ```ocaml env=ch1
   type int_string_record = { a : int; b : string }
   ```
 
@@ -288,7 +288,7 @@ Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there
 
 Just like other names, you can define your own operators:
 
-```ocaml
+```ocaml env=ch1
 # let (+:) a b = String.concat "" [a; b];;
 val ( +: ) : string -> string -> string = <fun>
 # "Alpha" +: "Beta";;
@@ -310,7 +310,7 @@ This design choice makes type inference simpler and more predictable. When you s
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
 1. Assume that we execute the following assignment statements:
-   ```ocaml
+   ```ocaml env=ch1
    let width = 17
    let height = 12.0
    let delimiter = '.'
@@ -340,7 +340,7 @@ The following exercises are adapted from *Think OCaml: How to Think Like a Compu
 4. A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
 
    The following are functions that take a string argument and return the first, last, and middle letters:
-   ```ocaml
+   ```ocaml env=ch1
    let first_char word = word.[0]
    let last_char word =
      let len = String.length word - 1 in

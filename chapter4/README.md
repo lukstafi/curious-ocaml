@@ -167,7 +167,7 @@ The key insight behind the **Church encoding** of booleans is to represent truth
 
 In OCaml syntax:
 
-```ocaml
+```ocaml env=ch4
 let c_true = fun x y -> x   (* "True" is projection on the first argument *)
 let c_false = fun x y -> y  (* And "false" on the second argument *)
 ```
@@ -178,7 +178,7 @@ $$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
 
 The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and returns false immediately without even looking at `y`.
 
-```ocaml
+```ocaml env=ch4
 let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
 ```
 
@@ -194,9 +194,9 @@ which gives us $\lambda xy.x$ = `c_true`. You can verify that for any other comb
 
 To verify our encodings in OCaml, we need encode and decode functions. The decoder works by applying our Church boolean to the actual OCaml values `true` and `false`:
 
-```ocaml
+```ocaml env=ch4
 let encode_bool b = if b then c_true else c_false
-let decode_bool c = c true false  (* Test the functions in the toplevel *)
+let decode_bool c = (Obj.magic c) true false  (* Don't enforce type on c *)
 ```
 
 **Exercise:** Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
@@ -207,7 +207,7 @@ From now on, we will use OCaml syntax for our lambda-calculus programs. This mak
 
 An important observation is that our encoded booleans already implement conditional selection:
 
-```ocaml
+```ocaml env=ch4
 let if_then_else b t e = b t e  (* Booleans select the branch! *)
 ```
 
@@ -219,7 +219,7 @@ Remember to play with these functions in the toplevel to build intuition. Try ex
 
 Pairs (ordered tuples of two elements) can be encoded using a similar idea. The key insight is that a pair needs to "remember" two values and provide them when asked. We can achieve this by creating a function that holds onto both values and waits for a selector to choose between them:
 
-```ocaml
+```ocaml env=ch4
 let c_pair m n = fun x -> x m n  (* We couple things *)
 let c_first = fun p -> p c_true  (* by passing them together *)
 let c_second = fun p -> p c_false  (* Check that it works! *)
@@ -229,7 +229,7 @@ A pair is a function that, when given a selector, applies that selector to both 
 
 For verification:
 
-```ocaml
+```ocaml env=ch4
 let encode_pair enc_fst enc_snd (a, b) =
   c_pair (enc_fst a) (enc_snd b)
 let decode_pair de_fst de_snd c = c (fun x y -> de_fst x, de_snd y)
@@ -238,7 +238,7 @@ let decode_bool_pair c = decode_pair decode_bool decode_bool c
 
 We can define larger tuples in the same manner:
 
-```ocaml
+```ocaml env=ch4
 let c_triple l m n = fun x -> x l m n
 ```
 
@@ -246,7 +246,7 @@ let c_triple l m n = fun x -> x l m n
 
 Now we come to encoding numbers---a crucial test of whether functions alone can represent all data. Our first encoding of natural numbers uses nested pairs. The representation is based on the depth of nested pairs whose rightmost leaf is the identity function $\lambda x.x$ and whose left elements are `c_false`.
 
-```ocaml
+```ocaml env=ch4
 let pn0 = fun x -> x           (* Start with the identity function *)
 let pn_succ n = c_pair c_false n  (* Stack another pair *)
 
@@ -266,7 +266,7 @@ So `pn_is_zero` applies the number to `c_true`:
 
 We program in untyped lambda-calculus as an exercise, and we need encoding/decoding to verify our work. Since these encodings do not type-check cleanly in OCaml, using `Obj.magic` to bypass the type system for encoding/decoding is "fair game":
 
-```ocaml
+```ocaml env=ch4
 let rec encode_pnat n =                (* We use Obj.magic to forget types *)
   if n <= 0 then Obj.magic pn0
   else pn_succ (Obj.magic (encode_pnat (n-1)))  (* Disregarding types, *)
@@ -283,7 +283,7 @@ Do you remember our function `power f n` from Chapter 3 that composed a function
 
 **Church numerals** represent a natural number $n$ as a function that applies its first argument $n$ times to its second argument:
 
-```ocaml
+```ocaml env=ch4
 let cn0 = fun f x -> x        (* The same as c_false *)
 let cn1 = fun f x -> f x      (* Behaves like identity when f = id *)
 let cn2 = fun f x -> f (f x)
@@ -296,7 +296,7 @@ Notice that `cn0` is the same as `c_false`---zero applications of `f` just retur
 
 The successor function adds one more application of `f`:
 
-```ocaml
+```ocaml env=ch4
 let cn_succ = fun n f x -> f (n f x)
 ```
 
@@ -304,7 +304,7 @@ let cn_succ = fun n f x -> f (n f x)
 
 It turns out even Alonzo Church could not define predecessor right away! The story goes that his student Stephen Kleene figured it out while at the dentist. Try to make some progress on addition and multiplication first (they are not too hard), and then attempt predecessor before looking at the solution below.
 
-```ocaml
+```ocaml env=ch4
 let (-|) f g x = f (g x)  (* Backward composition operator *)
 
 let rec encode_cnat n f =
@@ -581,7 +581,7 @@ And in solved form:
 
 $$\texttt{addtree} = \texttt{fix} \; (\lambda f t. t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
 
-```ocaml
+```ocaml env=ch4
 let rec fix f x = f (fix f) x
 let nil = fun x y -> y
 let cons h t = fun x y -> x h t
@@ -639,7 +639,7 @@ To avoid looping recursion, you need to guard all recursive calls. Besides putti
 
 The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value. This delays the evaluation of both branches until the boolean has selected one of them:
 
-```ocaml skip
+```ocaml env=ch4
 let id x = x
 let rec fix f x = f (fix f) x
 let pn1 x = pn_succ pn0 x
@@ -704,7 +704,7 @@ Do not use the imperative features of OCaml and F#! This exercise demonstrates t
 
 Although we will not cover imperative features in this course, it is instructive to see the implementation using them, to better understand what is actually required of a solution to Exercise 3:
 
-```ocaml
+```ocaml env=ch4
 (* (a) *)
 let for_to f beg_i end_i s =
   let s = ref s in

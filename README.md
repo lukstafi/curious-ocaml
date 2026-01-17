@@ -19,7 +19,6 @@ geometry:
 toc-depth: 3
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
-
 # Curious OCaml
 
 *Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
@@ -174,7 +173,7 @@ The following table shows how each logical connective corresponds to a programmi
 
 For example, the identity function corresponds to the tautology $a \rightarrow a$:
 
-```ocaml
+```ocaml env=ch1
 # fun x -> x;;
 - : 'a -> 'a = <fun>
 ```
@@ -189,13 +188,13 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Empty type (falsehood):** in OCaml we can *define* an empty type (a type with no constructors):
 
-  ```ocaml
+  ```ocaml env=ch1
   type void = |
   ```
 
   There is no way to construct a value of type `void` using ordinary, terminating code. But if we somehow have a `v : void`, then we can derive anything from it (falsity elimination):
 
-  ```ocaml
+  ```ocaml env=ch1
   let absurd (v : void) : 'a =
     match v with _ -> .
   ```
@@ -216,7 +215,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Variant (disjunction):** first, we define a sum type (a two-way choice):
 
-  ```ocaml
+  ```ocaml env=ch1
   type ('a, 'b) either = Left of 'a | Right of 'b
   ```
 
@@ -225,7 +224,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   The shape of the elimination rule is exactly “reasoning by cases”: to use an `either`, you must handle both `Left` and `Right`.
 
-  ```ocaml
+  ```ocaml env=ch1
   let either f g = function
     | Left x -> f x
     | Right y -> g y
@@ -233,7 +232,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   A built-in example is `bool`, which you can think of as a two-constructor variant; the `if ... then ... else ...` expression is just a specialized form of case analysis on a boolean.
 
-  ```ocaml
+  ```ocaml env=ch1
   let choose b x y =
     if b then x else y
 
@@ -262,7 +261,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 **Type definitions** are written: `type ty =` some type.
 
 - In OCaml, disjunction-like types are not written as something like `a | b` directly; instead, you define a *variant type* and then use its constructors. For example:
-  ```ocaml
+  ```ocaml env=ch1
   type int_string_choice = A of int | B of string
   ```
   This allows us to write `A x : int_string_choice` for any `x : int`, and `B y : int_string_choice` for any `y : string`.
@@ -273,7 +272,7 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 
 - Tuple elements do not need labels because we always know at which position a tuple element stands: the first element is first, the second is second, and so on. However, having labels makes code much clearer, especially when tuples have many components or components of the same type. For this reason, we can define a *record type*:
 
-  ```ocaml
+  ```ocaml env=ch1
   type int_string_record = { a : int; b : string }
   ```
 
@@ -321,7 +320,7 @@ Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there
 
 Just like other names, you can define your own operators:
 
-```ocaml
+```ocaml env=ch1
 # let (+:) a b = String.concat "" [a; b];;
 val ( +: ) : string -> string -> string = <fun>
 # "Alpha" +: "Beta";;
@@ -343,7 +342,7 @@ This design choice makes type inference simpler and more predictable. When you s
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
 1. Assume that we execute the following assignment statements:
-   ```ocaml
+   ```ocaml env=ch1
    let width = 17
    let height = 12.0
    let delimiter = '.'
@@ -373,7 +372,7 @@ The following exercises are adapted from *Think OCaml: How to Think Like a Compu
 4. A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
 
    The following are functions that take a string argument and return the first, last, and middle letters:
-   ```ocaml
+   ```ocaml env=ch1
    let first_char word = word.[0]
    let last_char word =
      let len = String.length word - 1 in
@@ -431,7 +430,7 @@ $$
 
 Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
 
-```ocaml
+```ocaml env=ch2
 # fun x -> x;;
 - : 'a -> 'a = <fun>
 ```
@@ -498,7 +497,7 @@ We will become more familiar with functions returning functions when we study th
 
 In Chapter 1, we learned about the `unit` type and variant types like:
 
-```ocaml
+```ocaml env=ch2
 type int_string_choice = A of int | B of string
 ```
 
@@ -508,7 +507,7 @@ We also covered tuple types, record types, and type definitions. Now let us expl
 
 Variants do not have to carry arguments. Instead of writing `A of unit`, we can simply use `A`. This is more convenient and idiomatic:
 
-```ocaml
+```ocaml env=ch2
 type color = Red | Green | Blue
 ```
 
@@ -520,7 +519,7 @@ This defines a type with exactly three possible values---no more, no less. The c
 
 Here is where things get really interesting: type definitions can be recursive! This allows us to define data structures of arbitrary size using a finite definition:
 
-```ocaml
+```ocaml env=ch2
 type int_list = Empty | Cons of int * int_list
 ```
 
@@ -541,7 +540,7 @@ Our `int_list` type only works with integers. But what if we want a list of stri
 
 Type definitions can be *parametric* with respect to the types of their components. This allows us to define generic data structures that work with any element type. OCaml already has a built-in parametric list type, so to avoid shadowing it we will define our own simplified list type:
 
-```ocaml skip
+```ocaml env=ch2
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
@@ -552,14 +551,14 @@ Several conventions and syntax rules apply to parametric types:
 - Type variables must start with `'`. When printing inferred types, OCaml may rename these variables, so it is customary to stick to the standard names `'a`, `'b`, `'c`, `'d`, etc.
 
 - The OCaml syntax places the type parameter before the type name, mimicking English word order. A silly example that reads almost like English:
-  ```ocaml
+  ```ocaml env=ch2
   type 'white_color dog = Dog of 'white_color
   ```
 
   This defines a "white-color dog" type---the syntax reads naturally!
 
 - With multiple parameters, OCaml uses parentheses:
-  ```ocaml
+  ```ocaml env=ch2
   type ('a, 'b) choice = Left of 'a | Right of 'b
   ```
 
@@ -577,7 +576,7 @@ OCaml provides various syntactic conveniences---sometimes called *syntactic suga
 
 Names of variants, called *constructors*, must start with a capital letter. If we wanted to define our own booleans, we would write:
 
-```ocaml
+```ocaml env=ch2
 type my_bool = True | False
 ```
 
@@ -607,7 +606,7 @@ Pattern matching is one of the most powerful features of OCaml and similar langu
 
 Recall that we introduced `fst` and `snd` as means to access elements of a pair. But what about larger tuples? There is no built-in `thd` for the third element. The fundamental way to access any tuple---or any algebraic data type---uses the `match` construct. In fact, `fst` and `snd` can easily be defined using pattern matching:
 
-```ocaml
+```ocaml env=ch2
 let fst p = match p with (a, b) -> a
 let snd p = match p with (a, b) -> b
 ```
@@ -618,7 +617,7 @@ The pattern `(a, b)` *destructures* the pair, binding its first component to `a`
 
 Pattern matching also works with records, letting us extract multiple fields at once:
 
-```ocaml
+```ocaml env=ch2
 type person = { name : string; surname : string; age : int }
 
 let greet_person () =
@@ -639,7 +638,7 @@ The left-hand sides of `->` in `match` expressions are called **patterns**. Patt
 
 Patterns can be nested to arbitrary depth, allowing us to match complex structures in one go:
 
-```ocaml
+```ocaml env=ch2
 match Some (5, 7) with
 | None -> "sum: nothing"
 | Some (x, y) -> "sum: " ^ string_of_int (x + y)
@@ -653,7 +652,7 @@ A pattern can simply bind the entire value without destructuring. Writing `match
 
 When we do not need a value in a pattern, it is good practice to use the underscore `_`, which is a *wildcard*. The wildcard matches anything but does not bind it to a name. This signals to the reader (and the compiler) that we are intentionally ignoring that part:
 
-```ocaml
+```ocaml env=ch2
 let fst (a, _) = a
 let snd (_, b) = b
 ```
@@ -666,7 +665,7 @@ A variable can only appear once in a pattern. This property is called *linearity
 
 However, we can add conditions to patterns using `when`, so linearity is not really a limitation in practice:
 
-```ocaml
+```ocaml env=ch2
 let describe_point p =
   match p with
   | (x, y) when x = y -> "diag"
@@ -677,7 +676,7 @@ The `when` clause acts as a guard: the pattern matches only if both the structur
 
 Here is a more elaborate example showing how to implement a comparison function (without shadowing the standard `compare`):
 
-```ocaml
+```ocaml env=ch2
 let compare_int a b =
   match a, b with
   | (x, y) when x < y -> -1
@@ -695,7 +694,7 @@ We can skip unused fields of a record in a pattern. Only the fields we care abou
 
 We can compress patterns by using `|` inside a single pattern to match multiple alternatives. This is different from having multiple pattern clauses---it lets us share a single right-hand side for several patterns:
 
-```ocaml
+```ocaml env=ch2
 type month =
   | Jan | Feb | Mar | Apr | May | Jun
   | Jul | Aug | Sep | Oct | Nov | Dec
@@ -750,7 +749,7 @@ The translation from types to mathematical expressions works as follows:
 We also need translations for some special types:
 
 - The **void type** (a type with no constructors, hence no values):
-  ```ocaml
+  ```ocaml env=ch2
   type void = |
   ```
   Since no values can be constructed, it represents emptiness---translate it as $0$.
@@ -769,7 +768,7 @@ This might seem like a mere curiosity, but it leads to real insights. Let us hav
 
 #### Example: Date Type
 
-```ocaml
+```ocaml env=ch2
 type ymd = { year : int; month : int; day : int }
 ```
 
@@ -807,7 +806,7 @@ This is a recursive equation! A list is either empty ($1$) or an element times a
 
 #### Example: Binary Tree Type
 
-```ocaml
+```ocaml env=ch2
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -837,7 +836,7 @@ Each step uses standard algebraic manipulations: substituting $T = 1 + xT^2$, ex
 
 Now let us translate this resulting expression back to a type:
 
-```ocaml
+```ocaml env=ch2
 type repr =
   (int * (int * btree * btree * btree option) option) option
 ```
@@ -880,7 +879,7 @@ Have you found it on your first try? If so, congratulations! Most people do not.
 
 Let us divide the task into smaller steps corresponding to intermediate points in the polynomial transformation. Instead of jumping from $T = 1 + xT^2$ directly to the final form, we will introduce intermediate types for each algebraic step:
 
-```ocaml
+```ocaml env=ch2
 type ('a, 'b) choice = Left of 'a | Right of 'b
 
 type interm1 =
@@ -894,7 +893,7 @@ type interm2 =
 
 Now we can define each step:
 
-```ocaml
+```ocaml env=ch2
 let step1r (t : btree) : interm1 =
   match t with
     | Tip -> None
@@ -946,7 +945,7 @@ It turns out that taking the partial derivative of a polynomial (translated from
 
 Let us start with a simple record type:
 
-```ocaml skip
+```ocaml env=ch2
 type ymd = { year : int; month : int; day : int }
 ```
 
@@ -963,7 +962,7 @@ We could have left it as $3 \cdot x \cdot x$, but expanding it as a sum shows th
 
 Translating the expanded form back to a type:
 
-```ocaml
+```ocaml env=ch2
 type ymd_ctx =
   Year of int * int | Month of int * int | Day of int * int
 ```
@@ -975,7 +974,7 @@ Each variant represents a "hole" at a different position:
 
 Now we can define functions to introduce and eliminate this derivative type:
 
-```ocaml
+```ocaml env=ch2
 let ymd_deriv ({ year = y; month = m; day = d } : ymd) =
   [ Year (m, d); Month (y, d); Day (y, m) ]
 
@@ -1016,7 +1015,7 @@ Something interesting happened: the derivative is recursive! It refers to itself
 
 Instead of translating $2$ as `bool`, we introduce a more descriptive type to make the code clearer:
 
-```ocaml
+```ocaml env=ch2
 type btree_dir = LeftBranch | RightBranch
 
 type btree_deriv =
@@ -1035,7 +1034,7 @@ The `Here` constructor means the hole is at the current position, and we have th
 
 The integration function fills the hole with a value. It must be recursive because the derivative type is recursive---we may need to descend through multiple `Below` constructors before reaching the `Here` where the hole actually is:
 
-```ocaml
+```ocaml env=ch2
 let rec btree_integr n = function
   | Here (ltree, rtree) -> Node (n, ltree, rtree)
   | Below (LeftBranch, m, rtree, deriv) ->
@@ -1227,7 +1226,7 @@ Here, the data first passes through `step1r`, then the result goes to `step2r`, 
 
 In the table above, the operator is written as `\|-` because Markdown tables use `|` to separate columns. In actual OCaml code, the operator name is `(|-)`.
 
-```ocaml
+```ocaml env=ch3
 let (|-) f g x = g (f x)
 ```
 
@@ -1256,7 +1255,7 @@ $$
 
 In other words, $f^0$ is the identity function, $f^1 = f$, $f^2 = f \circ f$, and so on. In OCaml, we first define the backward composition operator, then use it to implement `power`:
 
-```ocaml
+```ocaml env=ch3
 let (-|) f g x = f (g x)
 
 let rec power f n =
@@ -1267,13 +1266,13 @@ When `n <= 0`, we return the identity function `fun x -> x`. Otherwise, we compo
 
 This `power` function is surprisingly versatile. For example, we can use it to define addition in terms of the successor function:
 
-```ocaml
+```ocaml env=ch3
 let add n = power ((+) 1) n
 ```
 
 Here `add 5 7` would compute $7 + 1 + 1 + 1 + 1 + 1 = 12$. We could even define multiplication:
 
-```ocaml
+```ocaml env=ch3
 let mult k n = power ((+) k) n 0
 ```
 
@@ -1283,7 +1282,7 @@ This computes $0 + k + k + \ldots + k$ (adding $k$ a total of $n$ times), giving
 
 A beautiful application of `power` is computing higher-order derivatives. First, let us define a numerical approximation of the derivative using the standard finite difference formula:
 
-```ocaml
+```ocaml env=ch3
 let derivative dx f = fun x -> (f (x +. dx) -. f x) /. dx
 ```
 
@@ -1291,7 +1290,7 @@ This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x
 
 We can write the same definition more concisely using OCaml's curried function syntax:
 
-```ocaml
+```ocaml env=ch3
 let derivative dx f x = (f (x +. dx) -. f x) /. dx
 ```
 
@@ -1303,7 +1302,7 @@ Both definitions are equivalent, but the first makes the "function returning a f
 
 Now comes the payoff. With `power` and `derivative`, we can elegantly compute higher-order derivatives:
 
-```ocaml
+```ocaml env=ch3
 let pi = 4.0 *. atan 1.0
 let sin''' = (power (derivative 1e-5) 3) sin
 let _approx = sin''' pi
@@ -1492,7 +1491,7 @@ This delayed evaluation is what prevents infinite loops. If `(fix v1)` were eval
 
 `fix` is not an OCaml primitive; it is a pedagogical device. If you *did* want to define it directly in OCaml, you could (ironically) do so using `let rec`:
 
-```ocaml
+```ocaml env=ch3
 let fix f =
   let rec self x = f self x in
   self
@@ -1514,7 +1513,7 @@ Let us see the reduction rules in action with a more substantial example. We wil
 
 Consider the symbolic expression type from `Lec3.ml`:
 
-```ocaml
+```ocaml env=ch3
 type expression =
   | Const of float
   | Var of string
@@ -1540,7 +1539,7 @@ The `expression` type represents mathematical expressions as a tree structure. E
 
 We can also define *symbolic differentiation*---computing the derivative of an expression without evaluating it numerically:
 
-```ocaml
+```ocaml env=ch3
 let rec deriv exp dv =
   match exp with
   | Const _ -> Const 0.0
@@ -1561,7 +1560,7 @@ The `deriv` function implements the standard rules of calculus:
 
 For convenience, let us define some operators and variables so we can write expressions more naturally:
 
-```ocaml
+```ocaml env=ch3
 let x = Var "x"
 let y = Var "y"
 let z = Var "z"
@@ -1576,14 +1575,14 @@ These custom operators (ending in `:`) let us write symbolic expressions that lo
 
 Now let us evaluate the expression $3x + 2y + x^2 y$ at $x = 1, y = 2$:
 
-```ocaml
+```ocaml env=ch3
 let example = !:3.0 *: x +: !:2.0 *: y +: x *: x *: y
 let env = ["x", 1.0; "y", 2.0]
 ```
 
 For nicer output, it is helpful to define a pretty-printer that displays expressions in infix notation (this is adapted from `Lec3.ml`):
 
-```ocaml
+```ocaml env=ch3
 let print_expr ppf exp =
   let open_paren prec op_prec =
     if prec > op_prec then Format.fprintf ppf "(@["
@@ -1617,7 +1616,7 @@ let print_expr ppf exp =
 
 And for tracing, we define a specialized evaluator `eval_1_2` with the environment baked in (so the trace focuses on the expression structure):
 
-```ocaml
+```ocaml env=ch3
 let rec eval_1_2 exp =
   match exp with
   | Const c -> c
@@ -1717,7 +1716,7 @@ The key insight is that with an accumulator, results are computed in "reverse or
 
 Let us see this in action with a simple counting function. Compare these two versions:
 
-```ocaml
+```ocaml env=ch3
 let rec count n =
   if n <= 0 then 0 else 1 + (count (n-1))
 ```
@@ -1726,7 +1725,7 @@ This version is *not* tail recursive. Look at the recursive case: after `count (
 
 Now compare with the tail recursive version:
 
-```ocaml
+```ocaml env=ch3
 let rec count_tcall acc n =
   if n <= 0 then acc else count_tcall (acc+1) (n-1)
 ```
@@ -1737,7 +1736,7 @@ Here, the recursive call `count_tcall (acc+1) (n-1)` is the very last thing the 
 
 The counting example does not really show the practical impact because the numbers are so small. Let us see a more dramatic example with lists:
 
-```ocaml
+```ocaml env=ch3
 let rec unfold n = if n <= 0 then [] else n :: unfold (n-1)
 ```
 
@@ -1755,7 +1754,7 @@ With 100,000 elements, it works. But with a million elements, we run out of stac
 
 Now consider the tail-recursive version:
 
-```ocaml
+```ocaml env=ch3
 let rec unfold_tcall acc n =
   if n <= 0 then acc else unfold_tcall (n::acc) (n-1)
 ```
@@ -1776,13 +1775,13 @@ The tail-recursive version handles a million elements effortlessly. The trade-of
 
 Not all recursive functions can be easily converted to tail recursive form. Consider this problem: can we find the depth of a binary tree using a tail-recursive function?
 
-```ocaml
+```ocaml env=ch3
 type btree = Tip | Node of int * btree * btree
 ```
 
 Here is the natural recursive approach:
 
-```ocaml
+```ocaml env=ch3
 let rec depth tree = match tree with
   | Tip -> 0
   | Node(_, left, right) -> 1 + max (depth left) (depth right)
@@ -1804,7 +1803,7 @@ We can solve the tree depth problem using **Continuation Passing Style (CPS)**. 
 
 The key idea is to postpone doing actual work until the very last moment by passing around a continuation---a function that represents "what to do next with this result."
 
-```ocaml
+```ocaml env=ch3
 let rec depth_cps tree k = match tree with
   | Tip -> k 0
   | Node(_, left, right) ->
@@ -2057,7 +2056,7 @@ The key insight behind the **Church encoding** of booleans is to represent truth
 
 In OCaml syntax:
 
-```ocaml
+```ocaml env=ch4
 let c_true = fun x y -> x   (* "True" is projection on the first argument *)
 let c_false = fun x y -> y  (* And "false" on the second argument *)
 ```
@@ -2068,7 +2067,7 @@ $$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
 
 The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and returns false immediately without even looking at `y`.
 
-```ocaml
+```ocaml env=ch4
 let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
 ```
 
@@ -2084,9 +2083,9 @@ which gives us $\lambda xy.x$ = `c_true`. You can verify that for any other comb
 
 To verify our encodings in OCaml, we need encode and decode functions. The decoder works by applying our Church boolean to the actual OCaml values `true` and `false`:
 
-```ocaml
+```ocaml env=ch4
 let encode_bool b = if b then c_true else c_false
-let decode_bool c = c true false  (* Test the functions in the toplevel *)
+let decode_bool c = (Obj.magic c) true false  (* Don't enforce type on c *)
 ```
 
 **Exercise:** Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
@@ -2097,7 +2096,7 @@ From now on, we will use OCaml syntax for our lambda-calculus programs. This mak
 
 An important observation is that our encoded booleans already implement conditional selection:
 
-```ocaml
+```ocaml env=ch4
 let if_then_else b t e = b t e  (* Booleans select the branch! *)
 ```
 
@@ -2109,7 +2108,7 @@ Remember to play with these functions in the toplevel to build intuition. Try ex
 
 Pairs (ordered tuples of two elements) can be encoded using a similar idea. The key insight is that a pair needs to "remember" two values and provide them when asked. We can achieve this by creating a function that holds onto both values and waits for a selector to choose between them:
 
-```ocaml
+```ocaml env=ch4
 let c_pair m n = fun x -> x m n  (* We couple things *)
 let c_first = fun p -> p c_true  (* by passing them together *)
 let c_second = fun p -> p c_false  (* Check that it works! *)
@@ -2119,7 +2118,7 @@ A pair is a function that, when given a selector, applies that selector to both 
 
 For verification:
 
-```ocaml
+```ocaml env=ch4
 let encode_pair enc_fst enc_snd (a, b) =
   c_pair (enc_fst a) (enc_snd b)
 let decode_pair de_fst de_snd c = c (fun x y -> de_fst x, de_snd y)
@@ -2128,7 +2127,7 @@ let decode_bool_pair c = decode_pair decode_bool decode_bool c
 
 We can define larger tuples in the same manner:
 
-```ocaml
+```ocaml env=ch4
 let c_triple l m n = fun x -> x l m n
 ```
 
@@ -2136,7 +2135,7 @@ let c_triple l m n = fun x -> x l m n
 
 Now we come to encoding numbers---a crucial test of whether functions alone can represent all data. Our first encoding of natural numbers uses nested pairs. The representation is based on the depth of nested pairs whose rightmost leaf is the identity function $\lambda x.x$ and whose left elements are `c_false`.
 
-```ocaml
+```ocaml env=ch4
 let pn0 = fun x -> x           (* Start with the identity function *)
 let pn_succ n = c_pair c_false n  (* Stack another pair *)
 
@@ -2156,7 +2155,7 @@ So `pn_is_zero` applies the number to `c_true`:
 
 We program in untyped lambda-calculus as an exercise, and we need encoding/decoding to verify our work. Since these encodings do not type-check cleanly in OCaml, using `Obj.magic` to bypass the type system for encoding/decoding is "fair game":
 
-```ocaml
+```ocaml env=ch4
 let rec encode_pnat n =                (* We use Obj.magic to forget types *)
   if n <= 0 then Obj.magic pn0
   else pn_succ (Obj.magic (encode_pnat (n-1)))  (* Disregarding types, *)
@@ -2173,7 +2172,7 @@ Do you remember our function `power f n` from Chapter 3 that composed a function
 
 **Church numerals** represent a natural number $n$ as a function that applies its first argument $n$ times to its second argument:
 
-```ocaml
+```ocaml env=ch4
 let cn0 = fun f x -> x        (* The same as c_false *)
 let cn1 = fun f x -> f x      (* Behaves like identity when f = id *)
 let cn2 = fun f x -> f (f x)
@@ -2186,7 +2185,7 @@ Notice that `cn0` is the same as `c_false`---zero applications of `f` just retur
 
 The successor function adds one more application of `f`:
 
-```ocaml
+```ocaml env=ch4
 let cn_succ = fun n f x -> f (n f x)
 ```
 
@@ -2194,7 +2193,7 @@ let cn_succ = fun n f x -> f (n f x)
 
 It turns out even Alonzo Church could not define predecessor right away! The story goes that his student Stephen Kleene figured it out while at the dentist. Try to make some progress on addition and multiplication first (they are not too hard), and then attempt predecessor before looking at the solution below.
 
-```ocaml
+```ocaml env=ch4
 let (-|) f g x = f (g x)  (* Backward composition operator *)
 
 let rec encode_cnat n f =
@@ -2471,7 +2470,7 @@ And in solved form:
 
 $$\texttt{addtree} = \texttt{fix} \; (\lambda f t. t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
 
-```ocaml
+```ocaml env=ch4
 let rec fix f x = f (fix f) x
 let nil = fun x y -> y
 let cons h t = fun x y -> x h t
@@ -2529,7 +2528,7 @@ To avoid looping recursion, you need to guard all recursive calls. Besides putti
 
 The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value. This delays the evaluation of both branches until the boolean has selected one of them:
 
-```ocaml skip
+```ocaml env=ch4
 let id x = x
 let rec fix f x = f (fix f) x
 let pn1 x = pn_succ pn0 x
@@ -2594,7 +2593,7 @@ Do not use the imperative features of OCaml and F#! This exercise demonstrates t
 
 Although we will not cover imperative features in this course, it is instructive to see the implementation using them, to better understand what is actually required of a solution to Exercise 3:
 
-```ocaml
+```ocaml env=ch4
 (* (a) *)
 let for_to f beg_i end_i s =
   let s = ref s in
@@ -2660,7 +2659,7 @@ Variables in type inference play two distinct roles, and understanding this dist
 
 Consider this example:
 
-```ocaml
+```ocaml env=ch5
 # let f = List.hd;;
 val f : 'a list -> 'a = <fun>
 ```
@@ -2721,13 +2720,13 @@ This kind of polymorphism is called *parametric polymorphism*, since the types h
 
 Polymorphic functions truly shine when used with polymorphic data types. The combination of the two is what makes ML-family languages so expressive. Consider this definition of our own list type:
 
-```ocaml
+```ocaml env=ch5
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
 We define lists that can store elements of any type `'a`. The type parameter `'a` acts as a placeholder that gets filled in when we create actual lists. Now we can write functions that work on these lists:
 
-```ocaml
+```ocaml env=ch5
 # let tail l =
     match l with
     | Empty -> invalid_arg "tail"
@@ -2743,7 +2742,7 @@ A crucial point to understand: a *parametric type* like `'a my_list` *is not* it
 
 Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
 
-```ocaml
+```ocaml env=ch5
 type ('a, 'b) choice = Left of 'a | Right of 'b
 ```
 
@@ -2751,7 +2750,7 @@ This type has two parameters and represents a value that is either something of 
 
 Not all functions that use parametric types need to be polymorphic. A function may constrain the type parameters to specific types:
 
-```ocaml
+```ocaml env=ch5
 # let get_int c =
     match c with
     | Left i -> i
@@ -2851,7 +2850,7 @@ Using the recursively defined function with different types in its definition is
 
 Here is a fascinating example: a list that alternates between two different types of elements. Notice how the recursive occurrence swaps the type parameters:
 
-```ocaml
+```ocaml env=ch5
 type ('x, 'o) alternating =
   | Stop
   | One of 'x * ('o, 'x) alternating
@@ -2877,7 +2876,7 @@ Notice how the recursive call to `to_list` swaps `o2a` and `x2a` -- this is nece
 
 Here is another powerful example of polymorphic recursion: a sequence data structure that stores elements in exponentially increasing chunks. This technique, known as *data-structural bootstrapping*, achieves logarithmic-time random access -- much faster than standard lists which require linear time.
 
-```ocaml
+```ocaml env=ch5
 type 'a seq =
   | Nil
   | Zero of ('a * 'a) seq
@@ -2886,14 +2885,14 @@ type 'a seq =
 
 The key insight is that this type is *non-uniform*: the recursive occurrences use `('a * 'a) seq` rather than `'a seq`. This means that as we go deeper into the structure, elements get paired together, effectively doubling the "width" at each level. We store a list of elements in exponentially increasing chunks:
 
-```ocaml
+```ocaml env=ch5
 let example =
   One (0, One ((1,2), Zero (One ((((3,4),(5,6)), ((7,8),(9,10))), Nil))))
 ```
 
 The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
 
-```ocaml
+```ocaml env=ch5
 let rec cons : 'a. 'a -> 'a seq -> 'a seq =
   fun x -> function
   | Nil -> One (x, Nil)                       (* 1+0=1 *)
@@ -3030,7 +3029,7 @@ Module (and module type) names have to start with a capital letter (in ML langua
 
 Here is how we translate our map specification into an OCaml module signature:
 
-```ocaml
+```ocaml env=ch5
 module type MAP = sig
   type ('a, 'b) t
   val empty : ('a, 'b) t
@@ -3056,7 +3055,7 @@ The `ListMap` module implements `MAP` using OCaml's built-in list functions for 
 
 Let us now build an implementation of maps from the ground up, exploring different approaches and their trade-offs. The most straightforward implementation... might not be what you expected:
 
-```ocaml
+```ocaml env=ch5
 module TrivialMap : MAP = struct
   type ('a, 'b) t =
     | Empty
@@ -3092,7 +3091,7 @@ This implementation illustrates an important point: there are many ways to satis
 
 Here is a more conventional implementation based on association lists, i.e., on lists of key-value pairs without the `Remove` constructor:
 
-```ocaml
+```ocaml env=ch5
 module MyListMap : MAP = struct
   type ('a, 'b) t = Empty | Add of 'a * 'b * ('a, 'b) t
 
@@ -3136,7 +3135,7 @@ On average, binary search trees are fast -- $O(\log n)$ complexity for all opera
 
 A note on our design: the simple polymorphic signature for maps is only possible because OCaml provides polymorphic comparison (and equality) operators that work on elements of most types (but not on functions). These operators may not behave as you expect for all types! Our signature for polymorphic maps is not the standard approach because of this limitation; it is just to keep things simple for pedagogical purposes.
 
-```ocaml
+```ocaml env=ch5
 module BTreeMap : MAP = struct
   type ('a, 'b) t = Empty | T of ('a, 'b) t * 'a * 'b * ('a, 'b) t
 
@@ -3231,7 +3230,7 @@ For simplicity, we first implement red-black tree based *sets* (not maps) withou
 
 The beautiful insight of Okasaki's approach is that by keeping balance at each step of constructing a node, it is enough to check *locally* (around the root of the subtree) whether a violation has occurred. We never need to examine the entire tree. For an understandable implementation of deletion, we need to introduce more colors -- see Matt Might's post for details.
 
-```ocaml
+```ocaml env=ch5
 type color = R | B
 type 'a t = E | T of color * 'a t * 'a * 'a t
 
@@ -3280,7 +3279,7 @@ The `insert` function works like insertion into an ordinary binary search tree, 
 
 **Exercise 1.** Derive the equations and solve them to find the type for:
 
-```ocaml
+```ocaml env=ch5
 let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
 ```
 
@@ -3319,7 +3318,7 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 1. Does the example `ListMap` meet the requirements of the algebraic specification for maps? Hint: here is the definition of `List.remove_assoc`; `compare a x` equals `0` if and only if `a = x`.
 
-   ```ocaml
+   ```ocaml env=ch5
    let rec remove_assoc x = function
      | [] -> []
      | (a, b as pair) :: l ->
@@ -4234,7 +4233,7 @@ let honey_cells n eaten =
 To visualize the honeycomb, we generate colored polygons. Each cell is drawn as a hexagon
 by placing 6 points evenly spaced on a circumcircle:
 
-```ocaml skip
+```ocaml env=ch6
 let draw_honeycomb ~w ~h task eaten =
   let i2f = float_of_int in
   let nx = i2f (4 * task.board_size + 2) in
@@ -4246,8 +4245,8 @@ let draw_honeycomb ~w ~h task eaten =
   let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)
   let draw_cell (x, y) =
     Array.init 7                               (* Draw a closed polygon *)
-      (fun i ->                                (* with 6 points evenly *)
-        let phi = float_of_int i *. pi /. 3. in   (* spaced on circumcircle *)
+      (fun i ->                            (* with 6 points evenly spaced *)
+        let phi = float_of_int i *. Float.pi /. 3. in   (* on circumcircle *)
         x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),
         y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in
   let honey =
@@ -4264,7 +4263,7 @@ let draw_honeycomb ~w ~h task eaten =
 
 **Drawing to SVG:** We can render the polygons to an SVG image file:
 
-```ocaml skip
+```ocaml env=ch6
 let draw_to_svg file ~w ~h ?title ?desc curves =
   let f = open_out file in
   Printf.fprintf f "<?xml version=\"1.0\" standalone=\"no\"?>
@@ -4287,11 +4286,9 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
   Printf.fprintf f "</svg>%!"
 ```
 
-**Drawing to screen:** We can also draw interactively using the `Graphics` library.
-In the toplevel, load it with `#load "graphics.cma";;`. When compiling, provide
-`graphics.cma` to the command.
+**Drawing to screen:** We can also draw interactively using the *Bogue* library.
 
-```ocaml skip
+```ocaml env=ch6
 let draw_to_screen ~w ~h curves =
   Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);
   Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)
