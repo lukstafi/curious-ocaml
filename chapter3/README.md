@@ -54,6 +54,17 @@ let iso1 = step1r |- step2r |- step3r
 
 Here, the data first passes through `step1r`, then the result goes to `step2r`, and finally to `step3r`. This "pipeline" style of programming is particularly popular in languages like F# and has influenced the design of many modern programming languages.
 
+In the table above, the operator is written as `\|-` because Markdown tables use `|` to separate columns. In actual OCaml code, the operator name is `(|-)`.
+
+```ocaml
+let (|-) f g x = g (f x)
+```
+
+Two related (but distinct) tools are also worth knowing:
+
+- The standard library provides backward composition as `Fun.compose`, where `Fun.compose f g x = f (g x)`.
+- OCaml also provides the forward *application* operator `(|>)` (a pipeline): `x |> f |> g` means `g (f x)`. Unlike `(|-)`, this is not composition of functions but immediate application to a value.
+
 #### Partial Application
 
 Both composition examples above rely on **partial application**, a technique we introduced in the previous chapter. Recall that `((+) 1)` is a function that adds 1 to its argument---we have provided only one of the two arguments that `(+)` requires. Partial application occurs whenever we supply fewer arguments than a function expects; the result is a new function that waits for the remaining arguments.
@@ -61,6 +72,8 @@ Both composition examples above rely on **partial application**, a technique we 
 Consider the composition `step1r |- step2r |- step3r`. How exactly does partial application come into play here? The composition operator `(|-)` is defined as `let (|-) f g x = g (f x)`, which means it takes *three* arguments: two functions `f` and `g`, and a value `x`. When we write `step1r |- step2r`, we are partially applying `(|-)` with just two arguments. The result is a function that still needs the final argument `x`.
 
 *Exercise:* Think about the types involved. If `step1r` has type `'a -> 'b` and `step2r` has type `'b -> 'c`, what is the type of `step1r |- step2r`?
+
+*Check:* `step1r |- step2r` has type `'a -> 'c`. (Composition “cancels” the middle type `'b`.)
 
 #### Power Function
 
@@ -83,13 +96,13 @@ When `n <= 0`, we return the identity function `fun x -> x`. Otherwise, we compo
 
 This `power` function is surprisingly versatile. For example, we can use it to define addition in terms of the successor function:
 
-```
+```ocaml
 let add n = power ((+) 1) n
 ```
 
 Here `add 5 7` would compute $7 + 1 + 1 + 1 + 1 + 1 = 12$. We could even define multiplication:
 
-```
+```ocaml
 let mult k n = power ((+) k) n 0
 ```
 
@@ -100,7 +113,7 @@ This computes $0 + k + k + \ldots + k$ (adding $k$ a total of $n$ times), giving
 A beautiful application of `power` is computing higher-order derivatives. First, let us define a numerical approximation of the derivative using the standard finite difference formula:
 
 ```ocaml
-let derivative dx f = fun x -> (f(x +. dx) -. f(x)) /. dx
+let derivative dx f = fun x -> (f (x +. dx) -. f x) /. dx
 ```
 
 This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x)$ when `dx` is small. Notice the explicit `fun x -> ...` syntax, which emphasizes that `derivative dx f` is itself a function---we are transforming a function `f` into its derivative function.
@@ -108,7 +121,7 @@ This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x
 We can write the same definition more concisely using OCaml's curried function syntax:
 
 ```ocaml
-let derivative dx f x = (f(x +. dx) -. f(x)) /. dx
+let derivative dx f x = (f (x +. dx) -. f x) /. dx
 ```
 
 Both definitions are equivalent, but the first makes the "function returning a function" structure more explicit, while the second is more compact.
@@ -121,8 +134,8 @@ Now comes the payoff. With `power` and `derivative`, we can elegantly compute hi
 
 ```ocaml
 let pi = 4.0 *. atan 1.0
-let sin''' = (power (derivative 1e-5) 3) sin;;
-sin''' pi
+let sin''' = (power (derivative 1e-5) 3) sin
+let _approx = sin''' pi
 ```
 
 Here `sin'''` is the third derivative of sine. The expression `(power (derivative 1e-5) 3)` creates a function that applies the derivative operation three times---exactly what we need for the third derivative.
@@ -161,6 +174,10 @@ $$
 
 **Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
 
+**Meta-syntax note.** In the grammar and rules below, we write constructors as if they were truly $n$-ary, e.g. $C^3(a_1,a_2,a_3)$. In actual OCaml syntax, constructors take exactly one argument; “multiple arguments” are represented by a tuple, e.g. `Node (v1, v2, v3)`. The $n$-ary presentation is a convenient mathematical shorthand.
+
+**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. Real OCaml is *strict* (call-by-value) and evaluates subexpressions in a deterministic order (in current OCaml implementations this is often right-to-left); the details matter when you have effects (exceptions, printing, mutation), but are usually irrelevant for purely functional code.
+
 #### The `fix` Primitive
 
 Our grammar above includes functions defined with `fun`, but what about recursive functions defined with `let rec`? To keep our semantics simple, we introduce a primitive `fix` that captures the essence of recursion:
@@ -192,6 +209,8 @@ Partially applied primitives like `(+) 3` are also values. The expression `(+) 3
 The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every occurrence of $x$ in $a$ is replaced by $v$.
 
 For example, if $a$ is the expression `x + x * y` and we substitute 3 for `x`, we get `3 + 3 * y`. In our notation: `(x + x * y)[x := 3] = 3 + 3 * y`.
+
+In the presence of binders like `fun x -> ...` (and pattern-bound variables), substitution must be **capture-avoiding**: we are allowed to rename bound variables so we do not accidentally change which occurrence refers to which binder.
 
 **Implementation note:** Although we describe substitution as "replacing" variables with values, the actual implementation in OCaml does not duplicate the value $v$ in memory each time it appears. Instead, OCaml uses closures and sharing to ensure that values are stored once and referenced wherever needed. This is both more efficient and essential for handling recursive data structures.
 
@@ -279,7 +298,7 @@ C^n(a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n(a_1, \ldots, a_i', \
 $$
 
 These rules describe *where* reduction can happen:
-- In a function application $a_1 \; a_2$, either the function ($a_1$) or the argument ($a_2$) can be evaluated. The two rules allow evaluation in arbitrary order---this gives the implementation flexibility in how it schedules computation.
+- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml itself uses a fixed evaluation order.
 - In a constructor application, any argument can be evaluated.
 - In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
 - In a match expression, the scrutinee (the expression being matched) must be evaluated before pattern matching can proceed.
@@ -299,6 +318,14 @@ This rule is subtle but powerful. Let us unpack it:
 3. Because `fix` has arity 2, the expression `(fix v1)` is a *partially applied primitive*---and partially applied primitives are values! This is crucial: it means `(fix v1)` will not be evaluated further until it is applied to another argument inside $v_1$.
 
 This delayed evaluation is what prevents infinite loops. If `(fix v1)` were evaluated immediately, we would get an infinite chain of expansions. Instead, evaluation only continues when the recursive function actually makes a recursive call.
+
+`fix` is not an OCaml primitive; it is a pedagogical device. If you *did* want to define it directly in OCaml, you could (ironically) do so using `let rec`:
+
+```ocaml
+let fix f =
+  let rec self x = f self x in
+  self
+```
 
 #### Practice
 
@@ -345,7 +372,7 @@ We can also define *symbolic differentiation*---computing the derivative of an e
 ```ocaml
 let rec deriv exp dv =
   match exp with
-  | Const c -> Const 0.0
+  | Const _ -> Const 0.0
   | Var v -> if v = dv then Const 1.0 else Const 0.0
   | Sum(f, g) -> Sum(deriv f dv, deriv g dv)
   | Diff(f, g) -> Diff(deriv f dv, deriv g dv)
@@ -366,6 +393,7 @@ For convenience, let us define some operators and variables so we can write expr
 ```ocaml
 let x = Var "x"
 let y = Var "y"
+let z = Var "z"
 let (+:) f g = Sum (f, g)
 let (-:) f g = Diff (f, g)
 let ( *: ) f g = Prod (f, g)
@@ -382,7 +410,63 @@ let example = !:3.0 *: x +: !:2.0 *: y +: x *: x *: y
 let env = ["x", 1.0; "y", 2.0]
 ```
 
-When we trace the evaluation using OCaml's `#trace` directive, we can see the recursive structure of the computation unfold:
+For nicer output, it is helpful to define a pretty-printer that displays expressions in infix notation (this is adapted from `Lec3.ml`):
+
+```ocaml
+let print_expr ppf exp =
+  let open_paren prec op_prec =
+    if prec > op_prec then Format.fprintf ppf "(@["
+    else Format.fprintf ppf "@[" in
+  let close_paren prec op_prec =
+    if prec > op_prec then Format.fprintf ppf "@])"
+    else Format.fprintf ppf "@]" in
+  let rec print prec exp =
+    match exp with
+    | Const c -> Format.fprintf ppf "%.2f" c
+    | Var v -> Format.fprintf ppf "%s" v
+    | Sum(f, g) ->
+      open_paren prec 0;
+      print 0 f; Format.fprintf ppf "@ +@ "; print 0 g;
+      close_paren prec 0
+    | Diff(f, g) ->
+      open_paren prec 0;
+      print 0 f; Format.fprintf ppf "@ -@ "; print 1 g;
+      close_paren prec 0
+    | Prod(f, g) ->
+      open_paren prec 2;
+      print 2 f; Format.fprintf ppf "@ *@ "; print 2 g;
+      close_paren prec 2
+    | Quot(f, g) ->
+      open_paren prec 2;
+      print 2 f; Format.fprintf ppf "@ /@ "; print 3 g;
+      close_paren prec 2
+  in
+  print 0 exp
+```
+
+And for tracing, we define a specialized evaluator `eval_1_2` with the environment baked in (so the trace focuses on the expression structure):
+
+```ocaml
+let rec eval_1_2 exp =
+  match exp with
+  | Const c -> c
+  | Var v ->
+    (try List.assoc v env with Not_found -> raise (Unbound_variable v))
+  | Sum(f, g) -> eval_1_2 f +. eval_1_2 g
+  | Diff(f, g) -> eval_1_2 f -. eval_1_2 g
+  | Prod(f, g) -> eval_1_2 f *. eval_1_2 g
+  | Quot(f, g) -> eval_1_2 f /. eval_1_2 g
+```
+
+In the toplevel, you can now install the printer and trace the evaluation:
+
+```ocaml skip
+# #install_printer print_expr;;
+# #trace eval_1_2;;
+# eval_1_2 example;;
+```
+
+The trace output makes the recursive structure of the computation very concrete:
 
 ```
 eval_1_2 <-- 3.00 * x + 2.00 * y + x * x * y
@@ -430,7 +514,7 @@ Excuse me for not formally defining what a *function call* is... Computers norma
 
 The key insight is that not all function calls require a new stack frame. A **tail call** is a function call that is performed as the very last action when computing a function---there is nothing more to do after the call returns except to return that value. For example:
 
-```
+```ocaml skip
 let f x = g (x + 1)
 ```
 
@@ -438,7 +522,7 @@ The call to `g` is a tail call. Once `g` returns some value, `f` simply returns 
 
 In contrast:
 
-```
+```ocaml skip
 let f x = 1 + g x
 ```
 
@@ -488,7 +572,7 @@ let rec unfold n = if n <= 0 then [] else n :: unfold (n-1)
 
 This function builds a list counting down from `n` to 1. It is not tail recursive because after the recursive call `unfold (n-1)` returns, we must cons `n` onto the front of the result.
 
-```
+```ocaml skip
 # unfold 100000;;
 - : int list = [100000; 99999; 99998; 99997; ...]
 
@@ -507,7 +591,7 @@ let rec unfold_tcall acc n =
 
 The accumulator `acc` collects the list as we go. We cons each element onto the accumulator *before* the recursive call. However, there is a catch: because we are building the list as we descend into the recursion (rather than as we return), the list comes out in reverse order:
 
-```
+```ocaml skip
 # unfold_tcall [] 100000;;
 - : int list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; ...]
 

@@ -26,7 +26,7 @@ Recall that we use `fix` instead of `let rec` to simplify our rules for recursio
 
 Consider the following recursive `length` function applied to a two-element list:
 
-```
+```ocaml skip
 let rec fix f x = f (fix f) x
 
 type int_list = Nil | Cons of int * int_list
@@ -34,15 +34,15 @@ type int_list = Nil | Cons of int * int_list
 let length =
   fix (fun f l ->
     match l with
-      | Nil -> 0
-      | Cons (x, xs) -> 1 + f xs)
-
+    | Nil -> 0
+    | Cons (_x, xs) -> 1 + f xs)
+in
 length (Cons (1, (Cons (2, Nil))))
 ```
 
-Let us trace through this computation step by step. First, we eliminate the `let` binding:
+Let us trace through this computation step by step. First, we eliminate the `let ... in ...` binding for `length`:
 
-$$\texttt{let } x = v \texttt{ in } a \Downarrow a[x := v]$$
+$$\texttt{let } x = v \texttt{ in } a \rightsquigarrow a[x := v]$$
 
 This gives us:
 
@@ -55,7 +55,7 @@ fix (fun f l ->
 
 Next, we apply the `fix` rule:
 
-$$\texttt{fix}^2 \; v_1 \; v_2 \Downarrow v_1 \; (\texttt{fix}^2 \; v_1) \; v_2$$
+$$\texttt{fix}^2 \; v_1 \; v_2 \rightsquigarrow v_1 \; (\texttt{fix}^2 \; v_1) \; v_2$$
 
 This unfolds to:
 
@@ -91,7 +91,7 @@ Pattern matching against a non-matching constructor moves to the next branch:
 $$
 \begin{aligned}
 & \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with} \\
-& C_2^n(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \Downarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm
+& C_2^n(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm
 \end{aligned}
 $$
 
@@ -100,7 +100,7 @@ Pattern matching against a matching constructor performs substitution:
 $$
 \begin{aligned}
 & \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with} \\
-& C_1^n(x_1, \ldots, x_n) \texttt{ -> } a \texttt{ | } \ldots \Downarrow a[x_1 := v_1; \ldots; x_n := v_n]
+& C_1^n(x_1, \ldots, x_n) \texttt{ -> } a \texttt{ | } \ldots \rightsquigarrow a[x_1 := v_1; \ldots; x_n := v_n]
 \end{aligned}
 $$
 
@@ -130,7 +130,7 @@ One more unfolding and pattern match against `Nil` gives:
 
 Finally, applying the built-in addition:
 
-$$f^n \; v_1 \; \ldots \; v_n \Downarrow f(v_1, \ldots, v_n)$$
+$$f^n \; v_1 \; \ldots \; v_n \rightsquigarrow f(v_1, \ldots, v_n)$$
 
 We obtain the result: `2`.
 
@@ -153,6 +153,8 @@ Note that this rule is more general than the one we use for OCaml evaluation. In
 Lambda-calculus also uses **$\alpha$-conversion** (bound variable renaming), or equivalent techniques, to avoid **variable capture**---the unintended binding of free variables during substitution. We will explore the implications of $\beta$-reduction more deeply in the chapter on laziness.
 
 Why is $\beta$-reduction more general than our evaluation rule? Consider the expression $(\lambda x. x) \; ((\lambda y. y) \; z)$. With $\beta$-reduction, we could reduce the outer application first, obtaining $((\lambda y. y) \; z)$. Our evaluation rule would require first reducing the argument to a value---but here `z` is a free variable, not a value, so we would be stuck!
+
+This example is intentionally an *open term* (it has a free variable `z`): in lambda-calculus we often reason about open terms up to $\beta$-equivalence, while programming-language evaluation is usually defined for *closed* programs.
 
 ### 4.3 Booleans
 
@@ -206,10 +208,10 @@ From now on, we will use OCaml syntax for our lambda-calculus programs. This mak
 An important observation is that our encoded booleans already implement conditional selection:
 
 ```ocaml
-let if_then_else = fun b -> b  (* Booleans select the argument! *)
+let if_then_else b t e = b t e  (* Booleans select the branch! *)
 ```
 
-Wait---`if_then_else` is just the identity function? Yes! Since `c_true` returns its first argument and `c_false` returns its second, `if_then_else b then_branch else_branch` simply applies `b` to the two branches. The boolean *is* the conditional. This is one of the elegant surprises of Church encoding.
+Wait---is `if_then_else` “just” the identity function? Up to $\eta$-equivalence, yes: `fun b -> b` and `fun b t e -> b t e` are the same function. Since `c_true` returns its first argument and `c_false` returns its second, `if_then_else b t e` simply applies `b` to the two branches. The boolean *is* the conditional.
 
 Remember to play with these functions in the toplevel to build intuition. Try expressions like `if_then_else c_true "yes" "no"` and see what happens.
 
@@ -273,6 +275,8 @@ let rec decode_pnat pn =               (* these functions are straightforward! *
   else 1 + decode_pnat (pn_pred (Obj.magic pn))
 ```
 
+Needless to say, `Obj.magic` is unsafe and should not be used in real code; here it is only a convenient bridge from untyped lambda-terms to OCaml so we can test our encodings.
+
 ### 4.6 Church Numerals
 
 Do you remember our function `power f n` from Chapter 3 that composed a function with itself `n` times? We will use a similar idea for a different, and historically important, representation of numbers.
@@ -313,11 +317,14 @@ let cn_add = fun n m f x -> n f (m f x)  (* Put n of f in front *)
 let cn_mult = fun n m f -> n (m f)       (* Repeat n times *)
                                           (* putting m of f in front *)
 let cn_prev n =
-  fun f x ->                  (* This is the "Church numeral signature" *)
-    n                         (* The only thing we have is an n-step loop *)
-      (fun g v -> v (g f))    (* We need sth that operates on f *)
-      (fun z -> x)            (* We need to ignore the innermost step *)
-      (fun z -> z)      (* We've built a "machine" not results -- start the machine *)
+  fun f x ->
+    (* A Church numeral is an n-step iterator. Predecessor is tricky because
+       we cannot “subtract an iteration”; instead we build a small state
+       transformer that delays the use of [f] and then skips the first step. *)
+    n
+      (fun g h -> h (g f))
+      (fun _z -> x)
+      (fun z -> z)
 ```
 
 Addition is intuitive: to add $n$ and $m$, we first apply `f` $m$ times (giving us `m f x`), then apply `f` $n$ more times. Multiplication is even more clever: we apply the operation "apply `f` $m$ times" $n$ times, which computes $m \times n$ applications of `f`.
@@ -330,84 +337,84 @@ The predecessor function is ingenious and worth studying carefully. The challeng
 
 The predecessor function is tricky enough that it is worth tracing through a complete example. Let us trace through `decode_cnat (cn_prev cn3)` to see how it computes 2 from 3:
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 (cn_prev cn3) ((+) 1) 0
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 (fun f x ->
     cn3
-      (fun g v -> v (g f))
-      (fun z -> x)
+      (fun g h -> h (g f))
+      (fun _z -> x)
       (fun z -> z)) ((+) 1) 0
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 ((fun f x -> f (f (f x)))
-      (fun g v -> v (g ((+) 1)))
+      (fun g h -> h (g ((+) 1)))
       (fun z -> 0)
       (fun z -> z))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
-((fun g v -> v (g ((+) 1)))
-  ((fun g v -> v (g ((+) 1)))
-    ((fun g v -> v (g ((+) 1)))
+((fun g h -> h (g ((+) 1)))
+  ((fun g h -> h (g ((+) 1)))
+    ((fun g h -> h (g ((+) 1)))
       (fun z -> 0))))
   (fun z -> z))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 ((fun z -> z)
-  (((fun g v -> v (g ((+) 1)))
-    ((fun g v -> v (g ((+) 1)))
+  (((fun g h -> h (g ((+) 1)))
+    ((fun g h -> h (g ((+) 1)))
       (fun z -> 0)))) ((+) 1)))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
-(fun g v -> v (g ((+) 1)))
-  ((fun g v -> v (g ((+) 1)))
+(fun g h -> h (g ((+) 1)))
+  ((fun g h -> h (g ((+) 1)))
     (fun z -> 0)) ((+) 1)
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
-((+) 1) ((fun g v -> v (g ((+) 1)))
+((+) 1) ((fun g h -> h (g ((+) 1)))
           (fun z -> 0) ((+) 1))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 ((+) 1) (((+) 1) ((fun z -> 0) ((+) 1)))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 ((+) 1) (((+) 1) (0))
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 ((+) 1) 1
 ```
 
-$$\Downarrow$$
+$$\rightsquigarrow^*$$
 
 ```
 2
@@ -553,11 +560,11 @@ A **list** is either empty (often called `Empty` or `Nil`) or consists of an ele
 
 With these definitions, we can write a function to add all numbers stored inside a list:
 
-$$\texttt{addlist} \; l = l \; (\lambda ht. \texttt{cn\_add} \; h \; (\texttt{addlist} \; t)) \; \texttt{cn0}$$
+$$\texttt{addlist} \; l = l \; (\lambda h t. \texttt{cn\_add} \; h \; (\texttt{addlist} \; t)) \; \texttt{cn0}$$
 
 To make a proper definition, we apply $\texttt{fix}$ to the solution of the above equation:
 
-$$\texttt{addlist} = \texttt{fix} \; (\lambda fl. l \; (\lambda ht. \texttt{cn\_add} \; h \; (f \; t)) \; \texttt{cn0})$$
+$$\texttt{addlist} = \texttt{fix} \; (\lambda f l. l \; (\lambda h t. \texttt{cn\_add} \; h \; (f \; t)) \; \texttt{cn0})$$
 
 For **trees**, let us use a different form of binary trees than we have seen before: instead of keeping elements in inner nodes, we will keep elements in leaves. This is sometimes called an "external" tree structure.
 
@@ -568,11 +575,11 @@ Again, we have two variants, so we use two-argument selector functions:
 
 To add numbers stored inside a tree:
 
-$$\texttt{addtree} \; t = t \; (\lambda n.n) \; (\lambda lr. \texttt{cn\_add} \; (\texttt{addtree} \; l) \; (\texttt{addtree} \; r))$$
+$$\texttt{addtree} \; t = t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (\texttt{addtree} \; l) \; (\texttt{addtree} \; r))$$
 
 And in solved form:
 
-$$\texttt{addtree} = \texttt{fix} \; (\lambda ft. t \; (\lambda n.n) \; (\lambda lr. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
+$$\texttt{addtree} = \texttt{fix} \; (\lambda f t. t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
 
 ```ocaml
 let rec fix f x = f (fix f) x
@@ -611,7 +618,7 @@ We have been coding in untyped lambda-calculus and verifying our code works in O
 
 Let us return to pair-encoded numbers and define addition:
 
-```
+```ocaml skip
 let pn_add m n =
   fix (fun f m n ->
     if_then_else (pn_is_zero m)
@@ -632,7 +639,7 @@ To avoid looping recursion, you need to guard all recursive calls. Besides putti
 
 The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value. This delays the evaluation of both branches until the boolean has selected one of them:
 
-```
+```ocaml skip
 let id x = x
 let rec fix f x = f (fix f) x
 let pn1 x = pn_succ pn0 x

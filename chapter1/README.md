@@ -11,6 +11,8 @@
 
 **Conventions.** OCaml code blocks are intended to be runnable unless marked with `ocaml skip` (used for illustrative or partial snippets).
 
+Throughout this chapter we use *natural deduction* in the style of intuitionistic (constructive) logic. This choice is not accidental: it is exactly the fragment of logic that lines up with the “pure” core of functional programming via the Curry–Howard correspondence.
+
 ### 1.1 In the Beginning there was Logos
 
 What logical connectives do you know? Before we write any code, let us take a step back and think about logic itself. The connectives listed below form the foundation of reasoning, and as we will discover, they also form the foundation of programming.
@@ -115,7 +117,7 @@ The power of induction lies in this: once we have the base case and the inductiv
 
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry-Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. This deep correspondence reveals that logical proofs and computer programs are, in a precise sense, the same thing!
+We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
 
 Under this correspondence:
 
@@ -124,18 +126,25 @@ Under this correspondence:
 - **Introduction rules** correspond to **constructors** (ways to build values)
 - **Elimination rules** correspond to **destructors** (ways to use values)
 
-This is not merely an analogy. The formal rules for logic and the formal rules for type checking are *identical*. When you write a well-typed program, you are simultaneously constructing a proof!
+When you write a well-typed program, you are (implicitly) constructing a derivation tree that proves a typing judgement.
 
 The following table shows how each logical connective corresponds to a programming construct in OCaml:
 
-| Logic | Type | Expression | Intuition |
+| Logic | OCaml type (example) | Example program | Intuition |
 |-------|------|------------|-----------|
 | $\top$ | `unit` | `()` | The trivially true proposition; the type with exactly one value |
-| $\bot$ | `'a` | `raise` | Falsehood; a type with no values (exceptions escape normal typing) |
+| $\bot$ | `void` (an empty type) | `match v with _ -> .` | Falsehood; a type with no values |
 | $\wedge$ | `*` | `(,)` | Conjunction corresponds to pairs: having both A and B |
-| $\vee$ | `\|` | `match` | Disjunction corresponds to variants: having either A or B |
+| $\vee$ | a variant type | `Left x` / `Right y` | Disjunction corresponds to sums: having either A or B |
 | $\rightarrow$ | `->` | `fun` | Implication corresponds to functions: given A, produce B |
-| induction | - | `rec` | Inductive proofs correspond to recursive functions |
+| induction | - | `let rec` | Inductive proofs correspond to recursive definitions |
+
+For example, the identity function corresponds to the tautology $a \rightarrow a$:
+
+```ocaml
+# fun x -> x;;
+- : 'a -> 'a = <fun>
+```
 
 Let us now see the precise typing rules for each OCaml construct, presented in the same style as our logical rules:
 
@@ -145,31 +154,73 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
   The unit value `()` always has type `unit`. This is like $\top$ in logic: we can always produce it without any premises.
 
-- **Exception (falsehood):** $\frac{\text{oops!}}{\texttt{raise exn} : c}$ can produce any type
+- **Empty type (falsehood):** in OCaml we can *define* an empty type (a type with no constructors):
 
-  The `raise` expression can have *any* type $c$. This corresponds to the principle of "explosion" in logic: from falsehood, anything follows. In practice, `raise` never actually produces a value; it transfers control to an exception handler. The type system allows it to have any type because the expression will never complete normally.
+  ```ocaml
+  type void = |
+  ```
+
+  There is no way to construct a value of type `void` using ordinary, terminating code. But if we somehow have a `v : void`, then we can derive anything from it (falsity elimination):
+
+  ```ocaml
+  let absurd (v : void) : 'a =
+    match v with _ -> .
+  ```
+
+  This corresponds closely to the logical rule $\frac{\bot}{a}$.
+
+  OCaml also has *effects* (notably exceptions). Because `raise e` never returns normally, the type checker allows it to have any result type:
+  $$
+  \frac{e : \texttt{exn}}{\texttt{raise } e : a}
+  $$
+  This is useful in practice, but it is also a good reminder that effects complicate the neat “proofs-as-programs” story.
 
 - **Pair (conjunction):**
   - Introduction: $\frac{s : a \quad t : b}{(s, t) : a * b}$
-  - Elimination: $\frac{p : a * b}{\texttt{fst}~p : a}$ and $\frac{p : a * b}{\texttt{snd}~p : b}$
+  - Elimination: from `p : a * b` we can extract either component (e.g. by pattern matching, or via `fst`/`snd`)
 
   To construct a pair, you need both components. To use a pair, you can extract either component. This mirrors conjunction perfectly: to prove "A and B", you need proofs of both; given "A and B", you can conclude either A or B.
 
-- **Variant (disjunction):**
-  - Introduction: $\frac{s : a}{\texttt{A}(s) : \texttt{A of}~a~|~\texttt{B of}~b}$
-  - Elimination (match): given $t$ of variant type and branches for each case, produce result $c$
+- **Variant (disjunction):** first, we define a sum type (a two-way choice):
+
+  ```ocaml
+  type ('a, 'b) either = Left of 'a | Right of 'b
+  ```
+
+  - Introduction: from `x : a` we get `Left x : (a, b) either`, and from `y : b` we get `Right y : (a, b) either`
+  - Elimination: given `t : (a, b) either` and a branch for each case, produce a result `c` (pattern matching)
+
+  The shape of the elimination rule is exactly “reasoning by cases”: to use an `either`, you must handle both `Left` and `Right`.
+
+  ```ocaml
+  let either f g = function
+    | Left x -> f x
+    | Right y -> g y
+  ```
+
+  A built-in example is `bool`, which you can think of as a two-constructor variant; the `if ... then ... else ...` expression is just a specialized form of case analysis on a boolean.
+
+  ```ocaml
+  let choose b x y =
+    if b then x else y
+
+  let choose' b x y =
+    match b with
+    | true -> x
+    | false -> y
+  ```
 
   To construct a variant, you only need one of the alternatives. To use a variant, you must handle *all* possible cases (pattern matching). This mirrors disjunction: to prove "A or B", you only need one; to use "A or B", you must consider both possibilities.
 
 - **Function (implication):**
-  - Introduction: $\frac{\genfrac{}{}{0pt}{}{[x : a]}{e : b}}{\texttt{fun}~x \to e : a \to b}$
+  - Introduction: $\frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e : b}}{\texttt{fun}~x \to e : a \to b}$
   - Elimination (application): $\frac{f : a \to b \quad t : a}{f~t : b}$
 
   To construct a function, you assume you have an input of type $a$ (the parameter $x$) and show how to produce a result of type $b$. To use a function, you apply it to an argument. This mirrors implication: to prove "A implies B", assume A and derive B; given "A implies B" and A, conclude B.
 
-- **Recursion (induction):** $\frac{\genfrac{}{}{0pt}{}{[x : a]}{e : a}}{\texttt{rec}~x = e : a}$
+- **Recursion (induction):** recursion is not a connective, but it matches the *shape* of induction: in a recursive definition you are allowed to assume the function being defined (the “induction hypothesis”) when defining its body.
 
-  In recursion, the function being defined can refer to itself. This corresponds to induction: we can use the property we are trying to prove (the induction hypothesis) in the inductive step.
+  In OCaml, recursion is introduced with `let rec` (there is no standalone `rec` expression).
 
 #### Definitions
 
@@ -177,42 +228,42 @@ Writing out expressions and types repetitively quickly becomes tedious. More imp
 
 **Type definitions** are written: `type ty =` some type.
 
-- Writing `A(s) : A of a | B of b` in the table above was a simplification. In practice, we usually have to define the type first and then use it. For example, using `int` for $a$ and `string` for $b$:
+- In OCaml, disjunction-like types are not written as something like `a | b` directly; instead, you define a *variant type* and then use its constructors. For example:
   ```ocaml
   type int_string_choice = A of int | B of string
   ```
-  This allows us to write `A(s) : int_string_choice`.
+  This allows us to write `A x : int_string_choice` for any `x : int`, and `B y : int_string_choice` for any `y : string`.
 
-- Why do we need to define variant types? The reasons are: exhaustiveness checks, performance of generated code, and ease of type inference. When OCaml sees `A(5)`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
+- Why do we need to define variant types? The reasons are: exhaustiveness checks, performance of generated code, and ease of type inference. When OCaml sees `A 5`, it needs to figure out (or "infer") the type. Without a type definition, how would OCaml know whether this is `A of int | B of string` or `A of int | B of float | C of bool`? The definition tells OCaml exactly what variants exist. When you match `| A i -> ...`, the compiler will warn you if you forgot to also cover `C b` in your match patterns.
 
-- OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A(s) : [`A of a | `B of b] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible, we will discuss them in chapter 11.
+- OCaml does provide an alternative: *polymorphic variants*, written with a backtick. We can write `` `A x : [ `A of a | `B of b ] ``. With `` ` `` variants, OCaml does infer what other variants might exist based on usage. These types are powerful and flexible; we will discuss them in chapter 11.
 
 - Tuple elements do not need labels because we always know at which position a tuple element stands: the first element is first, the second is second, and so on. However, having labels makes code much clearer, especially when tuples have many components or components of the same type. For this reason, we can define a *record type*:
 
-  ```ocaml skip
-  type int_string_record = {a: int; b: string}
+  ```ocaml
+  type int_string_record = { a : int; b : string }
   ```
 
   and create its values: `{a = 7; b = "Mary"}`. OCaml 5.4 and newer also support labeled tuples, we will not discuss these.
 
-- We access the *fields* of records using the dot notation: `{a=7; b="Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
+- We access the *fields* of records using the dot notation: `{a = 7; b = "Mary"}.b = "Mary"`. Unlike tuples where you must remember "the second element is the name", with records you can write `.b` to get the field named `b`.
 
 #### Expression Definitions
 
-The recursive expression `rec x = e` that appeared in our table was a simplification: `rec` (usually called `fix` in programming language theory) cannot appear alone in OCaml! It must always be part of a `let` definition.
+In many presentations of the Curry–Howard correspondence (and in programming language theory), recursion is introduced via a standalone operator often called `fix`. OCaml does not have a standalone `fix` expression: recursion is introduced only as part of a `let rec` definition.
 
 This brings us to **expression definitions**, which let us give names to values. The typing rules for definitions are a bit more complex than what we have seen so far:
 
 $$
-\frac{e_1 : a \quad \frac{[x : a]}{e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
+\frac{e_1 : a \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
 $$
 
-This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry-Howard correspondence.
+This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry–Howard correspondence.
 
 For recursive definitions, we need an additional rule:
 
 $$
-\frac{\frac{[x : a]}{e_1 : a} \quad \frac{[x : a]}{e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b}
+\frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_1 : a} \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b}
 $$
 
 Notice the crucial difference: in the recursive case, $x$ can appear in $e_1$ itself! This is what allows functions to call themselves. The name $x$ is visible both in its own definition ($e_1$) and in the body that uses the definition ($e_2$).
@@ -238,8 +289,10 @@ Operators like `+`, `*`, `<`, `=` are simply names of functions. In OCaml, there
 Just like other names, you can define your own operators:
 
 ```ocaml
-let (+:) a b = String.concat "" [a; b];;  (* Special way of defining *)
-"Alpha" +: "Beta";;  (* but normal way of using operators *)
+# let (+:) a b = String.concat "" [a; b];;
+val ( +: ) : string -> string -> string = <fun>
+# "Alpha" +: "Beta";;
+- : string = "AlphaBeta"
 ```
 
 Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".

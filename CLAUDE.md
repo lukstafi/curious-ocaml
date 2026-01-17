@@ -111,3 +111,72 @@ let x = 42  (* This is a margin comment *)
 ```
 
 The semantic highlighting commands can be stripped during extraction - they're primarily for visual presentation in TeXmacs.
+
+## Editorial Review of the Translation
+
+### Notes after Chapter 1 pass (2026-01-17)
+
+- **Keep OCaml syntax honest:** avoid pseudo-syntax like `a | b` as a type or constructor application `A(5)`; use real OCaml forms (`type ... = ...`, `A 5`, etc.).
+- **Treat Curry–Howard as “pure-core exact”:** if using effects (`raise`, non-termination) as examples, explicitly flag that they live outside the neat proof/program correspondence.
+- **Prefer an explicit empty type for $\bot$:** use `type void = |` plus the empty-match idiom `match v with _ -> .` to mirror $\frac{\bot}{a}$.
+- **Use consistent proof-rule notation:** for hypothetical derivations, consistently show assumptions with `\genfrac` and an ellipsis (`\vdots`) rather than a misleading single-step fraction.
+- **Be deliberate about mdx style:** mix plain ` ```ocaml` blocks (no output) and toplevel `# ...;;` blocks (with output) intentionally; avoid adding outputs in exercise statements.
+- **Watch for redundancy:** when expanding lecture notes, keep the “informal explanation” and the “formal rule” but trim repeated restatements of the same idea.
+
+### Notes after Chapter 2 pass (2026-01-17)
+
+- **Avoid shadowing standard names in examples:** prefer `my_list`, `calendar_date`, `compare_int`, etc. over `list`, `date`, `compare` when later code or prose might rely on the standard meaning.
+- **Be explicit about OCaml special cases:** constructor capitalization has exceptions (`true`/`false`, `[]`/`(::)`); call this out when teaching “constructors are capitalized” to prevent confusion.
+- **Keep “type as polynomial” claims scoped:** note what is exact (finite sums/products) vs heuristic (infinite types, recursion as equations/rational forms), and separate “equal polynomials” from “isomorphic types” as a theorem/goal rather than a given.
+- **Make code blocks either self-contained or clearly non-runnable:** if an example depends on earlier definitions or uses external libraries/side effects, use `ocaml skip` or an untagged block rather than letting mdx accidentally execute it.
+- **Fix empty-type syntax:** use `type void = |` (and, when needed, the empty match `match v with _ -> .`) rather than an abstract `type void` declaration, which is not valid in an `.ml` context and is conceptually different.
+
+### Notes after Chapter 3 pass (2026-01-17)
+
+- **Separate “composition” from “pipelining”:** distinguish function composition (`Fun.compose` or custom operators like `(-|)`/`(|-)`) from forward application (`(|>)`); when using Markdown tables, remember `|` must be escaped but the OCaml operator name should still be stated explicitly.
+- **Keep OCaml application syntax idiomatic:** prefer `f x` and `f (x +. dx)` over C-like `f(x)` in new prose/examples.
+- **Be explicit about meta-syntax vs OCaml syntax in semantics:** if you write $C^n(a_1,\ldots,a_n)$, explain the tuple encoding (`C (a1, ..., an)`); likewise, explicitly state that substitution is capture-avoiding.
+- **State evaluation-order caveats early:** simplified small-step rules may allow reducing in multiple places; clarify that OCaml is strict and uses a deterministic evaluation order, which matters with effects.
+- **Mark toplevel/effectful demonstrations as non-runnable:** put `#trace`, `#install_printer`, and “intentional stack overflow” demos in `ocaml skip` (or untagged) blocks so mdx won’t execute them.
+- **Keep numerical demos mdx-stable:** avoid hard-coding float outputs from approximations; prefer code-without-output or results that are robust across platforms/versions.
+
+### Notes after Chapter 4 pass (2026-01-17)
+
+- **Keep reduction-notation consistent:** prefer a single “one-step” arrow (e.g. `\rightsquigarrow`) and use a closure like `\rightsquigarrow^*` when you mean “many steps”, instead of mixing unrelated symbols.
+- **Separate equivalence from evaluation:** when introducing full $\beta$-reduction, explicitly say it’s an *equational theory* (often on open terms), and then explain that real languages pick an evaluation strategy (call-by-value / call-by-name) for executing closed programs.
+- **Be explicit about currying/η when teaching encodings:** if you say “this is the identity”, show the eta-expanded form too (`fun b t e -> b t e`) so readers don’t get confused about arity.
+- **Watch bound-variable typos in math:** in formulas like `\lambda h t. ...`, ensure the bound variables match what’s used in the body; avoid `\lambda ht.` unless you really mean a single argument.
+- **Label unsafe OCaml bridges loudly:** if using `Obj.magic` or `#rectypes` to simulate untyped lambda-terms, add a clear “testing-only / not real code” caveat and keep such blocks `ocaml skip` when they would diverge.
+- **Keep long traces aligned with definitions:** if you rewrite a combinator (e.g. Church predecessor), update the step-by-step trace accordingly so the reader can follow mechanically.
+
+### Notes after Chapter 5 pass (2026-01-17)
+
+- **Keep type-checker outputs mdx-stable:** avoid asserting exact `'_weakN` names or other version-dependent printer details; prefer `ocaml skip` transcripts or prose like “`'_weak…`”.
+- **Explain the value restriction precisely:** frame `'_weak…` as “will become one specific type later” and connect it explicitly to preventing unsoundness from mutation.
+- **Make polymorphic recursion examples compile on modern OCaml:** consider locally-abstract types (`type a.`) or explicit polymorphism (`'a.`) and keep the notation consistent with what OCaml actually accepts.
+- **Flag polymorphic comparison limits early:** when showing “polymorphic maps”, explicitly note that real-world code typically takes a comparison function (e.g. `Map.Make`) instead of relying on `<`/`=`.
+
+### Notes after Chapter 6 pass (2026-01-17)
+
+- **Keep higher-order utility operators accounted for:** if prose uses `(-|)`/`(|-)`/`concat_map`, ensure a prelude definition exists or use stdlib names directly.
+- **Keep backtracking demos mdx-fast:** avoid running large searches or timing benchmarks in mdx; show them as `ocaml skip` transcripts or tiny instances.
+- **Name the trade-off when switching folds:** emphasize that `fold_left` changes associativity (and often order) and can change results for non-associative operations.
+
+### Notes after Chapter 7 pass (2026-01-17)
+
+- **Be precise about strict vs lazy defaults:** OCaml is strict with *explicit* laziness; Haskell is lazy with *explicit* strictness.
+- **Separate call-by-name streams from call-by-need lazy lists:** explicitly mention recomputation vs memoization, and warn about space leaks when memoizing long prefixes.
+- **Treat I/O examples as linear resources:** keep file-based streams/lazy-lists as non-executed examples and mention resource handling (`close_in`) and “don’t traverse twice unless memoized”.
+
+### Notes after Chapter 8 pass (2026-01-17)
+
+- **Keep OCaml feature history accurate:** binding operators (`let*`/`let+`) arrived in OCaml 4.08; treat older Camlp4 syntax extensions as historical.
+- **Avoid nondeterminism and expensive runs in mdx:** sampling/benchmarking code should be `ocaml skip` (or deterministically seeded) and should not execute big searches at test time.
+- **Separate laws from intuitions:** state what monad (and monad-plus) laws guarantee (associativity/identity) and what they *don’t* (e.g. performance or “correctness” of an effect model).
+
+### Notes after Chapter 9 pass (2026-01-17)
+
+- **Keep chapter topic aligned to the source lecture:** avoid accidentally drifting into “new” topics unless the book outline has intentionally changed.
+- **Prefer small runnable snippets + pointers to larger code:** use README examples for concepts and point to `Lec9*` code for full implementations.
+- **Make CLI parsing testable:** prefer `Arg.parse_argv` over `Arg.parse` in mdx-tested code so examples don’t depend on real process arguments.
+- **Treat external-tool pipelines as documentation:** for `ocamllex`/Menhir examples, show file references and commands as text (or `ocaml skip`) instead of trying to run toolchains inside mdx.

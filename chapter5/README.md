@@ -30,16 +30,18 @@ Here `'a` is a *parameter*: it can become any type. When you use `f` with a list
 
 In contrast, consider this example:
 
-```ocaml
+```ocaml skip
 # let x = ref [];;
 val x : '_weak1 list ref = {contents = []}
 ```
 
 Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to purely functional programming.
 
+More precisely: the *value restriction* prevents unsoundness that would otherwise arise from generalizing type variables in effectful (mutable) expressions. When you see `'_weak...`, treat it as “this will become one specific type later”.
+
 When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help. This technique involves writing `let f x = expr x` instead of `let f = expr`, essentially adding an extra parameter that gets immediately applied. For example:
 
-```ocaml
+```ocaml skip
 # let f = List.append [];;
 val f : '_weak2 list -> '_weak2 list = <fun>
 # let f l = List.append [] l;;
@@ -211,13 +213,13 @@ Using the recursively defined function with different types in its definition is
 Here is a fascinating example: a list that alternates between two different types of elements. Notice how the recursive occurrence swaps the type parameters:
 
 ```ocaml
-type ('x, 'o) alterning =
+type ('x, 'o) alternating =
   | Stop
-  | One of 'x * ('o, 'x) alterning
+  | One of 'x * ('o, 'x) alternating
 
 let rec to_list :
     'x 'o 'a. ('x -> 'a) -> ('o -> 'a) ->
-              ('x, 'o) alterning -> 'a list =
+              ('x, 'o) alternating -> 'a list =
   fun x2a o2a ->
     function
     | Stop -> []

@@ -24,13 +24,13 @@ $$
 Using the $\rightarrow$ introduction rule, we need to derive the body `x` assuming `x` has some type $a$:
 
 $$
-\frac{\frac{\,}{\texttt{x} : a}^x}{\texttt{fun x -> x} : [?] \rightarrow [?]}
+\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : [?] \rightarrow [?]}
 $$
 
-The premise $\frac{\,}{\texttt{x} : a}^x$ matches the pattern for hypothetical derivations since $e = \texttt{x}$. Since the body `x` has type $a$ (from our assumption), and the parameter `x` also has type $a$, we conclude:
+The premise is a hypothetical derivation: inside the body we are allowed to use the assumption `x : a`. Since the body is just `x`, the result type is also $a$, and we conclude:
 
 $$
-\frac{\frac{\,}{\texttt{x} : a}^x}{\texttt{fun x -> x} : a \rightarrow a}
+\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : a \rightarrow a}
 $$
 
 Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
@@ -135,23 +135,25 @@ Let us see what values inhabit `int_list`. The definition tells us there are two
 
 Notice how `Cons` takes an integer and another `int_list`, allowing us to chain together as many elements as we like. This recursive structure is the essence of how functional languages represent unbounded data.
 
-The built-in type `bool` can be viewed as if it were defined as `type bool = true | false`---just a variant with two constructors. Similarly, `int` can be thought of as a very large variant: `type int = 0 | -1 | 1 | -2 | 2 | ...` (though of course the compiler implements it more efficiently!)
+The built-in type `bool` really does behave like a two-constructor variant with values `true` and `false`---but note a small OCaml wrinkle: user-defined constructors must start with a capital letter, while a few built-in constructors like `true`, `false`, `[]`, and `(::)` are special-cased.
+
+Similarly, `int` can be *thought of* as a very large finite variant (“one constructor per integer”), even though the compiler implements it as an efficient machine integer rather than as a gigantic sum type.
 
 #### Parametric Type Definitions
 
 Our `int_list` type only works with integers. But what if we want a list of strings? Or a list of booleans? We would have to define separate types for each, duplicating the same structure.
 
-Type definitions can be *parametric* with respect to the types of their components. This allows us to define generic data structures that work with any element type. For example, a list of elements of arbitrary type:
+Type definitions can be *parametric* with respect to the types of their components. This allows us to define generic data structures that work with any element type. OCaml already has a built-in parametric list type, so to avoid shadowing it we will define our own simplified list type:
 
-```ocaml
-type 'elem list = Empty | Cons of 'elem * 'elem list
+```ocaml skip
+type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
-The `'elem` is a *type parameter*---a placeholder that gets filled in when we use the type. We can have a `string list`, an `int list`, or even an `int list list` (a list of lists of integers).
+The `'a` is a *type parameter*---a placeholder that gets filled in when we use the type. We can have a `string my_list`, an `int my_list`, or even an `(int my_list) my_list` (a list of lists of integers).
 
 Several conventions and syntax rules apply to parametric types:
 
-- Type variables must start with `'`, but since OCaml will not remember the names we give, it is customary to use the names OCaml uses: `'a`, `'b`, `'c`, `'d`, etc.
+- Type variables must start with `'`. When printing inferred types, OCaml may rename these variables, so it is customary to stick to the standard names `'a`, `'b`, `'c`, `'d`, etc.
 
 - The OCaml syntax places the type parameter before the type name, mimicking English word order. A silly example that reads almost like English:
   ```ocaml
@@ -185,6 +187,8 @@ type my_bool = True | False
 
 Only constructors and module names can start with capital letters in OCaml. Everything else (values, functions, type names) must start with a lowercase letter. This convention makes it easy to distinguish constructors at a glance.
 
+(As noted above, a few built-in constructors like `true`, `false`, `[]`, and `(::)` are special exceptions to the capitalization rule.)
+
 *Modules* are organizational units (like "shelves") containing related values. For example, the `List` module provides operations on lists, including `List.map` and `List.filter`. We will learn more about modules in later chapters.
 
 #### Accessing Record Fields
@@ -208,8 +212,8 @@ Pattern matching is one of the most powerful features of OCaml and similar langu
 Recall that we introduced `fst` and `snd` as means to access elements of a pair. But what about larger tuples? There is no built-in `thd` for the third element. The fundamental way to access any tuple---or any algebraic data type---uses the `match` construct. In fact, `fst` and `snd` can easily be defined using pattern matching:
 
 ```ocaml
-let fst = fun p -> match p with (a, b) -> a
-let snd = fun p -> match p with (a, b) -> b
+let fst p = match p with (a, b) -> a
+let snd p = match p with (a, b) -> b
 ```
 
 The pattern `(a, b)` *destructures* the pair, binding its first component to `a` and its second to `b`. We then return whichever component we want.
@@ -219,11 +223,11 @@ The pattern `(a, b)` *destructures* the pair, binding its first component to `a`
 Pattern matching also works with records, letting us extract multiple fields at once:
 
 ```ocaml
-type person = {name: string; surname: string; age: int}
+type person = { name : string; surname : string; age : int }
 
 let greet_person () =
-  match {name="Walker"; surname="Johnnie"; age=207}
-  with {name=n; surname=sn; age=a} -> "Hi " ^ sn ^ "!"
+  match { name = "Walker"; surname = "Johnnie"; age = 207 } with
+  | { name = _; surname = sn; age = _ } -> "Hi " ^ sn ^ "!"
 ```
 
 Here we match against a record pattern, binding each field to a variable. Note that we bind `name` to `n`, `surname` to `sn`, and `age` to `a`---then use `sn` in the greeting.
@@ -242,7 +246,7 @@ Patterns can be nested to arbitrary depth, allowing us to match complex structur
 ```ocaml
 match Some (5, 7) with
 | None -> "sum: nothing"
-| Some (x, y) -> "sum: " ^ string_of_int (x+y)
+| Some (x, y) -> "sum: " ^ string_of_int (x + y)
 ```
 
 Here `Some (x, y)` is a nested pattern: we match `Some` of *something*, and that something must be a pair, whose components we bind to `x` and `y`.
@@ -275,10 +279,11 @@ let describe_point p =
 
 The `when` clause acts as a guard: the pattern matches only if both the structure matches *and* the condition is true.
 
-Here is a more elaborate example showing how to implement a comparison function:
+Here is a more elaborate example showing how to implement a comparison function (without shadowing the standard `compare`):
 
 ```ocaml
-let compare a b = match a, b with
+let compare_int a b =
+  match a, b with
   | (x, y) when x < y -> -1
   | (x, y) when x = y -> 0
   | _ -> 1
@@ -301,14 +306,15 @@ type month =
 
 type weekday = Mon | Tue | Wed | Thu | Fri | Sat | Sun
 
-type date =
-  {year: int; month: month; day: int; weekday: weekday}
+type calendar_date =
+  { year : int; month : month; day : int; weekday : weekday }
 
 let day =
-  {year = 2012; month = Feb; day = 14; weekday = Wed};;
+  { year = 2012; month = Feb; day = 14; weekday = Wed }
 
-match day with
-  | {weekday = Sat | Sun; _} -> "Weekend!"
+let day_kind =
+  match day with
+  | { weekday = Sat | Sun; _ } -> "Weekend!"
   | _ -> "Work day"
 ```
 
@@ -349,9 +355,9 @@ We also need translations for some special types:
 
 - The **void type** (a type with no constructors, hence no values):
   ```ocaml
-  type void
+  type void = |
   ```
-  (Yes, this is its complete definition, with no `= something` part.) Since no values can be constructed, it represents emptiness---translate it as $0$.
+  Since no values can be constructed, it represents emptiness---translate it as $0$.
 
 - The **unit type** has exactly one value, so translate it as $1$. Since variants without arguments behave like variants `of unit`, translate them as $1$ as well.
 
@@ -368,14 +374,14 @@ This might seem like a mere curiosity, but it leads to real insights. Let us hav
 #### Example: Date Type
 
 ```ocaml
-type date = {year: int; month: int; day: int}
+type ymd = { year : int; month : int; day : int }
 ```
 
-A date is a record with three `int` fields. Translating to a polynomial (using $x$ for `int`):
+A simple “year-month-day” record is a product of three `int` fields. Translating to a polynomial (using $x$ for `int`):
 
 $$D = x \times x \times x = x^3$$
 
-The cube makes sense: a date is essentially a triple of integers.
+The cube makes sense: this record is essentially a triple of integers.
 
 #### Example: Option Type
 
@@ -393,7 +399,7 @@ This reads as: an option is either nothing (1) or something of type $x$. The pol
 
 #### Example: List Type
 
-```ocaml
+```ocaml skip
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
 
@@ -540,12 +546,12 @@ Of course, you might object that the pompous title is wrong---we will differenti
 
 It turns out that taking the partial derivative of a polynomial (translated from a data type), when translated back, gives a type representing a "one-hole context"---a data structure with one piece missing. This missing piece corresponds to the variable with respect to which we differentiated. The derivative tells us: "Here are all the ways to point at one element of this type."
 
-#### Example: Differentiating the Date Type
+#### Example: Differentiating a Simple Record
 
-Let us start with our familiar date type:
+Let us start with a simple record type:
 
-```ocaml
-type date = {year: int; month: int; day: int}
+```ocaml skip
+type ymd = { year : int; month : int; day : int }
 ```
 
 The translation and its derivative:
@@ -557,12 +563,12 @@ D &= x \cdot x \cdot x = x^3 \\
 \end{aligned}
 $$
 
-We could have left it as $3 \cdot x \cdot x$, but expanding it as a sum shows the structure more clearly. The derivative $3x^2$ says: there are three ways to "point at" an `int` in a date, and each way leaves two other `int`s behind.
+We could have left it as $3 \cdot x \cdot x$, but expanding it as a sum shows the structure more clearly. The derivative $3x^2$ says: there are three ways to "point at" an `int` in a `ymd`, and each way leaves two other `int`s behind.
 
 Translating the expanded form back to a type:
 
 ```ocaml
-type date_deriv =
+type ymd_ctx =
   Year of int * int | Month of int * int | Day of int * int
 ```
 
@@ -574,28 +580,27 @@ Each variant represents a "hole" at a different position:
 Now we can define functions to introduce and eliminate this derivative type:
 
 ```ocaml
-let date_deriv {year=y; month=m; day=d} =
-  [Year (m, d); Month (y, d); Day (y, m)]
+let ymd_deriv ({ year = y; month = m; day = d } : ymd) =
+  [ Year (m, d); Month (y, d); Day (y, m) ]
 
-let date_integr n = function
-  | Year (m, d) -> {year=n; month=m; day=d}
-  | Month (y, d) -> {year=y; month=n; day=d}
-  | Day (y, m) -> {year=y; month=m; day=n}
-;;
+let ymd_integr n = function
+  | Year (m, d) -> { year = n; month = m; day = d }
+  | Month (y, d) -> { year = y; month = n; day = d }
+  | Day (y, m) -> { year = y; month = m; day = n }
 
-List.map (date_integr 7)
-  (date_deriv {year=2012; month=2; day=14})
+let example =
+  List.map (ymd_integr 7) (ymd_deriv { year = 2012; month = 2; day = 14 })
 ```
 
-The `date_deriv` function produces all contexts (one for each field)---it "differentiates" a date into a list of one-hole contexts. The `date_integr` function fills in a hole with a new value---it "integrates" by putting a value back into the context. Notice how the naming follows the calculus analogy!
+The `ymd_deriv` function produces all contexts (one for each field)---it "differentiates" a record into a list of one-hole contexts. The `ymd_integr` function fills in a hole with a new value---it "integrates" by putting a value back into the context. Notice how the naming follows the calculus analogy!
 
 The example above takes the date February 14, 2012, produces three contexts (one for each field), and then fills each hole with the number 7, producing three modified dates.
 
 #### Example: Differentiating Binary Trees
 
-Now let us tackle the more challenging case of binary trees:
+Now let us tackle the more challenging case of binary trees (using the same `btree` type as above):
 
-```ocaml
+```
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -681,14 +686,14 @@ In OCaml, functions can have labeled arguments and optional arguments (parameter
 
 Labels can differ from the names of argument values:
 
-```ocaml
+```ocaml skip
 let f ~meaningfulname:n = n + 1
 let _ = f ~meaningfulname:5  (* We do not need the result so we ignore it. *)
 ```
 
 When the label and value names are the same, the syntax is shorter:
 
-```ocaml
+```ocaml skip
 let g ~pos ~len =
   StringLabels.sub "0123456789abcdefghijklmnopqrstuvwxyz" ~pos ~len
 
@@ -700,14 +705,14 @@ let () =  (* A nicer way to mark computations that return unit. *)
 
 When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
 
-```ocaml
+```ocaml skip
 let h ?(len=1) pos = g ~pos ~len
 let () = print_string (h 10)
 ```
 
 Optional arguments are implemented as parameters of an option type. This allows checking whether the argument was provided:
 
-```ocaml
+```ocaml skip
 let foo ?bar n =
   match bar with
     | None -> "Argument = " ^ string_of_int n
@@ -716,14 +721,14 @@ let foo ?bar n =
 
 We can use it in various ways:
 
-```ocaml
+```ocaml skip
 let _ = foo 5
 let _ = foo ~bar:5 7
 ```
 
 We can also provide the option value directly:
 
-```ocaml
+```ocaml skip
 let test_foo () =
   let bar = if Random.int 10 < 5 then None else Some 7 in
   foo ?bar 7

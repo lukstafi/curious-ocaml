@@ -135,7 +135,7 @@ The `select` function returns all ways to pick one element from a list, along wi
 
 The pattern we saw with list comprehensions is remarkably general. In fact, the same `|->` pattern (applying a function that returns a container, then flattening) works for many types beyond lists. This is the essence of monads.
 
-OCaml 5 introduced **binding operators** that provide a clean, native syntax for such computations. Instead of external syntax extensions like the old Camlp4-based `pa_monad`, we can now define custom `let*` and `let+` operators that integrate naturally with the language.
+OCaml 4.08 introduced **binding operators** (`let*`, `let+`, `and*`, …) that provide a clean, native syntax for such computations. Instead of external syntax extensions like the old Camlp4-based `pa_monad`, we can now define custom operators that integrate naturally with the language.
 
 For the list monad, we define these binding operators:
 
@@ -824,19 +824,19 @@ end
 
 Now let us explore a practical question: what if we only want *one* solution, not all of them? With the list monad, we compute all solutions even if we only look at the first one. Can laziness help?
 
-Let us measure execution times to find out:
+Let us sketch how you might measure execution times to find out (the numbers will vary wildly between machines, and the full Countdown search is expensive enough that it is better left out of mdx tests):
 
-```ocaml env=ch8
+```ocaml skip
 let time f =
-  let tbeg = Unix.gettimeofday () in
+  let tbeg = Sys.time () in
   let res = f () in
-  let tend = Unix.gettimeofday () in
+  let tend = Sys.time () in
   tend -. tbeg, res
 ```
 
 With the list monad:
 
-```ocaml env=ch8
+```ocaml skip
 module ListCountdown = Countdown (ListM)
 let test1 () = ListM.run (ListCountdown.solutions [1;3;7;10;25;50] 765)
 let t1, sol1 = time test1
