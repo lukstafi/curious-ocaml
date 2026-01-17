@@ -1069,7 +1069,7 @@ FRP shines when the program is mostly “wiring”: combine signals, transform v
 - then wait for the next click,
 - and so on.
 
-You *can* encode staged workflows in pure FRP, but it often becomes awkward: you start building explicit state machines “in the large”. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
+You *can* encode staged workflows in pure FRP, but it often becomes awkward: you start building explicit state machines “in the large”. We want a *flow* that can proceed through events in sequence: when the first event arrives, we process it and then wait for the next event. Crucially, we *ignore* any further occurrences of the first event after we have moved on. Standard FRP constructs like mapping events do not give us this "move forward and never look back" semantics. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
 
 Here is a tiny effect-based interface for staged reactive programs:
 
@@ -1082,7 +1082,7 @@ let await p = Effect.perform (Await p)
 let emit (s : string) = Effect.perform (Emit s)
 ```
 
-`Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”.
+`Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. We implement *coarse-grained threads*, that yield on `Await` without an explicit `Yield`.
 
 Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
 
