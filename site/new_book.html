@@ -3077,8 +3077,8 @@ second, we pass <code>c_false</code>. Verify for yourself that
 <code>c_first (c_pair a b)</code> reduces to <code>a</code>!</p>
 <p>For verification:</p>
 <p><code>ocaml env=ch4 let encode_pair enc_fst enc_snd (a, b) =   c_pair (enc_fst a) (enc_snd b) let decode_pair de_fst de_snd c = c (fun x y -&gt; de_fst x, de_snd y) let decode_bool_pair c = decode_pair decode_bool decode_bool c</code></p>
-<p>We can define larger tuples in the same manner:</p>
-<p><code>ocaml env=ch4 let c_triple l m n = fun x -&gt; x l m n</code></p>
+<p>We can define larger tuples in the same manner:
+<code>let c_triple l m n = fun x -&gt; x l m n</code></p>
 <h3 id="pair-encoded-natural-numbers">4.5 Pair-Encoded Natural
 Numbers</h3>
 <p>Now we come to encoding numbers—a crucial test of whether functions
@@ -3216,7 +3216,7 @@ $$\rightsquigarrow^*$$
 </code></pre>
 <p>((+) 1) 1</p>
 <pre><code>
-$$\rightsquigarrow^*$$ `2`
+$\rightsquigarrow^*$ `2`
 
 ### 4.7 Recursion: Fixpoint Combinators
 

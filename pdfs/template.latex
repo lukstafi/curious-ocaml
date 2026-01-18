@@ -8,6 +8,7 @@
 \usepackage{lmodern}
 \usepackage{iftex}
 \usepackage{lua-widow-control}
+\usepackage[all]{nowidow}
 \ifPDFTeX
   \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
   \usepackage[utf8]{inputenc}
@@ -109,6 +110,7 @@ $else$
 $endif$
 
 % Avoid single-line end-of-section pages
+\widowpenalty=10000
 \clubpenalty=10000
 
 % ============================================

@@ -2125,11 +2125,7 @@ let decode_pair de_fst de_snd c = c (fun x y -> de_fst x, de_snd y)
 let decode_bool_pair c = decode_pair decode_bool decode_bool c
 ```
 
-We can define larger tuples in the same manner:
-
-```ocaml env=ch4
-let c_triple l m n = fun x -> x l m n
-```
+We can define larger tuples in the same manner: `let c_triple l m n = fun x -> x l m n`
 
 ### 4.5 Pair-Encoded Natural Numbers
 
@@ -2303,7 +2299,7 @@ $$\rightsquigarrow^*$$
 ((+) 1) 1
 ```
 
-$$\rightsquigarrow^*$$ `2`
+$\rightsquigarrow^*$ `2`
 
 ### 4.7 Recursion: Fixpoint Combinators
 
