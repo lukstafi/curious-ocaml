@@ -1081,14 +1081,14 @@ In OCaml, functions can have labeled arguments and optional arguments (parameter
 
 Labels can differ from the names of argument values:
 
-```ocaml skip
+```ocaml env=ch2
 let f ~meaningfulname:n = n + 1
 let _ = f ~meaningfulname:5  (* We do not need the result so we ignore it. *)
 ```
 
 When the label and value names are the same, the syntax is shorter:
 
-```ocaml skip
+```ocaml env=ch2
 let g ~pos ~len =
   StringLabels.sub "0123456789abcdefghijklmnopqrstuvwxyz" ~pos ~len
 
@@ -1100,14 +1100,14 @@ let () =  (* A nicer way to mark computations that return unit. *)
 
 When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
 
-```ocaml skip
+```ocaml env=ch2
 let h ?(len=1) pos = g ~pos ~len
 let () = print_string (h 10)
 ```
 
 Optional arguments are implemented as parameters of an option type. This allows checking whether the argument was provided:
 
-```ocaml skip
+```ocaml env=ch2
 let foo ?bar n =
   match bar with
     | None -> "Argument = " ^ string_of_int n
@@ -1116,14 +1116,14 @@ let foo ?bar n =
 
 We can use it in various ways:
 
-```ocaml skip
+```ocaml env=ch2
 let _ = foo 5
 let _ = foo ~bar:5 7
 ```
 
 We can also provide the option value directly:
 
-```ocaml skip
+```ocaml env=ch2
 let test_foo () =
   let bar = if Random.int 10 < 5 then None else Some 7 in
   foo ?bar 7
@@ -1131,7 +1131,7 @@ let test_foo () =
 
 1. Observe the types that functions with labeled and optional arguments have. Come up with coding style guidelines for when to use labeled arguments. When might they improve readability? When might they be overkill?
 
-2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two of the three arguments are given (since any two determine the third), and raise an exception otherwise. Load the graphics library with `#load "graphics.cma";;`. Use `invalid_arg`, `Graphics.open_graph`, and `Graphics.draw_rect`.
+2. Write a rectangle-drawing procedure that takes three optional arguments: left-upper corner, right-lower corner, and a width-height pair. It should draw a correct rectangle whenever two of the three arguments are given (since any two determine the third), and raise an exception otherwise. Use the *Bogue* library.
 
 3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it. This tests your understanding of how optional arguments work at the type level.
 
@@ -4286,26 +4286,38 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
   Printf.fprintf f "</svg>%!"
 ```
 
-**Drawing to screen:** We can also draw interactively using the *Bogue* library.
+**Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.
 
 ```ocaml env=ch6
 let draw_to_screen ~w ~h curves =
-  Graphics.open_graph (" " ^ string_of_int w ^ "x" ^ string_of_int h);
-  Graphics.set_color (Graphics.rgb 50 50 0);   (* Brown background *)
-  Graphics.fill_rect 0 0 (Graphics.size_x ()) (Graphics.size_y ());
-  List.iter (fun (points, (r, g, b)) ->
-    Graphics.set_color (Graphics.rgb r g b);
-    Graphics.fill_poly points) curves;
-  if Graphics.read_key () = 'q'                (* Wait so solutions can be seen *)
-  then failwith "User interrupted finding solutions.";
-  Graphics.close_graph ()
+  let open Bogue in
+  let area_widget = Widget.sdl_area ~w ~h () in
+  let area = Widget.get_sdl_area area_widget in
+  (* Queue drawing commands for when the area is rendered *)
+  Sdl_area.add area (fun _renderer ->
+    (* Draw brown background *)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "saddlebrown"))
+      ~w ~h (0, 0);
+    (* Draw each hexagon as connected line segments *)
+    List.iter (fun (points, (r, g, b)) ->
+      let color = Draw.opaque (r, g, b) in
+      let n = Array.length points in
+      for i = 0 to n - 2 do
+        let (x0, y0) = points.(i) in
+        let (x1, y1) = points.(i + 1) in
+        (* Flip y-coordinate: Bogue uses top-left origin *)
+        Sdl_area.draw_line area ~color ~thick:3 (x0, h - y0) (x1, h - y1)
+      done) curves);
+  let layout = Layout.resident area_widget in
+  let board = Main.of_layout layout in
+  Main.run board
 ```
 
 #### Testing Correctness
 
 Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
 
-```ocaml skip
+```ocaml env=ch6
 let check_correct n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -4359,7 +4371,7 @@ The key insight is that we can transform the *testing* code into *generation* co
 2. Returning results in a list (empty list means no solutions from this path)
 3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
 
-```ocaml skip
+```ocaml env=ch6
 let find_to_eat n island_size num_islands empty_cells =
   let honey = honey_cells n empty_cells in
 
@@ -5322,8 +5334,14 @@ let rec grends grstack =
 
 This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
 
-```ocaml skip
+```ocaml env=ch7
 type grp_pos = Pos of int | Too_far
+
+let rev_concat_map ~prep f l =
+  let rec cmap_f accu = function
+    | [] -> accu
+    | a::l -> cmap_f (prep::List.rev_append (f a) accu) l in
+  cmap_f [] l
 
 let rec grends w grstack =
   let flush tail =                   (* When a group exceeds width w, *)
@@ -5357,7 +5375,7 @@ let grends w = grends w []           (* Initial stack is empty. *)
 
 Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
 
-```ocaml skip
+```ocaml env=ch7
 let rec format w (inline, endlpos as st) = (* inline: stack of "flatten this group?" *)
   Await (function                          (* endlpos: position where line ends *)
   | TE (_, z) -> Yield (z, format w st)    (* Text: output directly. *)
@@ -5387,7 +5405,7 @@ The data flows from left to right: `gen` produces document elements, `docpos` an
 
 For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
 
-```ocaml skip
+```ocaml env=ch7
 (* breaks: decides where to break, outputs annotated doc_e elements *)
 let rec breaks w (inline, endlpos as st) =
   Await (function
@@ -5506,7 +5524,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
-```ocaml skip
+```ocaml env=ch7
 type 'a doc =
   Text of 'a * string | Line of 'a | Cat of 'a doc * 'a doc | Group of 'a * 'a doc
 ```
@@ -5868,7 +5886,6 @@ Given any monad-plus, we can define useful derived operations:
 
 ```ocaml env=ch8
 let fail = mzero
-let failwith _ = fail
 let (++) = mplus
 let (>>=) a b = bind a b
 let guard p = if p then return () else fail
@@ -6342,7 +6359,7 @@ Now let us explore a practical question: what if we only want *one* solution, no
 
 Let us sketch how you might measure execution times to find out (the numbers will vary wildly between machines, and the full Countdown search is expensive enough that it is better left out of mdx tests):
 
-```ocaml skip
+```ocaml env=ch8
 let time f =
   let tbeg = Sys.time () in
   let res = f () in
@@ -6516,16 +6533,18 @@ The `bind` operation sequences two stateful computations: it runs the first one 
 
 The state monad is useful to hide the threading of a "current" value through a computation. Here is an example that renames variables in lambda-terms to eliminate potential name clashes (alpha-conversion):
 
-```ocaml skip
+```ocaml env=ch8
 type term =
   | Var of string
   | Lam of string * term
   | App of term * term
 
-let (!) x = Var x
-let (|->) x t = Lam (x, t)
-let (@) t1 t2 = App (t1, t2)
-let test = "x" |-> ("x" |-> !"y" @ !"x") @ !"x"
+module TermOps = struct
+  let (!) x = Var x
+  let (|->) x t = Lam (x, t)
+  let (@) t1 t2 = App (t1, t2)
+end
+let test = TermOps.("x" |-> ("x" |-> !"y" @ !"x") @ !"x")
 
 module S = StateM (struct type t = int * (string * string) list end)
 open S
@@ -6549,10 +6568,7 @@ let rec alpha_conv = function
       let* t2 = alpha_conv t2 in       (* and the currently fresh number *)
       return (App (t1, t2))            (* is done by the monad *)
 
-(* val test : term = Lam ("x", App (Lam ("x", App (Var "y", Var "x")), Var "x")) *)
-(* # StateM.run (alpha_conv test) (5, []);;
-   - : term * (int * (string * string) list) =
-   (Lam ("x5", App (Lam ("x6", App (Var "y", Var "x6")), Var "x5")), (7, [])) *)
+(* # StateM.run (alpha_conv test) (5, []);; *)
 ```
 
 The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
@@ -6571,7 +6587,7 @@ Why do we need monad transformers in OCaml? Because "monads are contagious": alt
 
 To understand how the transformer works, let us compare the regular state monad with the transformed version. The regular state monad uses ordinary OCaml binding:
 
-```
+```ocaml skip
 type 'a state = store -> ('a * store)
 
 let return (a : 'a) : 'a state =
@@ -6583,7 +6599,7 @@ let bind (u : 'a state) (f : 'a -> 'b state) : 'b state =
 
 The transformed version wraps everything in the underlying monad `M`:
 
-```
+```ocaml skip
 (* Monad M transformed to add state, in pseudo-code: *)
 type 'a stateT(M) = store -> ('a * store) M
 (* Note: this is store -> ('a * store) M, not ('a M) state *)
@@ -6630,7 +6646,7 @@ end
 
 Now we can combine backtracking with state for our puzzle solver. The state tracks which cells have been visited, eaten, and how many islands we have found. The monad-plus structure handles the backtracking when a choice leads to a dead end:
 
-```ocaml skip
+```ocaml env=ch8
 module HoneyIslands (M : MONAD_PLUS_OPS) = struct
   type state = {
     been_size : int;
@@ -6772,7 +6788,7 @@ end
 
 Helper functions:
 
-```ocaml skip
+```ocaml env=ch8
 let total dist =
   List.fold_left (fun a (_,b) -> a +. b) 0. dist
 
@@ -6794,7 +6810,7 @@ let roulette dist =                  (* Roulette wheel from a distribution/measu
 
 #### Exact Distribution Monad
 
-```ocaml skip
+```ocaml env=ch8
 module DistribM : PROBABILITY = struct
   module M = struct       (* Exact probability distribution -- naive implementation *)
     type 'a t = ('a * float) list
@@ -6806,8 +6822,9 @@ module DistribM : PROBABILITY = struct
   include M
   include MonadOps (M)
   let choose p a b =
-    List.map (fun (e,w) -> e, p *. w) a @
-      List.map (fun (e,w) -> e, (1. -. p) *. w) b
+    List.append
+      (List.map (fun (e,w) -> e, p *. w) a)
+      (List.map (fun (e,w) -> e, (1. -. p) *. w) b)
   let pick dist = dist
   let uniform elems = normalize
     (List.map (fun e -> e, 1.) elems)
@@ -6823,7 +6840,7 @@ end
 
 #### Sampling Monad
 
-```ocaml skip
+```ocaml env=ch8
 module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   module M = struct                      (* Parameterized by how many samples *)
     type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
@@ -6861,7 +6878,7 @@ The Monty Hall problem is a famous probability puzzle. In search of a new car, t
 
 Most people's intuition says it does not matter, but let us compute the actual probabilities:
 
-```ocaml skip
+```ocaml env=ch8
 module MontyHall (P : PROBABILITY) = struct
   open P
   type door = A | B | C
@@ -6882,11 +6899,8 @@ module Sampling1000 =
   SamplingM (struct let samples = 1000 end)
 module MontySimul = MontyHall (Sampling1000)
 
-(* DistribM.distrib (MontyExact.monty_win false);;
-   - : (bool * float) list = [(true, 0.333...); (false, 0.666...)]
-
-   DistribM.distrib (MontyExact.monty_win true);;
-   - : (bool * float) list = [(true, 0.666...); (false, 0.333...)] *)
+(* DistribM.distrib (MontyExact.monty_win false);; *)
+(* DistribM.distrib (MontyExact.monty_win true);; *)
 ```
 
 The famous result: switching doubles your chances of winning! Counter-intuitively, the host's choice of which door to open gives you information -- by switching, you are betting that your initial choice was wrong (which it is 2/3 of the time).
@@ -6904,7 +6918,7 @@ To compute $P(A|B)$:
 
 For the exact distribution monad, we allow intermediate distributions to be *unnormalized* (probabilities sum to less than 1) and normalize at the end. For the sampling monad, we use *rejection sampling*: generate samples and discard those that do not satisfy the condition (though `mplus` has no straightforward correct implementation in this approach).
 
-```ocaml skip
+```ocaml env=ch8
 module type COND_PROBAB = sig
   include PROBABILITY
   include MONAD_PLUS_OPS with type 'a monad := 'a monad
@@ -6999,7 +7013,7 @@ Probability tables:
 - $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
 - $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
 
-```ocaml skip
+```ocaml env=ch8
 module Burglary (P : COND_PROBAB) = struct
   open P
   type what_happened =
@@ -7033,12 +7047,6 @@ module BurglaryExact = Burglary (DistribMP)
 module Sampling2000 =
   SamplingMP (struct let samples = 2000 end)
 module BurglarySimul = Burglary (Sampling2000)
-
-(* DistribMP.distrib
-     (BurglaryExact.check ~john_called:true ~mary_called:true ~radio:None);;
-   - : (BurglaryExact.what_happened * float) list =
-   [(Burgl_n_earthq, 0.000574...); (Earthq, 0.175...);
-    (Burgl, 0.283...); (Safe, 0.540...)] *)
 ```
 
 ### 8.14 Lightweight Cooperative Threads
@@ -7132,7 +7140,7 @@ end
 
 The implementation uses a mutable state to track thread progress. Each thread is in one of three states: completed (`Return`), waiting (`Sleep` with a list of callbacks to invoke when done), or forwarded to another thread (`Link`):
 
-```ocaml skip
+```ocaml env=ch8
 module Cooperative = Threads(struct
   type 'a state =
     | Return of 'a                 (* The thread has returned *)
@@ -7208,7 +7216,7 @@ end)
 
 Let us test the implementation with two threads that each print a sequence of numbers:
 
-```ocaml skip
+```ocaml env=ch8
 module TTest (T : THREAD_OPS) = struct
   open T
   let rec loop s n =
@@ -7225,20 +7233,6 @@ let test =
   let thread2 = TT.loop "B" 4 in
   Cooperative.access thread1;      (* We ensure threads finish computing *)
   Cooperative.access thread2       (* before we proceed *)
-
-(* Output:
-   -- A(5)
-   -- B(4)
-   -- A(4)
-   -- B(3)
-   -- A(3)
-   -- B(2)
-   -- A(2)
-   -- B(1)
-   -- A(1)
-   -- B(0)
-   -- A(0)
-   val test : unit = () *)
 ```
 
 The output shows that the threads interleave their execution beautifully: A(5), B(4), A(4), B(3), and so on. Each `bind` (the `let*`) causes a context switch to the other thread. This is fine-grained concurrency in action.
@@ -7667,14 +7661,14 @@ It does not matter whether we use built-in OCaml lists or define a custom type w
 
 In practice, contexts of subtrees are more useful than contexts of single elements. Rather than tracking where a single value lives, we track the position of an entire subtree within the larger structure:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
 type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
 type 'a location = {sub: 'a tree; ctx: 'a context}
 
-let access {sub} = sub       (* Get the current subtree *)
-let change {ctx} sub = {sub; ctx}  (* Replace the subtree, keep context *)
+let access {sub; _} = sub       (* Get the current subtree *)
+let change {ctx; _} sub = {sub; ctx}  (* Replace the subtree, keep context *)
 let modify f {sub; ctx} = {sub = f sub; ctx}  (* Transform the subtree *)
 ```
 
@@ -7684,7 +7678,7 @@ There is a wonderful visual intuition for zippers: imagine taking a tree and pin
 
 Navigation functions allow us to traverse the structure. Each movement operation restructures the zipper: what was context becomes part of the subtree, and vice versa. Watch how ascending rebuilds a parent node from the context, while descending breaks apart a node to create new context:
 
-```ocaml skip
+```ocaml env=ch10
 let ascend loc =
   match loc.ctx with
   | [] -> loc  (* At root already, or raise exception *)
@@ -7714,7 +7708,7 @@ let desc_right loc =
 
 Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches. This is particularly useful for representing document structures where a group can contain any number of children:
 
-```ocaml skip
+```ocaml env=ch10
 type doc = Text of string | Line | Group of doc list
 type context = (doc list * doc list) list  (* left siblings, right siblings *)
 type location = {sub: doc; ctx: context}
@@ -7724,7 +7718,7 @@ In this design, the context at each level stores two lists: the siblings to the 
 
 The navigation functions for this more complex structure show how we reconstruct the parent when going up, and how we split the sibling list when going down:
 
-```ocaml skip
+```ocaml env=ch10
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
@@ -7784,7 +7778,7 @@ These rules encode the algebraic properties we need: associativity (first two ru
 
 First, the groundwork. We define expression types and a zipper for navigating them:
 
-```ocaml skip
+```ocaml env=ch10
 type op = Add | Mul
 type expr = Val of int | Var of string | App of expr * op * expr
 type expr_dir = Left_arg | Right_arg
@@ -7794,7 +7788,7 @@ type location = {sub: expr; ctx: context}
 
 To locate the subexpression described by predicate `p`, we search the expression tree and build up the context as we go. Notice that we build the context in reverse order during the search, then reverse it at the end so the innermost context comes first (as required for efficient navigation):
 
-```ocaml skip
+```ocaml env=ch10
 let rec find_aux p e =
   if p e then Some (e, [])
   else match e with
@@ -7817,7 +7811,7 @@ let find p e =
 
 Now we can implement the pull-out transformation. This is where the zipper shines: we pattern match on the context to decide which rewriting rule to apply, then modify the context directly. The function recursively moves the target subexpression outward until it reaches the root:
 
-```ocaml skip
+```ocaml env=ch10
 let rec pull_out loc =
   match loc.ctx with
   | [] -> loc  (* Done: reached the root *)
@@ -7842,15 +7836,17 @@ Since we assume operators are commutative, we can ignore the direction for the s
 
 Let us test the implementation with a concrete example:
 
-```ocaml skip
-let (+) a b = App (a, Add, b)  (* Convenient syntax for building expressions *)
-let ( * ) a b = App (a, Mul, b)
-let (!) a = Val a
+```ocaml env=ch10
+module ExprOps = struct
+  let (+) a b = App (a, Add, b)
+  let ( * ) a b = App (a, Mul, b)
+  let (!) a = Val a
+end
 let x = Var "x"
 let y = Var "y"
 
 (* Original: 5 + y * (7 + x) * (3 + y) -- we want to pull x to the front *)
-let ex = !5 + y * (!7 + x) * (!3 + y)
+let ex = ExprOps.(!5 + y * (!7 + x) * (!3 + y))
 let loc = find (fun e -> e = x) ex
 let sol =
   match loc with
@@ -7941,7 +7937,7 @@ If we naïvely “recompute everything that ever depended on `x`”, then changi
 
 Many ideas above can be packaged behind a small “conceptual API”:
 
-```ocaml skip
+```ocaml env=ch10
 module type INCREMENTAL = sig
   type 'a t
   type 'a var
@@ -7970,7 +7966,7 @@ OCaml has at least two widely used implementations of this idea, with different 
 - Values are recomputed on demand when you `Lwd.sample` a **root** (an observer).
 - It tracks *liveness*: nodes not reachable from any root are released, and `Lwd.prim` supports `acquire`/`release` for resource lifetimes (subscriptions, DOM nodes, etc.).
 
-```ocaml skip
+```ocaml env=ch10
 (* Using Lwd as an incremental engine *)
 let a = Lwd.var 10
 let b = Lwd.var 32
@@ -7996,17 +7992,16 @@ let () =
 - `Incr.stabilize` recomputes all stale *necessary* nodes in an order based on node heights (a topological schedule).
 - It supports **cutoffs** (don’t propagate if “unchanged enough”), rich observer hooks, and scoping mechanisms that help manage dynamic graphs.
 
-```ocaml skip
+```ocaml env=ch10
 module Incr = Incremental.Make ()
-module State = (val Incr.State.create ())
 
-let a = Incr.Var.create State.t 10
-let b = Incr.Var.create State.t 32
+let a = Incr.Var.create 10
+let b = Incr.Var.create 32
 let sum = Incr.map2 (Incr.Var.watch a) (Incr.Var.watch b) ~f:( + )
 
 let obs = Incr.observe sum
 let now () =
-  Incr.stabilize State.t;
+  Incr.stabilize ();
   Incr.Observer.value_exn obs
 
 let () =
@@ -8103,7 +8098,7 @@ An event is just a behavior that yields `None` most of the time and `Some v` at 
 
 Pointwise behaviors form an applicative functor (and, in idealized presentations, a monad). For `type 'a behavior = time -> 'a` we can define:
 
-```ocaml skip
+```ocaml env=ch10
 let pure a = fun _t -> a
 let map f b = fun t -> f (b t)
 let ap bf ba = fun t -> (bf t) (ba t)
@@ -8111,7 +8106,7 @@ let ap bf ba = fun t -> (bf t) (ba t)
 
 From `ap` we get the familiar lifting operators:
 
-```ocaml skip
+```ocaml env=ch10
 let lift2 f a b = ap (map f a) b
 let lift3 f a b c = ap (lift2 f a b) c
 ```
@@ -8133,7 +8128,7 @@ Section 10.5 builds a small stream-based FRP core where these are concrete funct
 
 To keep the discussion concrete, we will package external inputs (user actions) together with sampling times:
 
-```ocaml skip
+```ocaml env=ch10
 type time = float
 
 type user_action =
@@ -8160,7 +8155,7 @@ type 'a event = 'a option behavior
 
 Now let us implement FRP using the stream processing techniques from Chapter 7. The infrastructure should be familiar:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a stream = 'a stream_ Lazy.t
 and 'a stream_ = Cons of 'a * 'a stream
 
@@ -8168,6 +8163,8 @@ let rec lmap f l = lazy (
   let Cons (x, xs) = Lazy.force l in
   Cons (f x, lmap f xs))
 
+(* Infinite loop: only exits via an exception, either from forcing e.g. "end of stream",
+   or from f e.g. "exit". *)
 let rec liter (f : 'a -> unit) (l : 'a stream) : unit =
   let Cons (x, xs) = Lazy.force l in
   f x; liter f xs
@@ -8191,7 +8188,7 @@ let rec lfold acc f (l : 'a stream) = lazy (
 
 Since a behavior is a function from the input stream to an output stream, we face a subtle sharing problem: if we apply the same behavior function twice to the "same" input, we might create two separate streams that diverge. We need to ensure that for any actual input stream, each behavior creates exactly one output stream. This requires memoization:
 
-```ocaml skip
+```ocaml env=ch10
 type ('a, 'b) memo1 =
   {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
 
@@ -8219,7 +8216,7 @@ We use physical equality (`==`) rather than structural equality (`=`) because th
 
 Now we can build the monadic/applicative functions for composing behaviors. A practical tip: when working with these higher-order types, type annotations are essential. If you do not provide type annotations in `.ml` files, work together with an `.mli` interface file to catch type problems early.
 
-```ocaml skip
+```ocaml env=ch10
 (* A constant behavior: returns the same value at all times *)
 let returnB x : 'a behavior =
   let rec xs = lazy (Cons (x, xs)) in  (* Infinite stream of x *)
@@ -8249,7 +8246,7 @@ let (->>) e v = e =>> fun _ -> v  (* Replace event value with constant *)
 
 We also need to create events from behaviors and vice versa. Creating events out of behaviors:
 
-```ocaml skip
+```ocaml env=ch10
 (* whileB: produces an event at every moment the behavior is true *)
 let whileB (fb : bool behavior) : unit event =
   memo1 (fun uts ->
@@ -8276,7 +8273,7 @@ let snapshot fe fb : ('a * 'b) event =
 
 Creating behaviors out of events:
 
-```ocaml skip
+```ocaml env=ch10
 (* step: holds the value of the most recent event, starting with 'acc' *)
 let step acc fe =
   memo1 (fun uts -> lfold acc
@@ -8293,7 +8290,7 @@ let step_accum acc ff =
 
 For physics simulations like our upcoming paddle game, we need to integrate behaviors over time. This requires access to the sampling timestamps:
 
-```ocaml skip
+```ocaml env=ch10
 let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
@@ -8312,7 +8309,7 @@ The trick is the same as we saw in Chapter 7: integration introduces one step of
 
 We define behaviors for user actions by extracting them from the input stream:
 
-```ocaml skip
+```ocaml env=ch10
 (* Left button press event *)
 let lbp : unit event =
   memo1 (fun uts -> lmap
@@ -8342,44 +8339,50 @@ let height : int behavior = step 512 (liftE snd screen) (* Window height *)
 
 Now let us put all these pieces together to build a classic paddle game (similar to Pong). A ball bounces around the screen, and the player controls a paddle at the bottom to prevent the ball from falling.
 
-First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen:
+First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen. Since we will use Bogue's `Sdl_area` for rendering, we use simple line-based shapes (rectangles drawn as outlines, circles approximated by line segments):
 
-```ocaml skip
+```ocaml env=ch10
+type color = int * int * int  (* RGB components *)
+
 type scene =
-  | Rect of int * int * int * int  (* position, width, height *)
-  | Circle of int * int * int  (* position, radius *)
+  | Rect of int * int * int * int  (* x, y, width, height *)
+  | Circle of int * int * int      (* x, y, radius *)
   | Group of scene list
-  | Color of Graphics.color * scene  (* color of subscene objects *)
-  | Translate of float * float * scene  (* additional offset of origin *)
+  | Color of color * scene         (* color of subscene objects *)
+  | Translate of float * float * scene  (* offset *)
 ```
 
-The drawing function interprets the scene graph, accumulating translations as it traverses:
+The drawing function interprets the scene graph. We use Bogue's `Sdl_area` to draw lines:
 
-```ocaml skip
-let draw sc =
+```ocaml env=ch10
+let draw area ~h sc =
+  let open Bogue in
   let f2i = int_of_float in
-  let open Graphics in
-  let rec aux t_x t_y = function  (* t_x, t_y accumulate translations *)
-    | Rect (x, y, w, h) ->
-      fill_rect (f2i t_x + x) (f2i t_y + y) w h
-    | Circle (x, y, r) ->
-      fill_circle (f2i t_x + x) (f2i t_y + y) r
+  let flip_y y = h - y in  (* Bogue uses top-left origin *)
+  let rec aux t_x t_y (r, g, b) = function
+    | Rect (x, y, w, ht) ->
+      let color = Draw.opaque (r, g, b) in
+      let x0, y0 = f2i t_x + x, flip_y (f2i t_y + y + ht) in
+      Sdl_area.draw_rectangle area ~color ~thick:2 ~w ~h:ht (x0, y0)
+    | Circle (x, y, rad) ->
+      let color = Draw.opaque (r, g, b) in
+      let cx, cy = f2i t_x + x, flip_y (f2i t_y + y) in
+      Sdl_area.draw_circle area ~color ~thick:2 ~radius:rad (cx, cy)
     | Group scs ->
-      List.iter (aux t_x t_y) scs
+      List.iter (aux t_x t_y (r, g, b)) scs
     | Color (c, sc) ->
-      set_color c; aux t_x t_y sc  (* Set color, then draw *)
-    | Translate (x, y, sc) ->
-      aux (t_x +. x) (t_y +. y) sc in  (* Add to accumulated offset *)
-  clear_graph ();  (* Clear the back buffer *)
-  aux 0. 0. sc;
-  synchronize ()  (* Swap buffers -- this avoids flickering *)
+      aux t_x t_y c sc
+    | Translate (dx, dy, sc) ->
+      aux (t_x +. dx) (t_y +. dy) (r, g, b) sc
+  in
+  aux 0. 0. (255, 255, 255) sc  (* Default color: white *)
 ```
 
 An *animation* is simply a scene behavior -- a time-varying scene. The `reactimate` function runs the animation loop: it creates the input stream (user actions paired with sampling times), feeds it to the scene behavior to get a stream of scenes, and draws each scene. We use double buffering to avoid flickering.
 
 For the game logic, we define lifted operators so we can write behavior expressions naturally:
 
-```ocaml skip
+```ocaml env=ch10
 let (+*) = liftB2 (+)
 let (-*) = liftB2 (-)
 let ( *** ) = liftB2 ( * )
@@ -8392,9 +8395,11 @@ let (>*) = liftB2 (>)
 
 Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
 
-```ocaml skip
+```ocaml env=ch10
+let blue = (0, 0, 255)
+
 let walls =
-  liftB2 (fun w h -> Color (Graphics.blue, Group
+  liftB2 (fun w h -> Color (blue, Group
     [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
      Rect (w-21, 0, 20, h-1)]))
     width height
@@ -8402,9 +8407,11 @@ let walls =
 
 The paddle is tied to the mouse at the bottom border of the window:
 
-```ocaml skip
+```ocaml env=ch10
+let black = (0, 0, 0)
+
 let paddle = liftB (fun mx ->
-  Color (Graphics.black, Rect (mx, 0, 50, 10))) mouse_x
+  Color (black, Rect (mx, 0, 50, 10))) mouse_x
 ```
 
 The ball has a velocity in pixels per second and bounces from the walls.
@@ -8419,34 +8426,32 @@ The key ideas in the ball implementation:
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
-```ocaml skip
+**Tying the knot with memo1 records.** The mutual recursion between `xvel`, `xpos`, and `xbounce` requires care. If we naively wrote mutually recursive *functions* that call each other, we would get an infinite loop at definition time (before any stream is consumed). The trick is to define the recursion at the *memo1 record* level: we use `let rec ... and ...` to create mutually recursive records where each record's `memo_f` field references the other records by name. The actual computation is deferred until `$ uts` is applied.
+
+```ocaml env=ch10
+let red = (255, 0, 0)
+
 let ball : scene behavior =
-  let wall_margin = 27 in  (* ball radius + wall thickness *)
-  let vel = 100.0 in       (* initial velocity in pixels/sec *)
-
-  (* Horizontal motion with bouncing *)
-  let rec xvel_pos () =
-    let xvel = step_accum vel (xbounce () ->> (~-.)) in
-    let xpos = liftB int_of_float (integral xvel) +* width /* !*2 in
-    xvel, xpos
-  and xbounce () =
-    let _, xpos = xvel_pos () in
-    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin))
-  in
-
+  let wall_margin = 27 in
+  let vel = 100.0 in
+  (* Horizontal motion with bouncing.
+     The mutual recursion is between memo1 records, not function calls. *)
+  let rec xvel_ uts = step_accum vel (xbounce ->> (~-.)) $ uts
+  and xvel = {memo_f = xvel_; memo_r = None}
+  and xpos_ uts = (liftB int_of_float (integral xvel) +* width /* !*2) $ uts
+  and xpos = {memo_f = xpos_; memo_r = None}
+  and xbounce_ uts =
+    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin)) $ uts
+  and xbounce = {memo_f = xbounce_; memo_r = None} in
   (* Vertical motion with bouncing *)
-  let rec yvel_pos () =
-    let yvel = step_accum vel (ybounce () ->> (~-.)) in
-    let ypos = liftB int_of_float (integral yvel) +* height /* !*2 in
-    yvel, ypos
-  and ybounce () =
-    let _, ypos = yvel_pos () in
-    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin))
-  in
-
-  let _, xpos = xvel_pos () in
-  let _, ypos = yvel_pos () in
-  liftB2 (fun x y -> Color (Graphics.red, Circle (x, y, 7))) xpos ypos
+  let rec yvel_ uts = step_accum vel (ybounce ->> (~-.)) $ uts
+  and yvel = {memo_f = yvel_; memo_r = None}
+  and ypos_ uts = (liftB int_of_float (integral yvel) +* height /* !*2) $ uts
+  and ypos = {memo_f = ypos_; memo_r = None}
+  and ybounce_ uts =
+    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin)) $ uts
+  and ybounce = {memo_f = ybounce_; memo_r = None} in
+  liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
 ```
 
 Finally, we compose everything into the complete game scene:
@@ -8456,30 +8461,38 @@ let game : scene behavior =
   liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
 ```
 
-The animation loop drives the system:
+The animation loop drives the system. With Bogue, we integrate with its event loop by using a timer and connection callbacks:
 
 ```ocaml skip
 let reactimate (scene : scene behavior) =
-  let open Graphics in
-  open_graph " 640x480";
-  auto_synchronize false;
-  let rec loop uts =
-    let Cons (sc, uts') = Lazy.force (scene $ uts) in
-    draw sc;
-    let t = Unix.gettimeofday () in
-    let action =
-      if key_pressed () then Some (Key (read_key (), true))
-      else if button_down () then
-        let st = wait_next_event [Poll] in
-        Some (Button (st.mouse_x, st.mouse_y, true))
-      else
-        let st = wait_next_event [Poll] in
-        Some (MouseMove (st.mouse_x, st.mouse_y))
-    in
-    loop (lazy (Cons ((action, t), uts')))
-  in
+  let open Bogue in
+  let w, h = 640, 480 in
+  let area_widget = Widget.sdl_area ~w ~h () in
+  let area = Widget.get_sdl_area area_widget in
+  let uts_ref = ref (lazy (assert false)) in  (* Input stream state *)
   let t0 = Unix.gettimeofday () in
-  loop (lazy (Cons ((None, t0), lazy (Cons ((None, t0), lazy assert false)))))
+  uts_ref := lazy (Cons ((None, t0), lazy (Cons ((None, t0), !uts_ref))));
+  (* Redraw on each frame *)
+  Sdl_area.add area (fun _renderer ->
+    (* Clear the area *)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.grey 50))
+      ~w ~h (0, 0);
+    let Cons (sc, uts') = Lazy.force (scene $ !uts_ref) in
+    draw area ~h sc;
+    let t = Unix.gettimeofday () in
+    (* For simplicity, we poll mouse position as the action *)
+    uts_ref := lazy (Cons ((Some (MouseMove (0, 0)), t), uts')));
+  let layout = Layout.resident area_widget in
+  (* Use Bogue's connection to handle mouse motion events *)
+  let action _w _l ev =
+    let mx, my = Trigger.pointer_pos ev in
+    let t = Unix.gettimeofday () in
+    uts_ref := lazy (Cons ((Some (MouseMove (mx, my)), t), Lazy.force !uts_ref));
+    Sdl_area.update area
+  in
+  Widget.add_connection area_widget area_widget action Trigger.pointer_motion;
+  let board = Main.of_layout layout in
+  Main.run board
 ```
 
 The stream-based implementation is elegant but has a limitation: OCaml being strict, we cannot easily define mutually recursive behaviors. We had to use functions (`xvel_pos`, `ybounce`) to tie the knot. In a lazy language like Haskell, this would be more natural.
@@ -8508,7 +8521,7 @@ A useful correspondence is:
 - **Event**: `'a option Lwd.t` (a pulse) or a queue/list carried by a var
 - **Observer/root**: `'a Lwd.root`
 
-```ocaml skip
+```ocaml env=ch10
 module LwdFrp = struct
   type 'a behavior = 'a Lwd.t
   type 'a event = 'a option Lwd.t
@@ -8528,7 +8541,7 @@ end
 
 `Lwd` does not have a built-in notion of time; you supply one (usually as a `float` variable updated each frame):
 
-```ocaml skip
+```ocaml env=ch10
 let time_v : float Lwd.var = Lwd.var 0.0
 let time_b : float Lwd.t = Lwd.get time_v
 
@@ -8542,7 +8555,7 @@ let mouse_y : int Lwd.t = Lwd.map mouse_b ~f:snd
 
 The simplest event representation is a one-step pulse:
 
-```ocaml skip
+```ocaml env=ch10
 let click_v : unit option Lwd.var = Lwd.var None
 let click_e : unit option Lwd.t = Lwd.get click_v
 ```
@@ -8559,7 +8572,7 @@ In FRP, feedback loops require *delay* (“previous value”). In a stream-based
 
 Here are two classic combinators implemented with internal references. They are intentionally “single-sample” oriented: sample once per step.
 
-```ocaml skip
+```ocaml env=ch10
 (* step: hold the last event value, starting from [init] *)
 let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
   let last = ref init in
@@ -8582,7 +8595,7 @@ These are not “pure” in the mathematical FRP sense, but they capture a key i
 
 We can also integrate a velocity signal by accumulating over time. This is effectively a discrete-time integrator driven by your chosen update step:
 
-```ocaml skip
+```ocaml env=ch10
 let integral (v : float Lwd.t) (t : float Lwd.t) : float Lwd.t =
   let acc = ref 0.0 in
   let prev_t = ref 0.0 in
@@ -8601,7 +8614,7 @@ We reuse the `scene` type and `draw` function from Section 10.5. The idea is:
 - build a reactive scene graph as an `Lwd.t`,
 - sample and draw once per frame.
 
-```ocaml skip
+```ocaml env=ch10
 let time_v : float Lwd.var = Lwd.var 0.0
 let time_b : float Lwd.t = Lwd.get time_v
 
@@ -8613,15 +8626,19 @@ let height_v : int Lwd.var = Lwd.var 512
 let width : int Lwd.t = Lwd.get width_v
 let height : int Lwd.t = Lwd.get height_v
 
+let blue = (0, 0, 255)
+let black = (0, 0, 0)
+let red = (255, 0, 0)
+
 let walls : scene Lwd.t =
   Lwd.map2 width height ~f:(fun w h ->
-    Color (Graphics.blue, Group
+    Color (blue, Group
       [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
        Rect (w-21, 0, 20, h-1)]))
 
 let paddle : scene Lwd.t =
   Lwd.map mouse_x ~f:(fun mx ->
-    Color (Graphics.black, Rect (mx, 0, 50, 10)))
+    Color (black, Rect (mx, 0, 50, 10)))
 
 let ball : scene Lwd.t =
   let wall_margin = 27 in
@@ -8643,7 +8660,7 @@ let ball : scene Lwd.t =
     let yi = int_of_float !y + h / 2 in
     if xi > w - wall_margin || xi < wall_margin then xvel := -. !xvel;
     if yi > h - wall_margin || yi < wall_margin then yvel := -. !yvel;
-    Color (Graphics.red, Circle (xi, yi, 7)))
+    Color (red, Circle (xi, yi, 7)))
 
 let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
@@ -8684,7 +8701,7 @@ Standard FRP combinators like “map an event” (or “whenever behavior change
 
 Here is a tiny effect-based interface for staged reactive programs:
 
-```ocaml skip
+```ocaml env=ch10
 type _ Effect.t +=
   | Await : (user_action -> 'a option) -> 'a Effect.t
   | Emit : string -> unit Effect.t
@@ -8699,7 +8716,7 @@ We are implementing *coarse-grained threads* (cooperative scripts): a script run
 
 Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
 
-```ocaml skip
+```ocaml env=ch10
 let await_either p q =
   await (fun u ->
     match p u with
@@ -8718,23 +8735,31 @@ To integrate a script with a GUI event loop (and to make it testable), it is use
 
 One convenient representation is a paused computation that either finished, or is waiting and provides a function to feed the next input action:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a paused =
   | Done of 'a
   | Awaiting of {feed : user_action -> 'a paused}
 
-let rec step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
-  try Done (th ()) with
-  | effect (Emit x), k ->
-    on_emit x;
-    step ~on_emit (fun () -> Effect.Deep.continue k ())
-  | effect (Await p), k ->
-    let rec feed (u : user_action) =
-      match p u with
-      | None -> Awaiting {feed}  (* ignore and keep waiting *)
-      | Some v -> step ~on_emit (fun () -> Effect.Deep.continue k v)
-    in
-    Awaiting {feed}
+let step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
+  Effect.Deep.match_with th () {
+    retc = (fun v -> Done v);
+    exnc = raise;
+    effc = fun (type c) (eff : c Effect.t) ->
+      match eff with
+      | Emit x ->
+        Some (fun (k : (c, _) Effect.Deep.continuation) ->
+          on_emit x;
+          Effect.Deep.continue k ())
+      | Await p ->
+        Some (fun (k : (c, _) Effect.Deep.continuation) ->
+          let rec feed (u : user_action) =
+            match p u with
+            | None -> Awaiting {feed}  (* ignore and keep waiting *)
+            | Some v -> Effect.Deep.continue k v
+          in
+          Awaiting {feed})
+      | _ -> None
+  }
 ```
 
 This is the “flow as a lightweight thread” idea, but without a monad: the state of the thread is the (closed-over) continuation stored inside `feed`.
@@ -8743,7 +8768,7 @@ This is the “flow as a lightweight thread” idea, but without a monad: the st
 
 Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of `user_action`s (useful for tests and examples):
 
-```ocaml skip
+```ocaml env=ch10
 let run_script ~(inputs : user_action list) ~(on_emit : string -> unit) (f : unit -> 'a) : 'a =
   let rec drive (st : 'a paused) (inputs : user_action list) : 'a =
     match st with
@@ -8761,6 +8786,8 @@ In a real GUI, you keep the current `paused` state in a mutable cell. On each in
 Here is the basic shape of such a driver loop:
 
 ```ocaml skip
+(* This snippet uses paint_forever defined below. See chapter10.ml for
+   a runnable version. *)
 let st : unit paused ref = ref (step ~on_emit:(fun _ -> ()) paint_forever)
 
 let on_user_action (u : user_action) =
@@ -8773,7 +8800,7 @@ let on_user_action (u : user_action) =
 
 We can now write staged logic as straightforward recursion:
 
-```ocaml skip
+```ocaml env=ch10
 let is_down = function
   | Button (x, y, true, _) -> Some (x, y)
   | _ -> None
@@ -8807,7 +8834,7 @@ This is the same idea as the old “flow” construction, but in OCaml 5 direct 
 
 Looping a flow is now just recursion:
 
-```ocaml skip
+```ocaml env=ch10
 let rec paint_forever () =
   ignore (paint_once ());
   paint_forever ()
