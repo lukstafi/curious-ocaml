@@ -1511,7 +1511,7 @@ The debounced event only fires if the original event has not fired for the speci
 
 **Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
-**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
+**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts.
 
 ```ocaml skip
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
@@ -1524,16 +1524,19 @@ The function should return `Some v` if the awaited action happens before the dea
 val parallel : (unit -> 'a) list -> 'a list
 ```
 This should run multiple flows concurrently and collect their results. Think about:
+
 - How do you handle flows that await events?
 - What happens if one flow fails?
 - How do you handle cancellation?
 
 **Exercise 11.** The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
+
 1. Create a `Clock` module with `advance : float -> unit` and `now : unit -> float` functions
 2. Modify the integration function to use virtual time
 3. Write tests that use virtual time to verify physics behavior deterministically
 
 **Exercise 12.** Compare the memory characteristics of the three FRP approaches:
+
 1. Create a benchmark that builds a dependency graph with N nodes
 2. Measure memory usage for each approach (stream-based, Lwd-based, effect-based)
 3. Measure update time when one input changes
