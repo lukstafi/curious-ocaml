@@ -4,7 +4,7 @@
 
 **In this chapter, you will:**
 
-- Learn natural-deduction rules for the core connectives ($\\top, \\bot, \\wedge, \\vee, \\rightarrow$)
+- Learn natural-deduction rules for the core connectives ($\top, \bot, \wedge, \vee, \rightarrow$)
 - Practice reading and building derivation trees (including hypothetical derivations)
 - See the Curry–Howard correspondence emerge in OCaml typing rules
 - Connect logical reasoning patterns (cases, induction) to programming patterns (pattern matching, recursion)

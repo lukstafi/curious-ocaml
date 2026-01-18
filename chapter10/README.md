@@ -600,8 +600,8 @@ let rec lmap f l = lazy (
   let Cons (x, xs) = Lazy.force l in
   Cons (f x, lmap f xs))
 
-(* Infinite loop: only exits via an exception, either from forcing e.g. "end of stream",
-   or from f e.g. "exit". *)
+(* Infinite loop: only exits via an exception, either from forcing
+   e.g. "end of stream", or from f e.g. "exit". *)
 let rec liter (f : 'a -> unit) (l : 'a stream) : unit =
   let Cons (x, xs) = Lazy.force l in
   f x; liter f xs
@@ -701,7 +701,8 @@ let unique fe : 'a event =
 let whenB fb =
   memo1 (fun uts -> unique (whileB fb) $ uts)
 
-(* snapshot: when an event occurs, capture both the event value and current behavior value *)
+(* snapshot: when an event occurs, capture both the event value
+   and current behavior value *)
 let snapshot fe fb : ('a * 'b) event =
   memo1 (fun uts -> lmap2
     (fun x -> function Some y -> Some (y, x) | None -> None)
@@ -1206,8 +1207,9 @@ This is the “flow as a lightweight thread” idea, but without a monad: the st
 Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of `user_action`s (useful for tests and examples):
 
 ```ocaml env=ch10
-let run_script ~(inputs : user_action list) ~(on_emit : string -> unit) (f : unit -> 'a) : 'a =
-  let rec drive (st : 'a paused) (inputs : user_action list) : 'a =
+let run_script (type a) ~(inputs : user_action list) ~(on_emit : string -> unit)
+    (f : unit -> a) : a =
+  let rec drive (st : a paused) (inputs : user_action list) : a =
     match st with
     | Done a -> a
     | Awaiting {feed} ->
@@ -1302,26 +1304,67 @@ A note on practice: OCaml UI and dataflow systems today often embed an increment
 
 **Exercise 1.** Extend the context rewriting “pull out subexpression” example to include `-` and `/`. Remember: they are not commutative.
 
-**Exercise 2.** Extend the stream-based paddle game:
-1. add score keeping,
-2. add restart,
-3. add quitting (cleanly or not-so-cleanly).
+**Exercise 2.** Implement a simple text editor zipper:
 
-**Exercise 3.** The numerical integration function in Section 10.5 uses the rectangle rule. Implement:
-1. trapezoidal rule,
-2. Simpson’s rule,
-and design a simple accuracy test. (Hint: integrate a function with a known closed form.)
+1. Define a type for a text buffer as a zipper over characters, with the cursor position represented by the split between left context and right content.
+2. Implement `insert_char`, `delete_char`, `move_left`, `move_right`, `move_to_start`, and `move_to_end` operations.
+3. Add word-based movement: `move_word_left` and `move_word_right`.
 
-**Exercise 4.** In the stream FRP implementation, implement `switch : 'a behavior -> 'a behavior event -> 'a behavior` and use it to switch between two animations.
+**Exercise 3.** Add the following features to the paddle game example:
 
-**Exercise 5.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: cells are variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
+1. Score keeping: increment score when the ball bounces off the paddle
+2. Game over: detect when the ball falls below the paddle
+3. Restart: press a key to restart after game over
+4. Speed increase: gradually increase ball speed as the game progresses
 
-**Exercise 6.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
-**Exercise 7.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
+**Exercise 4.** Our numerical integration function uses the rectangle rule (left endpoint). Implement and compare:
+
+1. The midpoint rule: $\int_a^b f(x)dx \approx (b-a) \cdot f\left(\frac{a+b}{2}\right)$
+2. The trapezoidal rule: $\int_a^b f(x)dx \approx (b-a) \cdot \frac{f(a) + f(b)}{2}$
+3. Simpson's rule: $\int_a^b f(x)dx \approx \frac{b-a}{6} \left( f(a) + 4f\left(\frac{a+b}{2}\right) + f(b) \right)$
+
+Test the accuracy by integrating $\sin(x)$ from 0 to $\pi$ (exact answer: 2).
+
+**Exercise 5.** Implement `switch` and `until` for the stream-based FRP system:
+
+- `switch : 'a behavior -> 'a behavior event -> 'a behavior` -- behaves as the most recent behavior from events
+- `until : 'a behavior -> 'a behavior event -> 'a behavior` -- switches once on the first event
+
+**Exercise 6.** Implement a `debounce` combinator for events:
+```
+val debounce : float -> 'a event -> 'a event
+```
+The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
+
+**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: cells are variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
+
+**Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
+
+**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
 
 ```ocaml skip
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
 ```
 
 The function should return `Some v` if the awaited action happens before the deadline, and `None` otherwise. Write a small scripted test with `run_script`.
+
+**Exercise 10.** Implement `parallel` for effect-based flows:
+```
+val parallel : (unit -> 'a) list -> 'a list
+```
+This should run multiple flows concurrently and collect their results. Think about:
+- How do you handle flows that await events?
+- What happens if one flow fails?
+- How do you handle cancellation?
+
+**Exercise 11.** The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
+1. Create a `Clock` module with `advance : float -> unit` and `now : unit -> float` functions
+2. Modify the integration function to use virtual time
+3. Write tests that use virtual time to verify physics behavior deterministically
+
+**Exercise 12.** Compare the memory characteristics of the three FRP approaches:
+1. Create a benchmark that builds a dependency graph with N nodes
+2. Measure memory usage for each approach (stream-based, Lwd-based, effect-based)
+3. Measure update time when one input changes
+4. Plot the results and explain the tradeoffs

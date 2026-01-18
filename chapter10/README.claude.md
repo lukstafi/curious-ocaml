@@ -1562,7 +1562,7 @@ Test the accuracy by integrating $\sin(x)$ from 0 to $\pi$ (exact answer: 2).
 ```
 val debounce : float -> 'a event -> 'a event
 ```
-The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing.
+The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
 
 **Exercise 7.** In the Lwd-based FRP implementation, we used mutable references inside `Lwd.map` computations. This works but can be surprising. Implement a version using Lwd's `Lwd.var` for state instead:
 1. Create helper functions that properly manage Lwd variables for stateful computations
