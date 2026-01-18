@@ -9039,8 +9039,21 @@ The paddle is tied to the mouse at the bottom border of the window:
 ```ocaml env=ch10
 let black = (0, 0, 0)
 
-let paddle = liftB (fun mx ->
-  Color (black, Rect (mx, 0, 50, 10))) mouse_x
+let clamp_int ~lo ~hi x = max lo (min hi x)
+
+let wall_thickness = 20
+let paddle_w = 70
+let paddle_h = 10
+
+let paddle_x : int behavior =
+  liftB2 (fun mx w ->
+    let lo = wall_thickness in
+    let hi = max lo (w - 21 - paddle_w) in
+    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
+    mouse_x width
+
+let paddle =
+  liftB (fun px -> Color (black, Rect (px, 0, paddle_w, paddle_h))) paddle_x
 ```
 
 The ball has a velocity in pixels per second and bounces from the walls.
@@ -9095,31 +9108,90 @@ The animation loop drives the system. With Bogue, we integrate with its event lo
 ```ocaml skip
 let reactimate (scene : scene behavior) =
   let open Bogue in
-  let w, h = 640, 480 in
+  let w, h = 640, 512 in
   let area_widget = Widget.sdl_area ~w ~h () in
   let area = Widget.get_sdl_area area_widget in
-  let uts_ref = ref (lazy (assert false)) in  (* Input stream state *)
+
+  (* Append-only input stream: each node's tail forces a mutable "hole". *)
+  let mk_node (x : user_action option * time) :
+    (user_action option * time) stream * (user_action option * time) stream ref =
+    let next_ref : (user_action option * time) stream ref =
+      ref (lazy (assert false))
+    in
+    let tail : (user_action option * time) stream =
+      lazy (Lazy.force !next_ref)
+    in
+    (lazy (Cons (x, tail)), next_ref)
+  in
+
   let t0 = Unix.gettimeofday () in
-  uts_ref := lazy (Cons ((None, t0), lazy (Cons ((None, t0), !uts_ref))));
-  (* Redraw on each frame *)
+  let uts0, hole0 = mk_node (Some (Resize (w, h)), t0) in
+  let hole : (user_action option * time) stream ref ref = ref hole0 in
+  let pending = ref 0 in
+  let last_time = ref t0 in
+
+  let append_input (x : user_action option * time) =
+    let node, next = mk_node x in
+    (!hole) := node;
+    hole := next;
+    incr pending
+  in
+
+  (* Keep physics stable even if the GUI stalls: subdivide large dt. *)
+  let advance_time_to (t : time) =
+    if t <= !last_time then ()
+    else begin
+      let max_step = 1.0 /. 240.0 in
+      let max_catchup = 0.25 in
+      let target = min t (!last_time +. max_catchup) in
+      while !last_time +. 1e-9 < target do
+        let dt = min max_step (target -. !last_time) in
+        last_time := !last_time +. dt;
+        append_input (None, !last_time)
+      done
+    end
+  in
+
+  (* Consume the scene stream one step per input element. *)
+  let scenes = scene $ uts0 in
+  let Cons (sc0, tail0) = Lazy.force scenes in
+  let scene_cursor = ref tail0 in
+  let current = ref sc0 in
+
   Sdl_area.add area (fun _renderer ->
-    (* Clear the area *)
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.grey 50))
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
       ~w ~h (0, 0);
-    let Cons (sc, uts') = Lazy.force (scene $ !uts_ref) in
-    draw area ~h sc;
-    let t = Unix.gettimeofday () in
-    (* For simplicity, we poll mouse position as the action *)
-    uts_ref := lazy (Cons ((Some (MouseMove (0, 0)), t), uts')));
+    while !pending > 0 do
+      decr pending;
+      let Cons (sc, rest) = Lazy.force !scene_cursor in
+      current := sc;
+      scene_cursor := rest
+    done;
+    draw area ~h !current);
+
   let layout = Layout.resident area_widget in
-  (* Use Bogue's connection to handle mouse motion events *)
+
   let action _w _l ev =
-    let mx, my = Trigger.pointer_pos ev in
+    let mx, my = Mouse.pointer_pos ev in
     let t = Unix.gettimeofday () in
-    uts_ref := lazy (Cons ((Some (MouseMove (mx, my)), t), Lazy.force !uts_ref));
+    advance_time_to t;
+    (* Mouse movement updates the paddle; time was advanced above. *)
+    append_input (Some (MouseMove (mx, my)), !last_time);
     Sdl_area.update area
   in
-  Widget.add_connection area_widget area_widget action Trigger.pointer_motion;
+  let connection =
+    Widget.connect area_widget area_widget action Trigger.pointer_motion
+  in
+  Widget.add_connection area_widget connection;
+
+  let rec tick () =
+    advance_time_to (Unix.gettimeofday ());
+    Sdl_area.update area;
+    Widget.update area_widget;
+    Timeout.add_ignore 16 tick
+  in
+  Timeout.add_ignore 16 tick;
+
   let board = Main.of_layout layout in
   Main.run board
 ```
@@ -9259,37 +9331,135 @@ let blue = (0, 0, 255)
 let black = (0, 0, 0)
 let red = (255, 0, 0)
 
+let clamp_int ~lo ~hi x = max lo (min hi x)
+
+let wall_thickness = 20
+let ball_r = 7
+let paddle_w = 70
+let paddle_h = 10
+
 let walls : scene Lwd.t =
   Lwd.map2 width height ~f:(fun w h ->
     Color (blue, Group
       [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
        Rect (w-21, 0, 20, h-1)]))
 
+let paddle_x : int Lwd.t =
+  Lwd.map2 mouse_x width ~f:(fun mx w ->
+    let lo = wall_thickness in
+    let hi = max lo (w - 21 - paddle_w) in
+    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
+
 let paddle : scene Lwd.t =
-  Lwd.map mouse_x ~f:(fun mx ->
-    Color (black, Rect (mx, 0, 50, 10)))
+  Lwd.map paddle_x ~f:(fun px ->
+    Color (black, Rect (px, 0, paddle_w, paddle_h)))
+
+type ball_state =
+  { mutable x : float
+  ; mutable y : float
+  ; mutable vx : float
+  ; mutable vy : float
+  }
 
 let ball : scene Lwd.t =
-  let wall_margin = 27 in
-  let x = ref 0.0 in
-  let y = ref 0.0 in
-  let xvel = ref 120.0 in
-  let yvel = ref 160.0 in
+  let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 160.0 } in
   let prev_t : float option ref = ref None in
-  Lwd.map2 (Lwd.pair width height) time_b ~f:(fun (w, h) t ->
+  let prev_wh : (int * int) option ref = ref None in
+  let dir : float ref = ref 1.0 in
+
+  let reset ~w ~h =
+    st.x <- float_of_int w /. 2.0;
+    st.y <- float_of_int h /. 2.0;
+    st.vx <- !dir *. 120.0;
+    st.vy <- 180.0;
+    dir := -. !dir
+  in
+
+  let clamp_float ~lo ~hi x = max lo (min hi x) in
+
+  let step_physics ~w ~h ~paddle_x ~dt =
+    let max_step = 1.0 /. 240.0 in
+    let paddle_plane = float_of_int (paddle_h + ball_r) in
+    let xmin = float_of_int (wall_thickness + ball_r) in
+    let xmax = float_of_int (max (wall_thickness + ball_r) (w - 21 - ball_r)) in
+    let ymax = float_of_int (max (paddle_h + ball_r) (h - 21 - ball_r)) in
+    let max_speed = 500.0 in
+
+    let rec loop remaining =
+      if remaining <= 0.0 then ()
+      else begin
+        let dt1 = min max_step remaining in
+        let x0, y0 = st.x, st.y in
+        let x1 = x0 +. dt1 *. st.vx in
+        let y1 = y0 +. dt1 *. st.vy in
+        let x1, vx =
+          if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
+          else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
+          else (x1, st.vx)
+        in
+        let y1, vy =
+          if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
+          else (y1, st.vy)
+        in
+        st.x <- x1;
+        st.y <- y1;
+        st.vx <- vx;
+        st.vy <- vy;
+
+        if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
+          let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
+          let x_hit = x0 +. alpha *. (st.x -. x0) in
+          let paddle_left = float_of_int paddle_x -. float_of_int ball_r in
+          let paddle_right =
+            float_of_int (paddle_x + paddle_w) +. float_of_int ball_r
+          in
+          if x_hit >= paddle_left && x_hit <= paddle_right then begin
+            st.y <- paddle_plane +. (paddle_plane -. st.y);
+            st.vy <- abs_float st.vy;
+            let paddle_center =
+              float_of_int paddle_x +. (float_of_int paddle_w /. 2.0)
+            in
+            let offset =
+              (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
+              |> clamp_float ~lo:(-1.0) ~hi:1.0
+            in
+            st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
+          end else (
+            reset ~w ~h
+          )
+        end else if st.y < -50.0 then (
+          reset ~w ~h
+        );
+
+        st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
+        st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
+        loop (remaining -. dt1)
+      end
+    in
+    loop dt
+  in
+
+  let inputs : (int * int * int * float) Lwd.t =
+    let wh_px : ((int * int) * int) Lwd.t =
+      Lwd.pair (Lwd.pair width height) paddle_x
+    in
+    Lwd.map2 wh_px time_b ~f:(fun ((w, h), px) t -> (w, h, px, t))
+  in
+  Lwd.map inputs ~f:(fun (w, h, px, t) ->
+    (match !prev_wh with
+     | Some (w0, h0) when w0 = w && h0 = h -> ()
+     | _ -> prev_wh := Some (w, h); reset ~w ~h);
+
     let dt =
       match !prev_t with
       | None -> 0.0
-      | Some t0 -> t -. t0
+      | Some t0 ->
+        let dt = t -. t0 in
+        if dt <= 0.0 then 0.0 else min dt 0.25
     in
     prev_t := Some t;
-    x := !x +. dt *. !xvel;
-    y := !y +. dt *. !yvel;
-    let xi = int_of_float !x + w / 2 in
-    let yi = int_of_float !y + h / 2 in
-    if xi > w - wall_margin || xi < wall_margin then xvel := -. !xvel;
-    if yi > h - wall_margin || yi < wall_margin then yvel := -. !yvel;
-    Color (red, Circle (xi, yi, 7)))
+    if dt > 0.0 then step_physics ~w ~h ~paddle_x:px ~dt;
+    Color (red, Circle (int_of_float st.x, int_of_float st.y, ball_r)))
 
 let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
@@ -9328,18 +9498,28 @@ That is not a static wiring diagram: it is a program that *proceeds through stag
 
 Standard FRP combinators like “map an event” (or “whenever behavior changes, do …”) are not designed to express this “move forward and never look back” semantics. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
 
-Here is a tiny effect-based interface for staged reactive programs:
+In this section we will reuse the **paddle game** from Sections 10.5 and 10.6, but we will drive it in direct style using effects.
+
+#### An Effect Interface: Await Inputs, Render Scenes
+
+We separate the *script* (the staged logic) from the *interpreter* (Bogue / headless tests) via a small effect interface:
 
 ```ocaml env=ch10
+type input =
+  | Tick of float                 (* dt in seconds *)
+  | User of user_action
+
 type _ Effect.t +=
-  | Await : (user_action -> 'a option) -> 'a Effect.t
-  | Emit : string -> unit Effect.t
+  | Await : (input -> 'a option) -> 'a Effect.t
+  | Render : scene -> unit Effect.t
 
 let await p = Effect.perform (Await p)
-let emit (s : string) = Effect.perform (Emit s)
+let render sc = Effect.perform (Render sc)
 ```
 
-`Await p` means: “pause until you receive a `user_action` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. Operationally, this is the effect-based analog of the old `next e` idea (“the next occurrence of event `e`, and only that one”).
+`Await p` means: “pause until you receive an `input` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. Operationally, this is the effect-based analog of “the next occurrence of event `e`, and only that one”.
+
+`Render sc` is the output side: “send this scene to whatever display I’m running under”.
 
 We are implementing *coarse-grained threads* (cooperative scripts): a script runs in direct style until it reaches `Await`, at which point it yields back to the surrounding driver. There is no explicit `Yield`: `Await` is the suspension point.
 
@@ -9367,21 +9547,21 @@ One convenient representation is a paused computation that either finished, or i
 ```ocaml env=ch10
 type 'a paused =
   | Done of 'a
-  | Awaiting of {feed : user_action -> 'a paused}
+  | Awaiting of {feed : input -> 'a paused}
 
-let step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
+let step ~(on_render : scene -> unit) (th : unit -> 'a) : 'a paused =
   Effect.Deep.match_with th () {
     retc = (fun v -> Done v);
     exnc = raise;
     effc = fun (type c) (eff : c Effect.t) ->
       match eff with
-      | Emit x ->
+      | Render sc ->
         Some (fun (k : (c, _) Effect.Deep.continuation) ->
-          on_emit x;
+          on_render sc;
           Effect.Deep.continue k ())
       | Await p ->
         Some (fun (k : (c, _) Effect.Deep.continuation) ->
-          let rec feed (u : user_action) =
+          let rec feed (u : input) =
             match p u with
             | None -> Awaiting {feed}  (* ignore and keep waiting *)
             | Some v -> Effect.Deep.continue k v
@@ -9393,14 +9573,14 @@ let step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
 
 This is the “flow as a lightweight thread” idea, but without a monad: the state of the thread is the (closed-over) continuation stored inside `feed`.
 
-#### A Handler: Replay a Script of Inputs
+#### A Handler: Replay a Script of Inputs (Headless)
 
-Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of `user_action`s (useful for tests and examples):
+Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of inputs (useful for tests and examples):
 
 ```ocaml env=ch10
-let run_script (type a) ~(inputs : user_action list) ~(on_emit : string -> unit)
+let run_script (type a) ~(inputs : input list) ~(on_render : scene -> unit)
     (f : unit -> a) : a =
-  let rec drive (st : a paused) (inputs : user_action list) : a =
+  let rec drive (st : a paused) (inputs : input list) : a =
     match st with
     | Done a -> a
     | Awaiting {feed} ->
@@ -9408,7 +9588,7 @@ let run_script (type a) ~(inputs : user_action list) ~(on_emit : string -> unit)
        | [] -> failwith "run_script: no more inputs"
        | u :: us -> drive (feed u) us)
   in
-  drive (step ~on_emit f) inputs
+  drive (step ~on_render f) inputs
 ```
 
 In a real GUI, you keep the current `paused` state in a mutable cell. On each incoming event `u`, if the script is `Awaiting {feed}`, you update the state to `feed u`; if the script is `Done _`, you stop. This also gives a simple form of **cancellation**: to cancel a running script “from the outside”, you overwrite the stored state (dropping the continuation) and stop feeding it inputs.
@@ -9416,61 +9596,218 @@ In a real GUI, you keep the current `paused` state in a mutable cell. On each in
 Here is the basic shape of such a driver loop:
 
 ```ocaml skip
-(* This snippet uses paint_forever defined below. See chapter10.ml for
-   a runnable version. *)
-let st : unit paused ref = ref (step ~on_emit:(fun _ -> ()) paint_forever)
+(* This snippet uses a [script] defined below. See chapter10.ml for a runnable
+   version. *)
+let st : unit paused ref = ref (step ~on_render:(fun _ -> ()) script)
 
-let on_user_action (u : user_action) =
+let on_input (u : input) =
   match !st with
   | Done () -> ()
   | Awaiting {feed} -> st := feed u
 ```
 
-#### Example: “Click-and-Drag” in Direct Style
+#### Example: The Paddle Game in Direct Style
 
-We can now write staged logic as straightforward recursion:
-
-```ocaml env=ch10
-let is_down = function
-  | Button (x, y, true, _) -> Some (x, y)
-  | _ -> None
-
-let is_move = function
-  | MouseMove (x, y) -> Some (x, y)
-  | _ -> None
-
-let is_up = function
-  | Button (_, _, false, _) -> Some ()
-  | _ -> None
-
-let rec drag_loop acc =
-  match await_either is_move is_up with
-  | `A p ->
-    let acc = p :: acc in
-    emit (Printf.sprintf "polyline points=%d" (List.length acc));
-    drag_loop acc
-  | `B () ->
-    List.rev acc
-
-let paint_once () =
-  let start = await is_down in
-  emit "start";
-  let path = drag_loop [start] in
-  emit (Printf.sprintf "done, points=%d" (List.length path));
-  path
-```
-
-This is the same idea as the old “flow” construction, but in OCaml 5 direct style: the code reads like a state machine, yet it is still *interpretable*. The script `paint_once` does not commit to any particular GUI framework: it only commits to “there exists some source of `user_action`s and some place to send outputs”.
-
-Looping a flow is now just recursion:
+We reuse the `scene` type and the constants from Sections 10.5–10.6. We will keep the entire game state local to the script, and we will request rendering after every relevant input.
 
 ```ocaml env=ch10
-let rec paint_forever () =
-  ignore (paint_once ());
-  paint_forever ()
+let walls_scene ~w ~h : scene =
+  Color (blue, Group
+    [Rect (0, 0, 20, h - 1)
+    ; Rect (0, h - 21, w - 1, 20)
+    ; Rect (w - 21, 0, 20, h - 1)
+    ])
+
+let paddle_scene ~x : scene =
+  Color (black, Rect (x, 0, paddle_w, paddle_h))
+
+let ball_scene ~x ~y : scene =
+  Color (red, Circle (int_of_float x, int_of_float y, ball_r))
+
+let scene_of_state ~w ~h ~paddle_x (st : ball_state) : scene =
+  Group [walls_scene ~w ~h; paddle_scene ~x:paddle_x; ball_scene ~x:st.x ~y:st.y]
 ```
 
-Because each `await` suspends until a *future* input is fed to the script, each new iteration automatically starts “after” the previous one (you do not need a special `repeat` combinator to get the timing right).
+The physics is the same as in the Lwd implementation (Section 10.6), including paddle collision and “reset on miss”:
+
+```ocaml env=ch10
+let clamp_float ~lo ~hi x = max lo (min hi x)
+
+let step_physics ~w ~h ~(paddle_x : int) ~(st : ball_state) ~(reset : unit -> unit) ~dt =
+  let max_step = 1.0 /. 240.0 in
+  let paddle_plane = float_of_int (paddle_h + ball_r) in
+  let xmin = float_of_int (wall_thickness + ball_r) in
+  let xmax = float_of_int (max (wall_thickness + ball_r) (w - 21 - ball_r)) in
+  let ymax = float_of_int (max (paddle_h + ball_r) (h - 21 - ball_r)) in
+  let max_speed = 500.0 in
+
+  let rec loop remaining =
+    if remaining <= 0.0 then ()
+    else begin
+      let dt1 = min max_step remaining in
+      let x0, y0 = st.x, st.y in
+      let x1 = x0 +. dt1 *. st.vx in
+      let y1 = y0 +. dt1 *. st.vy in
+      let x1, vx =
+        if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
+        else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
+        else (x1, st.vx)
+      in
+      let y1, vy =
+        if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
+        else (y1, st.vy)
+      in
+      st.x <- x1;
+      st.y <- y1;
+      st.vx <- vx;
+      st.vy <- vy;
+
+      if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
+        let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
+        let x_hit = x0 +. alpha *. (st.x -. x0) in
+        let paddle_left = float_of_int paddle_x -. float_of_int ball_r in
+        let paddle_right =
+          float_of_int (paddle_x + paddle_w) +. float_of_int ball_r
+        in
+        if x_hit >= paddle_left && x_hit <= paddle_right then begin
+          st.y <- paddle_plane +. (paddle_plane -. st.y);
+          st.vy <- abs_float st.vy;
+          let paddle_center =
+            float_of_int paddle_x +. (float_of_int paddle_w /. 2.0)
+          in
+          let offset =
+            (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
+            |> clamp_float ~lo:(-1.0) ~hi:1.0
+          in
+          st.vx <-
+            clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
+        end else (
+          reset ()
+        )
+      end else if st.y < -50.0 then (
+        reset ()
+      );
+
+      st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
+      st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
+      loop (remaining -. dt1)
+    end
+  in
+  loop dt
+```
+
+Now the *script* is just a direct-style loop:
+
+```ocaml env=ch10
+let paddle_game () =
+  let w = ref 640 in
+  let h = ref 512 in
+  let paddle_x = ref (wall_thickness + 10) in
+  let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 180.0 } in
+  let dir = ref 1.0 in
+
+  let reset () =
+    st.x <- float_of_int !w /. 2.0;
+    st.y <- float_of_int !h /. 2.0;
+    st.vx <- !dir *. 120.0;
+    st.vy <- 180.0;
+    dir := -. !dir
+  in
+  reset ();
+
+  let set_paddle mx =
+    let lo = wall_thickness in
+    let hi = max lo (!w - 21 - paddle_w) in
+    paddle_x := clamp_int ~lo ~hi (mx - (paddle_w / 2))
+  in
+
+  render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+
+  let rec loop () =
+    let ev =
+      await (function
+        | Tick dt -> Some (`Tick dt)
+        | User (MouseMove (mx, _my)) -> Some (`Move mx)
+        | User (Resize (w1, h1)) -> Some (`Resize (w1, h1))
+        | _ -> None)
+    in
+    (match ev with
+     | `Move mx -> set_paddle mx
+     | `Resize (w1, h1) -> w := w1; h := h1; reset ()
+     | `Tick dt ->
+       let dt = if dt <= 0.0 then 0.0 else min dt 0.25 in
+       if dt > 0.0 then step_physics ~w:!w ~h:!h ~paddle_x:!paddle_x ~st ~reset ~dt);
+    render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+    loop ()
+  in
+  loop ()
+```
+
+#### A Bogue Interpreter for the Effects
+
+In a GUI, we keep the current paused state in a mutable cell, feed it on pointer motion and on a periodic timer tick, and interpret `Render` by updating a “current scene” ref that the draw callback reads:
+
+```ocaml env=ch10
+let run_bogue ~(w : int) ~(h : int) (script : unit -> unit) : unit =
+  let open Bogue in
+  let area_widget = Widget.sdl_area ~w ~h () in
+  let area = Widget.get_sdl_area area_widget in
+
+  let current : scene ref = ref (Group []) in
+  let st : unit paused ref = ref (Done ()) in
+
+  let on_render sc =
+    current := sc;
+    Sdl_area.update area
+  in
+  st := step ~on_render script;
+  (* Let the script know the initial size, if it cares. *)
+  (match !st with
+   | Done () -> ()
+   | Awaiting {feed} -> st := feed (User (Resize (w, h))));
+
+  let feed_input (u : input) =
+    match !st with
+    | Done () -> ()
+    | Awaiting {feed} -> st := feed u
+  in
+
+  Sdl_area.add area (fun _renderer ->
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+      ~w ~h (0, 0);
+    draw area ~h !current);
+
+  let action _w _l ev =
+    let mx, my = Mouse.pointer_pos ev in
+    feed_input (User (MouseMove (mx, my)));
+    Widget.update area_widget
+  in
+  let connection =
+    Widget.connect area_widget area_widget action Trigger.pointer_motion
+  in
+  Widget.add_connection area_widget connection;
+
+  let last = ref (Unix.gettimeofday ()) in
+  let rec tick () =
+    let now = Unix.gettimeofday () in
+    let dt = now -. !last in
+    last := now;
+    feed_input (Tick dt);
+    Widget.update area_widget;
+    Timeout.add_ignore 16 tick
+  in
+  Timeout.add_ignore 16 tick;
+
+  let layout = Layout.resident area_widget in
+  let board = Main.of_layout layout in
+  Main.run board
+```
+
+You can run it (outside of mdx) like this:
+
+```ocaml skip
+let () = run_bogue ~w:640 ~h:512 paddle_game
+```
 
 One practical tip (mirroring the “flows and state” warning from the monadic version): keep the script itself as a thunk `unit -> _`, and run it *inside* a handler/driver. If you accidentally *call* it while *building* a larger structure, you may trigger effects too early (or outside any handler).
 
@@ -9532,7 +9869,7 @@ The debounced event only fires if the original event has not fired for the speci
 
 **Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
-**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
+**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts.
 
 ```ocaml skip
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
@@ -9545,16 +9882,19 @@ The function should return `Some v` if the awaited action happens before the dea
 val parallel : (unit -> 'a) list -> 'a list
 ```
 This should run multiple flows concurrently and collect their results. Think about:
+
 - How do you handle flows that await events?
 - What happens if one flow fails?
 - How do you handle cancellation?
 
 **Exercise 11.** The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
+
 1. Create a `Clock` module with `advance : float -> unit` and `now : unit -> float` functions
 2. Modify the integration function to use virtual time
 3. Write tests that use virtual time to verify physics behavior deterministically
 
 **Exercise 12.** Compare the memory characteristics of the three FRP approaches:
+
 1. Create a benchmark that builds a dependency graph with N nodes
 2. Measure memory usage for each approach (stream-based, Lwd-based, effect-based)
 3. Measure update time when one input changes
