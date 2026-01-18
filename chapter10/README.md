@@ -848,8 +848,21 @@ The paddle is tied to the mouse at the bottom border of the window:
 ```ocaml env=ch10
 let black = (0, 0, 0)
 
-let paddle = liftB (fun mx ->
-  Color (black, Rect (mx, 0, 50, 10))) mouse_x
+let clamp_int ~lo ~hi x = max lo (min hi x)
+
+let wall_thickness = 20
+let paddle_w = 70
+let paddle_h = 10
+
+let paddle_x : int behavior =
+  liftB2 (fun mx w ->
+    let lo = wall_thickness in
+    let hi = max lo (w - 21 - paddle_w) in
+    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
+    mouse_x width
+
+let paddle =
+  liftB (fun px -> Color (black, Rect (px, 0, paddle_w, paddle_h))) paddle_x
 ```
 
 The ball has a velocity in pixels per second and bounces from the walls.
@@ -904,31 +917,90 @@ The animation loop drives the system. With Bogue, we integrate with its event lo
 ```ocaml skip
 let reactimate (scene : scene behavior) =
   let open Bogue in
-  let w, h = 640, 480 in
+  let w, h = 640, 512 in
   let area_widget = Widget.sdl_area ~w ~h () in
   let area = Widget.get_sdl_area area_widget in
-  let uts_ref = ref (lazy (assert false)) in  (* Input stream state *)
+
+  (* Append-only input stream: each node's tail forces a mutable "hole". *)
+  let mk_node (x : user_action option * time) :
+    (user_action option * time) stream * (user_action option * time) stream ref =
+    let next_ref : (user_action option * time) stream ref =
+      ref (lazy (assert false))
+    in
+    let tail : (user_action option * time) stream =
+      lazy (Lazy.force !next_ref)
+    in
+    (lazy (Cons (x, tail)), next_ref)
+  in
+
   let t0 = Unix.gettimeofday () in
-  uts_ref := lazy (Cons ((None, t0), lazy (Cons ((None, t0), !uts_ref))));
-  (* Redraw on each frame *)
+  let uts0, hole0 = mk_node (Some (Resize (w, h)), t0) in
+  let hole : (user_action option * time) stream ref ref = ref hole0 in
+  let pending = ref 0 in
+  let last_time = ref t0 in
+
+  let append_input (x : user_action option * time) =
+    let node, next = mk_node x in
+    (!hole) := node;
+    hole := next;
+    incr pending
+  in
+
+  (* Keep physics stable even if the GUI stalls: subdivide large dt. *)
+  let advance_time_to (t : time) =
+    if t <= !last_time then ()
+    else begin
+      let max_step = 1.0 /. 240.0 in
+      let max_catchup = 0.25 in
+      let target = min t (!last_time +. max_catchup) in
+      while !last_time +. 1e-9 < target do
+        let dt = min max_step (target -. !last_time) in
+        last_time := !last_time +. dt;
+        append_input (None, !last_time)
+      done
+    end
+  in
+
+  (* Consume the scene stream one step per input element. *)
+  let scenes = scene $ uts0 in
+  let Cons (sc0, tail0) = Lazy.force scenes in
+  let scene_cursor = ref tail0 in
+  let current = ref sc0 in
+
   Sdl_area.add area (fun _renderer ->
-    (* Clear the area *)
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.grey 50))
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
       ~w ~h (0, 0);
-    let Cons (sc, uts') = Lazy.force (scene $ !uts_ref) in
-    draw area ~h sc;
-    let t = Unix.gettimeofday () in
-    (* For simplicity, we poll mouse position as the action *)
-    uts_ref := lazy (Cons ((Some (MouseMove (0, 0)), t), uts')));
+    while !pending > 0 do
+      decr pending;
+      let Cons (sc, rest) = Lazy.force !scene_cursor in
+      current := sc;
+      scene_cursor := rest
+    done;
+    draw area ~h !current);
+
   let layout = Layout.resident area_widget in
-  (* Use Bogue's connection to handle mouse motion events *)
+
   let action _w _l ev =
-    let mx, my = Trigger.pointer_pos ev in
+    let mx, my = Mouse.pointer_pos ev in
     let t = Unix.gettimeofday () in
-    uts_ref := lazy (Cons ((Some (MouseMove (mx, my)), t), Lazy.force !uts_ref));
+    advance_time_to t;
+    (* Mouse movement updates the paddle; time was advanced above. *)
+    append_input (Some (MouseMove (mx, my)), !last_time);
     Sdl_area.update area
   in
-  Widget.add_connection area_widget area_widget action Trigger.pointer_motion;
+  let connection =
+    Widget.connect area_widget area_widget action Trigger.pointer_motion
+  in
+  Widget.add_connection area_widget connection;
+
+  let rec tick () =
+    advance_time_to (Unix.gettimeofday ());
+    Sdl_area.update area;
+    Widget.update area_widget;
+    Timeout.add_ignore 16 tick
+  in
+  Timeout.add_ignore 16 tick;
+
   let board = Main.of_layout layout in
   Main.run board
 ```
@@ -1068,37 +1140,135 @@ let blue = (0, 0, 255)
 let black = (0, 0, 0)
 let red = (255, 0, 0)
 
+let clamp_int ~lo ~hi x = max lo (min hi x)
+
+let wall_thickness = 20
+let ball_r = 7
+let paddle_w = 70
+let paddle_h = 10
+
 let walls : scene Lwd.t =
   Lwd.map2 width height ~f:(fun w h ->
     Color (blue, Group
       [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
        Rect (w-21, 0, 20, h-1)]))
 
+let paddle_x : int Lwd.t =
+  Lwd.map2 mouse_x width ~f:(fun mx w ->
+    let lo = wall_thickness in
+    let hi = max lo (w - 21 - paddle_w) in
+    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
+
 let paddle : scene Lwd.t =
-  Lwd.map mouse_x ~f:(fun mx ->
-    Color (black, Rect (mx, 0, 50, 10)))
+  Lwd.map paddle_x ~f:(fun px ->
+    Color (black, Rect (px, 0, paddle_w, paddle_h)))
+
+type ball_state =
+  { mutable x : float
+  ; mutable y : float
+  ; mutable vx : float
+  ; mutable vy : float
+  }
 
 let ball : scene Lwd.t =
-  let wall_margin = 27 in
-  let x = ref 0.0 in
-  let y = ref 0.0 in
-  let xvel = ref 120.0 in
-  let yvel = ref 160.0 in
+  let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 160.0 } in
   let prev_t : float option ref = ref None in
-  Lwd.map2 (Lwd.pair width height) time_b ~f:(fun (w, h) t ->
+  let prev_wh : (int * int) option ref = ref None in
+  let dir : float ref = ref 1.0 in
+
+  let reset ~w ~h =
+    st.x <- float_of_int w /. 2.0;
+    st.y <- float_of_int h /. 2.0;
+    st.vx <- !dir *. 120.0;
+    st.vy <- 180.0;
+    dir := -. !dir
+  in
+
+  let clamp_float ~lo ~hi x = max lo (min hi x) in
+
+  let step_physics ~w ~h ~paddle_x ~dt =
+    let max_step = 1.0 /. 240.0 in
+    let paddle_plane = float_of_int (paddle_h + ball_r) in
+    let xmin = float_of_int (wall_thickness + ball_r) in
+    let xmax = float_of_int (max (wall_thickness + ball_r) (w - 21 - ball_r)) in
+    let ymax = float_of_int (max (paddle_h + ball_r) (h - 21 - ball_r)) in
+    let max_speed = 500.0 in
+
+    let rec loop remaining =
+      if remaining <= 0.0 then ()
+      else begin
+        let dt1 = min max_step remaining in
+        let x0, y0 = st.x, st.y in
+        let x1 = x0 +. dt1 *. st.vx in
+        let y1 = y0 +. dt1 *. st.vy in
+        let x1, vx =
+          if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
+          else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
+          else (x1, st.vx)
+        in
+        let y1, vy =
+          if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
+          else (y1, st.vy)
+        in
+        st.x <- x1;
+        st.y <- y1;
+        st.vx <- vx;
+        st.vy <- vy;
+
+        if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
+          let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
+          let x_hit = x0 +. alpha *. (st.x -. x0) in
+          let paddle_left = float_of_int paddle_x -. float_of_int ball_r in
+          let paddle_right =
+            float_of_int (paddle_x + paddle_w) +. float_of_int ball_r
+          in
+          if x_hit >= paddle_left && x_hit <= paddle_right then begin
+            st.y <- paddle_plane +. (paddle_plane -. st.y);
+            st.vy <- abs_float st.vy;
+            let paddle_center =
+              float_of_int paddle_x +. (float_of_int paddle_w /. 2.0)
+            in
+            let offset =
+              (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
+              |> clamp_float ~lo:(-1.0) ~hi:1.0
+            in
+            st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
+          end else (
+            reset ~w ~h
+          )
+        end else if st.y < -50.0 then (
+          reset ~w ~h
+        );
+
+        st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
+        st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
+        loop (remaining -. dt1)
+      end
+    in
+    loop dt
+  in
+
+  let inputs : (int * int * int * float) Lwd.t =
+    let wh_px : ((int * int) * int) Lwd.t =
+      Lwd.pair (Lwd.pair width height) paddle_x
+    in
+    Lwd.map2 wh_px time_b ~f:(fun ((w, h), px) t -> (w, h, px, t))
+  in
+  Lwd.map inputs ~f:(fun (w, h, px, t) ->
+    (match !prev_wh with
+     | Some (w0, h0) when w0 = w && h0 = h -> ()
+     | _ -> prev_wh := Some (w, h); reset ~w ~h);
+
     let dt =
       match !prev_t with
       | None -> 0.0
-      | Some t0 -> t -. t0
+      | Some t0 ->
+        let dt = t -. t0 in
+        if dt <= 0.0 then 0.0 else min dt 0.25
     in
     prev_t := Some t;
-    x := !x +. dt *. !xvel;
-    y := !y +. dt *. !yvel;
-    let xi = int_of_float !x + w / 2 in
-    let yi = int_of_float !y + h / 2 in
-    if xi > w - wall_margin || xi < wall_margin then xvel := -. !xvel;
-    if yi > h - wall_margin || yi < wall_margin then yvel := -. !yvel;
-    Color (red, Circle (xi, yi, 7)))
+    if dt > 0.0 then step_physics ~w ~h ~paddle_x:px ~dt;
+    Color (red, Circle (int_of_float st.x, int_of_float st.y, ball_r)))
 
 let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
