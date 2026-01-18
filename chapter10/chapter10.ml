@@ -7,6 +7,7 @@
      dune exec chapter10/chapter10.exe lwd      # Run Lwd incremental demo
      dune exec chapter10/chapter10.exe incr     # Run Incremental demo
      dune exec chapter10/chapter10.exe paddle   # Run Lwd paddle game (GUI)
+     dune exec chapter10/chapter10.exe stream   # Run stream FRP paddle game (GUI)
      dune exec chapter10/chapter10.exe effects  # Run effects click-and-drag demo
 *)
 
@@ -331,6 +332,276 @@ module LwdPaddle = struct
     Main.run board
 end
 
+(* ========== 10.5 Stream-Based FRP Paddle Game (GUI) ========== *)
+
+module StreamFRP = struct
+  (* Stream infrastructure *)
+  type 'a stream = 'a stream_ Lazy.t
+  and 'a stream_ = Cons of 'a * 'a stream
+
+  let rec lmap f l = lazy (
+    let Cons (x, xs) = Lazy.force l in
+    Cons (f x, lmap f xs))
+
+  let rec lmap2 f xs ys = lazy (
+    let Cons (x, xs) = Lazy.force xs in
+    let Cons (y, ys) = Lazy.force ys in
+    Cons (f x y, lmap2 f xs ys))
+
+  let rec lmap3 f xs ys zs = lazy (
+    let Cons (x, xs) = Lazy.force xs in
+    let Cons (y, ys) = Lazy.force ys in
+    let Cons (z, zs) = Lazy.force zs in
+    Cons (f x y z, lmap3 f xs ys zs))
+
+  let rec lfold acc f (l : 'a stream) = lazy (
+    let Cons (x, xs) = Lazy.force l in
+    let acc = f acc x in
+    Cons (acc, lfold acc f xs))
+
+  (* User actions *)
+  type user_action =
+    | Key of char * bool
+    | Button of int * int * bool * bool
+    | MouseMove of int * int
+    | Resize of int * int
+
+  type time = float
+
+  (* Memoization for behaviors *)
+  type ('a, 'b) memo1 =
+    {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
+
+  let memo1 f = {memo_f = f; memo_r = None}
+
+  let memo1_app f x =
+    match f.memo_r with
+    | Some (y, res) when x == y -> res
+    | _ ->
+      let res = f.memo_f x in
+      f.memo_r <- Some (x, res);
+      res
+
+  let ($) = memo1_app
+
+  type 'a behavior =
+    ((user_action option * time) stream, 'a stream) memo1
+
+  type 'a event = 'a option behavior
+
+  (* Behavior combinators *)
+  let returnB x : 'a behavior =
+    let rec xs = lazy (Cons (x, xs)) in
+    memo1 (fun _ -> xs)
+
+  let ( !* ) = returnB
+
+  let liftB f fb = memo1 (fun uts -> lmap f (fb $ uts))
+
+  let liftB2 f fb1 fb2 = memo1
+    (fun uts -> lmap2 f (fb1 $ uts) (fb2 $ uts))
+
+  let liftB3 f fb1 fb2 fb3 = memo1
+    (fun uts -> lmap3 f (fb1 $ uts) (fb2 $ uts) (fb3 $ uts))
+
+  let liftE f (fe : 'a event) : 'b event = memo1
+    (fun uts -> lmap
+      (function Some e -> Some (f e) | None -> None)
+      (fe $ uts))
+
+  let (=>>) fe f = liftE f fe
+  let (->>) e v = e =>> fun _ -> v
+
+  (* Event/behavior conversions *)
+  let whileB (fb : bool behavior) : unit event =
+    memo1 (fun uts ->
+      lmap (function true -> Some () | false -> None)
+        (fb $ uts))
+
+  let unique fe : 'a event =
+    memo1 (fun uts ->
+      let xs = fe $ uts in
+      lmap2 (fun x y -> if x = y then None else y)
+        (lazy (Cons (None, xs))) xs)
+
+  let whenB fb =
+    memo1 (fun uts -> unique (whileB fb) $ uts)
+
+  let step acc fe =
+    memo1 (fun uts -> lfold acc
+      (fun acc -> function None -> acc | Some v -> v)
+      (fe $ uts))
+
+  let step_accum acc ff =
+    memo1 (fun uts ->
+      lfold acc (fun acc -> function
+        | None -> acc | Some f -> f acc)
+        (ff $ uts))
+
+  let integral fb =
+    let rec loop t0 acc uts bs =
+      let Cons ((_, t1), uts) = Lazy.force uts in
+      let Cons (b, bs) = Lazy.force bs in
+      let acc = acc +. (t1 -. t0) *. b in
+      Cons (acc, lazy (loop t1 acc uts bs)) in
+    memo1 (fun uts -> lazy (
+      let Cons ((_, t), uts') = Lazy.force uts in
+      Cons (0., lazy (loop t 0. uts' (fb $ uts)))))
+
+  (* Input extraction *)
+  let mm : (int * int) event =
+    memo1 (fun uts -> lmap
+      (function Some (MouseMove (x, y)), _ -> Some (x, y) | _ -> None)
+      uts)
+
+  let screen : (int * int) event =
+    memo1 (fun uts -> lmap
+      (function Some (Resize (x, y)), _ -> Some (x, y) | _ -> None)
+      uts)
+
+  let mouse_x : int behavior = step 0 (liftE fst mm)
+  let width : int behavior = step 640 (liftE fst screen)
+  let height : int behavior = step 512 (liftE snd screen)
+
+  (* Lifted operators *)
+  let (+*) = liftB2 (+)
+  let (-*) = liftB2 (-)
+  let (/*) = liftB2 (/)
+  let (||*) = liftB2 (||)
+  let (<*) = liftB2 (<)
+  let (>*) = liftB2 (>)
+
+  (* Scene graph *)
+  type color = int * int * int
+
+  type scene =
+    | Rect of int * int * int * int
+    | Circle of int * int * int
+    | Group of scene list
+    | Color of color * scene
+    | Translate of float * float * scene
+
+  let draw area ~h sc =
+    let open Bogue in
+    let f2i = int_of_float in
+    let flip_y y = h - y in
+    let rec aux t_x t_y (r, g, b) = function
+      | Rect (x, y, w, ht) ->
+        let color = Draw.opaque (r, g, b) in
+        let x0, y0 = f2i t_x + x, flip_y (f2i t_y + y + ht) in
+        Sdl_area.draw_rectangle area ~color ~thick:2 ~w ~h:ht (x0, y0)
+      | Circle (x, y, rad) ->
+        let color = Draw.opaque (r, g, b) in
+        let cx, cy = f2i t_x + x, flip_y (f2i t_y + y) in
+        Sdl_area.draw_circle area ~color ~thick:2 ~radius:rad (cx, cy)
+      | Group scs ->
+        List.iter (aux t_x t_y (r, g, b)) scs
+      | Color (c, sc) ->
+        aux t_x t_y c sc
+      | Translate (dx, dy, sc) ->
+        aux (t_x +. dx) (t_y +. dy) (r, g, b) sc
+    in
+    aux 0. 0. (255, 255, 255) sc
+
+  let blue = (0, 0, 255)
+  let black = (0, 0, 0)
+  let red = (255, 0, 0)
+
+  let walls =
+    liftB2 (fun w h -> Color (blue, Group
+      [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
+       Rect (w-21, 0, 20, h-1)]))
+      width height
+
+  let paddle = liftB (fun mx ->
+    Color (black, Rect (mx, 0, 50, 10))) mouse_x
+
+  (* Ball with bouncing - avoiding the eager recursion problem.
+
+     The issue with the README version is that the mutual recursion between
+     xvel_pos() and xbounce() happens at function-call time, not at stream-
+     consumption time. When we call xvel_pos(), it immediately calls xbounce(),
+     which calls xvel_pos() again - infinite loop before any laziness kicks in.
+
+     Solution: Build the behaviors directly as stream transformers that close
+     over mutable state for velocity. The bounce detection updates the velocity
+     refs, and the integration reads from them. This is less "purely functional"
+     but correctly delays the mutual dependency to stream consumption time. *)
+  let ball : scene behavior =
+    let wall_margin = 27 in
+    let xvel = ref 100.0 in
+    let yvel = ref 130.0 in
+
+    (* Integration with bounce detection built into the loop *)
+    let make_pos vel_ref dim_behavior =
+      let rec loop t0 acc uts dim_s =
+        let Cons ((_, t1), uts') = Lazy.force uts in
+        let Cons (dim, dim_s') = Lazy.force dim_s in
+        let acc = acc +. (t1 -. t0) *. !vel_ref in
+        let pos = int_of_float acc + dim / 2 in
+        (* Bounce detection and velocity update *)
+        if pos > dim - wall_margin || pos < wall_margin then
+          vel_ref := -. !vel_ref;
+        Cons (pos, lazy (loop t1 acc uts' dim_s'))
+      in
+      memo1 (fun uts -> lazy (
+        let Cons ((_, t), uts') = Lazy.force uts in
+        let dim_s = dim_behavior $ uts in
+        let Cons (dim, _) = Lazy.force dim_s in
+        Cons (dim / 2, lazy (loop t 0. uts' dim_s))))
+    in
+
+    let xpos = make_pos xvel width in
+    let ypos = make_pos yvel height in
+    liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
+
+  let game : scene behavior =
+    liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
+
+  let demo () =
+    print_endline "=== Stream FRP Paddle Game ===";
+    print_endline "Starting Bogue GUI... Move mouse to control paddle.";
+    print_endline "Close the window to exit.";
+    let open Bogue in
+    let w, h = 640, 512 in
+    let area_widget = Widget.sdl_area ~w ~h () in
+    let area = Widget.get_sdl_area area_widget in
+    (* The input stream is built "backwards" - we prepend new elements.
+       uts_ref holds the current head of the input stream. *)
+    let uts_ref : (user_action option * time) stream ref =
+      ref (lazy (assert false)) in
+    let t0 = Unix.gettimeofday () in
+    (* Initialize with a self-referential stream for the first frame *)
+    let rec init_stream = lazy (Cons ((None, t0), init_stream)) in
+    uts_ref := init_stream;
+
+    Sdl_area.add area (fun _renderer ->
+      Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+        ~w ~h (0, 0);
+      let scene_stream = game $ !uts_ref in
+      let Cons (sc, _) = Lazy.force scene_stream in
+      draw area ~h sc;
+      (* Advance time for next frame *)
+      let t = Unix.gettimeofday () in
+      uts_ref := lazy (Cons ((None, t), !uts_ref)));
+
+    let layout = Layout.resident area_widget in
+
+    let action _w _l ev =
+      let mx, my = Mouse.pointer_pos ev in
+      let t = Unix.gettimeofday () in
+      uts_ref := lazy (Cons ((Some (MouseMove (mx, my)), t), !uts_ref));
+      Sdl_area.update area
+    in
+    let connection = Widget.connect area_widget area_widget action Trigger.pointer_motion in
+    Widget.add_connection area_widget connection;
+
+    let _timeout = Timeout.add 16 (fun () -> Sdl_area.update area) in
+
+    let board = Main.of_layout layout in
+    Main.run board
+end
+
 (* ========== 10.7 Effects-Based Reactivity ========== *)
 
 module EffectsDemo = struct
@@ -450,6 +721,7 @@ let print_usage () =
   print_endline "  lwd     - Lwd incremental computing demo";
   print_endline "  incr    - Jane Street Incremental demo";
   print_endline "  paddle  - Lwd paddle game (requires GUI/Bogue)";
+  print_endline "  stream  - Stream FRP paddle game (requires GUI/Bogue)";
   print_endline "  effects - Effects-based click-and-drag demo";
   print_endline "";
   print_endline "Run 'dune exec chapter10/chapter10.exe <example>' to try one."
@@ -462,6 +734,7 @@ let () =
   | [| _; "lwd" |] -> LwdDemo.demo ()
   | [| _; "incr" |] -> IncrDemo.demo ()
   | [| _; "paddle" |] -> LwdPaddle.demo ()
+  | [| _; "stream" |] -> StreamFRP.demo ()
   | [| _; "effects" |] -> EffectsDemo.demo ()
   | [| _; "all" |] ->
     Zipper.demo ();
@@ -474,7 +747,7 @@ let () =
     print_endline "";
     EffectsDemo.demo ();
     print_endline "";
-    print_endline "(Skipping paddle GUI in 'all' mode)"
+    print_endline "(Skipping paddle and stream GUIs in 'all' mode)"
   | _ ->
     print_endline "Unknown example.";
     print_usage ();

@@ -569,6 +569,8 @@ let rec lmap f l = lazy (
   let Cons (x, xs) = Lazy.force l in
   Cons (f x, lmap f xs))
 
+(* Infinite loop: only exits via an exception, either from forcing e.g. "end of stream",
+   or from f e.g. "exit". *)
 let rec liter (f : 'a -> unit) (l : 'a stream) : unit =
   let Cons (x, xs) = Lazy.force l in
   f x; liter f xs
