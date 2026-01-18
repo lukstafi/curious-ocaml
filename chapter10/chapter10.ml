@@ -516,43 +516,34 @@ module StreamFRP = struct
   let paddle = liftB (fun mx ->
     Color (black, Rect (mx, 0, 50, 10))) mouse_x
 
-  (* Ball with bouncing - avoiding the eager recursion problem.
+  (* Ball with bouncing - tying the knot with memo1 records.
 
-     The issue with the README version is that the mutual recursion between
-     xvel_pos() and xbounce() happens at function-call time, not at stream-
-     consumption time. When we call xvel_pos(), it immediately calls xbounce(),
-     which calls xvel_pos() again - infinite loop before any laziness kicks in.
-
-     Solution: Build the behaviors directly as stream transformers that close
-     over mutable state for velocity. The bounce detection updates the velocity
-     refs, and the integration reads from them. This is less "purely functional"
-     but correctly delays the mutual dependency to stream consumption time. *)
+     The mutual recursion between xvel, xpos, and xbounce requires care.
+     If we naively wrote mutually recursive *functions* that call each other,
+     we would get an infinite loop at definition time (before any stream is
+     consumed). The trick is to define the recursion at the *memo1 record*
+     level: we use `let rec ... and ...` to create mutually recursive records
+     where each record's memo_f field references the other records by name.
+     The actual computation is deferred until `$ uts` is applied. *)
   let ball : scene behavior =
     let wall_margin = 27 in
-    let xvel = ref 100.0 in
-    let yvel = ref 130.0 in
-
-    (* Integration with bounce detection built into the loop *)
-    let make_pos vel_ref dim_behavior =
-      let rec loop t0 acc uts dim_s =
-        let Cons ((_, t1), uts') = Lazy.force uts in
-        let Cons (dim, dim_s') = Lazy.force dim_s in
-        let acc = acc +. (t1 -. t0) *. !vel_ref in
-        let pos = int_of_float acc + dim / 2 in
-        (* Bounce detection and velocity update *)
-        if pos > dim - wall_margin || pos < wall_margin then
-          vel_ref := -. !vel_ref;
-        Cons (pos, lazy (loop t1 acc uts' dim_s'))
-      in
-      memo1 (fun uts -> lazy (
-        let Cons ((_, t), uts') = Lazy.force uts in
-        let dim_s = dim_behavior $ uts in
-        let Cons (dim, _) = Lazy.force dim_s in
-        Cons (dim / 2, lazy (loop t 0. uts' dim_s))))
-    in
-
-    let xpos = make_pos xvel width in
-    let ypos = make_pos yvel height in
+    let vel = 100.0 in
+    (* Horizontal motion with bouncing *)
+    let rec xvel_ uts = step_accum vel (xbounce ->> (~-.)) $ uts
+    and xvel = {memo_f = xvel_; memo_r = None}
+    and xpos_ uts = (liftB int_of_float (integral xvel) +* width /* !*2) $ uts
+    and xpos = {memo_f = xpos_; memo_r = None}
+    and xbounce_ uts =
+      whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin)) $ uts
+    and xbounce = {memo_f = xbounce_; memo_r = None} in
+    (* Vertical motion with bouncing *)
+    let rec yvel_ uts = step_accum vel (ybounce ->> (~-.)) $ uts
+    and yvel = {memo_f = yvel_; memo_r = None}
+    and ypos_ uts = (liftB int_of_float (integral yvel) +* height /* !*2) $ uts
+    and ypos = {memo_f = ypos_; memo_r = None}
+    and ybounce_ uts =
+      whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin)) $ uts
+    and ybounce = {memo_f = ybounce_; memo_r = None} in
     liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
 
   let game : scene behavior =

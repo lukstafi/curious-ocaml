@@ -832,38 +832,31 @@ The key ideas in the ball implementation:
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
-```ocaml skip
-(* Note: This code causes stack overflow when evaluated outside the animation
-   loop because the mutual recursion is broken by stream laziness only when
-   the stream is actually consumed. See chapter10.ml for a working version. *)
+**Tying the knot with memo1 records.** The mutual recursion between `xvel`, `xpos`, and `xbounce` requires care. If we naively wrote mutually recursive *functions* that call each other, we would get an infinite loop at definition time (before any stream is consumed). The trick is to define the recursion at the *memo1 record* level: we use `let rec ... and ...` to create mutually recursive records where each record's `memo_f` field references the other records by name. The actual computation is deferred until `$ uts` is applied.
+
+```ocaml env=ch10
 let red = (255, 0, 0)
 
 let ball : scene behavior =
-  let wall_margin = 27 in  (* ball radius + wall thickness *)
-  let vel = 100.0 in       (* initial velocity in pixels/sec *)
-
-  (* Horizontal motion with bouncing *)
-  let rec xvel_pos () =
-    let xvel = step_accum vel (xbounce () ->> (~-.)) in
-    let xpos = liftB int_of_float (integral xvel) +* width /* !*2 in
-    xvel, xpos
-  and xbounce () =
-    let _, xpos = xvel_pos () in
-    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin))
-  in
-
+  let wall_margin = 27 in
+  let vel = 100.0 in
+  (* Horizontal motion with bouncing.
+     The mutual recursion is between memo1 records, not function calls. *)
+  let rec xvel_ uts = step_accum vel (xbounce ->> (~-.)) $ uts
+  and xvel = {memo_f = xvel_; memo_r = None}
+  and xpos_ uts = (liftB int_of_float (integral xvel) +* width /* !*2) $ uts
+  and xpos = {memo_f = xpos_; memo_r = None}
+  and xbounce_ uts =
+    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin)) $ uts
+  and xbounce = {memo_f = xbounce_; memo_r = None} in
   (* Vertical motion with bouncing *)
-  let rec yvel_pos () =
-    let yvel = step_accum vel (ybounce () ->> (~-.)) in
-    let ypos = liftB int_of_float (integral yvel) +* height /* !*2 in
-    yvel, ypos
-  and ybounce () =
-    let _, ypos = yvel_pos () in
-    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin))
-  in
-
-  let _, xpos = xvel_pos () in
-  let _, ypos = yvel_pos () in
+  let rec yvel_ uts = step_accum vel (ybounce ->> (~-.)) $ uts
+  and yvel = {memo_f = yvel_; memo_r = None}
+  and ypos_ uts = (liftB int_of_float (integral yvel) +* height /* !*2) $ uts
+  and ypos = {memo_f = ypos_; memo_r = None}
+  and ybounce_ uts =
+    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin)) $ uts
+  and ybounce = {memo_f = ybounce_; memo_r = None} in
   liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
 ```
 
