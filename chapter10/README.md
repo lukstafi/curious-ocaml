@@ -67,14 +67,14 @@ It does not matter whether we use built-in OCaml lists or define a custom type w
 
 In practice, contexts of subtrees are more useful than contexts of single elements. Rather than tracking where a single value lives, we track the position of an entire subtree within the larger structure:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
 type tree_dir = Left_br | Right_br
 type 'a context = (tree_dir * 'a * 'a tree) list
 type 'a location = {sub: 'a tree; ctx: 'a context}
 
-let access {sub} = sub       (* Get the current subtree *)
-let change {ctx} sub = {sub; ctx}  (* Replace the subtree, keep context *)
+let access {sub; _} = sub       (* Get the current subtree *)
+let change {ctx; _} sub = {sub; ctx}  (* Replace the subtree, keep context *)
 let modify f {sub; ctx} = {sub = f sub; ctx}  (* Transform the subtree *)
 ```
 
@@ -84,7 +84,7 @@ There is a wonderful visual intuition for zippers: imagine taking a tree and pin
 
 Navigation functions allow us to traverse the structure. Each movement operation restructures the zipper: what was context becomes part of the subtree, and vice versa. Watch how ascending rebuilds a parent node from the context, while descending breaks apart a node to create new context:
 
-```ocaml skip
+```ocaml env=ch10
 let ascend loc =
   match loc.ctx with
   | [] -> loc  (* At root already, or raise exception *)
@@ -114,7 +114,7 @@ let desc_right loc =
 
 Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches. This is particularly useful for representing document structures where a group can contain any number of children:
 
-```ocaml skip
+```ocaml env=ch10
 type doc = Text of string | Line | Group of doc list
 type context = (doc list * doc list) list  (* left siblings, right siblings *)
 type location = {sub: doc; ctx: context}
@@ -124,7 +124,7 @@ In this design, the context at each level stores two lists: the siblings to the 
 
 The navigation functions for this more complex structure show how we reconstruct the parent when going up, and how we split the sibling list when going down:
 
-```ocaml skip
+```ocaml env=ch10
 let go_up loc =
   match loc.ctx with
   | [] -> invalid_arg "go_up: at top"
@@ -184,7 +184,7 @@ These rules encode the algebraic properties we need: associativity (first two ru
 
 First, the groundwork. We define expression types and a zipper for navigating them:
 
-```ocaml skip
+```ocaml env=ch10
 type op = Add | Mul
 type expr = Val of int | Var of string | App of expr * op * expr
 type expr_dir = Left_arg | Right_arg
@@ -194,7 +194,7 @@ type location = {sub: expr; ctx: context}
 
 To locate the subexpression described by predicate `p`, we search the expression tree and build up the context as we go. Notice that we build the context in reverse order during the search, then reverse it at the end so the innermost context comes first (as required for efficient navigation):
 
-```ocaml skip
+```ocaml env=ch10
 let rec find_aux p e =
   if p e then Some (e, [])
   else match e with
@@ -217,7 +217,7 @@ let find p e =
 
 Now we can implement the pull-out transformation. This is where the zipper shines: we pattern match on the context to decide which rewriting rule to apply, then modify the context directly. The function recursively moves the target subexpression outward until it reaches the root:
 
-```ocaml skip
+```ocaml env=ch10
 let rec pull_out loc =
   match loc.ctx with
   | [] -> loc  (* Done: reached the root *)
@@ -242,15 +242,17 @@ Since we assume operators are commutative, we can ignore the direction for the s
 
 Let us test the implementation with a concrete example:
 
-```ocaml skip
-let (+) a b = App (a, Add, b)  (* Convenient syntax for building expressions *)
-let ( * ) a b = App (a, Mul, b)
-let (!) a = Val a
+```ocaml env=ch10
+module ExprOps = struct
+  let (+) a b = App (a, Add, b)
+  let ( * ) a b = App (a, Mul, b)
+  let (!) a = Val a
+end
 let x = Var "x"
 let y = Var "y"
 
 (* Original: 5 + y * (7 + x) * (3 + y) -- we want to pull x to the front *)
-let ex = !5 + y * (!7 + x) * (!3 + y)
+let ex = ExprOps.(!5 + y * (!7 + x) * (!3 + y))
 let loc = find (fun e -> e = x) ex
 let sol =
   match loc with
@@ -341,7 +343,7 @@ If we naïvely “recompute everything that ever depended on `x`”, then changi
 
 Many ideas above can be packaged behind a small “conceptual API”:
 
-```ocaml skip
+```ocaml env=ch10
 module type INCREMENTAL = sig
   type 'a t
   type 'a var
@@ -370,7 +372,7 @@ OCaml has at least two widely used implementations of this idea, with different 
 - Values are recomputed on demand when you `Lwd.sample` a **root** (an observer).
 - It tracks *liveness*: nodes not reachable from any root are released, and `Lwd.prim` supports `acquire`/`release` for resource lifetimes (subscriptions, DOM nodes, etc.).
 
-```ocaml skip
+```ocaml env=ch10
 (* Using Lwd as an incremental engine *)
 let a = Lwd.var 10
 let b = Lwd.var 32
@@ -396,7 +398,7 @@ let () =
 - `Incr.stabilize` recomputes all stale *necessary* nodes in an order based on node heights (a topological schedule).
 - It supports **cutoffs** (don’t propagate if “unchanged enough”), rich observer hooks, and scoping mechanisms that help manage dynamic graphs.
 
-```ocaml skip
+```ocaml env=ch10
 module Incr = Incremental.Make ()
 module State = (val Incr.State.create ())
 
@@ -471,7 +473,7 @@ In practice, FRP systems implement some notion of an **update step** (also calle
 
 In the most mathematical presentation, we might write:
 
-```ocaml skip
+```ocaml env=ch10
 type time = float
 type 'a behavior = time -> 'a
 type 'a event = (time * 'a) stream  (* increasing time stamps *)
@@ -483,7 +485,7 @@ The trouble is that real programs must react to *external* events (mouse moves, 
 
 The usual move is to turn behaviors into **stream transformers** that process time and inputs incrementally:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a behavior = user_action event -> time -> 'a
 type 'a behavior = user_action event -> time stream -> 'a stream
 type 'a behavior = (user_action option * time) stream -> 'a stream
@@ -493,7 +495,7 @@ This transformation from functions-of-time to stream transformers is analogous t
 
 Once behaviors are stream transformers, a very convenient representation for events is:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a event = 'a option behavior
 ```
 
@@ -503,7 +505,7 @@ An event is just a behavior that yields `None` most of the time and `Some v` at 
 
 Pointwise behaviors form an applicative functor (and, in idealized presentations, a monad). For `type 'a behavior = time -> 'a` we can define:
 
-```ocaml skip
+```ocaml env=ch10
 let pure a = fun _t -> a
 let map f b = fun t -> f (b t)
 let ap bf ba = fun t -> (bf t) (ba t)
@@ -511,7 +513,7 @@ let ap bf ba = fun t -> (bf t) (ba t)
 
 From `ap` we get the familiar lifting operators:
 
-```ocaml skip
+```ocaml env=ch10
 let lift2 f a b = ap (map f a) b
 let lift3 f a b c = ap (lift2 f a b) c
 ```
@@ -533,7 +535,7 @@ Section 10.5 builds a small stream-based FRP core where these are concrete funct
 
 To keep the discussion concrete, we will package external inputs (user actions) together with sampling times:
 
-```ocaml skip
+```ocaml env=ch10
 type time = float
 
 type user_action =
@@ -550,7 +552,7 @@ We will present two implementations:
 
 Conceptually, in the stream-processing interpretation we will treat:
 
-```ocaml skip
+```ocaml env=ch10
 (* Conceptual types (we refine the representation in Section 10.5). *)
 type 'a behavior = (user_action option * time) stream -> 'a stream
 type 'a event = 'a option behavior
@@ -560,7 +562,7 @@ type 'a event = 'a option behavior
 
 Now let us implement FRP using the stream processing techniques from Chapter 7. The infrastructure should be familiar:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a stream = 'a stream_ Lazy.t
 and 'a stream_ = Cons of 'a * 'a stream
 
@@ -591,7 +593,7 @@ let rec lfold acc f (l : 'a stream) = lazy (
 
 Since a behavior is a function from the input stream to an output stream, we face a subtle sharing problem: if we apply the same behavior function twice to the "same" input, we might create two separate streams that diverge. We need to ensure that for any actual input stream, each behavior creates exactly one output stream. This requires memoization:
 
-```ocaml skip
+```ocaml env=ch10
 type ('a, 'b) memo1 =
   {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
 
@@ -619,7 +621,7 @@ We use physical equality (`==`) rather than structural equality (`=`) because th
 
 Now we can build the monadic/applicative functions for composing behaviors. A practical tip: when working with these higher-order types, type annotations are essential. If you do not provide type annotations in `.ml` files, work together with an `.mli` interface file to catch type problems early.
 
-```ocaml skip
+```ocaml env=ch10
 (* A constant behavior: returns the same value at all times *)
 let returnB x : 'a behavior =
   let rec xs = lazy (Cons (x, xs)) in  (* Infinite stream of x *)
@@ -649,7 +651,7 @@ let (->>) e v = e =>> fun _ -> v  (* Replace event value with constant *)
 
 We also need to create events from behaviors and vice versa. Creating events out of behaviors:
 
-```ocaml skip
+```ocaml env=ch10
 (* whileB: produces an event at every moment the behavior is true *)
 let whileB (fb : bool behavior) : unit event =
   memo1 (fun uts ->
@@ -676,7 +678,7 @@ let snapshot fe fb : ('a * 'b) event =
 
 Creating behaviors out of events:
 
-```ocaml skip
+```ocaml env=ch10
 (* step: holds the value of the most recent event, starting with 'acc' *)
 let step acc fe =
   memo1 (fun uts -> lfold acc
@@ -693,7 +695,7 @@ let step_accum acc ff =
 
 For physics simulations like our upcoming paddle game, we need to integrate behaviors over time. This requires access to the sampling timestamps:
 
-```ocaml skip
+```ocaml env=ch10
 let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
@@ -712,7 +714,7 @@ The trick is the same as we saw in Chapter 7: integration introduces one step of
 
 We define behaviors for user actions by extracting them from the input stream:
 
-```ocaml skip
+```ocaml env=ch10
 (* Left button press event *)
 let lbp : unit event =
   memo1 (fun uts -> lmap
@@ -744,7 +746,7 @@ Now let us put all these pieces together to build a classic paddle game (similar
 
 First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen. Since we will use Bogue's `Sdl_area` for rendering, we use simple line-based shapes (rectangles drawn as outlines, circles approximated by line segments):
 
-```ocaml skip
+```ocaml env=ch10
 type color = int * int * int  (* RGB components *)
 
 type scene =
@@ -757,7 +759,7 @@ type scene =
 
 The drawing function interprets the scene graph. We use Bogue's `Sdl_area` to draw lines:
 
-```ocaml skip
+```ocaml env=ch10
 let draw area ~h sc =
   let open Bogue in
   let f2i = int_of_float in
@@ -785,7 +787,7 @@ An *animation* is simply a scene behavior -- a time-varying scene. The `reactima
 
 For the game logic, we define lifted operators so we can write behavior expressions naturally:
 
-```ocaml skip
+```ocaml env=ch10
 let (+*) = liftB2 (+)
 let (-*) = liftB2 (-)
 let ( *** ) = liftB2 ( * )
@@ -798,7 +800,7 @@ let (>*) = liftB2 (>)
 
 Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
 
-```ocaml skip
+```ocaml env=ch10
 let blue = (0, 0, 255)
 
 let walls =
@@ -810,7 +812,7 @@ let walls =
 
 The paddle is tied to the mouse at the bottom border of the window:
 
-```ocaml skip
+```ocaml env=ch10
 let black = (0, 0, 0)
 
 let paddle = liftB (fun mx ->
@@ -829,7 +831,7 @@ The key ideas in the ball implementation:
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
-```ocaml skip
+```ocaml env=ch10
 let red = (255, 0, 0)
 
 let ball : scene behavior =
@@ -863,14 +865,14 @@ let ball : scene behavior =
 
 Finally, we compose everything into the complete game scene:
 
-```ocaml skip
+```ocaml env=ch10
 let game : scene behavior =
   liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
 ```
 
 The animation loop drives the system. With Bogue, we integrate with its event loop by using a timer and connection callbacks:
 
-```ocaml skip
+```ocaml env=ch10
 let reactimate (scene : scene behavior) =
   let open Bogue in
   let w, h = 640, 480 in
@@ -928,7 +930,7 @@ A useful correspondence is:
 - **Event**: `'a option Lwd.t` (a pulse) or a queue/list carried by a var
 - **Observer/root**: `'a Lwd.root`
 
-```ocaml skip
+```ocaml env=ch10
 module LwdFrp = struct
   type 'a behavior = 'a Lwd.t
   type 'a event = 'a option Lwd.t
@@ -948,7 +950,7 @@ end
 
 `Lwd` does not have a built-in notion of time; you supply one (usually as a `float` variable updated each frame):
 
-```ocaml skip
+```ocaml env=ch10
 let time_v : float Lwd.var = Lwd.var 0.0
 let time_b : float Lwd.t = Lwd.get time_v
 
@@ -962,7 +964,7 @@ let mouse_y : int Lwd.t = Lwd.map mouse_b ~f:snd
 
 The simplest event representation is a one-step pulse:
 
-```ocaml skip
+```ocaml env=ch10
 let click_v : unit option Lwd.var = Lwd.var None
 let click_e : unit option Lwd.t = Lwd.get click_v
 ```
@@ -979,7 +981,7 @@ In FRP, feedback loops require *delay* (“previous value”). In a stream-based
 
 Here are two classic combinators implemented with internal references. They are intentionally “single-sample” oriented: sample once per step.
 
-```ocaml skip
+```ocaml env=ch10
 (* step: hold the last event value, starting from [init] *)
 let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
   let last = ref init in
@@ -1002,7 +1004,7 @@ These are not “pure” in the mathematical FRP sense, but they capture a key i
 
 We can also integrate a velocity signal by accumulating over time. This is effectively a discrete-time integrator driven by your chosen update step:
 
-```ocaml skip
+```ocaml env=ch10
 let integral (v : float Lwd.t) (t : float Lwd.t) : float Lwd.t =
   let acc = ref 0.0 in
   let prev_t = ref 0.0 in
@@ -1021,7 +1023,7 @@ We reuse the `scene` type and `draw` function from Section 10.5. The idea is:
 - build a reactive scene graph as an `Lwd.t`,
 - sample and draw once per frame.
 
-```ocaml skip
+```ocaml env=ch10
 let time_v : float Lwd.var = Lwd.var 0.0
 let time_b : float Lwd.t = Lwd.get time_v
 
@@ -1108,7 +1110,7 @@ Standard FRP combinators like “map an event” (or “whenever behavior change
 
 Here is a tiny effect-based interface for staged reactive programs:
 
-```ocaml skip
+```ocaml env=ch10
 type _ Effect.t +=
   | Await : (user_action -> 'a option) -> 'a Effect.t
   | Emit : string -> unit Effect.t
@@ -1123,7 +1125,7 @@ We are implementing *coarse-grained threads* (cooperative scripts): a script run
 
 Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
 
-```ocaml skip
+```ocaml env=ch10
 let await_either p q =
   await (fun u ->
     match p u with
@@ -1142,7 +1144,7 @@ To integrate a script with a GUI event loop (and to make it testable), it is use
 
 One convenient representation is a paused computation that either finished, or is waiting and provides a function to feed the next input action:
 
-```ocaml skip
+```ocaml env=ch10
 type 'a paused =
   | Done of 'a
   | Awaiting of {feed : user_action -> 'a paused}
@@ -1167,7 +1169,7 @@ This is the “flow as a lightweight thread” idea, but without a monad: the st
 
 Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of `user_action`s (useful for tests and examples):
 
-```ocaml skip
+```ocaml env=ch10
 let run_script ~(inputs : user_action list) ~(on_emit : string -> unit) (f : unit -> 'a) : 'a =
   let rec drive (st : 'a paused) (inputs : user_action list) : 'a =
     match st with
@@ -1184,7 +1186,7 @@ In a real GUI, you keep the current `paused` state in a mutable cell. On each in
 
 Here is the basic shape of such a driver loop:
 
-```ocaml skip
+```ocaml env=ch10
 let st : unit paused ref = ref (step ~on_emit:(fun _ -> ()) paint_forever)
 
 let on_user_action (u : user_action) =
@@ -1197,7 +1199,7 @@ let on_user_action (u : user_action) =
 
 We can now write staged logic as straightforward recursion:
 
-```ocaml skip
+```ocaml env=ch10
 let is_down = function
   | Button (x, y, true, _) -> Some (x, y)
   | _ -> None
@@ -1231,7 +1233,7 @@ This is the same idea as the old “flow” construction, but in OCaml 5 direct 
 
 Looping a flow is now just recursion:
 
-```ocaml skip
+```ocaml env=ch10
 let rec paint_forever () =
   ignore (paint_once ());
   paint_forever ()
@@ -1280,7 +1282,7 @@ and design a simple accuracy test. (Hint: integrate a function with a known clos
 
 **Exercise 7.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
 
-```ocaml skip
+```ocaml env=ch10
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
 ```
 

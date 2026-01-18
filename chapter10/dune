@@ -1,3 +1,9 @@
 (mdx
  (files README.md README.claude.md README.codex.md)
  (preludes prelude.ml))
+
+(executable
+ (name chapter10)
+ (public_name chapter10)
+ (modules chapter10)
+ (libraries bogue lwd incremental))
