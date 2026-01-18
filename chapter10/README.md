@@ -4,13 +4,14 @@ How do we deal with change and interaction in functional programming? This is on
 
 **Recommended Reading:**
 
-- *"The Zipper"* by Gerard Huet -- the original paper introducing zippers
-- *"Zipper"* in Haskell Wikibook -- excellent visualizations and examples
-- *Lwd documentation* at https://github.com/let-def/lwd -- lightweight reactive documents for OCaml
-- *Incremental documentation* at https://github.com/janestreet/incremental -- Jane Street's self-adjusting computation library
-- *"The Haskell School of Expression"* by Paul Hudak -- classic introduction to FRP
-- *"Deprecating the Observer Pattern with `Scala.React`"* by Ingo Maier, Martin Odersky
-- *"Algebraic Effects for the Rest of Us"* by Dan Abramov -- accessible introduction to effects
+- *"The Zipper"* by Gérard Huet -- the original paper introducing zippers
+- [Zippers (Haskell Wikibook)](https://en.wikibooks.org/wiki/Haskell/Zippers) -- visual intuition and examples
+- [*How `froc` works*](how-froc-works-a.png) -- a slide-friendly walk through dependency graphs (this chapter includes the figures)
+- [`lwd` documentation](https://github.com/let-def/lwd) -- lightweight reactive documents for OCaml
+- [`incremental` documentation](https://github.com/janestreet/incremental) -- Jane Street's industrial incremental engine
+- *"The Haskell School of Expression"* by Paul Hudak -- a classic FRP source
+- *"Deprecating the Observer Pattern with `Scala.React`"* by Ingo Maier and Martin Odersky
+- If you want background on OCaml 5 effect handlers (used in Section 10.7), see the OCaml manual and OCaml 5 release material.
 
 ### 10.1 Zippers
 
@@ -78,7 +79,7 @@ let change {ctx; _} sub = {sub; ctx}  (* Replace the subtree, keep context *)
 let modify f {sub; ctx} = {sub = f sub; ctx}  (* Transform the subtree *)
 ```
 
-There is a wonderful visual intuition for zippers: imagine taking a tree and pinning it at one of its nodes, then letting it hang down under gravity. The pinned node becomes "the current focus," and all the other parts of the tree dangle from it. This mental picture helps understand how movement works: moving to a child means letting a new node become the pin point, with the old parent now hanging above. For excellent visualizations, see http://en.wikibooks.org/wiki/Haskell/Zippers.
+There is a wonderful visual intuition for zippers: imagine taking a tree and pinning it at one of its nodes, then letting it hang down under gravity. The pinned node becomes "the current focus," and all the other parts of the tree dangle from it. This mental picture helps understand how movement works: moving to a child means letting a new node become the pin point, with the old parent now hanging above. For excellent visualizations, see [Zippers (Haskell Wikibook)](https://en.wikibooks.org/wiki/Haskell/Zippers).
 
 #### Moving Around
 
@@ -243,6 +244,12 @@ Since we assume operators are commutative, we can ignore the direction for the s
 Let us test the implementation with a concrete example:
 
 ```ocaml env=ch10
+let rec expr_to_string = function
+  | Val n -> string_of_int n
+  | Var v -> v
+  | App (l, Add, r) -> "(" ^ expr_to_string l ^ "+" ^ expr_to_string r ^ ")"
+  | App (l, Mul, r) -> "(" ^ expr_to_string l ^ "*" ^ expr_to_string r ^ ")"
+
 module ExprOps = struct
   let (+) a b = App (a, Add, b)
   let ( * ) a b = App (a, Mul, b)
@@ -258,8 +265,8 @@ let sol =
   match loc with
   | None -> raise Not_found
   | Some loc -> pull_out loc
-(* Result: "(((x*y)*(3+y))+(((7*y)*(3+y))+5))" *)
-(* The x has been pulled out to the leftmost position! *)
+let result = expr_to_string sol.sub
+let () = assert (result = "(((x*y)*(3+y))+(((7*y)*(3+y))+5))")
 ```
 
 The transformation successfully pulled `x` from deep inside the expression to the outermost left position. For best results on complex expressions, we can iterate the `pull_out` function until a fixpoint is reached, ensuring all instances of the target are pulled out as far as possible.
@@ -305,6 +312,30 @@ As ordinary code, this just computes a number. As an *incremental* computation, 
 When `v` changes, we should update `n0`, then `n2`, then `u`. When `z` changes, we should update only `u`. The point of incremental computing is that you should not have to maintain this update order yourself.
 
 Most libraries expose a “lifted arithmetic” style: you still write expressions like `v / w + x * y + z`, but the operators build graph nodes rather than eagerly computing.
+
+#### A Worked Picture: *How `froc` Works*
+
+Jacob Donham’s short note *How `froc` works* explains incremental computation using pictures of a dependency graph (the `froc` library is historically important, but in this book we will use modern OCaml libraries in the same design space).
+
+The expression `u = v / w + x * y + z` as a dependency graph:
+
+![](how-froc-works-a.png){width=75%}
+
+The same graph after memoizing intermediate results:
+
+![](how-froc-works-b.png){width=75%}
+
+If multiple inputs change, the engine must update nodes in a safe order (a topological schedule). The picture uses grey numbers to indicate a recomputation order:
+
+![](how-froc-works-c.png){width=75%}
+
+The subtle case is **dynamic dependency** (a `bind`/`join` that can choose a different subgraph). If we recompute “everything that ever depended on `x`”, we may attempt to update a branch that is no longer relevant:
+
+![](how-froc-works-d.png){width=75%}
+
+One approach (as described in the note) is to track not just a single timestamp but an *interval* for a node’s computation, detach the old subgraph interval when a dynamic node is recomputed, and reattach only what the new branch actually needs:
+
+![](how-froc-works-e.png){width=75%}
 
 Two practical lessons fall out of this:
 
@@ -901,7 +932,7 @@ let reactimate (scene : scene behavior) =
   Main.run board
 ```
 
-The stream-based implementation is elegant but has a limitation: OCaml being strict, we cannot easily define mutually recursive behaviors. We had to use functions (`xvel_pos`, `ybounce`) to tie the knot. In a lazy language like Haskell, this would be more natural.
+The stream-based implementation is elegant but has a limitation: in strict OCaml, recursive signal definitions require care. In the ball example we “tie the knot” at the level of `memo1` records (so recursion is in *data*, not immediate function calls), and we rely on the integrator to introduce the one-step delay that makes the dependency causal. In a lazy language like Haskell, the same kind of recursive definition often reads more directly, but it still needs a delay to be meaningful.
 
 ### 10.6 FRP by Incremental Computing (Lwd)
 
