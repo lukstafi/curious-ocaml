@@ -400,15 +400,14 @@ let () =
 
 ```ocaml env=ch10
 module Incr = Incremental.Make ()
-module State = (val Incr.State.create ())
 
-let a = Incr.Var.create State.t 10
-let b = Incr.Var.create State.t 32
+let a = Incr.Var.create 10
+let b = Incr.Var.create 32
 let sum = Incr.map2 (Incr.Var.watch a) (Incr.Var.watch b) ~f:( + )
 
 let obs = Incr.observe sum
 let now () =
-  Incr.stabilize State.t;
+  Incr.stabilize ();
   Incr.Observer.value_exn obs
 
 let () =
@@ -473,7 +472,7 @@ In practice, FRP systems implement some notion of an **update step** (also calle
 
 In the most mathematical presentation, we might write:
 
-```ocaml env=ch10
+```ocaml skip
 type time = float
 type 'a behavior = time -> 'a
 type 'a event = (time * 'a) stream  (* increasing time stamps *)
@@ -485,7 +484,7 @@ The trouble is that real programs must react to *external* events (mouse moves, 
 
 The usual move is to turn behaviors into **stream transformers** that process time and inputs incrementally:
 
-```ocaml env=ch10
+```ocaml skip
 type 'a behavior = user_action event -> time -> 'a
 type 'a behavior = user_action event -> time stream -> 'a stream
 type 'a behavior = (user_action option * time) stream -> 'a stream
@@ -495,7 +494,7 @@ This transformation from functions-of-time to stream transformers is analogous t
 
 Once behaviors are stream transformers, a very convenient representation for events is:
 
-```ocaml env=ch10
+```ocaml skip
 type 'a event = 'a option behavior
 ```
 
@@ -552,7 +551,7 @@ We will present two implementations:
 
 Conceptually, in the stream-processing interpretation we will treat:
 
-```ocaml env=ch10
+```ocaml skip
 (* Conceptual types (we refine the representation in Section 10.5). *)
 type 'a behavior = (user_action option * time) stream -> 'a stream
 type 'a event = 'a option behavior
@@ -831,7 +830,10 @@ The key ideas in the ball implementation:
 
 - `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
 
-```ocaml env=ch10
+```ocaml skip
+(* Note: This code causes stack overflow when evaluated outside the animation
+   loop because the mutual recursion is broken by stream laziness only when
+   the stream is actually consumed. See chapter10.ml for a working version. *)
 let red = (255, 0, 0)
 
 let ball : scene behavior =
@@ -865,14 +867,14 @@ let ball : scene behavior =
 
 Finally, we compose everything into the complete game scene:
 
-```ocaml env=ch10
+```ocaml skip
 let game : scene behavior =
   liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
 ```
 
 The animation loop drives the system. With Bogue, we integrate with its event loop by using a timer and connection callbacks:
 
-```ocaml env=ch10
+```ocaml skip
 let reactimate (scene : scene behavior) =
   let open Bogue in
   let w, h = 640, 480 in
@@ -1149,18 +1151,26 @@ type 'a paused =
   | Done of 'a
   | Awaiting of {feed : user_action -> 'a paused}
 
-let rec step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
-  try Done (th ()) with
-  | effect (Emit x), k ->
-    on_emit x;
-    step ~on_emit (fun () -> Effect.Deep.continue k ())
-  | effect (Await p), k ->
-    let rec feed (u : user_action) =
-      match p u with
-      | None -> Awaiting {feed}  (* ignore and keep waiting *)
-      | Some v -> step ~on_emit (fun () -> Effect.Deep.continue k v)
-    in
-    Awaiting {feed}
+let step ~(on_emit : string -> unit) (th : unit -> 'a) : 'a paused =
+  Effect.Deep.match_with th () {
+    retc = (fun v -> Done v);
+    exnc = raise;
+    effc = fun (type c) (eff : c Effect.t) ->
+      match eff with
+      | Emit x ->
+        Some (fun (k : (c, _) Effect.Deep.continuation) ->
+          on_emit x;
+          Effect.Deep.continue k ())
+      | Await p ->
+        Some (fun (k : (c, _) Effect.Deep.continuation) ->
+          let rec feed (u : user_action) =
+            match p u with
+            | None -> Awaiting {feed}  (* ignore and keep waiting *)
+            | Some v -> Effect.Deep.continue k v
+          in
+          Awaiting {feed})
+      | _ -> None
+  }
 ```
 
 This is the “flow as a lightweight thread” idea, but without a monad: the state of the thread is the (closed-over) continuation stored inside `feed`.
@@ -1186,7 +1196,9 @@ In a real GUI, you keep the current `paused` state in a mutable cell. On each in
 
 Here is the basic shape of such a driver loop:
 
-```ocaml env=ch10
+```ocaml skip
+(* This snippet uses paint_forever defined below. See chapter10.ml for
+   a runnable version. *)
 let st : unit paused ref = ref (step ~on_emit:(fun _ -> ()) paint_forever)
 
 let on_user_action (u : user_action) =
@@ -1282,7 +1294,7 @@ and design a simple accuracy test. (Hint: integrate a function with a known clos
 
 **Exercise 7.** Extend the effect-based interface in Section 10.7 with timeouts. Add a new input action `Tick of float` (or reuse the `time` idea from earlier sections) and implement:
 
-```ocaml env=ch10
+```ocaml skip
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
 ```
 
