@@ -8,7 +8,8 @@
      dune exec chapter10/chapter10.exe incr     # Run Incremental demo
      dune exec chapter10/chapter10.exe paddle   # Run Lwd paddle game (GUI)
      dune exec chapter10/chapter10.exe stream   # Run stream FRP paddle game (GUI)
-     dune exec chapter10/chapter10.exe effects  # Run effects click-and-drag demo
+     dune exec chapter10/chapter10.exe effects  # Run effects paddle game (GUI)
+     dune exec chapter10/chapter10.exe drag     # Run effects click-and-drag demo
 *)
 
 [@@@warning "-32-37"]
@@ -760,7 +761,244 @@ end
 
 (* ========== 10.7 Effects-Based Reactivity ========== *)
 
-module EffectsDemo = struct
+module EffectsPaddle = struct
+  open LwdPaddle
+
+  type user_action =
+    | Key of char * bool
+    | Button of int * int * bool * bool
+    | MouseMove of int * int
+    | Resize of int * int
+
+  type input =
+    | Tick of float
+    | User of user_action
+
+  type _ Effect.t +=
+    | Await : (input -> 'a option) -> 'a Effect.t
+    | Render : scene -> unit Effect.t
+
+  let await p = Effect.perform (Await p)
+  let render (sc : scene) = Effect.perform (Render sc)
+
+  type 'a paused =
+    | Done of 'a
+    | Awaiting of {feed : input -> 'a paused}
+
+  let step ~(on_render : scene -> unit) (th : unit -> 'a) : 'a paused =
+    Effect.Deep.match_with th () {
+      retc = (fun v -> Done v);
+      exnc = raise;
+      effc = fun (type c) (eff : c Effect.t) ->
+        match eff with
+        | Render sc ->
+          Some (fun (k : (c, _) Effect.Deep.continuation) ->
+            on_render sc;
+            Effect.Deep.continue k ())
+        | Await p ->
+          Some (fun (k : (c, _) Effect.Deep.continuation) ->
+            let rec feed (u : input) =
+              match p u with
+              | None -> Awaiting {feed}
+              | Some v -> Effect.Deep.continue k v
+            in
+            Awaiting {feed})
+        | _ -> None
+    }
+
+  let walls_scene ~w ~h : scene =
+    Color (blue, Group
+      [Rect (0, 0, 20, h - 1)
+      ; Rect (0, h - 21, w - 1, 20)
+      ; Rect (w - 21, 0, 20, h - 1)
+      ])
+
+  let paddle_scene ~x : scene =
+    Color (black, Rect (x, 0, paddle_w, paddle_h))
+
+  let ball_scene ~x ~y : scene =
+    Color (red, Circle (int_of_float x, int_of_float y, ball_r))
+
+  let scene_of_state ~w ~h ~paddle_x (st : ball_state) : scene =
+    Group [walls_scene ~w ~h; paddle_scene ~x:paddle_x; ball_scene ~x:st.x ~y:st.y]
+
+  let clamp_float ~lo ~hi x = max lo (min hi x)
+
+  let demo () =
+    print_endline "=== Effects Paddle Game ===";
+    print_endline "Starting Bogue GUI... Move mouse to control paddle.";
+    print_endline "Close the window to exit.";
+    let open Bogue in
+    let w, h = 640, 512 in
+    let area_widget = Widget.sdl_area ~w ~h () in
+    let area = Widget.get_sdl_area area_widget in
+
+    let current : scene ref = ref (Group []) in
+
+    let st_ref : unit paused ref = ref (Done ()) in
+
+    let on_render sc =
+      current := sc;
+      Sdl_area.update area
+    in
+
+    let feed_input (u : input) =
+      match !st_ref with
+      | Done () -> ()
+      | Awaiting {feed} -> st_ref := feed u
+    in
+
+    let paddle_game () =
+      let w = ref w in
+      let h = ref h in
+      let paddle_x = ref (wall_thickness + 10) in
+      let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 180.0 } in
+      let dir : float ref = ref 1.0 in
+
+      let reset () =
+        st.x <- float_of_int !w /. 2.0;
+        st.y <- float_of_int !h /. 2.0;
+        st.vx <- !dir *. 120.0;
+        st.vy <- 180.0;
+        dir := -. !dir
+      in
+      reset ();
+
+      let set_paddle mx =
+        let lo = wall_thickness in
+        let hi = max lo (!w - 21 - paddle_w) in
+        paddle_x := clamp_int ~lo ~hi (mx - (paddle_w / 2))
+      in
+
+      let step_physics ~dt =
+        let max_step = 1.0 /. 240.0 in
+        let paddle_plane = float_of_int (paddle_h + ball_r) in
+        let xmin = float_of_int (wall_thickness + ball_r) in
+        let xmax = float_of_int (max (wall_thickness + ball_r) (!w - 21 - ball_r)) in
+        let ymax = float_of_int (max (paddle_h + ball_r) (!h - 21 - ball_r)) in
+        let max_speed = 500.0 in
+
+        let rec loop remaining =
+          if remaining <= 0.0 then ()
+          else begin
+            let dt1 = min max_step remaining in
+            let x0, y0 = st.x, st.y in
+            let x1 = x0 +. dt1 *. st.vx in
+            let y1 = y0 +. dt1 *. st.vy in
+            let x1, vx =
+              if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
+              else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
+              else (x1, st.vx)
+            in
+            let y1, vy =
+              if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
+              else (y1, st.vy)
+            in
+            st.x <- x1;
+            st.y <- y1;
+            st.vx <- vx;
+            st.vy <- vy;
+
+            if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
+              let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
+              let x_hit = x0 +. alpha *. (st.x -. x0) in
+              let paddle_left = float_of_int !paddle_x -. float_of_int ball_r in
+              let paddle_right =
+                float_of_int (!paddle_x + paddle_w) +. float_of_int ball_r
+              in
+              if x_hit >= paddle_left && x_hit <= paddle_right then begin
+                st.y <- paddle_plane +. (paddle_plane -. st.y);
+                st.vy <- abs_float st.vy;
+                let paddle_center =
+                  float_of_int !paddle_x +. (float_of_int paddle_w /. 2.0)
+                in
+                let offset =
+                  (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
+                  |> clamp_float ~lo:(-1.0) ~hi:1.0
+                in
+                st.vx <-
+                  clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
+              end else (
+                reset ()
+              )
+            end else if st.y < -50.0 then (
+              reset ()
+            );
+
+            st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
+            st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
+            loop (remaining -. dt1)
+          end
+        in
+        loop dt
+      in
+
+      let await_event () =
+        await (function
+          | Tick dt -> Some (`Tick dt)
+          | User (MouseMove (mx, _my)) -> Some (`Move mx)
+          | User (Resize (w1, h1)) -> Some (`Resize (w1, h1))
+          | _ -> None)
+      in
+
+      render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+
+      let rec loop () =
+        match await_event () with
+        | `Move mx ->
+          set_paddle mx;
+          render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+          loop ()
+        | `Resize (w1, h1) ->
+          w := w1;
+          h := h1;
+          reset ();
+          render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+          loop ()
+        | `Tick dt ->
+          let dt = if dt <= 0.0 then 0.0 else min dt 0.25 in
+          if dt > 0.0 then step_physics ~dt;
+          render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
+          loop ()
+      in
+      loop ()
+    in
+
+    st_ref := step ~on_render paddle_game;
+    (match !st_ref with
+     | Done () -> ()
+     | Awaiting {feed} -> st_ref := feed (User (Resize (w, h))));
+
+    Sdl_area.add area (fun _renderer ->
+      Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+        ~w ~h (0, 0);
+      draw area ~h !current);
+
+    let action _w _l ev =
+      let mx, my = Mouse.pointer_pos ev in
+      feed_input (User (MouseMove (mx, my)));
+      Widget.update area_widget
+    in
+    let connection = Widget.connect area_widget area_widget action Trigger.pointer_motion in
+    Widget.add_connection area_widget connection;
+
+    let last = ref (Unix.gettimeofday ()) in
+    let rec tick () =
+      let now = Unix.gettimeofday () in
+      let dt = now -. !last in
+      last := now;
+      feed_input (Tick dt);
+      Widget.update area_widget;
+      Timeout.add_ignore 16 tick
+    in
+    Timeout.add_ignore 16 tick;
+
+    let layout = Layout.resident area_widget in
+    let board = Main.of_layout layout in
+    Main.run board
+end
+
+module EffectsDrag = struct
   type user_action =
     | Key of char * bool
     | Button of int * int * bool * bool
@@ -878,7 +1116,8 @@ let print_usage () =
   print_endline "  incr    - Jane Street Incremental demo";
   print_endline "  paddle  - Lwd paddle game (requires GUI/Bogue)";
   print_endline "  stream  - Stream FRP paddle game (requires GUI/Bogue)";
-  print_endline "  effects - Effects-based click-and-drag demo";
+  print_endline "  effects - Effects paddle game (requires GUI/Bogue)";
+  print_endline "  drag    - Effects-based click-and-drag demo";
   print_endline "";
   print_endline "Run 'dune exec chapter10/chapter10.exe <example>' to try one."
 
@@ -891,7 +1130,8 @@ let () =
   | [| _; "incr" |] -> IncrDemo.demo ()
   | [| _; "paddle" |] -> LwdPaddle.demo ()
   | [| _; "stream" |] -> StreamFRP.demo ()
-  | [| _; "effects" |] -> EffectsDemo.demo ()
+  | [| _; "effects" |] -> EffectsPaddle.demo ()
+  | [| _; "drag" |] -> EffectsDrag.demo ()
   | [| _; "all" |] ->
     Zipper.demo ();
     print_endline "";
@@ -901,7 +1141,7 @@ let () =
     print_endline "";
     IncrDemo.demo ();
     print_endline "";
-    EffectsDemo.demo ();
+    EffectsDrag.demo ();
     print_endline "";
     print_endline "(Skipping paddle and stream GUIs in 'all' mode)"
   | _ ->
