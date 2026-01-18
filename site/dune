@@ -33,24 +33,15 @@
  (alias new_book)
  (mode promote)
  (target new_book.html)
- (deps README.md)
+ (deps README.md style.css)
  (action
-  (system "pandoc -s --toc --katex %{deps} -o %{target}")))
+  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Curious OCaml' --top-level-division=chapter --shift-heading-level-by=-1 -o %{target}")))
 
 (rule
  (alias old_lectures_as_book)
  (mode promote)
  (target old_lectures_as_book.html)
- (deps old_lectures_as_book.md)
+ (deps old_lectures_as_book.md style.css)
  (action
   (system
-   "pandoc -s --toc --katex %{deps} -o %{target}")))
-
-; (rule
-;  (alias old_lectures_as_book)
-;  (mode promote)
-;  (target old_lectures_as_book.hs)
-;  (deps old_lectures_as_book.md)
-;  (action
-;   (system
-;    "pandoc -s --toc --katex --to native %{deps} -o %{target}")))
+   "sed 's/```ocaml [^`]*/```ocaml/' old_lectures_as_book.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Functional Programming 2012-2013' --top-level-division=chapter --shift-heading-level-by=-1 -o %{target}")))
