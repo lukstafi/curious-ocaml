@@ -31,7 +31,7 @@
  (target new_book.pdf)
  (deps README.md template.latex)
  (action
-  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=xelatex -o %{target}")))
+  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=lualatex -o %{target}")))
 
 ; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
 ; (rule

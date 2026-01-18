@@ -7,6 +7,7 @@
 \usepackage{amsmath,amssymb}
 \usepackage{lmodern}
 \usepackage{iftex}
+\usepackage{lua-widow-control}
 \ifPDFTeX
   \usepackage[$if(fontenc)$$fontenc$$else$T1$endif$]{fontenc}
   \usepackage[utf8]{inputenc}
@@ -106,6 +107,9 @@ $else$
 \let\oldsection\section
 \renewcommand{\section}{\clearpage\oldsection}
 $endif$
+
+% Avoid single-line end-of-section pages
+\clubpenalty=10000
 
 % ============================================
 % CODE BLOCK STYLING - Prevent page breaks within

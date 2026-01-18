@@ -1090,7 +1090,7 @@ module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
                  and type store := store  (* and state operations *)
   val run : 'a monad -> 'a t     (* Expose "what happened" -- resulting states *)
   val runT : 'a monad -> store -> 'a MP.monad
-end = struct                     (* Run the state transformer -- get resulting values *)
+end = struct              (* Run the state transformer -- get resulting values *)
   type store = Store.t
   module M = struct
     type 'a t = store -> ('a * store) MP.monad

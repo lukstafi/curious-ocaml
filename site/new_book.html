@@ -523,8 +523,7 @@ math, computer science, philosophy, linguistics, etc.</li>
 <p><strong>In this chapter, you will:</strong></p>
 <ul>
 <li>Learn natural-deduction rules for the core connectives (<span
-class="math inline">\\top, \\bot, \\wedge, \\vee,
-\\rightarrow</span>)</li>
+class="math inline">\top, \bot, \wedge, \vee, \rightarrow</span>)</li>
 <li>Practice reading and building derivation trees (including
 hypothetical derivations)</li>
 <li>See the Curry–Howard correspondence emerge in OCaml typing
@@ -3217,10 +3216,8 @@ $$\rightsquigarrow^*$$
 </code></pre>
 <p>((+) 1) 1</p>
 <pre><code>
-$$\rightsquigarrow^*$$
-</code></pre>
-<p>2</p>
-<pre><code>
+$$\rightsquigarrow^*$$ `2`
+
 ### 4.7 Recursion: Fixpoint Combinators
 
 We have seen how to encode data in lambda-calculus, but how do we encode *computation*, especially recursive computation? In lambda-calculus, there is no `let rec` or any built-in notion of a function referring to itself. Instead, recursion is achieved through **fixpoint combinators**---remarkable lambda terms that compute fixed points of functions.
@@ -3716,12 +3713,12 @@ function may constrain the type parameters to specific types:</p>
 <p>Different functional languages have different syntactic conventions
 for type parameters. In F#, we provide parameters (when more than one)
 after the type name, using angle brackets:</p>
-<div class="sourceCode" id="cb38"><pre
-class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> choice&lt;&#39;a,&#39;b&gt; = Left <span class="kw">of</span> &#39;a | Right <span class="kw">of</span> &#39;b</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre
+class="sourceCode fsharp"><code class="sourceCode fsharp"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> choice&lt;&#39;a,&#39;b&gt; = Left <span class="kw">of</span> &#39;a | Right <span class="kw">of</span> &#39;b</span></code></pre></div>
 <p>In Haskell, the syntax is arguably the cleanest – we provide type
 parameters similarly to function arguments, separated by spaces:</p>
-<div class="sourceCode" id="cb39"><pre
-class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Choice</span> a b <span class="ot">=</span> <span class="dt">Left</span> a <span class="op">|</span> <span class="dt">Right</span> b</span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="kw">data</span> <span class="dt">Choice</span> a b <span class="ot">=</span> <span class="dt">Left</span> a <span class="op">|</span> <span class="dt">Right</span> b</span></code></pre></div>
 <p>Despite the syntactic differences, the underlying concept of
 parametric polymorphism is the same across all these languages.</p>
 <h3 id="type-inference-formally">5.3 Type Inference, Formally</h3>
@@ -7123,7 +7120,7 @@ module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
                  and type store := store  (* and state operations *)
   val run : &#39;a monad -&gt; &#39;a t     (* Expose &quot;what happened&quot; -- resulting states *)
   val runT : &#39;a monad -&gt; store -&gt; &#39;a MP.monad
-end = struct                     (* Run the state transformer -- get resulting values *)
+end = struct              (* Run the state transformer -- get resulting values *)
   type store = Store.t
   module M = struct
     type &#39;a t = store -&gt; (&#39;a * store) MP.monad
@@ -9112,7 +9109,8 @@ let unique fe : &#39;a event =
 let whenB fb =
   memo1 (fun uts -&gt; unique (whileB fb) $ uts)
 
-(* snapshot: when an event occurs, capture both the event value and current behavior value *)
+(* snapshot: when an event occurs, capture both the event value
+   and current behavior value *)
 let snapshot fe fb : (&#39;a * &#39;b) event =
   memo1 (fun uts -&gt; lmap2
     (fun x -&gt; function Some y -&gt; Some (y, x) | None -&gt; None)
@@ -9515,7 +9513,7 @@ of Inputs</h4>
 <p>Using the stepping driver, we can interpret <code>Await</code> by
 consuming a pre-recorded list of <code>user_action</code>s (useful for
 tests and examples):</p>
-<p><code>ocaml env=ch10 let run_script ~(inputs : user_action list) ~(on_emit : string -&gt; unit) (f : unit -&gt; 'a) : 'a =   let rec drive (st : 'a paused) (inputs : user_action list) : 'a =     match st with     | Done a -&gt; a     | Awaiting {feed} -&gt;       (match inputs with        | [] -&gt; failwith "run_script: no more inputs"        | u :: us -&gt; drive (feed u) us)   in   drive (step ~on_emit f) inputs</code></p>
+<p><code>ocaml env=ch10 let run_script (type a) ~(inputs : user_action list) ~(on_emit : string -&gt; unit)     (f : unit -&gt; a) : a =   let rec drive (st : a paused) (inputs : user_action list) : a =     match st with     | Done a -&gt; a     | Awaiting {feed} -&gt;       (match inputs with        | [] -&gt; failwith "run_script: no more inputs"        | u :: us -&gt; drive (feed u) us)   in   drive (step ~on_emit f) inputs</code></p>
 <p>In a real GUI, you keep the current <code>paused</code> state in a
 mutable cell. On each incoming event <code>u</code>, if the script is
 <code>Awaiting {feed}</code>, you update the state to
@@ -9619,26 +9617,67 @@ dependencies explicit so the runtime can do less work.</p>
 <p><strong>Exercise 1.</strong> Extend the context rewriting “pull out
 subexpression” example to include <code>-</code> and <code>/</code>.
 Remember: they are not commutative.</p>
-<p><strong>Exercise 2.</strong> Extend the stream-based paddle game: 1.
-add score keeping, 2. add restart, 3. add quitting (cleanly or
-not-so-cleanly).</p>
-<p><strong>Exercise 3.</strong> The numerical integration function in
-Section 10.5 uses the rectangle rule. Implement: 1. trapezoidal rule, 2.
-Simpson’s rule, and design a simple accuracy test. (Hint: integrate a
-function with a known closed form.)</p>
-<p><strong>Exercise 4.</strong> In the stream FRP implementation,
-implement
-<code>switch : 'a behavior -&gt; 'a behavior event -&gt; 'a behavior</code>
-and use it to switch between two animations.</p>
-<p><strong>Exercise 5.</strong> Build a tiny “spreadsheet” with either
+<p><strong>Exercise 2.</strong> Implement a simple text editor
+zipper:</p>
+<ol type="1">
+<li>Define a type for a text buffer as a zipper over characters, with
+the cursor position represented by the split between left context and
+right content.</li>
+<li>Implement <code>insert_char</code>, <code>delete_char</code>,
+<code>move_left</code>, <code>move_right</code>,
+<code>move_to_start</code>, and <code>move_to_end</code>
+operations.</li>
+<li>Add word-based movement: <code>move_word_left</code> and
+<code>move_word_right</code>.</li>
+</ol>
+<p><strong>Exercise 3.</strong> Add the following features to the paddle
+game example:</p>
+<ol type="1">
+<li>Score keeping: increment score when the ball bounces off the
+paddle</li>
+<li>Game over: detect when the ball falls below the paddle</li>
+<li>Restart: press a key to restart after game over</li>
+<li>Speed increase: gradually increase ball speed as the game
+progresses</li>
+</ol>
+<p><strong>Exercise 4.</strong> Our numerical integration function uses
+the rectangle rule (left endpoint). Implement and compare:</p>
+<ol type="1">
+<li>The midpoint rule: <span class="math inline">\int_a^b f(x)dx \approx
+(b-a) \cdot f\left(\frac{a+b}{2}\right)</span></li>
+<li>The trapezoidal rule: <span class="math inline">\int_a^b f(x)dx
+\approx (b-a) \cdot \frac{f(a) + f(b)}{2}</span></li>
+<li>Simpson’s rule: <span class="math inline">\int_a^b f(x)dx \approx
+\frac{b-a}{6} \left( f(a) + 4f\left(\frac{a+b}{2}\right) + f(b)
+\right)</span></li>
+</ol>
+<p>Test the accuracy by integrating <span
+class="math inline">\sin(x)</span> from 0 to <span
+class="math inline">\pi</span> (exact answer: 2).</p>
+<p><strong>Exercise 5.</strong> Implement <code>switch</code> and
+<code>until</code> for the stream-based FRP system:</p>
+<ul>
+<li><code>switch : 'a behavior -&gt; 'a behavior event -&gt; 'a behavior</code>
+– behaves as the most recent behavior from events</li>
+<li><code>until : 'a behavior -&gt; 'a behavior event -&gt; 'a behavior</code>
+– switches once on the first event</li>
+</ul>
+<p><strong>Exercise 6.</strong> Implement a <code>debounce</code>
+combinator for events:</p>
+<pre><code>val debounce : float -&gt; &#39;a event -&gt; &#39;a event</code></pre>
+<p>The debounced event only fires if the original event has not fired
+for the specified time interval. This is useful for handling rapid user
+input like typing. Example: throttling API requests for auto-complete in
+a text field.</p>
+<p><strong>Exercise 7.</strong> Build a tiny “spreadsheet” with either
 <code>Lwd</code> or <code>Incremental</code>: cells are variables; other
 cells are formulas over them. Measure how much recomputation happens
 when you update a single input cell.</p>
-<p><strong>Exercise 6.</strong> Using <code>Lwd.join</code> (or
+<p><strong>Exercise 8.</strong> Using <code>Lwd.join</code> (or
 <code>Incremental.bind</code>), build a reactive computation with
 <em>dynamic dependencies</em> (e.g. a toggle that chooses which subgraph
 is active). Explain what should be recomputed when the toggle flips.</p>
-<p><strong>Exercise 7.</strong> Extend the effect-based interface in
+<p><strong>Exercise 9.</strong> Extend the effect-based interface in
 Section 10.7 with timeouts. Add a new input action
 <code>Tick of float</code> (or reuse the <code>time</code> idea from
 earlier sections) and implement:</p>
@@ -9646,6 +9685,25 @@ earlier sections) and implement:</p>
 <p>The function should return <code>Some v</code> if the awaited action
 happens before the deadline, and <code>None</code> otherwise. Write a
 small scripted test with <code>run_script</code>.</p>
+<p><strong>Exercise 10.</strong> Implement <code>parallel</code> for
+effect-based flows:</p>
+<pre><code>val parallel : (unit -&gt; &#39;a) list -&gt; &#39;a list</code></pre>
+<p>This should run multiple flows concurrently and collect their
+results. Think about: - How do you handle flows that await events? -
+What happens if one flow fails? - How do you handle cancellation?</p>
+<p><strong>Exercise 11.</strong> The FRP implementations in this chapter
+handle time as wall-clock time from <code>Unix.gettimeofday</code>.
+Implement a version with <em>virtual time</em> that can be controlled
+programmatically: 1. Create a <code>Clock</code> module with
+<code>advance : float -&gt; unit</code> and
+<code>now : unit -&gt; float</code> functions 2. Modify the integration
+function to use virtual time 3. Write tests that use virtual time to
+verify physics behavior deterministically</p>
+<p><strong>Exercise 12.</strong> Compare the memory characteristics of
+the three FRP approaches: 1. Create a benchmark that builds a dependency
+graph with N nodes 2. Measure memory usage for each approach
+(stream-based, Lwd-based, effect-based) 3. Measure update time when one
+input changes 4. Plot the results and explain the tradeoffs</p>
 <h2 id="chapter-11-the-expression-problem">Chapter 11: The Expression
 Problem</h2>
 <p><strong>In this chapter, you will:</strong></p>

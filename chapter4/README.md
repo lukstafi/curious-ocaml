@@ -414,11 +414,7 @@ $$\rightsquigarrow^*$$
 ((+) 1) 1
 ```
 
-$$\rightsquigarrow^*$$
-
-```
-2
-```
+$$\rightsquigarrow^*$$ `2`
 
 ### 4.7 Recursion: Fixpoint Combinators
 
