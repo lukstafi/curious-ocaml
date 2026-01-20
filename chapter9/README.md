@@ -95,7 +95,7 @@ Within the pattern match, we can use `print value` because both refer to the sam
 
 #### Connection to Type Inference
 
-In [Section 5.3](chapter5/README.md#L141), we presented the formal rules for type constraint generation. The key rule for pattern clauses was:
+In [Section 5.3](#type-inference-formally), we presented the formal rules for type constraint generation. The key rule for pattern clauses was:
 
 $$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
 
@@ -108,6 +108,7 @@ $$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma 
 The premise $D$ is the conjunction of type equalities that the GADT constructor establishes. The universal quantification over $\overline{\beta}$ reflects that these equalities hold for *all* values matching the pattern.
 
 For example, when type-checking `eval` and matching the `Int n` case:
+
 - The pattern produces the equality $D = (\text{a} \doteq \text{int})$
 - The constraint becomes: $\forall \text{a} . (\text{a} \doteq \text{int}) \Rightarrow [\![ \text{n} : \text{int} \vdash \text{n} : \text{a} ]\!]$
 - Under the assumption `a = int`, returning `n : int` satisfies the requirement `result : a`
@@ -1188,9 +1189,11 @@ module GParticleFilter = struct
         let active_n = Array.length active_indices in
         let active_weights =
           Array.init active_n (fun j -> weights.(active_indices.(j))) in
-        if active_n > 0 && effective_sample_size active_weights < resample_threshold then begin
+        if active_n > 0 &&
+            effective_sample_size active_weights < resample_threshold then begin
           let indices = resample_indices active_n active_weights in
-          let new_traces = Array.map (fun j -> traces.(active_indices.(j))) indices in
+          let new_traces =
+            Array.map (fun j -> traces.(active_indices.(j))) indices in
           let new_weight = 1.0 /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);

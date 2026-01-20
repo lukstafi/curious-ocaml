@@ -10161,7 +10161,7 @@ both refer to the same existential type <code>'a</code>. But we cannot
 extract <code>value</code> and use it outside the pattern – its type is
 unknown.</p>
 <h3 id="connection-to-type-inference">Connection to Type Inference</h3>
-<p>In <a href="chapter5/README.md#L141">Section 5.3</a>, we presented
+<p>In <a href="#type-inference-formally">Section 5.3</a>, we presented
 the formal rules for type constraint generation. The key rule for
 pattern clauses was:</p>
 <p><span class="math display">[\![ \Gamma, \Sigma \vdash p.e : \tau_1
@@ -10188,13 +10188,17 @@ quantification over <span class="math inline">\overline{\beta}</span>
 reflects that these equalities hold for <em>all</em> values matching the
 pattern.</p>
 <p>For example, when type-checking <code>eval</code> and matching the
-<code>Int n</code> case: - The pattern produces the equality <span
-class="math inline">D = (\text{a} \doteq \text{int})</span> - The
-constraint becomes: <span class="math inline">\forall \text{a} .
+<code>Int n</code> case:</p>
+<ul>
+<li>The pattern produces the equality <span class="math inline">D =
+(\text{a} \doteq \text{int})</span></li>
+<li>The constraint becomes: <span class="math inline">\forall \text{a} .
 (\text{a} \doteq \text{int}) \Rightarrow [\![ \text{n} : \text{int}
-\vdash \text{n} : \text{a} ]\!]</span> - Under the assumption
-<code>a = int</code>, returning <code>n : int</code> satisfies the
-requirement <code>result : a</code></p>
+\vdash \text{n} : \text{a} ]\!]</span></li>
+<li>Under the assumption <code>a = int</code>, returning
+<code>n : int</code> satisfies the requirement
+<code>result : a</code></li>
+</ul>
 <p>This is why GADT pattern matching can have different types in
 different branches – each branch operates under different type
 assumptions given by the implication premise. The type checker uses
@@ -11345,28 +11349,30 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb367-1"><a hr
 <span id="cb367-111"><a href="#cb367-111" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> active_n = <span class="dt">Array</span>.length active_indices <span class="kw">in</span></span>
 <span id="cb367-112"><a href="#cb367-112" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> active_weights =</span>
 <span id="cb367-113"><a href="#cb367-113" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Array</span>.init active_n (<span class="kw">fun</span> j -&gt; weights.(active_indices.(j))) <span class="kw">in</span></span>
-<span id="cb367-114"><a href="#cb367-114" aria-hidden="true" tabindex="-1"></a>        <span class="kw">if</span> active_n &gt; <span class="dv">0</span> &amp;&amp; effective_sample_size active_weights &lt; resample_threshold <span class="kw">then</span> <span class="kw">begin</span></span>
-<span id="cb367-115"><a href="#cb367-115" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> indices = resample_indices active_n active_weights <span class="kw">in</span></span>
-<span id="cb367-116"><a href="#cb367-116" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> new_traces = <span class="dt">Array</span>.map (<span class="kw">fun</span> j -&gt; traces.(active_indices.(j))) indices <span class="kw">in</span></span>
-<span id="cb367-117"><a href="#cb367-117" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> new_weight = <span class="fl">1.0</span> /. <span class="dt">float_of_int</span> active_n <span class="kw">in</span></span>
-<span id="cb367-118"><a href="#cb367-118" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Array</span>.iteri (<span class="kw">fun</span> j _ -&gt;</span>
-<span id="cb367-119"><a href="#cb367-119" aria-hidden="true" tabindex="-1"></a>            traces.(active_indices.(j)) &lt;- new_traces.(j);</span>
-<span id="cb367-120"><a href="#cb367-120" aria-hidden="true" tabindex="-1"></a>            weights.(active_indices.(j)) &lt;- new_weight) indices</span>
-<span id="cb367-121"><a href="#cb367-121" aria-hidden="true" tabindex="-1"></a>        <span class="kw">end</span></span>
-<span id="cb367-122"><a href="#cb367-122" aria-hidden="true" tabindex="-1"></a>      <span class="kw">end</span></span>
-<span id="cb367-123"><a href="#cb367-123" aria-hidden="true" tabindex="-1"></a>    <span class="kw">done</span>;</span>
-<span id="cb367-124"><a href="#cb367-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb367-125"><a href="#cb367-125" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> combined = <span class="dt">Hashtbl</span>.create <span class="dv">16</span> <span class="kw">in</span></span>
-<span id="cb367-126"><a href="#cb367-126" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> total = <span class="dt">ref</span> <span class="fl">0.0</span> <span class="kw">in</span></span>
-<span id="cb367-127"><a href="#cb367-127" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.iter (<span class="kw">fun</span> (v, w) -&gt;</span>
-<span id="cb367-128"><a href="#cb367-128" aria-hidden="true" tabindex="-1"></a>      total := !total +. w;</span>
-<span id="cb367-129"><a href="#cb367-129" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> prev = <span class="kw">try</span> <span class="dt">Hashtbl</span>.find combined v <span class="kw">with</span> <span class="dt">Not_found</span> -&gt; <span class="fl">0.0</span> <span class="kw">in</span></span>
-<span id="cb367-130"><a href="#cb367-130" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Hashtbl</span>.replace combined v (prev +. w)) !final_results;</span>
-<span id="cb367-131"><a href="#cb367-131" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> !total &gt; <span class="fl">0.0</span> <span class="kw">then</span></span>
-<span id="cb367-132"><a href="#cb367-132" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Hashtbl</span>.fold (<span class="kw">fun</span> v w acc -&gt; (v, w /. !total) :: acc) combined []</span>
-<span id="cb367-133"><a href="#cb367-133" aria-hidden="true" tabindex="-1"></a>      |&gt; <span class="dt">List</span>.sort (<span class="kw">fun</span> (_, p1) (_, p2) -&gt; <span class="dt">compare</span> p2 p1)</span>
-<span id="cb367-134"><a href="#cb367-134" aria-hidden="true" tabindex="-1"></a>    <span class="kw">else</span> []</span>
-<span id="cb367-135"><a href="#cb367-135" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<span id="cb367-114"><a href="#cb367-114" aria-hidden="true" tabindex="-1"></a>        <span class="kw">if</span> active_n &gt; <span class="dv">0</span> &amp;&amp;</span>
+<span id="cb367-115"><a href="#cb367-115" aria-hidden="true" tabindex="-1"></a>            effective_sample_size active_weights &lt; resample_threshold <span class="kw">then</span> <span class="kw">begin</span></span>
+<span id="cb367-116"><a href="#cb367-116" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> indices = resample_indices active_n active_weights <span class="kw">in</span></span>
+<span id="cb367-117"><a href="#cb367-117" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> new_traces =</span>
+<span id="cb367-118"><a href="#cb367-118" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Array</span>.map (<span class="kw">fun</span> j -&gt; traces.(active_indices.(j))) indices <span class="kw">in</span></span>
+<span id="cb367-119"><a href="#cb367-119" aria-hidden="true" tabindex="-1"></a>          <span class="kw">let</span> new_weight = <span class="fl">1.0</span> /. <span class="dt">float_of_int</span> active_n <span class="kw">in</span></span>
+<span id="cb367-120"><a href="#cb367-120" aria-hidden="true" tabindex="-1"></a>          <span class="dt">Array</span>.iteri (<span class="kw">fun</span> j _ -&gt;</span>
+<span id="cb367-121"><a href="#cb367-121" aria-hidden="true" tabindex="-1"></a>            traces.(active_indices.(j)) &lt;- new_traces.(j);</span>
+<span id="cb367-122"><a href="#cb367-122" aria-hidden="true" tabindex="-1"></a>            weights.(active_indices.(j)) &lt;- new_weight) indices</span>
+<span id="cb367-123"><a href="#cb367-123" aria-hidden="true" tabindex="-1"></a>        <span class="kw">end</span></span>
+<span id="cb367-124"><a href="#cb367-124" aria-hidden="true" tabindex="-1"></a>      <span class="kw">end</span></span>
+<span id="cb367-125"><a href="#cb367-125" aria-hidden="true" tabindex="-1"></a>    <span class="kw">done</span>;</span>
+<span id="cb367-126"><a href="#cb367-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb367-127"><a href="#cb367-127" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> combined = <span class="dt">Hashtbl</span>.create <span class="dv">16</span> <span class="kw">in</span></span>
+<span id="cb367-128"><a href="#cb367-128" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> total = <span class="dt">ref</span> <span class="fl">0.0</span> <span class="kw">in</span></span>
+<span id="cb367-129"><a href="#cb367-129" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.iter (<span class="kw">fun</span> (v, w) -&gt;</span>
+<span id="cb367-130"><a href="#cb367-130" aria-hidden="true" tabindex="-1"></a>      total := !total +. w;</span>
+<span id="cb367-131"><a href="#cb367-131" aria-hidden="true" tabindex="-1"></a>      <span class="kw">let</span> prev = <span class="kw">try</span> <span class="dt">Hashtbl</span>.find combined v <span class="kw">with</span> <span class="dt">Not_found</span> -&gt; <span class="fl">0.0</span> <span class="kw">in</span></span>
+<span id="cb367-132"><a href="#cb367-132" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Hashtbl</span>.replace combined v (prev +. w)) !final_results;</span>
+<span id="cb367-133"><a href="#cb367-133" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> !total &gt; <span class="fl">0.0</span> <span class="kw">then</span></span>
+<span id="cb367-134"><a href="#cb367-134" aria-hidden="true" tabindex="-1"></a>      <span class="dt">Hashtbl</span>.fold (<span class="kw">fun</span> v w acc -&gt; (v, w /. !total) :: acc) combined []</span>
+<span id="cb367-135"><a href="#cb367-135" aria-hidden="true" tabindex="-1"></a>      |&gt; <span class="dt">List</span>.sort (<span class="kw">fun</span> (_, p1) (_, p2) -&gt; <span class="dt">compare</span> p2 p1)</span>
+<span id="cb367-136"><a href="#cb367-136" aria-hidden="true" tabindex="-1"></a>    <span class="kw">else</span> []</span>
+<span id="cb367-137"><a href="#cb367-137" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <p>The trace type <code>draw list</code> is simple and type-safe:
 <code>DChoose of int</code> stores only the index,
 <code>DGaussian of float</code> stores the sampled value. During replay,
