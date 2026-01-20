@@ -966,7 +966,7 @@ We saw two substantial applications:
 
 The key insight is that effects are a *programming interface* that can have multiple *implementations*. This makes code more modular and reusable.
 
-### 9.12 Type-Safe Probabilistic Effects with GADTs
+### 9.12 A Typed Sampling Interface with GADTs
 
 In Section 9.5, we defined probabilistic effects using indices into arrays:
 
@@ -975,110 +975,79 @@ type _ Effect.t +=
   | Sample : (string * float array) -> int Effect.t  (* returns index *)
 ```
 
-This works but is somewhat awkward: `flip` returns an integer 0 or 1 that we then compare to 0, and `uniform` selects from an array by index. Exercise 6 asked whether we could define a more direct `Choose : 'a list -> 'a Effect.t` effect. The exercise suggested this would be problematic because effect handlers must handle all occurrences uniformly.
+This works but is somewhat awkward: `flip` returns an integer 0 or 1 that we then compare to 0, and `uniform` selects from an array by index. Can we define a more direct `Choose : 'a list -> 'a Effect.t` effect that returns elements directly?
 
-It turns out the situation is not as difficult as the exercise implied. GADTs give us the tools to build a type-safe interface for probabilistic effects where each effect returns an appropriate type.
+The worry is easy to overstate:
 
-#### A Typed Effect Interface
+- Defining `Choose : 'a list -> 'a Effect.t` is *not* a type-system problem: `Effect.t` is already an extensible GADT, so each effect constructor can refine the return type, and the handler case `effect (Choose xs), k -> ...` is type-checked using the same GADT mechanism as any other GADT match.
+- What *can* become problematic is **replay traces**: if we tried to store the *chosen values* (of many different types) in a single list, we would need some form of dynamic typing.
 
-The key insight is that OCaml's effect system already uses GADTs -- `Effect.t` is a GADT where each constructor specifies its return type. We can leverage this directly:
+For replay-based inference, we can avoid that entirely: we store a trace of **type-agnostic random choices** (indices for `Choose`, floats for `Gaussian`). The program remains fully typed, and replay is straightforward: we use the stored index to select from the list passed to `Choose`.
+
+#### A GADT-Typed Sampling API
 
 ```ocaml env=ch9
-module TypedProb = struct
+module GProb = struct
   type _ Effect.t +=
-    | Choose : 'a array -> 'a Effect.t
-    | Gaussian : float * float -> float Effect.t  (* mean, stddev -> sample *)
-    | TObserve : float -> unit Effect.t
-    | TFail : 'a Effect.t
+    | Choose : 'a list -> 'a Effect.t
+    | Gaussian : float * float -> float Effect.t
+    | GObserve : float -> unit Effect.t
+    | GFail : 'a Effect.t
 
-  let choose options = Effect.perform (Choose options)
-  let gaussian ~mean ~stddev = Effect.perform (Gaussian (mean, stddev))
-  let observe likelihood = Effect.perform (TObserve likelihood)
-  let fail () = Effect.perform TFail
+  let choose xs =
+    match xs with
+    | [] -> invalid_arg "choose: empty list"
+    | _ -> Effect.perform (Choose xs)
+
+  let gaussian ~mu ~sigma =
+    if sigma <= 0.0 then invalid_arg "gaussian: sigma must be positive";
+    Effect.perform (Gaussian (mu, sigma))
+
+  let observe w =
+    if w < 0.0 then invalid_arg "observe: weight must be nonnegative";
+    Effect.perform (GObserve w)
+
+  let fail () = Effect.perform GFail
+
+  let pi = 4.0 *. atan 1.0
+
+  let normal_pdf x ~mu ~sigma =
+    let z = (x -. mu) /. sigma in
+    (1.0 /. (sigma *. sqrt (2.0 *. pi))) *. exp (-0.5 *. z *. z)
+
+  let sample_gaussian ~mu ~sigma =
+    (* Box-Muller transform *)
+    let u1 = max 1e-12 (Random.float 1.0) in
+    let u2 = Random.float 1.0 in
+    let r = sqrt (-2.0 *. log u1) in
+    let theta = 2.0 *. pi *. u2 in
+    mu +. sigma *. (r *. cos theta)
 end
 ```
 
-The `Choose` effect is polymorphic: `Choose : 'a array -> 'a Effect.t`. When we perform `Choose [|"heads"; "tails"|]`, the result type is `string`. When we perform `Choose [|1; 2; 3; 4; 5; 6|]`, the result type is `int`. The GADT ensures type safety at each use site.
+The `Choose` effect is polymorphic: `Choose : 'a list -> 'a Effect.t`. When we perform `Choose ["heads"; "tails"]`, the result type is `string`. When we perform `Choose [1; 2; 3; 4; 5; 6]`, the result type is `int`. The GADT ensures type safety at each use site.
 
-The `Gaussian` effect samples from a normal distribution with the given mean and standard deviation, returning a `float`.
+The `Gaussian` effect samples from a normal distribution using the Box-Muller transform.
 
-Now we can write cleaner probabilistic primitives:
-
-```ocaml env=ch9
-let flip p =
-  TypedProb.choose [| true; false |]
-
-let uniform_list choices =
-  TypedProb.choose (Array.of_list choices)
-
-let die sides =
-  TypedProb.choose (Array.init sides (fun i -> i + 1))
-
-let normal ~mean ~stddev =
-  TypedProb.gaussian ~mean ~stddev
-```
-
-The `flip` function now directly returns `bool`. The `die` function returns `int` directly. No index manipulation needed.
-
-#### Handling Choose with Existential Traces
-
-The challenge for replay-based inference is storing traces. With the index-based `Sample`, traces were simply `int list`. With polymorphic `Choose`, each choice could have a different type. How do we store them?
-
-The solution uses existential types to hide the choice type in the trace:
+#### Importance Sampling for Choose + Gaussian
 
 ```ocaml env=ch9
-type choice =
-  | DiscreteChoice : { index : int; value : 'a } -> choice
-  | GaussianChoice : float -> choice
-```
-
-The `DiscreteChoice` constructor stores both the index (for computing probabilities) and the actual value (for replay). The type `'a` is existentially quantified -- it exists within the constructor but is not exposed outside. When we replay, we extract the value and use it; the GADT type refinement ensures we return the correct type.
-
-For Gaussian samples, we store the sampled value directly since there are no discrete indices.
-
-#### Box-Muller Transform for Gaussian Sampling
-
-To sample from a Gaussian distribution, we use the Box-Muller transform, which converts uniform random samples to normally distributed ones:
-
-```ocaml env=ch9
-let box_muller () =
-  let u1 = Random.float 1.0 in
-  let u2 = Random.float 1.0 in
-  let r = sqrt (-2.0 *. log u1) in
-  let theta = 2.0 *. Float.pi *. u2 in
-  r *. cos theta  (* The other sample would be r *. sin theta *)
-
-let sample_gaussian ~mean ~stddev =
-  mean +. stddev *. box_muller ()
-```
-
-#### Typed Importance Sampling
-
-Here is importance sampling for our typed effects:
-
-```ocaml env=ch9
-module TypedImportance = struct
+module GImportance = struct
   exception HardFail
-
-  let sample_index n =
-    Random.int n
 
   let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
     let weight = ref 1.0 in
     match f () with
     | result -> Some (result, !weight)
-    | effect (TypedProb.Choose options), k ->
-        let n = Array.length options in
-        let i = sample_index n in
-        Effect.Deep.continue k options.(i)
-    | effect (TypedProb.Gaussian (mean, stddev)), k ->
-        let x = sample_gaussian ~mean ~stddev in
-        Effect.Deep.continue k x
-    | effect (TypedProb.TObserve likelihood), k ->
-        weight := !weight *. likelihood;
+    | effect (GProb.Choose xs), k ->
+        let i = Random.int (List.length xs) in
+        Effect.Deep.continue k (List.nth xs i)
+    | effect (GProb.Gaussian (mu, sigma)), k ->
+        Effect.Deep.continue k (GProb.sample_gaussian ~mu ~sigma)
+    | effect (GProb.GObserve w), k ->
+        weight := !weight *. w;
         Effect.Deep.continue k ()
-    | effect TypedProb.TFail, k ->
-        Effect.Deep.discontinue k HardFail
+    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
     | exception HardFail -> None
 
   let infer ?(samples=10000) f =
@@ -1099,71 +1068,66 @@ module TypedImportance = struct
 end
 ```
 
-The handler matches `Choose options` and samples uniformly from the array, returning the actual value. The GADT ensures that `options.(i)` has type `'a` and that `continue k options.(i)` is well-typed because `k` expects type `'a`.
+The handler matches `Choose xs` and samples uniformly, returning the actual value. The GADT ensures that `List.nth xs i` has type `'a` and that `continue k (List.nth xs i)` is well-typed because `k` expects type `'a`.
 
-For `Gaussian`, we sample using Box-Muller and continue with the float result.
+#### Particle Filtering with Replay for Choose + Gaussian
 
-#### Typed Particle Filter with Replay
-
-The particle filter requires more care because we need to replay traces with polymorphic choices. The key is that during replay, we stored both the index and the value in the existential `choice` type:
+The key insight for replay is simple: we store only **type-agnostic random draws** -- an index for discrete choices, a float for Gaussian samples. During replay, we use the stored index to select from the list that's passed to `Choose`:
 
 ```ocaml env=ch9
-module TypedParticleFilter = struct
-  type trace = choice list
-
+module GParticleFilter = struct
   exception HardFail
+
+  type draw =
+    | DChoose of int      (* index into the list *)
+    | DGaussian of float  (* sampled value *)
+
+  type trace = draw list
 
   type 'a step =
     | Done of 'a * trace * float
     | Paused of trace * float
     | Failed
 
-  let sample_index n = Random.int n
-
-  (* Run until the next fresh discrete Sample, replaying recorded choices *)
   let run_one_step : type a. (unit -> a) -> trace -> a step = fun f trace ->
     let remaining = ref trace in
     let recorded = ref [] in
     let weight = ref 1.0 in
     match f () with
     | result -> Done (result, List.rev !recorded, !weight)
-    | effect (TypedProb.Choose options), k ->
+    | effect (GProb.Choose xs), k ->
         (match !remaining with
-         | DiscreteChoice { index; value } :: rest ->
-             (* Replay: use recorded choice *)
+         | DChoose i :: rest ->
+             (* Replay: use recorded index to select from list *)
              remaining := rest;
-             recorded := DiscreteChoice { index; value } :: !recorded;
-             (* The existential type 'a in the choice matches 'a in Choose *)
-             Effect.Deep.continue k (Obj.magic value : _)
-         | GaussianChoice _ :: _ ->
-             failwith "TypedParticleFilter: expected DiscreteChoice, got GaussianChoice"
+             recorded := DChoose i :: !recorded;
+             Effect.Deep.continue k (List.nth xs i)
          | [] ->
-             (* Fresh sample: make choice and pause *)
-             let n = Array.length options in
-             let index = sample_index n in
-             let value = options.(index) in
-             recorded := DiscreteChoice { index; value } :: !recorded;
-             Paused (List.rev !recorded, !weight))
-    | effect (TypedProb.Gaussian (mean, stddev)), k ->
+             (* Fresh sample: choose index and pause *)
+             let i = Random.int (List.length xs) in
+             recorded := DChoose i :: !recorded;
+             Paused (List.rev !recorded, !weight)
+         | _ :: _ ->
+             (* Trace mismatch *)
+             Effect.Deep.discontinue k HardFail)
+    | effect (GProb.Gaussian (mu, sigma)), k ->
         (match !remaining with
-         | GaussianChoice x :: rest ->
+         | DGaussian x :: rest ->
              (* Replay: use recorded Gaussian sample *)
              remaining := rest;
-             recorded := GaussianChoice x :: !recorded;
+             recorded := DGaussian x :: !recorded;
              Effect.Deep.continue k x
-         | DiscreteChoice _ :: _ ->
-             failwith "TypedParticleFilter: expected GaussianChoice, got DiscreteChoice"
          | [] ->
-             (* Fresh Gaussian sample -- we don't pause at continuous samples,
-                just record and continue *)
-             let x = sample_gaussian ~mean ~stddev in
-             recorded := GaussianChoice x :: !recorded;
-             Effect.Deep.continue k x)
-    | effect (TypedProb.TObserve likelihood), k ->
-        weight := !weight *. likelihood;
+             (* Fresh Gaussian sample *)
+             let x = GProb.sample_gaussian ~mu ~sigma in
+             recorded := DGaussian x :: !recorded;
+             Paused (List.rev !recorded, !weight)
+         | _ :: _ ->
+             Effect.Deep.discontinue k HardFail)
+    | effect (GProb.GObserve w), k ->
+        weight := !weight *. w;
         Effect.Deep.continue k ()
-    | effect TypedProb.TFail, k ->
-        Effect.Deep.discontinue k HardFail
+    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
     | exception HardFail -> Failed
 
   let resample_indices n weights =
@@ -1179,8 +1143,8 @@ module TypedParticleFilter = struct
         let r = Random.float 1.0 in
         let rec find i =
           if i >= n - 1 || cumulative.(i) >= r then i
-          else find (i + 1) in
-        find 0)
+          else find (i + 1)
+        in find 0)
     end
 
   let effective_sample_size weights =
@@ -1217,15 +1181,16 @@ module TypedParticleFilter = struct
       done;
 
       if !n_active > 0 then begin
-        let active_weights = Array.of_list (
-          Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
-        if effective_sample_size active_weights < resample_threshold then begin
-          let active_indices = Array.of_list (
-            List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
-          let active_n = Array.length active_indices in
+        let active_indices =
+          Array.to_list (Array.init n (fun i -> i))
+          |> List.filter (fun i -> active.(i))
+          |> Array.of_list in
+        let active_n = Array.length active_indices in
+        let active_weights =
+          Array.init active_n (fun j -> weights.(active_indices.(j))) in
+        if active_n > 0 && effective_sample_size active_weights < resample_threshold then begin
           let indices = resample_indices active_n active_weights in
-          let new_traces = Array.map (fun j ->
-            traces.(active_indices.(j))) indices in
+          let new_traces = Array.map (fun j -> traces.(active_indices.(j))) indices in
           let new_weight = 1.0 /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
@@ -1247,23 +1212,11 @@ module TypedParticleFilter = struct
 end
 ```
 
-Note the use of `Obj.magic` when replaying a `DiscreteChoice`. This is safe in this context because we recorded `value` from `options.(index)` when the original `Choose options` was performed, and during replay we handle the same `Choose options` effect with the same type `'a`. The existential hides the type, but the program structure guarantees consistency.
-
-One could avoid `Obj.magic` by using a more sophisticated encoding with type witnesses, but that would significantly complicate the code without adding practical safety -- the replay mechanism inherently relies on the trace matching the program structure.
-
-#### Gaussian Likelihood for Observations
-
-When using Gaussian distributions with soft observations, we need to compute the probability density:
-
-```ocaml env=ch9
-let gaussian_pdf ~mean ~stddev x =
-  let z = (x -. mean) /. stddev in
-  exp (-0.5 *. z *. z) /. (stddev *. sqrt (2.0 *. Float.pi))
-```
+The trace type `draw list` is simple and type-safe: `DChoose of int` stores only the index, `DGaussian of float` stores the sampled value. During replay, we use the stored index to select from the list passed to `Choose`. No existential types, no `Obj.magic`.
 
 #### Example: Sensor Fusion
 
-Here is an example using both discrete and continuous distributions. Suppose we have a robot that can be in one of several rooms, and we receive noisy sensor readings of its position:
+Here is an example using both discrete and continuous distributions. A robot can be in one of several rooms, and we receive noisy sensor readings of its position:
 
 ```ocaml env=ch9
 type room = Kitchen | Living | Bedroom | Bathroom
@@ -1275,79 +1228,79 @@ let room_center = function
   | Bathroom -> (5.0, 5.0)
 
 let sensor_fusion ~observed_x ~observed_y =
-  let open TypedProb in
+  let open GProb in
   (* Prior: uniform over rooms *)
-  let room = choose [| Kitchen; Living; Bedroom; Bathroom |] in
+  let room = choose [Kitchen; Living; Bedroom; Bathroom] in
   let (cx, cy) = room_center room in
   (* Sensor model: noisy reading centered on true position *)
   let sensor_noise = 1.0 in
-  let x = gaussian ~mean:cx ~stddev:sensor_noise in
-  let y = gaussian ~mean:cy ~stddev:sensor_noise in
+  let x = gaussian ~mu:cx ~sigma:sensor_noise in
+  let y = gaussian ~mu:cy ~sigma:sensor_noise in
   (* Observe the sensor readings *)
-  observe (gaussian_pdf ~mean:x ~stddev:0.5 observed_x);
-  observe (gaussian_pdf ~mean:y ~stddev:0.5 observed_y);
+  observe (normal_pdf observed_x ~mu:x ~sigma:0.5);
+  observe (normal_pdf observed_y ~mu:y ~sigma:0.5);
   room
 
 let () =
   Printf.printf "\n=== Typed Probabilistic Effects ===\n";
   Printf.printf "Sensor fusion (observed near Living room at 4.8, 0.2):\n";
-  let dist = TypedImportance.infer ~samples:50000 (fun () ->
+  let dist1 = GImportance.infer ~samples:50000 (fun () ->
     sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
-  List.iter (fun (room, p) ->
-    let name = match room with
-      | Kitchen -> "Kitchen" | Living -> "Living"
-      | Bedroom -> "Bedroom" | Bathroom -> "Bathroom" in
-    Printf.printf "  %s: %.4f\n" name p) dist
+  let dist2 = GParticleFilter.infer ~n:5000 (fun () ->
+    sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
+  let show_room r = match r with
+    | Kitchen -> "Kitchen" | Living -> "Living"
+    | Bedroom -> "Bedroom" | Bathroom -> "Bathroom" in
+  Printf.printf "  GImportance:     ";
+  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist1;
+  print_newline ();
+  Printf.printf "  GParticleFilter: ";
+  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist2;
+  print_newline ()
 ```
 
-This example demonstrates the power of the typed interface:
-- `choose` returns a `room` directly, not an index
-- `gaussian` returns a `float` for continuous sampling
-- The type system ensures we use the results correctly
+#### Testing with Monty Hall
 
-#### Testing the Implementations
-
-Let us verify that our typed implementations work correctly:
+Let us verify that the typed interface produces correct results:
 
 ```ocaml env=ch9
 let typed_monty_hall ~switch =
-  let open TypedProb in
-  let doors = [| `A; `B; `C |] in
+  let open GProb in
+  let doors = [`A; `B; `C] in
   let prize = choose doors in
   let chosen = choose doors in
-  let can_open = Array.of_list (
-    Array.to_list doors |> List.filter (fun d -> d <> prize && d <> chosen)) in
+  let can_open = List.filter (fun d -> d <> prize && d <> chosen) doors in
   let opened = choose can_open in
   let final =
     if switch then
-      List.hd (List.filter (fun d -> d <> opened && d <> chosen) [`A; `B; `C])
+      List.hd (List.filter (fun d -> d <> opened && d <> chosen) doors)
     else chosen in
   final = prize
 
 let () =
   Printf.printf "\nTyped Monty Hall (no switch): ";
-  let dist = TypedImportance.infer (fun () -> typed_monty_hall ~switch:false) in
+  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:false) in
   List.iter (fun (win, p) ->
     Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
   print_newline ()
 
 let () =
   Printf.printf "Typed Monty Hall (switch): ";
-  let dist = TypedImportance.infer (fun () -> typed_monty_hall ~switch:true) in
+  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:true) in
   List.iter (fun (win, p) ->
     Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
   print_newline ()
 
 let () =
-  Printf.printf "\nTyped Monty Hall with Particle Filter (switch): ";
-  let dist = TypedParticleFilter.infer ~n:5000 (fun () ->
+  Printf.printf "Typed Monty Hall with Particle Filter (switch): ";
+  let dist = GParticleFilter.infer ~n:5000 (fun () ->
     typed_monty_hall ~switch:true) in
   List.iter (fun (win, p) ->
     Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
   print_newline ()
 ```
 
-The typed interface makes the probabilistic programs cleaner and more expressive while maintaining type safety. The GADT structure of OCaml's effect system, combined with careful handling of existential types in traces, allows us to have both the convenience of polymorphic effects and the efficiency of replay-based inference.
+The typed interface makes probabilistic programs cleaner and more expressive while maintaining full type safety. The GADT structure of OCaml's effect system ensures that `choose` returns the right type at each call site, and the simple index-based trace representation keeps replay straightforward.
 
 ### 9.13 Exercises
 
@@ -1363,12 +1316,6 @@ The typed interface makes the probabilistic programs cleaner and more expressive
 
 **Exercise 5.** Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
 
-**Exercise 6.** Section 9.12 implements a typed probabilistic interface using `Choose : 'a array -> 'a Effect.t`. The particle filter uses `Obj.magic` during replay. Can you eliminate this use of `Obj.magic`? Consider the following approaches:
+**Exercise 6.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
 
-1. **Type witnesses**: Store a GADT witness alongside the value in the trace, e.g., `type _ ty = Int : int ty | Bool : bool ty | ...`. Why does this approach have limitations for user-defined types?
-2. **Marshal/Unmarshal**: Use `Marshal.to_bytes` and `Marshal.from_bytes` to serialize and deserialize values. What are the tradeoffs (safety, performance, limitations)?
-3. **Defunctionalization**: Instead of storing values directly, store "recipes" for reconstructing them (the array index plus a reference to the original array). Implement this approach and compare with the `Obj.magic` version.
-
-**Exercise 7.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
-
-**Exercise 8.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
+**Exercise 7.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.

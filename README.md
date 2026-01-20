@@ -2819,7 +2819,7 @@ where $\overline{c} = p_1 . e_1 | \ldots | p_n . e_n$, $\alpha_v \# \text{FV}(\G
 
 For pattern clauses:
 
-$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \exists \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
+$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
 
 where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
 
@@ -7340,17 +7340,152 @@ We observe whether the grass is wet and whether the roof is wet. What is the pro
 
 **In this chapter, you will:**
 
+- Understand Generalized Algebraic Data Types (GADTs) and how they enable type-refined pattern matching
 - Learn about algebraic effects and handlers as a powerful alternative to monads
 - Implement lightweight cooperative threads using effects (comparing with the monad-based version)
 - Model probabilistic programming with effect handlers
 - Build interpreters for probabilistic programs: rejection sampling and particle filtering
 - Understand the replay-with-fast-forward pattern for efficient inference
+- Use GADTs to build a type-safe probabilistic programming interface
 
 OCaml 5 introduced a game-changing feature: algebraic effects with effect handlers. While monads provide a disciplined way to structure effectful computations, they require threading computations explicitly through bind operations. Algebraic effects offer a different approach: effects can be performed directly, and handlers define how those effects are interpreted.
 
 This chapter explores algebraic effects through two substantial examples. First, we will reimplement the cooperative lightweight threads from the previous chapter, showing how effects simplify the code. Then we will tackle probabilistic programming, building interpreters that can answer questions about probability distributions.
 
-### 9.1 From Monads to Effects
+Before diving into effects, we need to understand GADTs -- they are the foundation on which OCaml's effect system is built.
+
+### 9.1 Generalized Algebraic Data Types
+
+Generalized Algebraic Data Types (GADTs) extend ordinary algebraic data types by allowing each constructor to specify a *more precise* return type. Where regular data types have constructors that all produce the same type, GADT constructors can refine the type parameter.
+
+#### Basic GADT Syntax
+
+Consider a simple expression type. With ordinary data types, we cannot distinguish integer expressions from boolean expressions at the type level:
+
+```ocaml skip
+type expr =
+  | Int of int
+  | Bool of bool
+  | Add of expr * expr
+  | If of expr * expr * expr
+```
+
+The `Add` constructor should only work with integer expressions, but the type system cannot enforce this -- we can construct `Add (Bool true, Bool false)` which is nonsensical.
+
+GADTs solve this problem. The syntax uses explicit return type annotations:
+
+```ocaml env=ch9
+type _ expr =
+  | Int : int -> int expr
+  | Bool : bool -> bool expr
+  | Add : int expr * int expr -> int expr
+  | If : bool expr * 'a expr * 'a expr -> 'a expr
+```
+
+Each constructor now specifies its return type after the colon. `Int` constructs an `int expr`, `Bool` constructs a `bool expr`, and `Add` requires two `int expr` arguments and produces an `int expr`. The `If` constructor is polymorphic: it requires a boolean condition and two branches of the same type `'a`, producing an `'a expr`.
+
+Now `Add (Bool true, Bool false)` is a type error -- the type checker rejects it because `Bool true` has type `bool expr`, not `int expr`.
+
+#### Type Refinement in Pattern Matching
+
+The real power of GADTs emerges in pattern matching. When we match on a GADT constructor, the type checker *learns* information about the type parameter:
+
+```ocaml env=ch9
+let rec eval : type a. a expr -> a = function
+  | Int n -> n          (* Here a = int, so we return int *)
+  | Bool b -> b         (* Here a = bool, so we return bool *)
+  | Add (e1, e2) -> eval e1 + eval e2   (* Here a = int *)
+  | If (cond, then_, else_) ->
+      if eval cond then eval then_ else eval else_
+```
+
+The annotation `type a. a expr -> a` declares a *locally abstract type* `a`. This tells OCaml that `a` is a type variable that may be refined differently in each branch. In the `Int n` branch, the type checker knows that `a = int` because we matched the `Int` constructor which returns `int expr`. This allows us to return `n` (an `int`) where the return type is `a` -- which in this branch *is* `int`.
+
+Without the locally abstract type annotation, the code would fail to type-check. The annotation is necessary because different branches may assign different concrete types to `a`.
+
+#### Existential Types in GADTs
+
+GADT constructors can introduce *existential* type variables -- types that exist within the constructor but are not exposed in the result type:
+
+```ocaml env=ch9
+type printable =
+  | Printable : { value : 'a; print : 'a -> string } -> printable
+```
+
+The type variable `'a` appears in the arguments but not in the result type `printable`. This means we can pack any value together with a function that knows how to print it:
+
+```ocaml env=ch9
+let examples = [
+  Printable { value = 42; print = string_of_int };
+  Printable { value = "hello"; print = Fun.id };
+  Printable { value = [1;2;3]; print = fun l ->
+      "[" ^ String.concat "; " (List.map string_of_int l) ^ "]" }
+]
+
+let print_all items =
+  List.iter (fun (Printable { value; print }) ->
+    print_endline (print value)) items
+
+let () = print_all examples
+```
+
+Within the pattern match, we can use `print value` because both refer to the same existential type `'a`. But we cannot extract `value` and use it outside the pattern -- its type is unknown.
+
+#### Connection to Type Inference
+
+In [Section 5.3](chapter5/README.md#L141), we presented the formal rules for type constraint generation. The key rule for pattern clauses was:
+
+$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
+
+where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
+
+For ordinary data types, the constraints derived from patterns are equations. For GADTs, the pattern derivation also produces type equalities $D$, so we have $\exists \overline{\beta} [D] \Gamma'$ from $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, and the constraint becomes an *implication*:
+
+$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . D \Rightarrow [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
+
+The premise $D$ is the conjunction of type equalities that the GADT constructor establishes. The universal quantification over $\overline{\beta}$ reflects that these equalities hold for *all* values matching the pattern.
+
+For example, when type-checking `eval` and matching the `Int n` case:
+- The pattern produces the equality $D = (\text{a} \doteq \text{int})$
+- The constraint becomes: $\forall \text{a} . (\text{a} \doteq \text{int}) \Rightarrow [\![ \text{n} : \text{int} \vdash \text{n} : \text{a} ]\!]$
+- Under the assumption `a = int`, returning `n : int` satisfies the requirement `result : a`
+
+This is why GADT pattern matching can have different types in different branches -- each branch operates under different type assumptions given by the implication premise. The type checker uses these *local type refinements* to verify that each branch is well-typed.
+
+GADTs also enable the type checker to recognize *impossible* cases. If a function takes `int expr` as input, the `Bool` constructor can never match because `Bool` produces `bool expr`, not `int expr`. The compiler can use this information for exhaustiveness checking.
+
+#### GADTs and Effects
+
+OCaml's effect system uses GADTs in a fundamental way. The type `Effect.t` is defined roughly as:
+
+```ocaml skip
+type _ Effect.t = ..
+```
+
+This is an *extensible* GADT -- new constructors can be added anywhere in the program. The type parameter indicates what type of value the effect produces when handled:
+
+```ocaml skip
+type _ Effect.t +=
+  | Get : int Effect.t           (* Returns an int *)
+  | Put : int -> unit Effect.t   (* Takes an int, returns unit *)
+```
+
+When handling effects, the continuation's type is refined based on which effect was performed:
+
+```ocaml skip
+match f () with
+| result -> result
+| effect Get, k -> Effect.Deep.continue k 42
+    (* k : (int, 'a) continuation because Get : int Effect.t *)
+| effect (Put n), k -> Effect.Deep.continue k ()
+    (* k : (unit, 'a) continuation because Put : unit Effect.t *)
+```
+
+The GADT structure ensures type safety: you cannot `continue k "hello"` when handling `Get` because the continuation expects an `int`. This type safety is crucial for building reliable effect handlers.
+
+With this foundation, we can now explore how effects provide an elegant alternative to monads.
+
+### 9.2 From Monads to Effects
 
 In the previous chapter, we saw how monads structure effectful computations. Every monadic operation had to be sequenced with `let*`:
 
@@ -7450,6 +7585,7 @@ let () =
 ```
 
 The `effect E, k` pattern matches when effect `E` is performed. The continuation `k` captures everything that would happen after `Effect.perform` returns. We can:
+
 - **Continue** by calling `Effect.Deep.continue k value`, where `value` becomes the return value of `perform`
 - **Discontinue** by calling `Effect.Deep.discontinue k exn`, raising an exception at the effect site
 - **Store** the continuation and resume it later (useful for schedulers)
@@ -7457,6 +7593,7 @@ The `effect E, k` pattern matches when effect `E` is performed. The continuation
 **Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`. Not resuming a continuation might work in specific cases but risks leaking resources (e.g. open files).
 
 The three kinds of patterns in a handler correspond to three cases:
+
 - Regular patterns handle normal return values
 - `exception` patterns handle raised exceptions
 - `effect` patterns handle performed effects
@@ -7475,7 +7612,7 @@ For most use cases, deep handlers are simpler and sufficient. We will use `Effec
 
 This ability to capture and manipulate continuations is what makes algebraic effects so powerful. Let us see this in action.
 
-### 9.2 Lightweight Threads with Effects
+### 9.3 Lightweight Threads with Effects
 
 In the previous chapter, we implemented cooperative threads using a monad. The implementation involved mutable state to track thread status, a work queue, and careful management of continuations encoded as closures. With effects, we can write a much simpler implementation.
 
@@ -7617,7 +7754,7 @@ Done!
 
 Compare this to the monadic version from the previous chapter. The code is more direct: we write `yield ()` instead of `let* () = suspend in`, and `Printf.printf` is just a regular function call. The complexity of managing thread state has moved from the user code into the handler.
 
-### 9.3 State with Effects
+### 9.4 State with Effects
 
 Before diving into probabilistic programming, let us see how to implement mutable state using effects. This demonstrates another common pattern.
 
@@ -7654,7 +7791,7 @@ let () = Printf.printf "Counter result: %d\n" result
 
 The key insight is that effects let us *separate the description of what effects occur* from *how those effects are implemented*. The `counter` function describes a computation that gets and puts state. The `State.run` handler interprets those effects using a mutable reference.
 
-### 9.4 Probabilistic Programming with Effects
+### 9.5 Probabilistic Programming with Effects
 
 Now we are ready to tackle something more ambitious: probabilistic programming. In the previous chapter, we implemented probability monads that could compute exact distributions or approximate them via sampling. Effect handlers give us a different, more flexible approach.
 
@@ -7766,7 +7903,7 @@ let burglary ~john_called ~mary_called =
 
 The key difference from the monad version: we use `fail ()` to reject executions that do not match our observations. This is *rejection sampling*: we run the program many times and keep only the runs where the observations match.
 
-### 9.5 Rejection Sampling Interpreter
+### 9.6 Rejection Sampling Interpreter
 
 Our first interpreter uses rejection sampling: run the probabilistic program many times, rejecting executions that fail, and collect statistics on the successful runs.
 
@@ -7856,7 +7993,7 @@ let () =
 
 With rare observations, we need many more samples to get accurate estimates. This is where more sophisticated inference methods help.
 
-### 9.6 Importance Sampling
+### 9.7 Importance Sampling
 
 Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weight them by their likelihood.
 
@@ -7905,7 +8042,7 @@ module Importance = struct
 end
 ```
 
-### 9.7 Soft Conditioning with Observe
+### 9.8 Soft Conditioning with Observe
 
 So far our burglary example uses hard conditioning with `fail ()`. Let us rewrite it to use soft conditioning with `observe`:
 
@@ -7947,7 +8084,7 @@ let () =
 
 The soft conditioning version is more efficient because every particle contributes to the estimate, weighted by how well it matches the observations.
 
-### 9.8 Particle Filter with Replay
+### 9.9 Particle Filter with Replay
 
 For models where observations occur at multiple points during execution, we can do even better with *particle filtering*. The key idea is to run multiple particles in parallel, periodically *resampling* to focus computation on high-weight particles.
 
@@ -8122,7 +8259,7 @@ let () =
     Printf.printf "  %s: %.4f\n" s p) dist
 ```
 
-### 9.9 Comparing Inference Methods
+### 9.10 Comparing Inference Methods
 
 We have seen three approaches to probabilistic inference:
 
@@ -8147,7 +8284,7 @@ let () =
   test "Particle Filter" (ParticleFilter.infer ~n:5000)
 ```
 
-### 9.10 Summary
+### 9.11 Summary
 
 Algebraic effects provide a powerful alternative to monads for structuring effectful computations:
 
@@ -8167,7 +8304,343 @@ We saw two substantial applications:
 
 The key insight is that effects are a *programming interface* that can have multiple *implementations*. This makes code more modular and reusable.
 
-### 9.11 Exercises
+### 9.12 A Typed Sampling Interface with GADTs
+
+In Section 9.5, we defined probabilistic effects using indices into arrays:
+
+```ocaml skip
+type _ Effect.t +=
+  | Sample : (string * float array) -> int Effect.t  (* returns index *)
+```
+
+This works but is somewhat awkward: `flip` returns an integer 0 or 1 that we then compare to 0, and `uniform` selects from an array by index. Can we define a more direct `Choose : 'a list -> 'a Effect.t` effect that returns elements directly?
+
+The worry is easy to overstate:
+
+- Defining `Choose : 'a list -> 'a Effect.t` is *not* a type-system problem: `Effect.t` is already an extensible GADT, so each effect constructor can refine the return type, and the handler case `effect (Choose xs), k -> ...` is type-checked using the same GADT mechanism as any other GADT match.
+- What *can* become problematic is **replay traces**: if we tried to store the *chosen values* (of many different types) in a single list, we would need some form of dynamic typing.
+
+For replay-based inference, we can avoid that entirely: we store a trace of **type-agnostic random choices** (indices for `Choose`, floats for `Gaussian`). The program remains fully typed, and replay is straightforward: we use the stored index to select from the list passed to `Choose`.
+
+#### A GADT-Typed Sampling API
+
+```ocaml env=ch9
+module GProb = struct
+  type _ Effect.t +=
+    | Choose : 'a list -> 'a Effect.t
+    | Gaussian : float * float -> float Effect.t
+    | GObserve : float -> unit Effect.t
+    | GFail : 'a Effect.t
+
+  let choose xs =
+    match xs with
+    | [] -> invalid_arg "choose: empty list"
+    | _ -> Effect.perform (Choose xs)
+
+  let gaussian ~mu ~sigma =
+    if sigma <= 0.0 then invalid_arg "gaussian: sigma must be positive";
+    Effect.perform (Gaussian (mu, sigma))
+
+  let observe w =
+    if w < 0.0 then invalid_arg "observe: weight must be nonnegative";
+    Effect.perform (GObserve w)
+
+  let fail () = Effect.perform GFail
+
+  let pi = 4.0 *. atan 1.0
+
+  let normal_pdf x ~mu ~sigma =
+    let z = (x -. mu) /. sigma in
+    (1.0 /. (sigma *. sqrt (2.0 *. pi))) *. exp (-0.5 *. z *. z)
+
+  let sample_gaussian ~mu ~sigma =
+    (* Box-Muller transform *)
+    let u1 = max 1e-12 (Random.float 1.0) in
+    let u2 = Random.float 1.0 in
+    let r = sqrt (-2.0 *. log u1) in
+    let theta = 2.0 *. pi *. u2 in
+    mu +. sigma *. (r *. cos theta)
+end
+```
+
+The `Choose` effect is polymorphic: `Choose : 'a list -> 'a Effect.t`. When we perform `Choose ["heads"; "tails"]`, the result type is `string`. When we perform `Choose [1; 2; 3; 4; 5; 6]`, the result type is `int`. The GADT ensures type safety at each use site.
+
+The `Gaussian` effect samples from a normal distribution using the Box-Muller transform.
+
+#### Importance Sampling for Choose + Gaussian
+
+```ocaml env=ch9
+module GImportance = struct
+  exception HardFail
+
+  let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
+    let weight = ref 1.0 in
+    match f () with
+    | result -> Some (result, !weight)
+    | effect (GProb.Choose xs), k ->
+        let i = Random.int (List.length xs) in
+        Effect.Deep.continue k (List.nth xs i)
+    | effect (GProb.Gaussian (mu, sigma)), k ->
+        Effect.Deep.continue k (GProb.sample_gaussian ~mu ~sigma)
+    | effect (GProb.GObserve w), k ->
+        weight := !weight *. w;
+        Effect.Deep.continue k ()
+    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
+    | exception HardFail -> None
+
+  let infer ?(samples=10000) f =
+    let results = Hashtbl.create 16 in
+    let total_weight = ref 0.0 in
+    for _ = 1 to samples do
+      match run_once f with
+      | None -> ()
+      | Some (v, w) ->
+          total_weight := !total_weight +. w;
+          let prev = try Hashtbl.find results v with Not_found -> 0.0 in
+          Hashtbl.replace results v (prev +. w)
+    done;
+    if !total_weight > 0.0 then
+      Hashtbl.fold (fun v w acc -> (v, w /. !total_weight) :: acc) results []
+      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
+    else []
+end
+```
+
+The handler matches `Choose xs` and samples uniformly, returning the actual value. The GADT ensures that `List.nth xs i` has type `'a` and that `continue k (List.nth xs i)` is well-typed because `k` expects type `'a`.
+
+#### Particle Filtering with Replay for Choose + Gaussian
+
+The key insight for replay is simple: we store only **type-agnostic random draws** -- an index for discrete choices, a float for Gaussian samples. During replay, we use the stored index to select from the list that's passed to `Choose`:
+
+```ocaml env=ch9
+module GParticleFilter = struct
+  exception HardFail
+
+  type draw =
+    | DChoose of int      (* index into the list *)
+    | DGaussian of float  (* sampled value *)
+
+  type trace = draw list
+
+  type 'a step =
+    | Done of 'a * trace * float
+    | Paused of trace * float
+    | Failed
+
+  let run_one_step : type a. (unit -> a) -> trace -> a step = fun f trace ->
+    let remaining = ref trace in
+    let recorded = ref [] in
+    let weight = ref 1.0 in
+    match f () with
+    | result -> Done (result, List.rev !recorded, !weight)
+    | effect (GProb.Choose xs), k ->
+        (match !remaining with
+         | DChoose i :: rest ->
+             (* Replay: use recorded index to select from list *)
+             remaining := rest;
+             recorded := DChoose i :: !recorded;
+             Effect.Deep.continue k (List.nth xs i)
+         | [] ->
+             (* Fresh sample: choose index and pause *)
+             let i = Random.int (List.length xs) in
+             recorded := DChoose i :: !recorded;
+             Paused (List.rev !recorded, !weight)
+         | _ :: _ ->
+             (* Trace mismatch *)
+             Effect.Deep.discontinue k HardFail)
+    | effect (GProb.Gaussian (mu, sigma)), k ->
+        (match !remaining with
+         | DGaussian x :: rest ->
+             (* Replay: use recorded Gaussian sample *)
+             remaining := rest;
+             recorded := DGaussian x :: !recorded;
+             Effect.Deep.continue k x
+         | [] ->
+             (* Fresh Gaussian sample *)
+             let x = GProb.sample_gaussian ~mu ~sigma in
+             recorded := DGaussian x :: !recorded;
+             Paused (List.rev !recorded, !weight)
+         | _ :: _ ->
+             Effect.Deep.discontinue k HardFail)
+    | effect (GProb.GObserve w), k ->
+        weight := !weight *. w;
+        Effect.Deep.continue k ()
+    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
+    | exception HardFail -> Failed
+
+  let resample_indices n weights =
+    let total = Array.fold_left (+.) 0.0 weights in
+    if total <= 0.0 then Array.init n (fun i -> i mod n)
+    else begin
+      let cumulative = Array.make n 0.0 in
+      let acc = ref 0.0 in
+      Array.iteri (fun i w ->
+        acc := !acc +. w /. total;
+        cumulative.(i) <- !acc) weights;
+      Array.init n (fun _ ->
+        let r = Random.float 1.0 in
+        let rec find i =
+          if i >= n - 1 || cumulative.(i) >= r then i
+          else find (i + 1)
+        in find 0)
+    end
+
+  let effective_sample_size weights =
+    let n = float_of_int (Array.length weights) in
+    let total = Array.fold_left (+.) 0.0 weights in
+    if total <= 0.0 then 0.0
+    else begin
+      let sum_sq = Array.fold_left (fun acc w ->
+        let nw = w /. total in acc +. nw *. nw) 0.0 weights in
+      1.0 /. sum_sq /. n
+    end
+
+  let infer ?(n=1000) ?(resample_threshold=0.5) f =
+    let traces = Array.make n [] in
+    let weights = Array.make n 1.0 in
+    let active = Array.make n true in
+    let final_results = ref [] in
+    let n_active = ref n in
+
+    while !n_active > 0 do
+      for i = 0 to n - 1 do
+        if active.(i) then
+          match run_one_step f traces.(i) with
+          | Done (result, trace, w) ->
+              final_results := (result, weights.(i) *. w) :: !final_results;
+              active.(i) <- false;
+              decr n_active
+          | Paused (trace, w) ->
+              traces.(i) <- trace;
+              weights.(i) <- weights.(i) *. w
+          | Failed ->
+              active.(i) <- false;
+              decr n_active
+      done;
+
+      if !n_active > 0 then begin
+        let active_indices =
+          Array.to_list (Array.init n (fun i -> i))
+          |> List.filter (fun i -> active.(i))
+          |> Array.of_list in
+        let active_n = Array.length active_indices in
+        let active_weights =
+          Array.init active_n (fun j -> weights.(active_indices.(j))) in
+        if active_n > 0 && effective_sample_size active_weights < resample_threshold then begin
+          let indices = resample_indices active_n active_weights in
+          let new_traces = Array.map (fun j -> traces.(active_indices.(j))) indices in
+          let new_weight = 1.0 /. float_of_int active_n in
+          Array.iteri (fun j _ ->
+            traces.(active_indices.(j)) <- new_traces.(j);
+            weights.(active_indices.(j)) <- new_weight) indices
+        end
+      end
+    done;
+
+    let combined = Hashtbl.create 16 in
+    let total = ref 0.0 in
+    List.iter (fun (v, w) ->
+      total := !total +. w;
+      let prev = try Hashtbl.find combined v with Not_found -> 0.0 in
+      Hashtbl.replace combined v (prev +. w)) !final_results;
+    if !total > 0.0 then
+      Hashtbl.fold (fun v w acc -> (v, w /. !total) :: acc) combined []
+      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
+    else []
+end
+```
+
+The trace type `draw list` is simple and type-safe: `DChoose of int` stores only the index, `DGaussian of float` stores the sampled value. During replay, we use the stored index to select from the list passed to `Choose`. No existential types, no `Obj.magic`.
+
+#### Example: Sensor Fusion
+
+Here is an example using both discrete and continuous distributions. A robot can be in one of several rooms, and we receive noisy sensor readings of its position:
+
+```ocaml env=ch9
+type room = Kitchen | Living | Bedroom | Bathroom
+
+let room_center = function
+  | Kitchen -> (0.0, 0.0)
+  | Living -> (5.0, 0.0)
+  | Bedroom -> (0.0, 5.0)
+  | Bathroom -> (5.0, 5.0)
+
+let sensor_fusion ~observed_x ~observed_y =
+  let open GProb in
+  (* Prior: uniform over rooms *)
+  let room = choose [Kitchen; Living; Bedroom; Bathroom] in
+  let (cx, cy) = room_center room in
+  (* Sensor model: noisy reading centered on true position *)
+  let sensor_noise = 1.0 in
+  let x = gaussian ~mu:cx ~sigma:sensor_noise in
+  let y = gaussian ~mu:cy ~sigma:sensor_noise in
+  (* Observe the sensor readings *)
+  observe (normal_pdf observed_x ~mu:x ~sigma:0.5);
+  observe (normal_pdf observed_y ~mu:y ~sigma:0.5);
+  room
+
+let () =
+  Printf.printf "\n=== Typed Probabilistic Effects ===\n";
+  Printf.printf "Sensor fusion (observed near Living room at 4.8, 0.2):\n";
+  let dist1 = GImportance.infer ~samples:50000 (fun () ->
+    sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
+  let dist2 = GParticleFilter.infer ~n:5000 (fun () ->
+    sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
+  let show_room r = match r with
+    | Kitchen -> "Kitchen" | Living -> "Living"
+    | Bedroom -> "Bedroom" | Bathroom -> "Bathroom" in
+  Printf.printf "  GImportance:     ";
+  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist1;
+  print_newline ();
+  Printf.printf "  GParticleFilter: ";
+  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist2;
+  print_newline ()
+```
+
+#### Testing with Monty Hall
+
+Let us verify that the typed interface produces correct results:
+
+```ocaml env=ch9
+let typed_monty_hall ~switch =
+  let open GProb in
+  let doors = [`A; `B; `C] in
+  let prize = choose doors in
+  let chosen = choose doors in
+  let can_open = List.filter (fun d -> d <> prize && d <> chosen) doors in
+  let opened = choose can_open in
+  let final =
+    if switch then
+      List.hd (List.filter (fun d -> d <> opened && d <> chosen) doors)
+    else chosen in
+  final = prize
+
+let () =
+  Printf.printf "\nTyped Monty Hall (no switch): ";
+  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:false) in
+  List.iter (fun (win, p) ->
+    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
+  print_newline ()
+
+let () =
+  Printf.printf "Typed Monty Hall (switch): ";
+  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:true) in
+  List.iter (fun (win, p) ->
+    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
+  print_newline ()
+
+let () =
+  Printf.printf "Typed Monty Hall with Particle Filter (switch): ";
+  let dist = GParticleFilter.infer ~n:5000 (fun () ->
+    typed_monty_hall ~switch:true) in
+  List.iter (fun (win, p) ->
+    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
+  print_newline ()
+```
+
+The typed interface makes probabilistic programs cleaner and more expressive while maintaining full type safety. The GADT structure of OCaml's effect system ensures that `choose` returns the right type at each call site, and the simple index-based trace representation keeps replay straightforward.
+
+### 9.13 Exercises
 
 **Exercise 1.** Extend the `Threads` module to support timeouts. Add an effect `Timeout : float -> 'a promise -> 'a option Effect.t` that waits for a promise with a timeout, returning `None` if the timeout expires. You will need to track elapsed "time" (perhaps measured in yields).
 
@@ -8181,15 +8654,9 @@ The key insight is that effects are a *programming interface* that can have mult
 
 **Exercise 5.** Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
 
-**Exercise 6.** Our probabilistic programming interface uses `Sample : int -> int` to choose an index, which callers then use to select from their list of options. Consider a more direct `Choose : 'a list -> 'a` effect.
+**Exercise 6.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
 
-1. Why is `Choose : 'a list -> 'a Effect.t` problematic for OCaml's type system? (Hint: effect handlers must handle all occurrences of an effect uniformly, but different `Choose` calls may have different types.)
-2. Even if we could define the effect, explain why replay-based handlers (rejection sampling, importance sampling, particle filter) face additional difficulty: traces would need to store values of different types.
-3. One workaround uses existential types: `type packed = Pack : 'a -> packed` with traces as `packed list`, and `Obj.magic` during replay. Implement this for the rejection sampler and discuss why it's unsafe.
-
-**Exercise 7.** The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
-
-**Exercise 8.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
+**Exercise 7.** Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
 
 
 ## Chapter 10: Functional Reactive Programming
