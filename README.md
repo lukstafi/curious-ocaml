@@ -1327,23 +1327,20 @@ Understanding reduction semantics is valuable for several reasons. It helps us p
 
 Programs consist of **expressions**. Here is the grammar of expressions for a simplified version of OCaml (we omit some features for clarity):
 
-$$
-\begin{aligned}
-a \; &{:=} \; x && \text{variables} \\
-  &\mid \; \texttt{fun } x \texttt{ -> } a && \text{(defined) functions} \\
-  &\mid \; a \; a && \text{applications} \\
-  &\mid \; C^0 && \text{value constructors of arity } 0 \\
-  &\mid \; C^n(a, \ldots, a) && \text{value constructors of arity } n \\
-  &\mid \; f^n && \text{built-in values (primitives) of arity } n \\
-  &\mid \; \texttt{let } x = a \texttt{ in } a && \text{name bindings (local definitions)} \\
-  &\mid \; \texttt{match } a \texttt{ with} && \\
-  & \quad p \texttt{ -> } a \texttt{ | } \cdots \texttt{ | } p \texttt{ -> } a && \text{pattern matching} \\[1em]
-p \; &{:=} \; x && \text{pattern variables} \\
-  &\mid \; (p, \ldots, p) && \text{tuple patterns} \\
-  &\mid \; C^0 && \text{variant patterns of arity } 0 \\
-  &\mid \; C^n(p, \ldots, p) && \text{variant patterns of arity } n
-\end{aligned}
-$$
+| | | |
+|:--|:--|:--|
+| $a \; ::=$ | $x$ | variables |
+| $\quad \mid$ | `fun` $x$ `->` $a$ | (defined) functions |
+| $\quad \mid$ | $a \; a$ | applications |
+| $\quad \mid$ | $C^0$ | value constructors of arity 0 |
+| $\quad \mid$ | $C^n(a, \ldots, a)$ | value constructors of arity $n$ |
+| $\quad \mid$ | $f^n$ | built-in values (primitives) of arity $n$ |
+| $\quad \mid$ | `let` $x$ `=` $a$ `in` $a$ | name bindings (local definitions) |
+| $\quad \mid$ | `match` $a$ `with` $p$ `->` $a$ $\mid \cdots \mid$ $p$ `->` $a$ | pattern matching |
+| $p \; ::=$ | $x$ | pattern variables |
+| $\quad \mid$ | $(p, \ldots, p)$ | tuple patterns |
+| $\quad \mid$ | $C^0$ | variant patterns of arity 0 |
+| $\quad \mid$ | $C^n(p, \ldots, p)$ | variant patterns of arity $n$ |
 
 **Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
 

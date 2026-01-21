@@ -2844,29 +2844,104 @@ verification.</p>
 <p>Programs consist of <strong>expressions</strong>. Here is the grammar
 of expressions for a simplified version of OCaml (we omit some features
 for clarity):</p>
-<p><span class="math display">
-\begin{aligned}
-a \; &amp;{:=} \; x &amp;&amp; \text{variables} \\
-  &amp;\mid \; \texttt{fun } x \texttt{ -&gt; } a &amp;&amp;
-\text{(defined) functions} \\
-  &amp;\mid \; a \; a &amp;&amp; \text{applications} \\
-  &amp;\mid \; C^0 &amp;&amp; \text{value constructors of arity } 0 \\
-  &amp;\mid \; C^n(a, \ldots, a) &amp;&amp; \text{value constructors of
-arity } n \\
-  &amp;\mid \; f^n &amp;&amp; \text{built-in values (primitives) of
-arity } n \\
-  &amp;\mid \; \texttt{let } x = a \texttt{ in } a &amp;&amp; \text{name
-bindings (local definitions)} \\
-  &amp;\mid \; \texttt{match } a \texttt{ with} &amp;&amp; \\
-  &amp; \quad p \texttt{ -&gt; } a \texttt{ | } \cdots \texttt{ | } p
-\texttt{ -&gt; } a &amp;&amp; \text{pattern matching} \\[1em]
-p \; &amp;{:=} \; x &amp;&amp; \text{pattern variables} \\
-  &amp;\mid \; (p, \ldots, p) &amp;&amp; \text{tuple patterns} \\
-  &amp;\mid \; C^0 &amp;&amp; \text{variant patterns of arity } 0 \\
-  &amp;\mid \; C^n(p, \ldots, p) &amp;&amp; \text{variant patterns of
-arity } n
-\end{aligned}
-</span></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<tbody>
+<tr>
+<td style="text-align: left;"><span class="math inline">a \;
+::=</span></td>
+<td style="text-align: left;"><span class="math inline">x</span></td>
+<td style="text-align: left;">variables</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><code>fun</code> <span
+class="math inline">x</span> <code>-&gt;</code> <span
+class="math inline">a</span></td>
+<td style="text-align: left;">(defined) functions</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">a \;
+a</span></td>
+<td style="text-align: left;">applications</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">C^0</span></td>
+<td style="text-align: left;">value constructors of arity 0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">C^n(a, \ldots,
+a)</span></td>
+<td style="text-align: left;">value constructors of arity <span
+class="math inline">n</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">f^n</span></td>
+<td style="text-align: left;">built-in values (primitives) of arity
+<span class="math inline">n</span></td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><code>let</code> <span
+class="math inline">x</span> <code>=</code> <span
+class="math inline">a</span> <code>in</code> <span
+class="math inline">a</span></td>
+<td style="text-align: left;">name bindings (local definitions)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><code>match</code> <span
+class="math inline">a</span> <code>with</code> <span
+class="math inline">p</span> <code>-&gt;</code> <span
+class="math inline">a</span> <span class="math inline">\mid \cdots
+\mid</span> <span class="math inline">p</span> <code>-&gt;</code> <span
+class="math inline">a</span></td>
+<td style="text-align: left;">pattern matching</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">p \;
+::=</span></td>
+<td style="text-align: left;"><span class="math inline">x</span></td>
+<td style="text-align: left;">pattern variables</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">(p, \ldots,
+p)</span></td>
+<td style="text-align: left;">tuple patterns</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">C^0</span></td>
+<td style="text-align: left;">variant patterns of arity 0</td>
+</tr>
+<tr>
+<td style="text-align: left;"><span class="math inline">\quad
+\mid</span></td>
+<td style="text-align: left;"><span class="math inline">C^n(p, \ldots,
+p)</span></td>
+<td style="text-align: left;">variant patterns of arity <span
+class="math inline">n</span></td>
+</tr>
+</tbody>
+</table>
 <p><strong>Arity</strong> means how many arguments something requires.
 For constructors, arity tells us how many components the constructor
 holds; for functions (primitives), it tells us how many arguments they
