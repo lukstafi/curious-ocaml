@@ -155,21 +155,21 @@ Understanding reduction semantics is valuable for several reasons. It helps us p
 Programs consist of **expressions**. Here is the grammar of expressions for a simplified version of OCaml (we omit some features for clarity):
 
 $$
-\begin{array}{lcll}
-a & := & x & \text{variables} \\
-  & |  & \texttt{fun } x \texttt{ -> } a & \text{(defined) functions} \\
-  & |  & a \; a & \text{applications} \\
-  & |  & C^0 & \text{value constructors of arity } 0 \\
-  & |  & C^n(a, \ldots, a) & \text{value constructors of arity } n \\
-  & |  & f^n & \text{built-in values (primitives) of arity } n \\
-  & |  & \texttt{let } x = a \texttt{ in } a & \text{name bindings (local definitions)} \\
-  & |  & \texttt{match } a \texttt{ with} & \\
-  &    & \quad p \texttt{ -> } a \texttt{ | } \cdots \texttt{ | } p \texttt{ -> } a & \text{pattern matching} \\[1em]
-p & := & x & \text{pattern variables} \\
-  & |  & (p, \ldots, p) & \text{tuple patterns} \\
-  & |  & C^0 & \text{variant patterns of arity } 0 \\
-  & |  & C^n(p, \ldots, p) & \text{variant patterns of arity } n
-\end{array}
+\begin{aligned}
+a \; &{:=} \; x && \text{variables} \\
+  &\mid \; \texttt{fun } x \texttt{ -> } a && \text{(defined) functions} \\
+  &\mid \; a \; a && \text{applications} \\
+  &\mid \; C^0 && \text{value constructors of arity } 0 \\
+  &\mid \; C^n(a, \ldots, a) && \text{value constructors of arity } n \\
+  &\mid \; f^n && \text{built-in values (primitives) of arity } n \\
+  &\mid \; \texttt{let } x = a \texttt{ in } a && \text{name bindings (local definitions)} \\
+  &\mid \; \texttt{match } a \texttt{ with} && \\
+  & \quad p \texttt{ -> } a \texttt{ | } \cdots \texttt{ | } p \texttt{ -> } a && \text{pattern matching} \\[1em]
+p \; &{:=} \; x && \text{pattern variables} \\
+  &\mid \; (p, \ldots, p) && \text{tuple patterns} \\
+  &\mid \; C^0 && \text{variant patterns of arity } 0 \\
+  &\mid \; C^n(p, \ldots, p) && \text{variant patterns of arity } n
+\end{aligned}
 $$
 
 **Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.

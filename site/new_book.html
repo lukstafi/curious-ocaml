@@ -2845,27 +2845,27 @@ verification.</p>
 of expressions for a simplified version of OCaml (we omit some features
 for clarity):</p>
 <p><span class="math display">
-\begin{array}{lcll}
-a &amp; := &amp; x &amp; \text{variables} \\
-  &amp; |  &amp; \texttt{fun } x \texttt{ -&gt; } a &amp;
+\begin{aligned}
+a \; &amp;{:=} \; x &amp;&amp; \text{variables} \\
+  &amp;\mid \; \texttt{fun } x \texttt{ -&gt; } a &amp;&amp;
 \text{(defined) functions} \\
-  &amp; |  &amp; a \; a &amp; \text{applications} \\
-  &amp; |  &amp; C^0 &amp; \text{value constructors of arity } 0 \\
-  &amp; |  &amp; C^n(a, \ldots, a) &amp; \text{value constructors of
+  &amp;\mid \; a \; a &amp;&amp; \text{applications} \\
+  &amp;\mid \; C^0 &amp;&amp; \text{value constructors of arity } 0 \\
+  &amp;\mid \; C^n(a, \ldots, a) &amp;&amp; \text{value constructors of
 arity } n \\
-  &amp; |  &amp; f^n &amp; \text{built-in values (primitives) of arity }
-n \\
-  &amp; |  &amp; \texttt{let } x = a \texttt{ in } a &amp; \text{name
+  &amp;\mid \; f^n &amp;&amp; \text{built-in values (primitives) of
+arity } n \\
+  &amp;\mid \; \texttt{let } x = a \texttt{ in } a &amp;&amp; \text{name
 bindings (local definitions)} \\
-  &amp; |  &amp; \texttt{match } a \texttt{ with} &amp; \\
-  &amp;    &amp; \quad p \texttt{ -&gt; } a \texttt{ | } \cdots \texttt{
-| } p \texttt{ -&gt; } a &amp; \text{pattern matching} \\[1em]
-p &amp; := &amp; x &amp; \text{pattern variables} \\
-  &amp; |  &amp; (p, \ldots, p) &amp; \text{tuple patterns} \\
-  &amp; |  &amp; C^0 &amp; \text{variant patterns of arity } 0 \\
-  &amp; |  &amp; C^n(p, \ldots, p) &amp; \text{variant patterns of arity
-} n
-\end{array}
+  &amp;\mid \; \texttt{match } a \texttt{ with} &amp;&amp; \\
+  &amp; \quad p \texttt{ -&gt; } a \texttt{ | } \cdots \texttt{ | } p
+\texttt{ -&gt; } a &amp;&amp; \text{pattern matching} \\[1em]
+p \; &amp;{:=} \; x &amp;&amp; \text{pattern variables} \\
+  &amp;\mid \; (p, \ldots, p) &amp;&amp; \text{tuple patterns} \\
+  &amp;\mid \; C^0 &amp;&amp; \text{variant patterns of arity } 0 \\
+  &amp;\mid \; C^n(p, \ldots, p) &amp;&amp; \text{variant patterns of
+arity } n
+\end{aligned}
 </span></p>
 <p><strong>Arity</strong> means how many arguments something requires.
 For constructors, arity tells us how many components the constructor
