@@ -1583,10 +1583,13 @@ definition syntax needs to distinguish between “the name
 <code>+:</code>” and “the expression <code>a +: b</code>”.</p>
 <p>An important feature of OCaml is that operators are <strong>not
 overloaded</strong>. This means that a single operator cannot work for
-multiple types. Each type needs its own set of operators: -
-<code>+</code>, <code>*</code>, <code>/</code> work for integers -
-<code>+.</code>, <code>*.</code>, <code>/.</code> work for floating
-point numbers</p>
+multiple types. Each type needs its own set of operators:</p>
+<ul>
+<li><code>+</code>, <code>*</code>, <code>/</code> work for
+integers</li>
+<li><code>+.</code>, <code>*.</code>, <code>/.</code> work for floating
+point numbers</li>
+</ul>
 <p>This design choice makes type inference simpler and more predictable.
 When you see <code>x + y</code>, OCaml knows immediately that
 <code>x</code> and <code>y</code> must be integers.</p>
@@ -1842,11 +1845,14 @@ using a finite definition:</p>
 <div class="sourceCode" id="cb15"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> int_list = Empty | Cons <span class="kw">of</span> <span class="dt">int</span> * int_list</span></code></pre></div>
 <p>Let us see what values inhabit <code>int_list</code>. The definition
-tells us there are two ways to build an <code>int_list</code>: -
-<code>Empty</code> represents the empty list—a list with no elements -
-<code>Cons (5, Empty)</code> is a list containing just 5 -
-<code>Cons (5, Cons (7, Cons (13, Empty)))</code> is a list containing
-5, 7, and 13</p>
+tells us there are two ways to build an <code>int_list</code>:</p>
+<ul>
+<li><code>Empty</code> represents the empty list—a list with no
+elements</li>
+<li><code>Cons (5, Empty)</code> is a list containing just 5</li>
+<li><code>Cons (5, Cons (7, Cons (13, Empty)))</code> is a list
+containing 5, 7, and 13</li>
+</ul>
 <p>Notice how <code>Cons</code> takes an integer and another
 <code>int_list</code>, allowing us to chain together as many elements as
 we like. This recursive structure is the essence of how functional
@@ -1980,12 +1986,16 @@ variable. Note that we bind <code>name</code> to <code>n</code>,
 <h3 id="understanding-patterns">Understanding Patterns</h3>
 <p>The left-hand sides of <code>-&gt;</code> in <code>match</code>
 expressions are called <strong>patterns</strong>. Patterns describe the
-structure of values we want to match against. They can include: -
-Constants (like <code>1</code>, <code>"hello"</code>, or
-<code>true</code>) - Variables (which bind to the matched value) -
-Constructors (like <code>None</code>, <code>Some x</code>, or
-<code>Cons (h, t)</code>) - Tuples and records - Nested combinations of
-all the above</p>
+structure of values we want to match against. They can include:</p>
+<ul>
+<li>Constants (like <code>1</code>, <code>"hello"</code>, or
+<code>true</code>)</li>
+<li>Variables (which bind to the matched value)</li>
+<li>Constructors (like <code>None</code>, <code>Some x</code>, or
+<code>Cons (h, t)</code>)</li>
+<li>Tuples and records</li>
+<li>Nested combinations of all the above</li>
+</ul>
 <p>Patterns can be nested to arbitrary depth, allowing us to match
 complex structures in one go:</p>
 <div class="sourceCode" id="cb22"><pre
@@ -2333,12 +2343,14 @@ each way leaves two other <code>int</code>s behind.</p>
 <div class="sourceCode" id="cb39"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> ymd_ctx =</span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  Year <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span> | Month <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span> | Day <span class="kw">of</span> <span class="dt">int</span> * <span class="dt">int</span></span></code></pre></div>
-<p>Each variant represents a “hole” at a different position: -
-<code>Year (m, d)</code> means the year field is the hole (and we have
-the month <code>m</code> and day <code>d</code>) -
-<code>Month (y, d)</code> means the month field is the hole (and we have
-year <code>y</code> and day <code>d</code>) - <code>Day (y, m)</code>
-means the day field is the hole</p>
+<p>Each variant represents a “hole” at a different position:</p>
+<ul>
+<li><code>Year (m, d)</code> means the year field is the hole (and we
+have the month <code>m</code> and day <code>d</code>)</li>
+<li><code>Month (y, d)</code> means the month field is the hole (and we
+have year <code>y</code> and day <code>d</code>)</li>
+<li><code>Day (y, m)</code> means the day field is the hole</li>
+</ul>
 <p>Now we can define functions to introduce and eliminate this
 derivative type:</p>
 <div class="sourceCode" id="cb40"><pre
@@ -3076,10 +3088,10 @@ class="math display">
 variable.</p>
 <p><strong>Pattern matching with a non-matching constructor:</strong>
 <span class="math display">
-\frac{C_1 \neq C_2}{\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{
-with } C_2^k(p_1, \ldots, p_k) \texttt{ -&gt; } a \texttt{ | } pm
-\rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with }
-pm}
+\frac{C_1 \neq C_2}{\begin{array}{c}\texttt{match } C_1^n(v_1, \ldots,
+v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -&gt; } a \texttt{
+| } pm \\ \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n)
+\texttt{ with } pm\end{array}}
 </span></p>
 <p>If the constructor in the value (<span
 class="math inline">C_1</span>) does not match the constructor in the
@@ -3148,20 +3160,22 @@ C^n(a_1, \ldots, a_i, \ldots, a_n) &amp; \rightsquigarrow &amp; C^n(a_1,
 \texttt{match } a_1&#39; \texttt{ with } pm
 \end{array}
 </span></p>
-<p>These rules describe <em>where</em> reduction can happen: - In a
-function application <span class="math inline">a_1 \; a_2</span>, the
-rules allow reducing either the function (<span
+<p>These rules describe <em>where</em> reduction can happen:</p>
+<ul>
+<li>In a function application <span class="math inline">a_1 \;
+a_2</span>, the rules allow reducing either the function (<span
 class="math inline">a_1</span>) or the argument (<span
 class="math inline">a_2</span>). This is a common simplification in
-textbook semantics; OCaml itself uses a fixed evaluation order. - In a
-constructor application, any argument can be evaluated. - In a let
-binding <code>let x = a1 in a2</code>, the bound expression <span
-class="math inline">a_1</span> must be evaluated to a value before we
-can proceed. Notice there is no rule for evaluating <span
+textbook semantics; OCaml itself uses a fixed evaluation order.</li>
+<li>In a constructor application, any argument can be evaluated.</li>
+<li>In a let binding <code>let x = a1 in a2</code>, the bound expression
+<span class="math inline">a_1</span> must be evaluated to a value before
+we can proceed. Notice there is no rule for evaluating <span
 class="math inline">a_2</span> directly—the body is only evaluated after
-the substitution happens. - In a match expression, the scrutinee (the
-expression being matched) must be evaluated before pattern matching can
-proceed.</p>
+the substitution happens.</li>
+<li>In a match expression, the scrutinee (the expression being matched)
+must be evaluated before pattern matching can proceed.</li>
+</ul>
 <h3 id="the-fix-rule">The <code>fix</code> Rule</h3>
 <p>Finally, the rule for the <code>fix</code> primitive, which enables
 recursion:</p>
@@ -3254,15 +3268,20 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb62-1"><a hre
 <span id="cb62-8"><a href="#cb62-8" aria-hidden="true" tabindex="-1"></a>  | Quot(f, g) -&gt; Quot(Diff(Prod(deriv f dv, g), Prod(f, deriv g dv)),</span>
 <span id="cb62-9"><a href="#cb62-9" aria-hidden="true" tabindex="-1"></a>                       Prod(g, g))</span></code></pre></div>
 <p>The <code>deriv</code> function implements the standard rules of
-calculus: - The derivative of a constant is 0. - The derivative of the
-variable we are differentiating with respect to is 1; any other variable
-is treated as a constant (derivative 0). - The sum and difference rules:
-<span class="math inline">(f + g)&#39; = f&#39; + g&#39;</span> and
-<span class="math inline">(f - g)&#39; = f&#39; - g&#39;</span>. - The
-product rule: <span class="math inline">(f \cdot g)&#39; = f \cdot
-g&#39; + f&#39; \cdot g</span>. - The quotient rule: <span
-class="math inline">(f / g)&#39; = (f&#39; \cdot g - f \cdot g&#39;) /
-g^2</span>.</p>
+calculus:</p>
+<ul>
+<li>The derivative of a constant is 0.</li>
+<li>The derivative of the variable we are differentiating with respect
+to is 1; any other variable is treated as a constant (derivative
+0).</li>
+<li>The sum and difference rules: <span class="math inline">(f + g)&#39;
+= f&#39; + g&#39;</span> and <span class="math inline">(f - g)&#39; =
+f&#39; - g&#39;</span>.</li>
+<li>The product rule: <span class="math inline">(f \cdot g)&#39; = f
+\cdot g&#39; + f&#39; \cdot g</span>.</li>
+<li>The quotient rule: <span class="math inline">(f / g)&#39; = (f&#39;
+\cdot g - f \cdot g&#39;) / g^2</span>.</li>
+</ul>
 <p>For convenience, let us define some operators and variables so we can
 write expressions more naturally:</p>
 <div class="sourceCode" id="cb63"><pre
@@ -3630,13 +3649,17 @@ that simplifies symbolic expressions, so that for example the result of
 <code>simplify (deriv exp dv)</code> looks more like what a human would
 get computing the derivative of <code>exp</code> with respect to
 <code>dv</code>.</p>
-<p>Some simplifications to consider: - <span class="math inline">0 + x =
-x</span> and <span class="math inline">x + 0 = x</span> - <span
-class="math inline">0 \cdot x = 0</span> and <span class="math inline">x
-\cdot 0 = 0</span> - <span class="math inline">1 \cdot x = x</span> and
-<span class="math inline">x \cdot 1 = x</span> - <span
-class="math inline">x - 0 = x</span> - <span class="math inline">x / 1 =
-x</span></p>
+<p>Some simplifications to consider:</p>
+<ul>
+<li><span class="math inline">0 + x = x</span> and <span
+class="math inline">x + 0 = x</span></li>
+<li><span class="math inline">0 \cdot x = 0</span> and <span
+class="math inline">x \cdot 0 = 0</span></li>
+<li><span class="math inline">1 \cdot x = x</span> and <span
+class="math inline">x \cdot 1 = x</span></li>
+<li><span class="math inline">x - 0 = x</span></li>
+<li><span class="math inline">x / 1 = x</span></li>
+</ul>
 <p>Approach this in two steps: 1. Write a <code>simplify_once</code>
 function that performs a single “pass” of simplification over the
 expression tree. 2. Wrap it using a general <code>fixpoint</code>
@@ -3956,17 +3979,23 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb93-1"><a hre
 as a stack of pairs, where the height of the stack represents the
 number.</p>
 <p>How do <code>pn_pred</code> and <code>pn_is_zero</code> work? Let us
-think through this carefully: - The identity function <code>pn0</code>,
-when applied to any argument, returns that argument. - A successor
-<code>c_pair c_false n</code> is a function waiting for a selector;
-applying it to <code>c_false</code> selects the second component (the
-predecessor), while applying it to <code>c_true</code> selects the first
-component (<code>c_false</code>).</p>
-<p>So <code>pn_is_zero</code> applies the number to <code>c_true</code>:
-- For <code>pn0</code>, we get <code>c_true</code> back (since
-<code>pn0</code> is the identity)—the number is zero! - For any
-successor, we get <code>c_false</code> back (the first component of the
-pair)—the number is not zero!</p>
+think through this carefully:</p>
+<ul>
+<li>The identity function <code>pn0</code>, when applied to any
+argument, returns that argument.</li>
+<li>A successor <code>c_pair c_false n</code> is a function waiting for
+a selector; applying it to <code>c_false</code> selects the second
+component (the predecessor), while applying it to <code>c_true</code>
+selects the first component (<code>c_false</code>).</li>
+</ul>
+<p>So <code>pn_is_zero</code> applies the number to
+<code>c_true</code>:</p>
+<ul>
+<li>For <code>pn0</code>, we get <code>c_true</code> back (since
+<code>pn0</code> is the identity)—the number is zero!</li>
+<li>For any successor, we get <code>c_false</code> back (the first
+component of the pair)—the number is not zero!</li>
+</ul>
 <p>We program in untyped lambda-calculus as an exercise, and we need
 encoding/decoding to verify our work. Since these encodings do not
 type-check cleanly in OCaml, using <code>Obj.magic</code> to bypass the
@@ -5163,13 +5192,16 @@ then applying the corresponding operation.</p>
 <p>A <em>homomorphism</em> from algebraic structure <span
 class="math inline">(A, \{f^A, g^A, \ldots\})</span> to <span
 class="math inline">(B, \{f^B, g^B, \ldots\})</span> is a function <span
-class="math inline">h : A \rightarrow B</span> such that: - <span
-class="math inline">h(f^A(a_1, \ldots, a_{n_f})) = f^B(h(a_1), \ldots,
-h(a_{n_f}))</span> for all <span class="math inline">(a_1, \ldots,
-a_{n_f})</span> - <span class="math inline">h(g^A(a_1, \ldots, a_{n_g}))
-= g^B(h(a_1), \ldots, h(a_{n_g}))</span> for all <span
-class="math inline">(a_1, \ldots, a_{n_g})</span> - and so on for all
-operations.</p>
+class="math inline">h : A \rightarrow B</span> such that:</p>
+<ul>
+<li><span class="math inline">h(f^A(a_1, \ldots, a_{n_f})) = f^B(h(a_1),
+\ldots, h(a_{n_f}))</span> for all <span class="math inline">(a_1,
+\ldots, a_{n_f})</span></li>
+<li><span class="math inline">h(g^A(a_1, \ldots, a_{n_g})) = g^B(h(a_1),
+\ldots, h(a_{n_g}))</span> for all <span class="math inline">(a_1,
+\ldots, a_{n_g})</span></li>
+<li>and so on for all operations.</li>
+</ul>
 <p>Two algebraic structures are <em>isomorphic</em> if there are
 homomorphisms <span class="math inline">h_1 : A \rightarrow B</span>,
 <span class="math inline">h_2 : B \rightarrow A</span> from one to the
@@ -7373,9 +7405,12 @@ class="math inline">a_0 + a_1 x + a_2 x^2 + \ldots</span>, we compute
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb215-1"><a href="#cb215-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> horner x l =</span>
 <span id="cb215-2"><a href="#cb215-2" aria-hidden="true" tabindex="-1"></a>  lfold_right (<span class="kw">fun</span> c sum -&gt; c +. x *. sum) l <span class="dv">0</span>.</span></code></pre></div>
 <p>But this will not work for infinite power series! Two natural
-questions arise: - Does it make sense to compute the value at <span
-class="math inline">x</span> of a power series? - Does it make sense to
-fold an infinite list?</p>
+questions arise:</p>
+<ul>
+<li>Does it make sense to compute the value at <span
+class="math inline">x</span> of a power series?</li>
+<li>Does it make sense to fold an infinite list?</li>
+</ul>
 <p>The answer to both is “yes, sometimes.” If the power series converges
 for <span class="math inline">x &gt; 1</span>, then when the elements
 <span class="math inline">a_n</span> get small, the remaining sum <span
@@ -7728,11 +7763,15 @@ before <code>sf</code> has produced anything.</p>
 <h2 id="pipes">7.8 Pipes</h2>
 <p>The <code>iostream</code> type has a limitation: it must alternate
 strictly between producing output and consuming input. In many
-real-world scenarios, we need more flexibility: - A transformation might
-consume several inputs before producing a single output (like computing
-an average). - A transformation might produce several outputs from a
-single input (like splitting a string). - A transformation might produce
-output without needing any input (like a constant source).</p>
+real-world scenarios, we need more flexibility:</p>
+<ul>
+<li>A transformation might consume several inputs before producing a
+single output (like computing an average).</li>
+<li>A transformation might produce several outputs from a single input
+(like splitting a string).</li>
+<li>A transformation might produce output without needing any input
+(like a constant source).</li>
+</ul>
 <p>Following the Haskell tradition, we call this more flexible data
 structure a <code>pipe</code>:</p>
 <div class="sourceCode" id="cb237"><pre
@@ -7811,11 +7850,15 @@ together; when it does not fit, we break it across multiple lines.</p>
 <div class="sourceCode" id="cb243"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb243-1"><a href="#cb243-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> doc =</span>
 <span id="cb243-2"><a href="#cb243-2" aria-hidden="true" tabindex="-1"></a>  Text <span class="kw">of</span> <span class="dt">string</span> | Line | Cat <span class="kw">of</span> doc * doc | Group <span class="kw">of</span> doc</span></code></pre></div>
-<p>The document type has four constructors: - <code>Text s</code> –
-literal text - <code>Line</code> – a potential line break (rendered as a
-space if the group fits, or a newline if it does not) -
-<code>Cat (d1, d2)</code> – concatenation - <code>Group d</code> – a
-group that should be kept together if possible</p>
+<p>The document type has four constructors:</p>
+<ul>
+<li><code>Text s</code> – literal text</li>
+<li><code>Line</code> – a potential line break (rendered as a space if
+the group fits, or a newline if it does not)</li>
+<li><code>Cat (d1, d2)</code> – concatenation</li>
+<li><code>Group d</code> – a group that should be kept together if
+possible</li>
+</ul>
 <p>Some convenient operators for building documents:</p>
 <div class="sourceCode" id="cb244"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb244-1"><a href="#cb244-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> (++) d1 d2 = Cat (d1, Cat (Line, d2))</span>
@@ -8675,11 +8718,14 @@ choice, enabling backtracking search.</p>
 put : store -&gt; unit monad</code></pre>
 <p>These operations let you read and write a piece of state that is
 threaded through the computation. There is a “canonical” state monad we
-will examine later. Related monads include: - The <strong>writer
-monad</strong>: has <code>tell</code> (append to a log) and
-<code>listen</code> (read the log) - The <strong>reader monad</strong>:
-has <code>ask</code> (read an environment) and <code>local</code> to
-modify the environment for a sub-computation:</p>
+will examine later. Related monads include:</p>
+<ul>
+<li>The <strong>writer monad</strong>: has <code>tell</code> (append to
+a log) and <code>listen</code> (read the log)</li>
+<li>The <strong>reader monad</strong>: has <code>ask</code> (read an
+environment) and <code>local</code> to modify the environment for a
+sub-computation:</li>
+</ul>
 <pre><code>local : (store -&gt; store) -&gt; &#39;a monad -&gt; &#39;a monad</code></pre>
 <p><strong>Exception/error monads (parameterized by type
 <code>excn</code>):</strong></p>
@@ -9484,10 +9530,13 @@ probability monad is more than just randomized computation – it lets us
 <em>reason</em> about probabilities. We can ask questions like “what is
 the probability of this outcome?” or “what is the distribution of
 possible results?”</p>
-<p>Different monad implementations make different tradeoffs: -
-<strong>Exact distribution</strong>: Track all possible outcomes and
-their probabilities precisely - <strong>Sampling (Monte Carlo)</strong>:
-Approximate probabilities by running many random trials</p>
+<p>Different monad implementations make different tradeoffs:</p>
+<ul>
+<li><strong>Exact distribution</strong>: Track all possible outcomes and
+their probabilities precisely</li>
+<li><strong>Sampling (Monte Carlo)</strong>: Approximate probabilities
+by running many random trials</li>
+</ul>
 <h3 id="the-probability-monad">The Probability Monad</h3>
 <p>The essential functions for the probability monad class are
 <code>choose</code> (for making probabilistic choices) and
@@ -9807,10 +9856,13 @@ are “heavyweight” – they have significant overhead for context switching
 and memory. <strong>Lightweight threads</strong> are managed by the
 application rather than the OS, allowing many concurrent tasks with
 lower overhead.</p>
-<p>Lightweight threads can be: - <strong>Preemptive</strong>: The
-scheduler interrupts running threads to switch between them -
-<strong>Cooperative</strong>: Threads voluntarily give up control at
-specific points (like I/O operations)</p>
+<p>Lightweight threads can be:</p>
+<ul>
+<li><strong>Preemptive</strong>: The scheduler interrupts running
+threads to switch between them</li>
+<li><strong>Cooperative</strong>: Threads voluntarily give up control at
+specific points (like I/O operations)</li>
+</ul>
 <p><strong>Lwt</strong> is a popular OCaml library for lightweight
 cooperative threads, implemented as a monad. The monadic structure
 ensures that thread switching happens at well-defined points (whenever
@@ -11548,10 +11600,13 @@ the timeout expires. You will need to track elapsed “time” (perhaps
 measured in yields).</p>
 <p><strong>Exercise 2.</strong> Implement a simple generator/iterator
 pattern using effects. Define a
-<code>YieldGen : 'a -&gt; unit Effect.t</code> and write: - A function
-<code>generate : (unit -&gt; unit) -&gt; 'a Seq.t</code> that converts a
-procedure using <code>YieldGen</code> into a sequence. - Use it to
-implement a generator for Fibonacci numbers.</p>
+<code>YieldGen : 'a -&gt; unit Effect.t</code> and write:</p>
+<ul>
+<li>A function <code>generate : (unit -&gt; unit) -&gt; 'a Seq.t</code>
+that converts a procedure using <code>YieldGen</code> into a
+sequence.</li>
+<li>Use it to implement a generator for Fibonacci numbers.</li>
+</ul>
 <p><strong>Exercise 3.</strong> The <code>State</code> module above only
 handles integer state. Generalize it to handle state of any type using a
 functor or first-class modules.</p>
@@ -11786,13 +11841,15 @@ task is to pull out particular subexpressions as far to the left as
 possible, while changing the whole expression as little as possible.
 This kind of algebraic manipulation is common in symbolic
 computation.</p>
-<p>We can illustrate our algorithm using mathematical notation. Let: -
-<span class="math inline">x</span> be the thing we pull out - <span
-class="math inline">C[e]</span> and <span
+<p>We can illustrate our algorithm using mathematical notation. Let:</p>
+<ul>
+<li><span class="math inline">x</span> be the thing we pull out</li>
+<li><span class="math inline">C[e]</span> and <span
 class="math inline">D[e]</span> be big expressions with subexpression
-<span class="math inline">e</span> - operator <span
-class="math inline">\circ</span> stand for one of: <span
-class="math inline">*, +</span></p>
+<span class="math inline">e</span></li>
+<li>operator <span class="math inline">\circ</span> stand for one of:
+<span class="math inline">*, +</span></li>
+</ul>
 <p>The rewriting rules are:</p>
 <p><span class="math display">
 \begin{matrix}

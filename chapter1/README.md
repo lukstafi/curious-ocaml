@@ -298,6 +298,7 @@ val ( +: ) : string -> string -> string = <fun>
 Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".
 
 An important feature of OCaml is that operators are **not overloaded**. This means that a single operator cannot work for multiple types. Each type needs its own set of operators:
+
 - `+`, `*`, `/` work for integers
 - `+.`, `*.`, `/.` work for floating point numbers
 

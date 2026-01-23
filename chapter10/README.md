@@ -165,6 +165,7 @@ let go_down loc =
 Let us put zippers to work on a real problem. Imagine a friend working on string theory asks us for help simplifying equations. The task is to pull out particular subexpressions as far to the left as possible, while changing the whole expression as little as possible. This kind of algebraic manipulation is common in symbolic computation.
 
 We can illustrate our algorithm using mathematical notation. Let:
+
 - $x$ be the thing we pull out
 - $C[e]$ and $D[e]$ be big expressions with subexpression $e$
 - operator $\circ$ stand for one of: $*, +$

@@ -129,6 +129,7 @@ type int_list = Empty | Cons of int * int_list
 ```
 
 Let us see what values inhabit `int_list`. The definition tells us there are two ways to build an `int_list`:
+
 - `Empty` represents the empty list---a list with no elements
 - `Cons (5, Empty)` is a list containing just 5
 - `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13
@@ -235,6 +236,7 @@ Here we match against a record pattern, binding each field to a variable. Note t
 #### Understanding Patterns
 
 The left-hand sides of `->` in `match` expressions are called **patterns**. Patterns describe the structure of values we want to match against. They can include:
+
 - Constants (like `1`, `"hello"`, or `true`)
 - Variables (which bind to the matched value)
 - Constructors (like `None`, `Some x`, or `Cons (h, t)`)
@@ -573,6 +575,7 @@ type ymd_ctx =
 ```
 
 Each variant represents a "hole" at a different position:
+
 - `Year (m, d)` means the year field is the hole (and we have the month `m` and day `d`)
 - `Month (y, d)` means the month field is the hole (and we have year `y` and day `d`)
 - `Day (y, m)` means the day field is the hole

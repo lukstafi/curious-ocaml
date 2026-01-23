@@ -249,7 +249,7 @@ A variable pattern always matches, binding the entire value to the variable.
 
 **Pattern matching with a non-matching constructor:**
 $$
-\frac{C_1 \neq C_2}{\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm}
+\frac{C_1 \neq C_2}{\begin{array}{c}\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \\ \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm\end{array}}
 $$
 
 If the constructor in the value ($C_1$) does not match the constructor in the pattern ($C_2$), we skip this branch and try the remaining patterns ($pm$). This is how OCaml searches through pattern match cases from top to bottom.
@@ -295,6 +295,7 @@ C^n(a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n(a_1, \ldots, a_i', \
 $$
 
 These rules describe *where* reduction can happen:
+
 - In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml itself uses a fixed evaluation order.
 - In a constructor application, any argument can be evaluated.
 - In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
@@ -379,6 +380,7 @@ let rec deriv exp dv =
 ```
 
 The `deriv` function implements the standard rules of calculus:
+
 - The derivative of a constant is 0.
 - The derivative of the variable we are differentiating with respect to is 1; any other variable is treated as a constant (derivative 0).
 - The sum and difference rules: $(f + g)' = f' + g'$ and $(f - g)' = f' - g'$.
@@ -691,6 +693,7 @@ Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a p
 Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
 
 Some simplifications to consider:
+
 - $0 + x = x$ and $x + 0 = x$
 - $0 \cdot x = 0$ and $x \cdot 0 = 0$
 - $1 \cdot x = x$ and $x \cdot 1 = x$

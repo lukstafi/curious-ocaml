@@ -433,6 +433,7 @@ put : store -> unit monad
 ```
 
 These operations let you read and write a piece of state that is threaded through the computation. There is a "canonical" state monad we will examine later. Related monads include:
+
 - The **writer monad**: has `tell` (append to a log) and `listen` (read the log)
 - The **reader monad**: has `ask` (read an environment) and `local` to modify the environment for a sub-computation:
 
@@ -1217,6 +1218,7 @@ Using a random number generator, we can define procedures that produce various o
 Just as we can "simulate" mutable variables with the state monad and non-determinism with the list monad, we can "simulate" random computation with a **probability monad**. But the probability monad is more than just randomized computation -- it lets us *reason* about probabilities. We can ask questions like "what is the probability of this outcome?" or "what is the distribution of possible results?"
 
 Different monad implementations make different tradeoffs:
+
 - **Exact distribution**: Track all possible outcomes and their probabilities precisely
 - **Sampling (Monte Carlo)**: Approximate probabilities by running many random trials
 
@@ -1520,6 +1522,7 @@ module BurglarySimul = Burglary (Sampling2000)
 Running multiple tasks asynchronously can hide I/O latency and utilize multi-core architectures. Traditional operating system threads are "heavyweight" -- they have significant overhead for context switching and memory. **Lightweight threads** are managed by the application rather than the OS, allowing many concurrent tasks with lower overhead.
 
 Lightweight threads can be:
+
 - **Preemptive**: The scheduler interrupts running threads to switch between them
 - **Cooperative**: Threads voluntarily give up control at specific points (like I/O operations)
 

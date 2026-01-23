@@ -333,6 +333,7 @@ val ( +: ) : string -> string -> string = <fun>
 Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".
 
 An important feature of OCaml is that operators are **not overloaded**. This means that a single operator cannot work for multiple types. Each type needs its own set of operators:
+
 - `+`, `*`, `/` work for integers
 - `+.`, `*.`, `/.` work for floating point numbers
 
@@ -527,6 +528,7 @@ type int_list = Empty | Cons of int * int_list
 ```
 
 Let us see what values inhabit `int_list`. The definition tells us there are two ways to build an `int_list`:
+
 - `Empty` represents the empty list---a list with no elements
 - `Cons (5, Empty)` is a list containing just 5
 - `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13
@@ -633,6 +635,7 @@ Here we match against a record pattern, binding each field to a variable. Note t
 #### Understanding Patterns
 
 The left-hand sides of `->` in `match` expressions are called **patterns**. Patterns describe the structure of values we want to match against. They can include:
+
 - Constants (like `1`, `"hello"`, or `true`)
 - Variables (which bind to the matched value)
 - Constructors (like `None`, `Some x`, or `Cons (h, t)`)
@@ -971,6 +974,7 @@ type ymd_ctx =
 ```
 
 Each variant represents a "hole" at a different position:
+
 - `Year (m, d)` means the year field is the hole (and we have the month `m` and day `d`)
 - `Month (y, d)` means the month field is the hole (and we have year `y` and day `d`)
 - `Day (y, m)` means the day field is the hole
@@ -1422,7 +1426,7 @@ A variable pattern always matches, binding the entire value to the variable.
 
 **Pattern matching with a non-matching constructor:**
 $$
-\frac{C_1 \neq C_2}{\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm}
+\frac{C_1 \neq C_2}{\begin{array}{c}\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \\ \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm\end{array}}
 $$
 
 If the constructor in the value ($C_1$) does not match the constructor in the pattern ($C_2$), we skip this branch and try the remaining patterns ($pm$). This is how OCaml searches through pattern match cases from top to bottom.
@@ -1468,6 +1472,7 @@ C^n(a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n(a_1, \ldots, a_i', \
 $$
 
 These rules describe *where* reduction can happen:
+
 - In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml itself uses a fixed evaluation order.
 - In a constructor application, any argument can be evaluated.
 - In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
@@ -1552,6 +1557,7 @@ let rec deriv exp dv =
 ```
 
 The `deriv` function implements the standard rules of calculus:
+
 - The derivative of a constant is 0.
 - The derivative of the variable we are differentiating with respect to is 1; any other variable is treated as a constant (derivative 0).
 - The sum and difference rules: $(f + g)' = f' + g'$ and $(f - g)' = f' - g'$.
@@ -1864,6 +1870,7 @@ Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a p
 Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
 
 Some simplifications to consider:
+
 - $0 + x = x$ and $x + 0 = x$
 - $0 \cdot x = 0$ and $x \cdot 0 = 0$
 - $1 \cdot x = x$ and $x \cdot 1 = x$
@@ -2142,10 +2149,12 @@ let pn_is_zero = fun x -> x c_true  (* Check if it's the base case *)
 The number 0 is represented as the identity function. The number 1 is `c_pair c_false pn0`, the number 2 is `c_pair c_false (c_pair c_false pn0)`, and so on. Think of it as a stack of pairs, where the height of the stack represents the number.
 
 How do `pn_pred` and `pn_is_zero` work? Let us think through this carefully:
+
 - The identity function `pn0`, when applied to any argument, returns that argument.
 - A successor `c_pair c_false n` is a function waiting for a selector; applying it to `c_false` selects the second component (the predecessor), while applying it to `c_true` selects the first component (`c_false`).
 
 So `pn_is_zero` applies the number to `c_true`:
+
 - For `pn0`, we get `c_true` back (since `pn0` is the identity)---the number is zero!
 - For any successor, we get `c_false` back (the first component of the pair)---the number is not zero!
 
@@ -2975,6 +2984,7 @@ When do two implementations of the same specification "behave the same"? The mat
 Homomorphisms are mappings between algebraic structures with the same signature that preserve operations. Intuitively, if you apply an operation and then map, you get the same result as mapping first and then applying the corresponding operation.
 
 A *homomorphism* from algebraic structure $(A, \{f^A, g^A, \ldots\})$ to $(B, \{f^B, g^B, \ldots\})$ is a function $h : A \rightarrow B$ such that:
+
 - $h(f^A(a_1, \ldots, a_{n_f})) = f^B(h(a_1), \ldots, h(a_{n_f}))$ for all $(a_1, \ldots, a_{n_f})$
 - $h(g^A(a_1, \ldots, a_{n_g})) = g^B(h(a_1), \ldots, h(a_{n_g}))$ for all $(a_1, \ldots, a_{n_g})$
 - and so on for all operations.
@@ -4776,6 +4786,7 @@ let horner x l =
 ```
 
 But this will not work for infinite power series! Two natural questions arise:
+
 - Does it make sense to compute the value at $x$ of a power series?
 - Does it make sense to fold an infinite list?
 
@@ -5103,6 +5114,7 @@ Think of it as connecting boxes with wires: every box has one incoming wire and 
 ### 7.8 Pipes
 
 The `iostream` type has a limitation: it must alternate strictly between producing output and consuming input. In many real-world scenarios, we need more flexibility:
+
 - A transformation might consume several inputs before producing a single output (like computing an average).
 - A transformation might produce several outputs from a single input (like splitting a string).
 - A transformation might produce output without needing any input (like a constant source).
@@ -5188,6 +5200,7 @@ type doc =
 ```
 
 The document type has four constructors:
+
 - `Text s` -- literal text
 - `Line` -- a potential line break (rendered as a space if the group fits, or a newline if it does not)
 - `Cat (d1, d2)` -- concatenation
@@ -5959,6 +5972,7 @@ put : store -> unit monad
 ```
 
 These operations let you read and write a piece of state that is threaded through the computation. There is a "canonical" state monad we will examine later. Related monads include:
+
 - The **writer monad**: has `tell` (append to a log) and `listen` (read the log)
 - The **reader monad**: has `ask` (read an environment) and `local` to modify the environment for a sub-computation:
 
@@ -6743,6 +6757,7 @@ Using a random number generator, we can define procedures that produce various o
 Just as we can "simulate" mutable variables with the state monad and non-determinism with the list monad, we can "simulate" random computation with a **probability monad**. But the probability monad is more than just randomized computation -- it lets us *reason* about probabilities. We can ask questions like "what is the probability of this outcome?" or "what is the distribution of possible results?"
 
 Different monad implementations make different tradeoffs:
+
 - **Exact distribution**: Track all possible outcomes and their probabilities precisely
 - **Sampling (Monte Carlo)**: Approximate probabilities by running many random trials
 
@@ -7046,6 +7061,7 @@ module BurglarySimul = Burglary (Sampling2000)
 Running multiple tasks asynchronously can hide I/O latency and utilize multi-core architectures. Traditional operating system threads are "heavyweight" -- they have significant overhead for context switching and memory. **Lightweight threads** are managed by the application rather than the OS, allowing many concurrent tasks with lower overhead.
 
 Lightweight threads can be:
+
 - **Preemptive**: The scheduler interrupts running threads to switch between them
 - **Cooperative**: Threads voluntarily give up control at specific points (like I/O operations)
 
@@ -8645,6 +8661,7 @@ The typed interface makes probabilistic programs cleaner and more expressive whi
 **Exercise 1.** Extend the `Threads` module to support timeouts. Add an effect `Timeout : float -> 'a promise -> 'a option Effect.t` that waits for a promise with a timeout, returning `None` if the timeout expires. You will need to track elapsed "time" (perhaps measured in yields).
 
 **Exercise 2.** Implement a simple generator/iterator pattern using effects. Define a `YieldGen : 'a -> unit Effect.t` and write:
+
 - A function `generate : (unit -> unit) -> 'a Seq.t` that converts a procedure using `YieldGen` into a sequence.
 - Use it to implement a generator for Fibonacci numbers.
 
@@ -8826,6 +8843,7 @@ let go_down loc =
 Let us put zippers to work on a real problem. Imagine a friend working on string theory asks us for help simplifying equations. The task is to pull out particular subexpressions as far to the left as possible, while changing the whole expression as little as possible. This kind of algebraic manipulation is common in symbolic computation.
 
 We can illustrate our algorithm using mathematical notation. Let:
+
 - $x$ be the thing we pull out
 - $C[e]$ and $D[e]$ be big expressions with subexpression $e$
 - operator $\circ$ stand for one of: $*, +$

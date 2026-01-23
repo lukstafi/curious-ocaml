@@ -241,6 +241,7 @@ let horner x l =
 ```
 
 But this will not work for infinite power series! Two natural questions arise:
+
 - Does it make sense to compute the value at $x$ of a power series?
 - Does it make sense to fold an infinite list?
 
@@ -568,6 +569,7 @@ Think of it as connecting boxes with wires: every box has one incoming wire and 
 ### 7.8 Pipes
 
 The `iostream` type has a limitation: it must alternate strictly between producing output and consuming input. In many real-world scenarios, we need more flexibility:
+
 - A transformation might consume several inputs before producing a single output (like computing an average).
 - A transformation might produce several outputs from a single input (like splitting a string).
 - A transformation might produce output without needing any input (like a constant source).
@@ -653,6 +655,7 @@ type doc =
 ```
 
 The document type has four constructors:
+
 - `Text s` -- literal text
 - `Line` -- a potential line break (rendered as a space if the group fits, or a newline if it does not)
 - `Cat (d1, d2)` -- concatenation

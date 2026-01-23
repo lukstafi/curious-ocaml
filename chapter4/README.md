@@ -253,10 +253,12 @@ let pn_is_zero = fun x -> x c_true  (* Check if it's the base case *)
 The number 0 is represented as the identity function. The number 1 is `c_pair c_false pn0`, the number 2 is `c_pair c_false (c_pair c_false pn0)`, and so on. Think of it as a stack of pairs, where the height of the stack represents the number.
 
 How do `pn_pred` and `pn_is_zero` work? Let us think through this carefully:
+
 - The identity function `pn0`, when applied to any argument, returns that argument.
 - A successor `c_pair c_false n` is a function waiting for a selector; applying it to `c_false` selects the second component (the predecessor), while applying it to `c_true` selects the first component (`c_false`).
 
 So `pn_is_zero` applies the number to `c_true`:
+
 - For `pn0`, we get `c_true` back (since `pn0` is the identity)---the number is zero!
 - For any successor, we get `c_false` back (the first component of the pair)---the number is not zero!
 
