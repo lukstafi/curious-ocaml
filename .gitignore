@@ -30,8 +30,6 @@ _opam/
 .ocamlformat
 .vscode/settings.json
 
-# Duplicate copies of assets
-site/*.png
-site/*.jpg
+# Duplicate copies of pdfs/ assets (site/ copies must be tracked for GitHub Pages)
 pdfs/*.png
 pdfs/*.jpg
