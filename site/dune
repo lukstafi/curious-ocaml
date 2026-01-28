@@ -123,7 +123,7 @@
  (target new_book.html)
  (deps README.md style.css)
  (action
-  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Curious OCaml' --top-level-division=chapter --shift-heading-level-by=-1 | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\ \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' > %{target}")))
+  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Curious OCaml' --top-level-division=chapter --shift-heading-level-by=-1 | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\[-0.5em] \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' > %{target}")))
 
 (rule
  (alias old_lectures_as_book)
@@ -132,4 +132,4 @@
  (deps old_lectures_as_book.md style.css)
  (action
   (system
-   "sed 's/```ocaml [^`]*/```ocaml/' old_lectures_as_book.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Functional Programming 2012-2013' --top-level-division=chapter --shift-heading-level-by=-1 | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\ \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' > %{target}")))
+   "sed 's/```ocaml [^`]*/```ocaml/' old_lectures_as_book.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Functional Programming 2012-2013' --top-level-division=chapter --shift-heading-level-by=-1 | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\[-0.5em] \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' > %{target}")))
