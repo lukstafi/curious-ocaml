@@ -5,6 +5,9 @@
 
 % Package imports
 \usepackage{amsmath,amssymb}
+
+% Custom macro for hypothetical derivations (assumption, vdots, conclusion)
+\newcommand{\hyp}[2]{\substack{#1 \\ \vdots \\ #2}}
 \usepackage{lmodern}
 \usepackage{iftex}
 \usepackage{lua-widow-control}
