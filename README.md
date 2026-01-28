@@ -12,8 +12,7 @@ header-includes:
        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
        crossorigin="anonymous"></script>
   - <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-       integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"
-       onload="renderMathInElement(document.body);"></script>
+       integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
   - |
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -155,12 +154,12 @@ In the table below, text in parentheses provides informal commentary. Letters li
 | $\top$ | $\frac{}{\top}$ | doesn't have |
 | $\bot$ | doesn't have | $\frac{\bot}{a}$ (i.e., anything) |
 | $\wedge$ | $\frac{a \quad b}{a \wedge b}$ | $\frac{a \wedge b}{a}$ (take first) &nbsp; $\frac{a \wedge b}{b}$ (take second) |
-| $\vee$ | $\frac{a}{a \vee b}$ (put first) &nbsp; $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \genfrac{}{}{0pt}{}{[a]^x}{\vdots \; c} \quad \genfrac{}{}{0pt}{}{[b]^y}{\vdots \; c}}{c}$ using $x, y$ |
-| $\rightarrow$ | $\frac{\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$ |
+| $\vee$ | $\frac{a}{a \vee b}$ (put first) &nbsp; $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \hyp{[a]^x}{c} \quad \hyp{[b]^y}{c}}{c}$ using $x, y$ |
+| $\rightarrow$ | $\frac{\hyp{[a]^x}{b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$ |
 
 #### Notation for Hypothetical Derivations
 
-The notation $\genfrac{}{}{0pt}{}{[a]^x}{\vdots \; b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted. The square brackets around $a$ indicate that this is a *hypothetical* assumption, not something we have actually established. The superscript $x$ is a label that helps us track which assumption gets "discharged" when we complete the derivation.
+The notation $\hyp{[a]^x}{b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted. The square brackets around $a$ indicate that this is a *hypothetical* assumption, not something we have actually established. The superscript $x$ is a label that helps us track which assumption gets "discharged" when we complete the derivation.
 
 This is the key to proving implications: to prove "if A then B", we temporarily assume A and show we can derive B. For example, we can derive "sunny $\rightarrow$ happy" by showing that *assuming* it is sunny, we can derive happiness:
 
@@ -206,7 +205,7 @@ We need one more kind of rule to do serious math: **reasoning by induction**. Th
 Here is the example rule for induction on natural numbers:
 
 $$
-\frac{p(0) \quad \genfrac{}{}{0pt}{}{[p(x)]^x}{\vdots \; p(x+1)}}{p(n)} \text{ by induction, using } x
+\frac{p(0) \quad \hyp{[p(x)]^x}{p(x+1)}}{p(n)} \text{ by induction, using } x
 $$
 
 This rule says: we get property $p$ for *any* natural number $n$, provided we can do two things:
@@ -316,7 +315,7 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
   To construct a variant, you only need one of the alternatives. To use a variant, you must handle *all* possible cases (pattern matching). This mirrors disjunction: to prove "A or B", you only need one; to use "A or B", you must consider both possibilities.
 
 - **Function (implication):**
-  - Introduction: $\frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e : b}}{\texttt{fun}~x \to e : a \to b}$
+  - Introduction: $\frac{\hyp{[x : a]}{e : b}}{\texttt{fun}~x \to e : a \to b}$
   - Elimination (application): $\frac{f : a \to b \quad t : a}{f~t : b}$
 
   To construct a function, you assume you have an input of type $a$ (the parameter $x$) and show how to produce a result of type $b$. To use a function, you apply it to an argument. This mirrors implication: to prove "A implies B", assume A and derive B; given "A implies B" and A, conclude B.
@@ -358,7 +357,7 @@ In many presentations of the Curry–Howard correspondence (and in programming l
 This brings us to **expression definitions**, which let us give names to values. The typing rules for definitions are a bit more complex than what we have seen so far:
 
 $$
-\frac{e_1 : a \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
+\frac{e_1 : a \quad \hyp{[x : a]}{e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
 $$
 
 This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry–Howard correspondence.
@@ -366,7 +365,7 @@ This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show
 For recursive definitions, we need an additional rule:
 
 $$
-\frac{\genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_1 : a} \quad \genfrac{}{}{0pt}{}{[x : a]}{\vdots \; e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b}
+\frac{\hyp{[x : a]}{e_1 : a} \quad \hyp{[x : a]}{e_2 : b}}{\texttt{let rec } x = e_1 \texttt{ in } e_2 : b}
 $$
 
 Notice the crucial difference: in the recursive case, $x$ can appear in $e_1$ itself! This is what allows functions to call themselves. The name $x$ is visible both in its own definition ($e_1$) and in the body that uses the definition ($e_2$).
@@ -493,13 +492,13 @@ $$
 Using the $\rightarrow$ introduction rule, we need to derive the body `x` assuming `x` has some type $a$:
 
 $$
-\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : [?] \rightarrow [?]}
+\frac{\hyp{[x : a]^x}{\texttt{x} : a}}{\texttt{fun x -> x} : [?] \rightarrow [?]}
 $$
 
 The premise is a hypothetical derivation: inside the body we are allowed to use the assumption `x : a`. Since the body is just `x`, the result type is also $a$, and we conclude:
 
 $$
-\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : a \rightarrow a}
+\frac{\hyp{[x : a]^x}{\texttt{x} : a}}{\texttt{fun x -> x} : a \rightarrow a}
 $$
 
 Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
