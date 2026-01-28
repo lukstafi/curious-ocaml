@@ -29,3 +29,9 @@ setup.log
 _opam/
 .ocamlformat
 .vscode/settings.json
+
+# Duplicate copies of assets
+site/*.png
+site/*.jpg
+pdfs/*.png
+pdfs/*.jpg
