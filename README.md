@@ -4,6 +4,7 @@ author:
   - Lukasz Stafiniak
   - Claude Opus 4.5
   - GPT-5.2
+illustrator: Gemini 3 Nano Banana
 header-includes:
   - <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
@@ -81,6 +82,12 @@ geometry:
 toc-depth: 3
 ---
 <!-- Do NOT modify this file, it is automatically generated -->
+![Curious OCaml](Curious_OCaml-cover.jpg){.cover-image}
+
+::: {.illustrator-credit}
+*Illustrated by: Gemini 3 Nano Banana*
+:::
+
 # Curious OCaml
 
 *Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
@@ -93,6 +100,8 @@ This book is intended for three audiences:
 
 
 ## Chapter 1: Logic
+
+![Chapter 1 illustration](Curious_OCaml-chapter_1.jpg){.chapter-image}
 
 *From logic rules to programming constructs*
 
@@ -457,6 +466,8 @@ The following exercises are adapted from *Think OCaml: How to Think Like a Compu
 
 
 ## Chapter 2: Algebra
+
+![Chapter 2 illustration](Curious_OCaml-chapter_2.jpg){.chapter-image}
 
 *Algebraic data types and some curious analogies*
 
@@ -1236,6 +1247,8 @@ This function lets you "search" a tree and get back a context pointing to the fo
 
 ## Chapter 3: Computation
 
+![Chapter 3 illustration](Curious_OCaml-chapter_3.jpg){.chapter-image}
+
 *Reduction semantics and operational reasoning*
 
 **In this chapter, you will:**
@@ -1954,6 +1967,8 @@ Which of these algorithms can be implemented in a tail-recursive manner? What ab
 
 
 ## Chapter 4: Functions
+
+![Chapter 4 illustration](Curious_OCaml-chapter_4.jpg){.chapter-image}
 
 *Programming in untyped lambda-calculus*
 
@@ -2698,6 +2713,8 @@ let repeat_until p f s =
 
 ## Chapter 5: Polymorphism and Abstract Data Types
 
+![Chapter 5 illustration](Curious_OCaml-chapter_5.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Understand “unknowns vs parameters” in OCaml’s inferred types (and why the value restriction exists)
@@ -3408,6 +3425,8 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 
 ## Chapter 6: Folding and Backtracking
+
+![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
 
 **In this chapter, you will:**
 
@@ -4604,6 +4623,8 @@ The efficiency comes from *early pruning*: constraint propagation often eliminat
 
 ## Chapter 7: Laziness
 
+![Chapter 7 illustration](Curious_OCaml-chapter_7.jpg){.chapter-image}
+
 *"Today's lecture is about lazy evaluation. Thank you for coming, goodbye!"*
 
 Well, perhaps you have some questions? This chapter explores one of the most elegant ideas in functional programming: lazy evaluation. By deferring computation until results are actually needed, we unlock powerful techniques for working with infinite data structures, solving differential equations symbolically, and building sophisticated stream-processing pipelines.
@@ -5597,6 +5618,8 @@ type 'a doc =
 
 
 ## Chapter 8: Monads
+
+![Chapter 8 illustration](Curious_OCaml-chapter_8.jpg){.chapter-image}
 
 **In this chapter, you will:**
 
@@ -7410,6 +7433,8 @@ We observe whether the grass is wet and whether the roof is wet. What is the pro
 
 ## Chapter 9: Algebraic Effects
 
+![Chapter 9 illustration](Curious_OCaml-chapter_9.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Understand Generalized Algebraic Data Types (GADTs) and how they enable type-refined pattern matching
@@ -8736,6 +8761,8 @@ The typed interface makes probabilistic programs cleaner and more expressive whi
 
 
 ## Chapter 10: Functional Reactive Programming
+
+![Chapter 10 illustration](Curious_OCaml-chapter_10.jpg){.chapter-image}
 
 How do we deal with change and interaction in functional programming? This is one of the most challenging questions in the field, and over the years programmers have developed increasingly sophisticated answers. This chapter explores a progression of techniques: we begin with *zippers*, a clever data structure for navigating and modifying positions within larger structures. We then advance to *adaptive programming* (also known as incremental computing), which automatically propagates changes through computations. Finally, we arrive at *Functional Reactive Programming* (FRP), a declarative approach to handling time-varying values and event streams. We conclude with practical examples including graphical user interfaces.
 
@@ -10449,6 +10476,8 @@ This should run multiple flows concurrently and collect their results. Think abo
 
 
 ## Chapter 11: The Expression Problem
+
+![Chapter 11 illustration](Curious_OCaml-chapter_11.jpg){.chapter-image}
 
 **In this chapter, you will:**
 

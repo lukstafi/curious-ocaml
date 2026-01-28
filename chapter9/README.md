@@ -1,5 +1,7 @@
 ## Chapter 9: Algebraic Effects
 
+![Chapter 9 illustration](Curious_OCaml-chapter_9.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Understand Generalized Algebraic Data Types (GADTs) and how they enable type-refined pattern matching

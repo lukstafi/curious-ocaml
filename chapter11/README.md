@@ -1,5 +1,7 @@
 ## Chapter 11: The Expression Problem
 
+![Chapter 11 illustration](Curious_OCaml-chapter_11.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Understand the expression problem and why it matters for evolving codebases

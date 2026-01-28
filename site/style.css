@@ -209,6 +209,47 @@ img {
   margin: 1em auto;
 }
 
+/* Cover illustration */
+figure:has(> img.cover-image) {
+  text-align: center;
+  margin: 2em auto;
+  max-width: 80%;
+}
+
+figure:has(> img.cover-image) figcaption {
+  display: none;
+}
+
+img.cover-image {
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+/* Illustrator credit */
+.illustrator-credit {
+  display: block;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 0.5em;
+}
+
+/* Chapter front-page illustrations */
+figure:has(> img.chapter-image) {
+  text-align: center;
+  margin: 1em auto 1.5em;
+  max-width: 70%;
+}
+
+figure:has(> img.chapter-image) figcaption {
+  display: none;
+}
+
+img.chapter-image {
+  border-radius: 6px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
 /* Math (KaTeX) */
 .katex-display {
   overflow-x: auto;

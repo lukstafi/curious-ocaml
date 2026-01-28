@@ -1,5 +1,7 @@
 ## Chapter 8: Monads
 
+![Chapter 8 illustration](Curious_OCaml-chapter_8.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Recognize the “bind + return” pattern behind list comprehensions and other effects

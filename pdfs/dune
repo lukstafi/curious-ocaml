@@ -2,10 +2,51 @@
  (files ../*.md))
 
 (copy_files
+ (mode promote)
+ (files ../*.png))
+
+(copy_files
+ (mode promote)
+ (files ../*.jpg))
+
+(copy_files
+ (files ../chapter1/*.png))
+
+(copy_files
+ (files ../chapter1/*.jpg))
+
+(copy_files
+ (files ../chapter2/*.png))
+
+(copy_files
+ (files ../chapter2/*.jpg))
+
+(copy_files
+ (files ../chapter3/*.png))
+
+(copy_files
+ (files ../chapter3/*.jpg))
+
+(copy_files
+ (files ../chapter4/*.png))
+
+(copy_files
+ (files ../chapter4/*.jpg))
+
+(copy_files
+ (files ../chapter5/*.png))
+
+(copy_files
+ (files ../chapter5/*.jpg))
+
+(copy_files
  (files ../chapter6/*.eps))
 
 (copy_files
  (files ../chapter6/*.png))
+
+(copy_files
+ (files ../chapter6/*.jpg))
 
 (copy_files
  (files ../chapter7/*.eps))
@@ -14,13 +55,37 @@
  (files ../chapter7/*.png))
 
 (copy_files
+ (files ../chapter7/*.jpg))
+
+(copy_files
  (files ../chapter8/*.eps))
+
+(copy_files
+ (files ../chapter8/*.png))
+
+(copy_files
+ (files ../chapter8/*.jpg))
 
 (copy_files
  (files ../chapter9/*.gif))
 
 (copy_files
+ (files ../chapter9/*.png))
+
+(copy_files
+ (files ../chapter9/*.jpg))
+
+(copy_files
  (files ../chapter10/*.png))
+
+(copy_files
+ (files ../chapter10/*.jpg))
+
+(copy_files
+ (files ../chapter11/*.png))
+
+(copy_files
+ (files ../chapter11/*.jpg))
 
 (copy_files
  (files ../exam/*.png))
@@ -31,7 +96,7 @@
  (target new_book.pdf)
  (deps README.md template.latex)
  (action
-  (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=lualatex -o %{target}")))
+  (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=lualatex -o %{target}")))
 
 ; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
 ; (rule

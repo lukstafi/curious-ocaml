@@ -1,5 +1,7 @@
 ## Chapter 3: Computation
 
+![Chapter 3 illustration](Curious_OCaml-chapter_3.jpg){.chapter-image}
+
 *Reduction semantics and operational reasoning*
 
 **In this chapter, you will:**

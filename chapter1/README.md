@@ -1,5 +1,7 @@
 ## Chapter 1: Logic
 
+![Chapter 1 illustration](Curious_OCaml-chapter_1.jpg){.chapter-image}
+
 *From logic rules to programming constructs*
 
 **In this chapter, you will:**

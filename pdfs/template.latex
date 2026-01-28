@@ -35,6 +35,17 @@
 \makeatletter
 \def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
 \def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+% pandocbounded: scales image to fit in text height/width (required by pandoc 3.x)
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{%
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi%
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
 \makeatother
 \setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
 
@@ -190,9 +201,31 @@ $endif$
 % ============================================
 \begin{document}
 
-$if(title)$
-\maketitle
+% Cover page with illustration (replaces default \maketitle)
+\begin{titlepage}
+\begin{center}
+\vspace*{1cm}
+\IfFileExists{Curious_OCaml-cover.jpg}{%
+  \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{Curious_OCaml-cover.jpg}%
+  \par\vspace{1.5cm}
+}{%
+  \vspace*{4cm}
+}
+{\huge\bfseries $title$\par}
+\vspace{0.8cm}
+$if(author)$
+{\Large $for(author)$$author$$sep$ \\ $endfor$\par}
 $endif$
+$if(illustrator)$
+\vspace{0.6cm}
+{\large Illustrated by: $illustrator$\par}
+$endif$
+\vfill
+$if(date)$
+{\large $date$\par}
+$endif$
+\end{center}
+\end{titlepage}
 
 $if(abstract)$
 \begin{abstract}

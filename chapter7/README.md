@@ -1,5 +1,7 @@
 ## Chapter 7: Laziness
 
+![Chapter 7 illustration](Curious_OCaml-chapter_7.jpg){.chapter-image}
+
 *"Today's lecture is about lazy evaluation. Thank you for coming, goodbye!"*
 
 Well, perhaps you have some questions? This chapter explores one of the most elegant ideas in functional programming: lazy evaluation. By deferring computation until results are actually needed, we unlock powerful techniques for working with infinite data structures, solving differential equations symbolically, and building sophisticated stream-processing pipelines.

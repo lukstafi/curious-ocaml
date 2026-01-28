@@ -3,6 +3,8 @@
  (mode promote)
  (deps
   MD_metadata.md
+  intro.md
+  Curious_OCaml-cover.jpg
   chapter1/README.md
   chapter2/README.md
   chapter3/README.md

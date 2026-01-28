@@ -1,5 +1,7 @@
 ## Chapter 5: Polymorphism and Abstract Data Types
 
+![Chapter 5 illustration](Curious_OCaml-chapter_5.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Understand “unknowns vs parameters” in OCaml’s inferred types (and why the value restriction exists)

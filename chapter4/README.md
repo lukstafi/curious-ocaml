@@ -1,5 +1,7 @@
 ## Chapter 4: Functions
 
+![Chapter 4 illustration](Curious_OCaml-chapter_4.jpg){.chapter-image}
+
 *Programming in untyped lambda-calculus*
 
 **In this chapter, you will:**

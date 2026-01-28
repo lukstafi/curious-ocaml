@@ -1,5 +1,7 @@
 ## Chapter 6: Folding and Backtracking
 
+![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
+
 **In this chapter, you will:**
 
 - Identify common recursion patterns and refactor them into `map`/`fold` abstractions

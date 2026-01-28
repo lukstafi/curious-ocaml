@@ -3,11 +3,63 @@
 
 (copy_files
  (mode promote)
+ (files ../*.png))
+
+(copy_files
+ (mode promote)
+ (files ../*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter1/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter1/*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter2/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter2/*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter3/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter3/*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter4/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter4/*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter5/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter5/*.jpg))
+
+(copy_files
+ (mode promote)
  (files ../chapter6/*.eps))
 
 (copy_files
  (mode promote)
  (files ../chapter6/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter6/*.jpg))
 
 (copy_files
  (mode promote)
@@ -19,7 +71,19 @@
 
 (copy_files
  (mode promote)
+ (files ../chapter7/*.jpg))
+
+(copy_files
+ (mode promote)
  (files ../chapter8/*.eps))
+
+(copy_files
+ (mode promote)
+ (files ../chapter8/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter8/*.jpg))
 
 (copy_files
  (mode promote)
@@ -27,7 +91,27 @@
 
 (copy_files
  (mode promote)
+ (files ../chapter9/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter9/*.jpg))
+
+(copy_files
+ (mode promote)
  (files ../chapter10/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter10/*.jpg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter11/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter11/*.jpg))
 
 (copy_files
  (mode promote)

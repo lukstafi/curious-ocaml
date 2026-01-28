@@ -1,5 +1,7 @@
 ## Chapter 2: Algebra
 
+![Chapter 2 illustration](Curious_OCaml-chapter_2.jpg){.chapter-image}
+
 *Algebraic data types and some curious analogies*
 
 In this chapter, we will deepen our understanding of OCaml's type system by working through type inference examples by hand. Then we will explore algebraic data types---a cornerstone of functional programming that allows us to define rich, structured data. Along the way, we will discover a surprising and beautiful connection between these types and ordinary polynomials from high-school algebra.

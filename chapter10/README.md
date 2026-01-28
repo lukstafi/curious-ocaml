@@ -1,5 +1,7 @@
 ## Chapter 10: Functional Reactive Programming
 
+![Chapter 10 illustration](Curious_OCaml-chapter_10.jpg){.chapter-image}
+
 How do we deal with change and interaction in functional programming? This is one of the most challenging questions in the field, and over the years programmers have developed increasingly sophisticated answers. This chapter explores a progression of techniques: we begin with *zippers*, a clever data structure for navigating and modifying positions within larger structures. We then advance to *adaptive programming* (also known as incremental computing), which automatically propagates changes through computations. Finally, we arrive at *Functional Reactive Programming* (FRP), a declarative approach to handling time-varying values and event streams. We conclude with practical examples including graphical user interfaces.
 
 **Recommended Reading:**
