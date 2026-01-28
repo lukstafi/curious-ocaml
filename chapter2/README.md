@@ -26,13 +26,13 @@ $$
 Using the $\rightarrow$ introduction rule, we need to derive the body `x` assuming `x` has some type $a$:
 
 $$
-\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : [?] \rightarrow [?]}
+\frac{\hyp{[x : a]^x}{\texttt{x} : a}}{\texttt{fun x -> x} : [?] \rightarrow [?]}
 $$
 
 The premise is a hypothetical derivation: inside the body we are allowed to use the assumption `x : a`. Since the body is just `x`, the result type is also $a$, and we conclude:
 
 $$
-\frac{\genfrac{}{}{0pt}{}{[x : a]^x}{\vdots \; \texttt{x} : a}}{\texttt{fun x -> x} : a \rightarrow a}
+\frac{\hyp{[x : a]^x}{\texttt{x} : a}}{\texttt{fun x -> x} : a \rightarrow a}
 $$
 
 Because $a$ is arbitrary (we made no assumptions constraining it), OCaml introduces a *type variable* `'a` to represent it. This is how polymorphism emerges naturally from the inference process---the identity function can work with values of any type:
