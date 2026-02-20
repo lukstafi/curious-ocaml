@@ -61,16 +61,27 @@ let () = assert (compose h (compose g f) x       (* associativity *)
 (* - Morphisms: a single "witness" when a <= b *)
 (* - Composition: transitivity of <= *)
 
+(* We encode natural numbers as Peano types at the type level: *)
+type zero = Zero
+type 'n succ = Succ
+
+(* A witness that n <= m: *)
 type (_, _) leq =
-  | Refl : ('a, 'a) leq                (* a <= a *)
-  | Step : ('a, 'b) leq -> ('a, int) leq  (* if a <= b then a <= b+1 *)
+  | Le_refl : ('n, 'n) leq                       (* n <= n *)
+  | Le_step : ('n, 'm) leq -> ('n, 'm succ) leq  (* n <= m implies n <= m+1 *)
+
+(* Composition = transitivity: if a <= b and b <= c then a <= c *)
+let rec leq_trans : type a b c. (a, b) leq -> (b, c) leq -> (a, c) leq =
+  fun p q -> match q with
+  | Le_refl -> p
+  | Le_step q' -> Le_step (leq_trans p q')
+
+(* Example: 0 <= 2 *)
+let _zero_le_two : (zero, zero succ succ) leq =
+  Le_step (Le_step Le_refl)
 ```
 
-```ocaml skip
-(* In general, a poset category: at most one morphism between any two objects. *)
-(* Composition = transitivity, identity = reflexivity. *)
-(* This is the simplest non-trivial kind of category. *)
-```
+In general, a poset category has *at most one morphism* between any two objects. Composition is transitivity, identity is reflexivity. This is the simplest non-trivial kind of category.
 
 **A monoid as a category.** A monoid $(M, \cdot, e)$ forms a category with *one* object (call it $\star$), morphisms are elements of $M$, composition is the monoid operation $\cdot$, and identity is $e$. The monoid laws are exactly the category laws:
 
@@ -696,8 +707,8 @@ $$\text{Lens}(S, A) = \forall F.\ \text{Functor}(F) \Rightarrow (A \to F(A)) \to
 This encoding composes with ordinary function composition, which is why lens libraries are so ergonomic. We will see in Section 12.8 that this is an instance of the *Yoneda lemma*.
 
 ```ocaml env=lens
-(* Van Laarhoven lens using a concrete functor *)
-(* We pick the Identity and Const functors to recover get/set *)
+(* Van Laarhoven lens using concrete functors *)
+(* We pick Identity and Const to recover set and get *)
 
 type 'a identity = Id of 'a
 let run_id (Id x) = x
@@ -705,20 +716,21 @@ let run_id (Id x) = x
 type ('a, 'b) const = Const of 'a
 let get_const (Const x) = x
 
-(* A van Laarhoven lens, specialized to Identity for "set" *)
-let vl_set (l : ('a -> 'a identity) -> 's -> 's identity)
-    (a : 'a) (s : 's) : 's =
-  run_id (l (fun _ -> Id a) s)
+(* A VL lens for "fst", specialized to Identity for "set": *)
+let fst_set (a : 'a) (s : 'a * 'b) : 'a * 'b =
+  run_id ((fun f (x, y) -> let (Id x') = f x in Id (x', y))
+            (fun _ -> Id a) s)
 
-(* Specialized to Const for "get" *)
-let vl_get (l : ('a -> ('a, 'b) const) -> 's -> ('a, 'c) const)
-    (s : 's) : 'a =
-  get_const (l (fun a -> Const a) s)
+(* The same shape, specialized to Const for "get": *)
+let fst_get (s : 'a * 'b) : 'a =
+  get_const ((fun f (x, _y) -> let (Const c) = f x in Const c)
+               (fun a -> Const a) s)
 
-(* Define a VL lens for the first component of a pair *)
-let _fst f (a, b) = let fa = f a in match fa with Id a' -> Id (a', b)
-let () = assert (vl_set _fst 10 (1, "hello") = (10, "hello"))
+let () = assert (fst_set 10 (1, "hello") = (10, "hello"))
+let () = assert (fst_get (1, "hello") = 1)
 ```
+
+In a language with higher-rank polymorphism (like Haskell), both uses share a single definition. OCaml requires either explicit specialization as above or encoding via functors. The key insight remains: the Van Laarhoven encoding composes with ordinary function composition.
 
 ### 12.8 The Yoneda Lemma
 
