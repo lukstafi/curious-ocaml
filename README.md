@@ -11771,16 +11771,27 @@ let () = assert (compose h (compose g f) x       (* associativity *)
 (* - Morphisms: a single "witness" when a <= b *)
 (* - Composition: transitivity of <= *)
 
+(* We encode natural numbers as Peano types at the type level: *)
+type zero = Zero
+type 'n succ = Succ
+
+(* A witness that n <= m: *)
 type (_, _) leq =
-  | Refl : ('a, 'a) leq                (* a <= a *)
-  | Step : ('a, 'b) leq -> ('a, int) leq  (* if a <= b then a <= b+1 *)
+  | Le_refl : ('n, 'n) leq                       (* n <= n *)
+  | Le_step : ('n, 'm) leq -> ('n, 'm succ) leq  (* n <= m implies n <= m+1 *)
+
+(* Composition = transitivity: if a <= b and b <= c then a <= c *)
+let rec leq_trans : type a b c. (a, b) leq -> (b, c) leq -> (a, c) leq =
+  fun p q -> match q with
+  | Le_refl -> p
+  | Le_step q' -> Le_step (leq_trans p q')
+
+(* Example: 0 <= 2 *)
+let _zero_le_two : (zero, zero succ succ) leq =
+  Le_step (Le_step Le_refl)
 ```
 
-```ocaml skip
-(* In general, a poset category: at most one morphism between any two objects. *)
-(* Composition = transitivity, identity = reflexivity. *)
-(* This is the simplest non-trivial kind of category. *)
-```
+In general, a poset category has *at most one morphism* between any two objects. Composition is transitivity, identity is reflexivity. This is the simplest non-trivial kind of category.
 
 **A monoid as a category.** A monoid $(M, \cdot, e)$ forms a category with *one* object (call it $\star$), morphisms are elements of $M$, composition is the monoid operation $\cdot$, and identity is $e$. The monoid laws are exactly the category laws:
 
@@ -11852,11 +11863,46 @@ Before introducing new material, let us look back at what the previous chapters 
 
 **Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing functions `swap` and `swap` that compose to the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
 
+```ocaml env=cat
+(* Type isomorphism from Chapter 2, restated categorically: *)
+(* swap_pair and swap_pair are inverse morphisms in FunCat. *)
+let swap_pair (a, b) = (b, a)
+let () = assert (compose swap_pair swap_pair (1, "hello") = (1, "hello"))
+(* swap ∘ swap = id: the round-trip is the identity morphism. *)
+
+(* Distributivity: A * (B + C) ≅ A * B + A * C *)
+let dist : 'a * ('b, 'c) result -> (('a * 'b), ('a * 'c)) result =
+  function (a, Ok b) -> Ok (a, b) | (a, Error c) -> Error (a, c)
+let undist : (('a * 'b), ('a * 'c)) result -> 'a * ('b, 'c) result =
+  function Ok (a, b) -> (a, Ok b) | Error (a, c) -> (a, Error c)
+let () = assert (undist (dist (1, Ok "yes")) = (1, Ok "yes"))
+let () = assert (undist (dist (1, Error 2.0)) = (1, Error 2.0))
+```
+
 **`map` is a functor action.** In Chapter 6, we wrote `List.map f` to transform every element of a list. The function `List.map` sends each morphism $f : A \to B$ to a morphism `List.map f : 'a list -> 'b list`. It preserves identity (`List.map id = id`) and composition (`List.map (f ∘ g) = List.map f ∘ List.map g`). This is precisely a *functor* -- a structure-preserving map between categories.
 
 **Monad laws are category laws.** In Chapter 8, we verified three monad laws (left identity, right identity, associativity). These are exactly the laws of a *monad* in category theory: an endofunctor $T$ equipped with natural transformations $\eta : \text{Id} \Rightarrow T$ (return) and $\mu : T^2 \Rightarrow T$ (join), satisfying unit and associativity laws.
 
 **`fold` is a catamorphism.** The `fold_right` function from Chapter 6 destructs a list by replacing `(::)` with a function and `[]` with a value. This is the *catamorphism* (or *algebra morphism*) for the list functor -- the unique morphism from the initial algebra to any other algebra.
+
+```ocaml env=cat
+(* An "algebra" for the list functor is a pair (op, z): *)
+(* op replaces (::) and z replaces [].                  *)
+(* The catamorphism folds any list using the algebra.   *)
+let cata op z xs = List.fold_right op xs z
+
+(* length = catamorphism with algebra (fun _ n -> n+1, 0): *)
+let len xs = cata (fun _ n -> n + 1) 0 xs
+let () = assert (len [10; 20; 30] = 3)
+
+(* sum = catamorphism with algebra ((+), 0): *)
+let sum xs = cata ( + ) 0 xs
+let () = assert (sum [1; 2; 3; 4] = 10)
+
+(* map f = catamorphism with algebra ((fun x acc -> f x :: acc), []): *)
+let map_via_cata f xs = cata (fun x acc -> f x :: acc) [] xs
+let () = assert (map_via_cata (fun x -> x * 10) [1; 2; 3] = [10; 20; 30])
+```
 
 ### 12.3 Typed Morphisms with GADTs
 
@@ -12025,11 +12071,43 @@ module type TYPED_FUNCTOR = sig
 end
 ```
 
-```ocaml skip
-(* Example: List is a typed functor from FunCat to FunCat *)
-(* - Object mapping: 'a -> 'a list *)
-(* - Morphism mapping: (f : 'a -> 'b) -> (List.map f : 'a list -> 'b list) *)
+```ocaml env=functor
+(* FunCat: the category of OCaml functions *)
+module FunCat : CATEGORY with type ('a, 'b) hom = 'a -> 'b = struct
+  type ('a, 'b) hom = 'a -> 'b
+  let id x = x
+  let compose f g x = f (g x)
+end
+
+(* List is a typed functor from FunCat to FunCat: *)
+(* - Object mapping: 'a ↦ 'a list *)
+(* - Morphism mapping: (f : 'a -> 'b) ↦ (List.map f : 'a list -> 'b list) *)
+module ListTypedFunctor : TYPED_FUNCTOR
+  with module Source = FunCat
+   and module Target = FunCat
+   and type 'a obj = 'a list = struct
+  module Source = FunCat
+  module Target = FunCat
+  type 'a obj = 'a list
+  let map_hom f = List.map f
+end
+
+(* Verify functor laws: *)
+let f x = x + 1
+let g x = x * 2
+let xs = [1; 2; 3]
+
+(* map_hom id = id *)
+let () = assert (ListTypedFunctor.map_hom FunCat.id xs = FunCat.id xs)
+
+(* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)
+let () = assert (
+  ListTypedFunctor.map_hom (FunCat.compose f g) xs
+  = FunCat.compose (ListTypedFunctor.map_hom f)
+      (ListTypedFunctor.map_hom g) xs)
 ```
+
+This ties the three views together: `ListTypedFunctor.map_hom` is the same operation as `ListFunctor.map`, but expressed as a morphism-to-morphism mapping between typed categories rather than a value-level function on containers.
 
 #### What Unites the Three Views
 
@@ -12405,30 +12483,51 @@ $$\text{Lens}(S, A) = \forall F.\ \text{Functor}(F) \Rightarrow (A \to F(A)) \to
 
 This encoding composes with ordinary function composition, which is why lens libraries are so ergonomic. We will see in Section 12.8 that this is an instance of the *Yoneda lemma*.
 
-```ocaml env=lens
-(* Van Laarhoven lens using a concrete functor *)
-(* We pick the Identity and Const functors to recover get/set *)
+In Haskell, a VL lens is a single rank-2 polymorphic definition:
 
-type 'a identity = Id of 'a
-let run_id (Id x) = x
-
-type ('a, 'b) const = Const of 'a
-let get_const (Const x) = x
-
-(* A van Laarhoven lens, specialized to Identity for "set" *)
-let vl_set (l : ('a -> 'a identity) -> 's -> 's identity)
-    (a : 'a) (s : 's) : 's =
-  run_id (l (fun _ -> Id a) s)
-
-(* Specialized to Const for "get" *)
-let vl_get (l : ('a -> ('a, 'b) const) -> 's -> ('a, 'c) const)
-    (s : 's) : 'a =
-  get_const (l (fun a -> Const a) s)
-
-(* Define a VL lens for the first component of a pair *)
-let _fst f (a, b) = let fa = f a in match fa with Id a' -> Id (a', b)
-let () = assert (vl_set _fst 10 (1, "hello") = (10, "hello"))
+```ocaml skip
+(* Haskell-style Van Laarhoven lens (not valid OCaml): *)
+(*   type Lens s a = forall f. Functor f => (a -> f a) -> s -> f s   *)
+(*   _fst :: Lens (a, b) a                                          *)
+(*   _fst f (x, y) = fmap (\x' -> (x', y)) (f x)                   *)
+(* Instantiating f = Identity gives "set"; f = Const gives "get".   *)
 ```
+
+OCaml lacks higher-rank polymorphism, so a single definition cannot quantify over the functor `f`. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
+
+```ocaml env=lens
+module type VL_FUNCTOR = sig
+  type 'a t
+  val fmap : ('a -> 'b) -> 'a t -> 'b t
+end
+
+(* One definition of the lens logic, parameterized by the functor: *)
+module VL_Fst (F : VL_FUNCTOR) = struct
+  let _fst (f : 'a -> 'a F.t) (x, y) : (_ * _) F.t =
+    F.fmap (fun x' -> (x', y)) (f x)
+end
+
+(* Identity functor -- instantiate for "set": *)
+module IdF : VL_FUNCTOR with type 'a t = 'a = struct
+  type 'a t = 'a
+  let fmap f x = f x
+end
+
+(* Const functor -- instantiate for "get": *)
+module ConstF (T : sig type t end) :
+  VL_FUNCTOR with type 'a t = T.t = struct
+  type 'a t = T.t
+  let fmap _ x = x
+end
+
+module FstSet = VL_Fst(IdF)
+module FstGet = VL_Fst(ConstF(struct type t = int end))
+
+let () = assert (FstSet._fst (fun _ -> 10) (1, "hello") = (10, "hello"))
+let () = assert (FstGet._fst (fun a -> a) (42, "world") = 42)
+```
+
+The lens logic lives in a single place -- `VL_Fst._fst` -- and both get and set are obtained by choosing the functor. The set direction (`FstSet._fst`) is fully polymorphic in the pair types. The get direction requires fixing the focused type when instantiating `ConstF` (here, `int`), a limitation of OCaml's module system compared to Haskell's rank-2 types. This is OCaml's module-level analogue of Haskell's rank-2 polymorphism. The key insight remains: Van Laarhoven lenses compose with ordinary function composition.
 
 ### 12.8 The Yoneda Lemma
 
@@ -12601,6 +12700,28 @@ The OCaml type system lives in this world. When we write `let f : 'a * 'b -> 'b 
 - **Programming** the swap function on pairs
 - **Constructing** a morphism $A \times B \to B \times A$ in a CCC
 
+```ocaml env=cat
+(* Programs that are simultaneously logical proofs *)
+(* and morphisms in a cartesian closed category:   *)
+
+(* A ∧ B ⊃ B ∧ A  (commutativity of conjunction) *)
+let comm : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)
+
+(* A ⊃ B ⊃ A  (weakening / the K combinator) *)
+let weaken : 'a -> 'b -> 'a = fun a _b -> a
+
+(* (A ⊃ B ⊃ C) ⊃ (A ∧ B ⊃ C)  (flip of currying) *)
+let uncurry' : ('a -> 'b -> 'c) -> 'a * 'b -> 'c =
+  fun f (a, b) -> f a b
+
+(* (A ⊃ B) ⊃ (B ⊃ C) ⊃ (A ⊃ C)  (transitivity = composition) *)
+let trans : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c =
+  fun ab bc a -> bc (ab a)
+
+(* trans is compose with arguments reordered: *)
+let () = assert (trans f g 3 = compose g f 3)
+```
+
 #### Negation and Continuations
 
 Classical logic allows double negation elimination: $\neg\neg A \Rightarrow A$. In the Curry--Howard reading, $\neg A$ is $A \to \bot$ (a function to the empty type). Under the CCC interpretation, $\neg A = \bot^A$ is the exponential.
@@ -12628,15 +12749,98 @@ This also connects to **reification and reflection**: reification promotes a com
 
 1. **Category laws.** Define a `CATEGORY` instance for the `option` type, where `('a, 'b) hom = 'a -> 'b option` (the Kleisli category of `Option`). Implement `id` and `compose`, and verify the three category laws on test cases. (Hint: this is the composition you get from `Option.bind`.)
 
+```ocaml skip
+(* Starter code for Exercise 1 *)
+module KleisliOption (* : CATEGORY ... *) = struct
+  type ('a, 'b) hom = 'a -> 'b option
+  let id x = failwith "todo"
+  let compose g f x = failwith "todo"
+end
+
+(* Test the laws with these morphisms: *)
+let f x = if x > 0 then Some (x + 1) else None
+let g x = if x < 100 then Some (x * 2) else None
+let x = 5
+
+(* Left identity:  compose id f x = f x *)
+(* Right identity: compose f id x = f x *)
+(* Associativity:  compose h (compose g f) x
+                 = compose (compose h g) f x *)
+```
+
 2. **Free category.** Extend the pipeline example from Section 12.3 with two new stages (e.g., `Uppercase : (string, string) stage` and `Length : (string, int) stage`). Build three distinct paths through the graph and interpret each one. Verify that `concat` is associative: `interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x`.
 
+```ocaml skip
+(* Starter code for Exercise 2 *)
+type ('a, 'b) stage =
+  | Parse     : (string, string list) stage
+  | Filter    : (string list, string list) stage
+  | Count     : (string list, int) stage
+  | Show      : (int, string) stage
+  | Uppercase : (string, string) stage      (* new *)
+  | Length    : (string, int) stage          (* new *)
+
+(* Copy the path type, concat, interpret_stage, and interpret *)
+(* from Section 12.3, then extend interpret_stage for the     *)
+(* new constructors.                                          *)
+
+(* Build three distinct paths and verify: *)
+(* interpret (concat (concat p q) r) x                       *)
+(*   = interpret (concat p (concat q r)) x                   *)
+```
+
 3. **Functor laws.** Write a functor instance for `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree` and test the functor laws (`map id = id` and `map (f ∘ g) = map f ∘ map g`) on at least two non-trivial trees.
+
+```ocaml skip
+(* Starter code for Exercise 3 *)
+type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree
+
+let rec map_tree (f : 'a -> 'b) : 'a tree -> 'b tree = function
+  | Leaf -> failwith "todo"
+  | Node (l, v, r) -> failwith "todo"
+
+(* Test trees: *)
+let t1 = Node (Node (Leaf, 1, Leaf), 2, Node (Leaf, 3, Leaf))
+let t2 = Node (Leaf, 10, Node (Node (Leaf, 20, Leaf), 30, Leaf))
+
+let f x = x + 1
+let g x = x * 2
+
+(* Law 1: map_tree Fun.id t = t *)
+(* Law 2: map_tree (fun x -> f (g x)) t *)
+(*      = map_tree f (map_tree g t)      *)
+```
 
 4. **Naturality verification.** The function `List.rev` is a natural transformation from the List functor to itself. State and test the naturality condition for three different functions `f`. Then consider `List.sort compare` -- is it a natural transformation? Why or why not?
 
 5. **Galois connection.** The functions `abs : int -> int` and `negate : int -> int` do *not* form a Galois connection on integers with the usual ordering. Explain why. Then find a pair of monotone functions between `(int, <=)` and `(int, >=)` that *does* form a Galois connection.
 
 6. **Lens composition.** Define a type `type address = { street : string; city : string }` and `type employee = { name : string; addr : address }`. Write lenses `street_lens`, `addr_lens`, and compose them to create `employee_street_lens`. Verify all three lens laws (Get-Set, Set-Get, Set-Set) for the composed lens.
+
+```ocaml skip
+(* Starter code for Exercise 6 *)
+type address = { street : string; city : string }
+type employee = { name : string; addr : address }
+
+let street_lens : (address, string) lens = {
+  get = (fun a -> failwith "todo");
+  set = (fun s a -> failwith "todo");
+}
+
+let addr_lens : (employee, address) lens = {
+  get = (fun e -> failwith "todo");
+  set = (fun a e -> failwith "todo");
+}
+
+(* Compose using compose_lens from Section 12.7: *)
+let employee_street = compose_lens addr_lens street_lens
+
+(* Test data: *)
+let emp = { name = "Alice";
+            addr = { street = "123 Main"; city = "NYC" } }
+
+(* Verify all three lens laws for the composed lens. *)
+```
 
 7. **Prism round-trip.** For the type `type shape = Circle of float | Rect of float * float`, write a prism for `Circle` and a prism for `Rect`. Verify the prism law: `review a |> preview = Some a`. What happens when you `preview` a value built with the other constructor?
 
