@@ -12719,11 +12719,13 @@ The **Curry--Howard--Lambek correspondence** states that three seemingly differe
 #### What the Correspondence Means
 
 A **cartesian closed category** (CCC) -- a category with products, exponentials, and a terminal object -- is simultaneously:
+
 1. A model of propositional logic (the internal logic of the category)
 2. A model of the simply-typed lambda calculus (types are objects, terms are morphisms)
 3. A category with enough structure to interpret all of functional programming
 
 The OCaml type system lives in this world. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
+
 - **Proving** the logical tautology $A \wedge B \Rightarrow B \wedge A$
 - **Programming** the swap function on pairs
 - **Constructing** a morphism $A \times B \to B \times A$ in a CCC

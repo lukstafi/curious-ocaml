@@ -16526,18 +16526,25 @@ structure:</p>
 <h3 id="what-the-correspondence-means">What the Correspondence
 Means</h3>
 <p>A <strong>cartesian closed category</strong> (CCC) – a category with
-products, exponentials, and a terminal object – is simultaneously: 1. A
-model of propositional logic (the internal logic of the category) 2. A
-model of the simply-typed lambda calculus (types are objects, terms are
-morphisms) 3. A category with enough structure to interpret all of
-functional programming</p>
+products, exponentials, and a terminal object – is simultaneously:</p>
+<ol type="1">
+<li>A model of propositional logic (the internal logic of the
+category)</li>
+<li>A model of the simply-typed lambda calculus (types are objects,
+terms are morphisms)</li>
+<li>A category with enough structure to interpret all of functional
+programming</li>
+</ol>
 <p>The OCaml type system lives in this world. When we write
 <code>let f : 'a * 'b -&gt; 'b * 'a = fun (x, y) -&gt; (y, x)</code>, we
-are simultaneously: - <strong>Proving</strong> the logical tautology
-<span class="math inline">A \wedge B \Rightarrow B \wedge A</span> -
-<strong>Programming</strong> the swap function on pairs -
-<strong>Constructing</strong> a morphism <span class="math inline">A
-\times B \to B \times A</span> in a CCC</p>
+are simultaneously:</p>
+<ul>
+<li><strong>Proving</strong> the logical tautology <span
+class="math inline">A \wedge B \Rightarrow B \wedge A</span></li>
+<li><strong>Programming</strong> the swap function on pairs</li>
+<li><strong>Constructing</strong> a morphism <span class="math inline">A
+\times B \to B \times A</span> in a CCC</li>
+</ul>
 <div class="sourceCode" id="cb493"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb493-1"><a href="#cb493-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Programs that are simultaneously logical proofs *)</span></span>
 <span id="cb493-2"><a href="#cb493-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* and morphisms in a cartesian closed category:   *)</span></span>
