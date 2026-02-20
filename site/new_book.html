@@ -15355,13 +15355,27 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb457-1"><a hr
 <span id="cb457-3"><a href="#cb457-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Morphisms: a single &quot;witness&quot; when a &lt;= b *)</span></span>
 <span id="cb457-4"><a href="#cb457-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Composition: transitivity of &lt;= *)</span></span>
 <span id="cb457-5"><a href="#cb457-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb457-6"><a href="#cb457-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (_, _) leq =</span>
-<span id="cb457-7"><a href="#cb457-7" aria-hidden="true" tabindex="-1"></a>  | Refl : (&#39;a, &#39;a) leq                <span class="co">(* a &lt;= a *)</span></span>
-<span id="cb457-8"><a href="#cb457-8" aria-hidden="true" tabindex="-1"></a>  | Step : (&#39;a, &#39;b) leq -&gt; (&#39;a, <span class="dt">int</span>) leq  <span class="co">(* if a &lt;= b then a &lt;= b+1 *)</span></span></code></pre></div>
-<div class="sourceCode" id="cb458"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb458-1"><a href="#cb458-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* In general, a poset category: at most one morphism between any two objects. *)</span></span>
-<span id="cb458-2"><a href="#cb458-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Composition = transitivity, identity = reflexivity. *)</span></span>
-<span id="cb458-3"><a href="#cb458-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* This is the simplest non-trivial kind of category. *)</span></span></code></pre></div>
+<span id="cb457-6"><a href="#cb457-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* We encode natural numbers as Peano types at the type level: *)</span></span>
+<span id="cb457-7"><a href="#cb457-7" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> zero = Zero</span>
+<span id="cb457-8"><a href="#cb457-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;n <span class="dt">succ</span> = Succ</span>
+<span id="cb457-9"><a href="#cb457-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb457-10"><a href="#cb457-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* A witness that n &lt;= m: *)</span></span>
+<span id="cb457-11"><a href="#cb457-11" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (_, _) leq =</span>
+<span id="cb457-12"><a href="#cb457-12" aria-hidden="true" tabindex="-1"></a>  | Le_refl : (&#39;n, &#39;n) leq                       <span class="co">(* n &lt;= n *)</span></span>
+<span id="cb457-13"><a href="#cb457-13" aria-hidden="true" tabindex="-1"></a>  | Le_step : (&#39;n, &#39;m) leq -&gt; (&#39;n, &#39;m <span class="dt">succ</span>) leq  <span class="co">(* n &lt;= m implies n &lt;= m+1 *)</span></span>
+<span id="cb457-14"><a href="#cb457-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb457-15"><a href="#cb457-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Composition = transitivity: if a &lt;= b and b &lt;= c then a &lt;= c *)</span></span>
+<span id="cb457-16"><a href="#cb457-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> leq_trans : <span class="kw">type</span> a b c. (a, b) leq -&gt; (b, c) leq -&gt; (a, c) leq =</span>
+<span id="cb457-17"><a href="#cb457-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> p q -&gt; <span class="kw">match</span> q <span class="kw">with</span></span>
+<span id="cb457-18"><a href="#cb457-18" aria-hidden="true" tabindex="-1"></a>  | Le_refl -&gt; p</span>
+<span id="cb457-19"><a href="#cb457-19" aria-hidden="true" tabindex="-1"></a>  | Le_step q&#39; -&gt; Le_step (leq_trans p q&#39;)</span>
+<span id="cb457-20"><a href="#cb457-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb457-21"><a href="#cb457-21" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: 0 &lt;= 2 *)</span></span>
+<span id="cb457-22"><a href="#cb457-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> _zero_le_two : (zero, zero <span class="dt">succ</span> <span class="dt">succ</span>) leq =</span>
+<span id="cb457-23"><a href="#cb457-23" aria-hidden="true" tabindex="-1"></a>  Le_step (Le_step Le_refl)</span></code></pre></div>
+<p>In general, a poset category has <em>at most one morphism</em>
+between any two objects. Composition is transitivity, identity is
+reflexivity. This is the simplest non-trivial kind of category.</p>
 <p><strong>A monoid as a category.</strong> A monoid <span
 class="math inline">(M, \cdot, e)</span> forms a category with
 <em>one</em> object (call it <span class="math inline">\star</span>),
@@ -15370,45 +15384,45 @@ composition is the monoid operation <span
 class="math inline">\cdot</span>, and identity is <span
 class="math inline">e</span>. The monoid laws are exactly the category
 laws:</p>
-<div class="sourceCode" id="cb459"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb459-1"><a href="#cb459-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> MONOID = <span class="kw">sig</span></span>
-<span id="cb459-2"><a href="#cb459-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t</span>
-<span id="cb459-3"><a href="#cb459-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> empty : t                <span class="co">(* identity morphism *)</span></span>
-<span id="cb459-4"><a href="#cb459-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> append : t -&gt; t -&gt; t     <span class="co">(* composition *)</span></span>
-<span id="cb459-5"><a href="#cb459-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb459-6"><a href="#cb459-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb459-7"><a href="#cb459-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* String monoid = one-object category *)</span></span>
-<span id="cb459-8"><a href="#cb459-8" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringMonoid : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">string</span> = <span class="kw">struct</span></span>
-<span id="cb459-9"><a href="#cb459-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">string</span></span>
-<span id="cb459-10"><a href="#cb459-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="st">&quot;&quot;</span></span>
-<span id="cb459-11"><a href="#cb459-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( ^ )</span>
-<span id="cb459-12"><a href="#cb459-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb459-13"><a href="#cb459-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb459-14"><a href="#cb459-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* List monoid = one-object category *)</span></span>
-<span id="cb459-15"><a href="#cb459-15" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ListMonoid (A : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) : MONOID <span class="kw">with</span> <span class="kw">type</span> t = A.t <span class="dt">list</span> = <span class="kw">struct</span></span>
-<span id="cb459-16"><a href="#cb459-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = A.t <span class="dt">list</span></span>
-<span id="cb459-17"><a href="#cb459-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = []</span>
-<span id="cb459-18"><a href="#cb459-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( @ )</span>
-<span id="cb459-19"><a href="#cb459-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb458"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb458-1"><a href="#cb458-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> MONOID = <span class="kw">sig</span></span>
+<span id="cb458-2"><a href="#cb458-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t</span>
+<span id="cb458-3"><a href="#cb458-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> empty : t                <span class="co">(* identity morphism *)</span></span>
+<span id="cb458-4"><a href="#cb458-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> append : t -&gt; t -&gt; t     <span class="co">(* composition *)</span></span>
+<span id="cb458-5"><a href="#cb458-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb458-6"><a href="#cb458-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb458-7"><a href="#cb458-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* String monoid = one-object category *)</span></span>
+<span id="cb458-8"><a href="#cb458-8" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringMonoid : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">string</span> = <span class="kw">struct</span></span>
+<span id="cb458-9"><a href="#cb458-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">string</span></span>
+<span id="cb458-10"><a href="#cb458-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="st">&quot;&quot;</span></span>
+<span id="cb458-11"><a href="#cb458-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( ^ )</span>
+<span id="cb458-12"><a href="#cb458-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb458-13"><a href="#cb458-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb458-14"><a href="#cb458-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* List monoid = one-object category *)</span></span>
+<span id="cb458-15"><a href="#cb458-15" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ListMonoid (A : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) : MONOID <span class="kw">with</span> <span class="kw">type</span> t = A.t <span class="dt">list</span> = <span class="kw">struct</span></span>
+<span id="cb458-16"><a href="#cb458-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = A.t <span class="dt">list</span></span>
+<span id="cb458-17"><a href="#cb458-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = []</span>
+<span id="cb458-18"><a href="#cb458-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( @ )</span>
+<span id="cb458-19"><a href="#cb458-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <h3 id="the-category-module-type">The Category Module Type</h3>
 <p>We can encode the notion of a category as an OCaml module
 signature:</p>
-<div class="sourceCode" id="cb460"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb460-1"><a href="#cb460-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> CATEGORY = <span class="kw">sig</span></span>
-<span id="cb460-2"><a href="#cb460-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom           <span class="co">(* morphisms from &#39;a to &#39;b *)</span></span>
-<span id="cb460-3"><a href="#cb460-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> id : (&#39;a, &#39;a) hom</span>
-<span id="cb460-4"><a href="#cb460-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> compose : (&#39;b, &#39;c) hom -&gt; (&#39;a, &#39;b) hom -&gt; (&#39;a, &#39;c) hom</span>
-<span id="cb460-5"><a href="#cb460-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb459"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb459-1"><a href="#cb459-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> CATEGORY = <span class="kw">sig</span></span>
+<span id="cb459-2"><a href="#cb459-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom           <span class="co">(* morphisms from &#39;a to &#39;b *)</span></span>
+<span id="cb459-3"><a href="#cb459-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> id : (&#39;a, &#39;a) hom</span>
+<span id="cb459-4"><a href="#cb459-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> compose : (&#39;b, &#39;c) hom -&gt; (&#39;a, &#39;b) hom -&gt; (&#39;a, &#39;c) hom</span>
+<span id="cb459-5"><a href="#cb459-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <p>The type parameters <code>'a</code> and <code>'b</code> are phantom
 types – they track the source and target of morphisms at the type level,
 ensuring only composable morphisms can be composed. OCaml functions form
 the most basic instance:</p>
-<div class="sourceCode" id="cb461"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb461-1"><a href="#cb461-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FunCat : CATEGORY <span class="kw">with</span> <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b = <span class="kw">struct</span></span>
-<span id="cb461-2"><a href="#cb461-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b</span>
-<span id="cb461-3"><a href="#cb461-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> id x = x</span>
-<span id="cb461-4"><a href="#cb461-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> compose f g x = f (g x)</span>
-<span id="cb461-5"><a href="#cb461-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb460"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb460-1"><a href="#cb460-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FunCat : CATEGORY <span class="kw">with</span> <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b = <span class="kw">struct</span></span>
+<span id="cb460-2"><a href="#cb460-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b</span>
+<span id="cb460-3"><a href="#cb460-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> id x = x</span>
+<span id="cb460-4"><a href="#cb460-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> compose f g x = f (g x)</span>
+<span id="cb460-5"><a href="#cb460-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <h2 id="revisiting-the-book-through-a-categorical-lens">12.2 Revisiting
 the Book Through a Categorical Lens</h2>
 <p>Before introducing new material, let us look back at what the
@@ -15513,6 +15527,20 @@ category: there exist morphisms <span class="math inline">f : A \to
 B</span> and <span class="math inline">g : B \to A</span> such that
 <span class="math inline">g \circ f = \text{id}_A</span> and <span
 class="math inline">f \circ g = \text{id}_B</span>.</p>
+<div class="sourceCode" id="cb461"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb461-1"><a href="#cb461-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Type isomorphism from Chapter 2, restated categorically: *)</span></span>
+<span id="cb461-2"><a href="#cb461-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* swap_pair and swap_pair are inverse morphisms in FunCat. *)</span></span>
+<span id="cb461-3"><a href="#cb461-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> swap_pair (a, b) = (b, a)</span>
+<span id="cb461-4"><a href="#cb461-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (compose swap_pair swap_pair (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>) = (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>))</span>
+<span id="cb461-5"><a href="#cb461-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* swap ∘ swap = id: the round-trip is the identity morphism. *)</span></span>
+<span id="cb461-6"><a href="#cb461-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb461-7"><a href="#cb461-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* Distributivity: A * (B + C) ≅ A * B + A * C *)</span></span>
+<span id="cb461-8"><a href="#cb461-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dist : &#39;a * (&#39;b, &#39;c) <span class="dt">result</span> -&gt; ((&#39;a * &#39;b), (&#39;a * &#39;c)) <span class="dt">result</span> =</span>
+<span id="cb461-9"><a href="#cb461-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">function</span> (a, <span class="dt">Ok</span> b) -&gt; <span class="dt">Ok</span> (a, b) | (a, <span class="dt">Error</span> c) -&gt; <span class="dt">Error</span> (a, c)</span>
+<span id="cb461-10"><a href="#cb461-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> undist : ((&#39;a * &#39;b), (&#39;a * &#39;c)) <span class="dt">result</span> -&gt; &#39;a * (&#39;b, &#39;c) <span class="dt">result</span> =</span>
+<span id="cb461-11"><a href="#cb461-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">function</span> <span class="dt">Ok</span> (a, b) -&gt; (a, <span class="dt">Ok</span> b) | <span class="dt">Error</span> (a, c) -&gt; (a, <span class="dt">Error</span> c)</span>
+<span id="cb461-12"><a href="#cb461-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (undist (dist (<span class="dv">1</span>, <span class="dt">Ok</span> <span class="st">&quot;yes&quot;</span>)) = (<span class="dv">1</span>, <span class="dt">Ok</span> <span class="st">&quot;yes&quot;</span>))</span>
+<span id="cb461-13"><a href="#cb461-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (undist (dist (<span class="dv">1</span>, <span class="dt">Error</span> <span class="fl">2.0</span>)) = (<span class="dv">1</span>, <span class="dt">Error</span> <span class="fl">2.0</span>))</span></code></pre></div>
 <p><strong><code>map</code> is a functor action.</strong> In Chapter 6,
 we wrote <code>List.map f</code> to transform every element of a list.
 The function <code>List.map</code> sends each morphism <span
@@ -15536,6 +15564,23 @@ replacing <code>(::)</code> with a function and <code>[]</code> with a
 value. This is the <em>catamorphism</em> (or <em>algebra morphism</em>)
 for the list functor – the unique morphism from the initial algebra to
 any other algebra.</p>
+<div class="sourceCode" id="cb462"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb462-1"><a href="#cb462-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* An &quot;algebra&quot; for the list functor is a pair (op, z): *)</span></span>
+<span id="cb462-2"><a href="#cb462-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* op replaces (::) and z replaces [].                  *)</span></span>
+<span id="cb462-3"><a href="#cb462-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* The catamorphism folds any list using the algebra.   *)</span></span>
+<span id="cb462-4"><a href="#cb462-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cata op z xs = <span class="dt">List</span>.fold_right op xs z</span>
+<span id="cb462-5"><a href="#cb462-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb462-6"><a href="#cb462-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* length = catamorphism with algebra (fun _ n -&gt; n+1, 0): *)</span></span>
+<span id="cb462-7"><a href="#cb462-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> len xs = cata (<span class="kw">fun</span> _ n -&gt; n + <span class="dv">1</span>) <span class="dv">0</span> xs</span>
+<span id="cb462-8"><a href="#cb462-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (len [<span class="dv">10</span>; <span class="dv">20</span>; <span class="dv">30</span>] = <span class="dv">3</span>)</span>
+<span id="cb462-9"><a href="#cb462-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb462-10"><a href="#cb462-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* sum = catamorphism with algebra ((+), 0): *)</span></span>
+<span id="cb462-11"><a href="#cb462-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum xs = cata ( + ) <span class="dv">0</span> xs</span>
+<span id="cb462-12"><a href="#cb462-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (sum [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>; <span class="dv">4</span>] = <span class="dv">10</span>)</span>
+<span id="cb462-13"><a href="#cb462-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb462-14"><a href="#cb462-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* map f = catamorphism with algebra ((fun x acc -&gt; f x :: acc), []): *)</span></span>
+<span id="cb462-15"><a href="#cb462-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> map_via_cata f xs = cata (<span class="kw">fun</span> x acc -&gt; f x :: acc) [] xs</span>
+<span id="cb462-16"><a href="#cb462-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (map_via_cata (<span class="kw">fun</span> x -&gt; x * <span class="dv">10</span>) [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>] = [<span class="dv">10</span>; <span class="dv">20</span>; <span class="dv">30</span>])</span></code></pre></div>
 <h2 id="typed-morphisms-with-gadts">12.3 Typed Morphisms with GADTs</h2>
 <p>Chapter 9 introduced GADTs. Now we use them to enforce categorical
 structure at the type level. The key idea: a
@@ -15548,39 +15593,39 @@ Graph</h3>
 source and target. The <strong>free category</strong> on this graph is
 the category whose morphisms are all paths through the graph. GADTs let
 us express this directly:</p>
-<div class="sourceCode" id="cb462"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb462-1"><a href="#cb462-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A typed graph of &quot;pipeline stages&quot; *)</span></span>
-<span id="cb462-2"><a href="#cb462-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) stage =</span>
-<span id="cb462-3"><a href="#cb462-3" aria-hidden="true" tabindex="-1"></a>  | Parse   : (<span class="dt">string</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
-<span id="cb462-4"><a href="#cb462-4" aria-hidden="true" tabindex="-1"></a>  | Filter  : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
-<span id="cb462-5"><a href="#cb462-5" aria-hidden="true" tabindex="-1"></a>  | Count   : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">int</span>) stage</span>
-<span id="cb462-6"><a href="#cb462-6" aria-hidden="true" tabindex="-1"></a>  | Show    : (<span class="dt">int</span>, <span class="dt">string</span>) stage</span>
-<span id="cb462-7"><a href="#cb462-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb462-8"><a href="#cb462-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* The free category: typed paths through the graph *)</span></span>
-<span id="cb462-9"><a href="#cb462-9" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) path =</span>
-<span id="cb462-10"><a href="#cb462-10" aria-hidden="true" tabindex="-1"></a>  | Nil  : (&#39;a, &#39;a) path</span>
-<span id="cb462-11"><a href="#cb462-11" aria-hidden="true" tabindex="-1"></a>  | Cons : (&#39;a, &#39;b) stage * (&#39;b, &#39;c) path -&gt; (&#39;a, &#39;c) path</span></code></pre></div>
+<div class="sourceCode" id="cb463"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb463-1"><a href="#cb463-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A typed graph of &quot;pipeline stages&quot; *)</span></span>
+<span id="cb463-2"><a href="#cb463-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) stage =</span>
+<span id="cb463-3"><a href="#cb463-3" aria-hidden="true" tabindex="-1"></a>  | Parse   : (<span class="dt">string</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
+<span id="cb463-4"><a href="#cb463-4" aria-hidden="true" tabindex="-1"></a>  | Filter  : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
+<span id="cb463-5"><a href="#cb463-5" aria-hidden="true" tabindex="-1"></a>  | Count   : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">int</span>) stage</span>
+<span id="cb463-6"><a href="#cb463-6" aria-hidden="true" tabindex="-1"></a>  | Show    : (<span class="dt">int</span>, <span class="dt">string</span>) stage</span>
+<span id="cb463-7"><a href="#cb463-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb463-8"><a href="#cb463-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* The free category: typed paths through the graph *)</span></span>
+<span id="cb463-9"><a href="#cb463-9" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) path =</span>
+<span id="cb463-10"><a href="#cb463-10" aria-hidden="true" tabindex="-1"></a>  | Nil  : (&#39;a, &#39;a) path</span>
+<span id="cb463-11"><a href="#cb463-11" aria-hidden="true" tabindex="-1"></a>  | Cons : (&#39;a, &#39;b) stage * (&#39;b, &#39;c) path -&gt; (&#39;a, &#39;c) path</span></code></pre></div>
 <p>The type <code>('a, 'b) path</code> enforces that paths are
 composable: each edge’s target must match the next edge’s source. The
 type checker rejects ill-formed pipelines at compile time:</p>
-<div class="sourceCode" id="cb463"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb463-1"><a href="#cb463-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A valid pipeline: string -&gt; string list -&gt; int -&gt; string *)</span></span>
-<span id="cb463-2"><a href="#cb463-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> my_pipeline : (<span class="dt">string</span>, <span class="dt">string</span>) path =</span>
-<span id="cb463-3"><a href="#cb463-3" aria-hidden="true" tabindex="-1"></a>  Cons (Parse, Cons (Count, Cons (Show, Nil)))</span></code></pre></div>
 <div class="sourceCode" id="cb464"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb464-1"><a href="#cb464-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* This would NOT compile -- types don&#39;t match: *)</span></span>
-<span id="cb464-2"><a href="#cb464-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Cons (Parse, Cons (Show, Nil)) *)</span></span>
-<span id="cb464-3"><a href="#cb464-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* Error: string list ≠ int *)</span></span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb464-1"><a href="#cb464-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A valid pipeline: string -&gt; string list -&gt; int -&gt; string *)</span></span>
+<span id="cb464-2"><a href="#cb464-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> my_pipeline : (<span class="dt">string</span>, <span class="dt">string</span>) path =</span>
+<span id="cb464-3"><a href="#cb464-3" aria-hidden="true" tabindex="-1"></a>  Cons (Parse, Cons (Count, Cons (Show, Nil)))</span></code></pre></div>
+<div class="sourceCode" id="cb465"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb465-1"><a href="#cb465-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* This would NOT compile -- types don&#39;t match: *)</span></span>
+<span id="cb465-2"><a href="#cb465-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Cons (Parse, Cons (Show, Nil)) *)</span></span>
+<span id="cb465-3"><a href="#cb465-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* Error: string list ≠ int *)</span></span></code></pre></div>
 <p>Without GADTs, we could build ill-formed pipelines that compile –
 with GADTs, the composability invariant is enforced statically.</p>
 <h3 id="composing-paths">Composing Paths</h3>
 <p>Composition of paths is concatenation, which we can define by
 recursion on the first path:</p>
-<div class="sourceCode" id="cb465"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb465-1"><a href="#cb465-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> concat : <span class="kw">type</span> a b c. (a, b) path -&gt; (b, c) path -&gt; (a, c) path =</span>
-<span id="cb465-2"><a href="#cb465-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> p q -&gt; <span class="kw">match</span> p <span class="kw">with</span></span>
-<span id="cb465-3"><a href="#cb465-3" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; q</span>
-<span id="cb465-4"><a href="#cb465-4" aria-hidden="true" tabindex="-1"></a>  | Cons (edge, rest) -&gt; Cons (edge, concat rest q)</span></code></pre></div>
+<div class="sourceCode" id="cb466"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb466-1"><a href="#cb466-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> concat : <span class="kw">type</span> a b c. (a, b) path -&gt; (b, c) path -&gt; (a, c) path =</span>
+<span id="cb466-2"><a href="#cb466-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> p q -&gt; <span class="kw">match</span> p <span class="kw">with</span></span>
+<span id="cb466-3"><a href="#cb466-3" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; q</span>
+<span id="cb466-4"><a href="#cb466-4" aria-hidden="true" tabindex="-1"></a>  | Cons (edge, rest) -&gt; Cons (edge, concat rest q)</span></code></pre></div>
 <p>This is a category: <code>Nil</code> is the identity,
 <code>concat</code> is composition, and associativity follows from the
 recursive definition.</p>
@@ -15588,39 +15633,39 @@ recursive definition.</p>
 <p>The power of this encoding is that we can <em>interpret</em> a typed
 path into actual functions. Each stage maps to a concrete
 computation:</p>
-<div class="sourceCode" id="cb466"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb466-1"><a href="#cb466-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> interpret_stage : <span class="kw">type</span> a b. (a, b) stage -&gt; a -&gt; b = <span class="kw">function</span></span>
-<span id="cb466-2"><a href="#cb466-2" aria-hidden="true" tabindex="-1"></a>  | Parse  -&gt; <span class="dt">String</span>.split_on_char <span class="ch">&#39; &#39;</span></span>
-<span id="cb466-3"><a href="#cb466-3" aria-hidden="true" tabindex="-1"></a>  | Filter -&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> s -&gt; <span class="dt">String</span>.length s &gt; <span class="dv">2</span>)</span>
-<span id="cb466-4"><a href="#cb466-4" aria-hidden="true" tabindex="-1"></a>  | Count  -&gt; <span class="dt">List</span>.length</span>
-<span id="cb466-5"><a href="#cb466-5" aria-hidden="true" tabindex="-1"></a>  | Show   -&gt; <span class="dt">string_of_int</span></span>
-<span id="cb466-6"><a href="#cb466-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb466-7"><a href="#cb466-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> interpret : <span class="kw">type</span> a b. (a, b) path -&gt; a -&gt; b = <span class="kw">function</span></span>
-<span id="cb466-8"><a href="#cb466-8" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; <span class="dt">Fun</span>.id</span>
-<span id="cb466-9"><a href="#cb466-9" aria-hidden="true" tabindex="-1"></a>  | Cons (stage, rest) -&gt; <span class="kw">fun</span> x -&gt; interpret rest (interpret_stage stage x)</span>
-<span id="cb466-10"><a href="#cb466-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb466-11"><a href="#cb466-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (interpret my_pipeline <span class="st">&quot;the quick brown fox&quot;</span> = <span class="st">&quot;4&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb467"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb467-1"><a href="#cb467-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> interpret_stage : <span class="kw">type</span> a b. (a, b) stage -&gt; a -&gt; b = <span class="kw">function</span></span>
+<span id="cb467-2"><a href="#cb467-2" aria-hidden="true" tabindex="-1"></a>  | Parse  -&gt; <span class="dt">String</span>.split_on_char <span class="ch">&#39; &#39;</span></span>
+<span id="cb467-3"><a href="#cb467-3" aria-hidden="true" tabindex="-1"></a>  | Filter -&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> s -&gt; <span class="dt">String</span>.length s &gt; <span class="dv">2</span>)</span>
+<span id="cb467-4"><a href="#cb467-4" aria-hidden="true" tabindex="-1"></a>  | Count  -&gt; <span class="dt">List</span>.length</span>
+<span id="cb467-5"><a href="#cb467-5" aria-hidden="true" tabindex="-1"></a>  | Show   -&gt; <span class="dt">string_of_int</span></span>
+<span id="cb467-6"><a href="#cb467-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb467-7"><a href="#cb467-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> interpret : <span class="kw">type</span> a b. (a, b) path -&gt; a -&gt; b = <span class="kw">function</span></span>
+<span id="cb467-8"><a href="#cb467-8" aria-hidden="true" tabindex="-1"></a>  | Nil -&gt; <span class="dt">Fun</span>.id</span>
+<span id="cb467-9"><a href="#cb467-9" aria-hidden="true" tabindex="-1"></a>  | Cons (stage, rest) -&gt; <span class="kw">fun</span> x -&gt; interpret rest (interpret_stage stage x)</span>
+<span id="cb467-10"><a href="#cb467-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb467-11"><a href="#cb467-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (interpret my_pipeline <span class="st">&quot;the quick brown fox&quot;</span> = <span class="st">&quot;4&quot;</span>)</span></code></pre></div>
 <h3 id="type-witnesses-as-reification">Type Witnesses as
 Reification</h3>
 <p>GADTs also let us <em>reify</em> types as values – a
 <code>'a ty</code> GADT represents the type <code>'a</code> as a
 first-class value:</p>
-<div class="sourceCode" id="cb467"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb467-1"><a href="#cb467-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> _ ty =</span>
-<span id="cb467-2"><a href="#cb467-2" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Int</span>    : <span class="dt">int</span> ty</span>
-<span id="cb467-3"><a href="#cb467-3" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">String</span> : <span class="dt">string</span> ty</span>
-<span id="cb467-4"><a href="#cb467-4" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Bool</span>   : <span class="dt">bool</span> ty</span>
-<span id="cb467-5"><a href="#cb467-5" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">List</span>   : &#39;a ty -&gt; &#39;a <span class="dt">list</span> ty</span>
-<span id="cb467-6"><a href="#cb467-6" aria-hidden="true" tabindex="-1"></a>  | Pair   : &#39;a ty * &#39;b ty -&gt; (&#39;a * &#39;b) ty</span>
-<span id="cb467-7"><a href="#cb467-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb467-8"><a href="#cb467-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> show_ty : <span class="kw">type</span> a. a ty -&gt; <span class="dt">string</span> = <span class="kw">function</span></span>
-<span id="cb467-9"><a href="#cb467-9" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Int</span> -&gt; <span class="st">&quot;int&quot;</span></span>
-<span id="cb467-10"><a href="#cb467-10" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">String</span> -&gt; <span class="st">&quot;string&quot;</span></span>
-<span id="cb467-11"><a href="#cb467-11" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Bool</span> -&gt; <span class="st">&quot;bool&quot;</span></span>
-<span id="cb467-12"><a href="#cb467-12" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">List</span> t -&gt; show_ty t ^ <span class="st">&quot; list&quot;</span></span>
-<span id="cb467-13"><a href="#cb467-13" aria-hidden="true" tabindex="-1"></a>  | Pair (a, b) -&gt; <span class="st">&quot;(&quot;</span> ^ show_ty a ^ <span class="st">&quot; * &quot;</span> ^ show_ty b ^ <span class="st">&quot;)&quot;</span></span>
-<span id="cb467-14"><a href="#cb467-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb467-15"><a href="#cb467-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (show_ty (<span class="dt">List</span> (Pair (<span class="dt">Int</span>, <span class="dt">Bool</span>))) = <span class="st">&quot;(int * bool) list&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb468"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb468-1"><a href="#cb468-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> _ ty =</span>
+<span id="cb468-2"><a href="#cb468-2" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Int</span>    : <span class="dt">int</span> ty</span>
+<span id="cb468-3"><a href="#cb468-3" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">String</span> : <span class="dt">string</span> ty</span>
+<span id="cb468-4"><a href="#cb468-4" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Bool</span>   : <span class="dt">bool</span> ty</span>
+<span id="cb468-5"><a href="#cb468-5" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">List</span>   : &#39;a ty -&gt; &#39;a <span class="dt">list</span> ty</span>
+<span id="cb468-6"><a href="#cb468-6" aria-hidden="true" tabindex="-1"></a>  | Pair   : &#39;a ty * &#39;b ty -&gt; (&#39;a * &#39;b) ty</span>
+<span id="cb468-7"><a href="#cb468-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb468-8"><a href="#cb468-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> show_ty : <span class="kw">type</span> a. a ty -&gt; <span class="dt">string</span> = <span class="kw">function</span></span>
+<span id="cb468-9"><a href="#cb468-9" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Int</span> -&gt; <span class="st">&quot;int&quot;</span></span>
+<span id="cb468-10"><a href="#cb468-10" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">String</span> -&gt; <span class="st">&quot;string&quot;</span></span>
+<span id="cb468-11"><a href="#cb468-11" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Bool</span> -&gt; <span class="st">&quot;bool&quot;</span></span>
+<span id="cb468-12"><a href="#cb468-12" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">List</span> t -&gt; show_ty t ^ <span class="st">&quot; list&quot;</span></span>
+<span id="cb468-13"><a href="#cb468-13" aria-hidden="true" tabindex="-1"></a>  | Pair (a, b) -&gt; <span class="st">&quot;(&quot;</span> ^ show_ty a ^ <span class="st">&quot; * &quot;</span> ^ show_ty b ^ <span class="st">&quot;)&quot;</span></span>
+<span id="cb468-14"><a href="#cb468-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb468-15"><a href="#cb468-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (show_ty (<span class="dt">List</span> (Pair (<span class="dt">Int</span>, <span class="dt">Bool</span>))) = <span class="st">&quot;(int * bool) list&quot;</span>)</span></code></pre></div>
 <p>This reification is OCaml’s version of the <em>Yoneda embedding</em>
 for types: each type is represented by a value that “remembers” what it
 is, enabling type-safe operations that depend on runtime type
@@ -15634,11 +15679,11 @@ OCaml. Let us untangle them.</p>
 <p>OCaml’s module system has <em>functors</em>: functions from modules
 to modules. We used <code>Map.Make</code> in Chapter 5 to create
 specialized map modules:</p>
-<div class="sourceCode" id="cb468"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb468-1"><a href="#cb468-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringMap = <span class="dt">Map</span>.Make(<span class="dt">String</span>)</span>
-<span id="cb468-2"><a href="#cb468-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Map.Make is an OCaml (module) functor: *)</span></span>
-<span id="cb468-3"><a href="#cb468-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* it takes a module with type t and compare, *)</span></span>
-<span id="cb468-4"><a href="#cb468-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* and returns a module with map operations *)</span></span></code></pre></div>
+<div class="sourceCode" id="cb469"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb469-1"><a href="#cb469-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringMap = <span class="dt">Map</span>.Make(<span class="dt">String</span>)</span>
+<span id="cb469-2"><a href="#cb469-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Map.Make is an OCaml (module) functor: *)</span></span>
+<span id="cb469-3"><a href="#cb469-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* it takes a module with type t and compare, *)</span></span>
+<span id="cb469-4"><a href="#cb469-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* and returns a module with map operations *)</span></span></code></pre></div>
 <p>These are not categorical functors in general – they do not
 necessarily preserve composition. They are closer to parameterized
 modules. However, the <em>name</em> comes from category theory, and in
@@ -15649,57 +15694,92 @@ Class Pattern</h3>
 <p>The categorical notion of a functor is an endofunctor on the category
 of types. In OCaml, we encode it as a module signature requiring a
 <code>map</code> function that preserves identity and composition:</p>
-<div class="sourceCode" id="cb469"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb469-1"><a href="#cb469-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> FUNCTOR = <span class="kw">sig</span></span>
-<span id="cb469-2"><a href="#cb469-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t</span>
-<span id="cb469-3"><a href="#cb469-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> map : (&#39;a -&gt; &#39;b) -&gt; &#39;a t -&gt; &#39;b t</span>
-<span id="cb469-4"><a href="#cb469-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* Laws (not checked by the compiler): *)</span></span>
-<span id="cb469-5"><a href="#cb469-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map id = id *)</span></span>
-<span id="cb469-6"><a href="#cb469-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map (f ∘ g) = map f ∘ map g *)</span></span>
-<span id="cb469-7"><a href="#cb469-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
-<p>Many standard types are functors:</p>
 <div class="sourceCode" id="cb470"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb470-1"><a href="#cb470-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ListFunctor : FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">list</span> = <span class="kw">struct</span></span>
-<span id="cb470-2"><a href="#cb470-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">list</span></span>
-<span id="cb470-3"><a href="#cb470-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map = <span class="dt">List</span>.map</span>
-<span id="cb470-4"><a href="#cb470-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb470-5"><a href="#cb470-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb470-6"><a href="#cb470-6" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> OptionFunctor : FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">option</span> = <span class="kw">struct</span></span>
-<span id="cb470-7"><a href="#cb470-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">option</span></span>
-<span id="cb470-8"><a href="#cb470-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map = <span class="dt">Option</span>.map</span>
-<span id="cb470-9"><a href="#cb470-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb470-10"><a href="#cb470-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb470-11"><a href="#cb470-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* The &quot;reader&quot; functor: (&#39;a -&gt; _) is functorial in the return type *)</span></span>
-<span id="cb470-12"><a href="#cb470-12" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ReaderFunctor (R : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) :</span>
-<span id="cb470-13"><a href="#cb470-13" aria-hidden="true" tabindex="-1"></a>  FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = R.t -&gt; &#39;a = <span class="kw">struct</span></span>
-<span id="cb470-14"><a href="#cb470-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = R.t -&gt; &#39;a</span>
-<span id="cb470-15"><a href="#cb470-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map f g r = f (g r)    <span class="co">(* = compose f g *)</span></span>
-<span id="cb470-16"><a href="#cb470-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb470-1"><a href="#cb470-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> FUNCTOR = <span class="kw">sig</span></span>
+<span id="cb470-2"><a href="#cb470-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t</span>
+<span id="cb470-3"><a href="#cb470-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> map : (&#39;a -&gt; &#39;b) -&gt; &#39;a t -&gt; &#39;b t</span>
+<span id="cb470-4"><a href="#cb470-4" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* Laws (not checked by the compiler): *)</span></span>
+<span id="cb470-5"><a href="#cb470-5" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map id = id *)</span></span>
+<span id="cb470-6"><a href="#cb470-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map (f ∘ g) = map f ∘ map g *)</span></span>
+<span id="cb470-7"><a href="#cb470-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<p>Many standard types are functors:</p>
+<div class="sourceCode" id="cb471"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb471-1"><a href="#cb471-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ListFunctor : FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">list</span> = <span class="kw">struct</span></span>
+<span id="cb471-2"><a href="#cb471-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">list</span></span>
+<span id="cb471-3"><a href="#cb471-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map = <span class="dt">List</span>.map</span>
+<span id="cb471-4"><a href="#cb471-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb471-5"><a href="#cb471-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb471-6"><a href="#cb471-6" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> OptionFunctor : FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">option</span> = <span class="kw">struct</span></span>
+<span id="cb471-7"><a href="#cb471-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a <span class="dt">option</span></span>
+<span id="cb471-8"><a href="#cb471-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map = <span class="dt">Option</span>.map</span>
+<span id="cb471-9"><a href="#cb471-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb471-10"><a href="#cb471-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb471-11"><a href="#cb471-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* The &quot;reader&quot; functor: (&#39;a -&gt; _) is functorial in the return type *)</span></span>
+<span id="cb471-12"><a href="#cb471-12" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ReaderFunctor (R : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) :</span>
+<span id="cb471-13"><a href="#cb471-13" aria-hidden="true" tabindex="-1"></a>  FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = R.t -&gt; &#39;a = <span class="kw">struct</span></span>
+<span id="cb471-14"><a href="#cb471-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = R.t -&gt; &#39;a</span>
+<span id="cb471-15"><a href="#cb471-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map f g r = f (g r)    <span class="co">(* = compose f g *)</span></span>
+<span id="cb471-16"><a href="#cb471-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <h3 id="view-3-gadt-encoded-typed-functors">View 3: GADT-Encoded Typed
 Functors</h3>
 <p>Between typed categories (Section 12.3), a functor maps objects and
 morphisms while preserving composition and identity. With GADTs, we can
 express this:</p>
-<div class="sourceCode" id="cb471"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb471-1"><a href="#cb471-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> CATEGORY = <span class="kw">sig</span></span>
-<span id="cb471-2"><a href="#cb471-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom</span>
-<span id="cb471-3"><a href="#cb471-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> id : (&#39;a, &#39;a) hom</span>
-<span id="cb471-4"><a href="#cb471-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> compose : (&#39;b, &#39;c) hom -&gt; (&#39;a, &#39;b) hom -&gt; (&#39;a, &#39;c) hom</span>
-<span id="cb471-5"><a href="#cb471-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb471-6"><a href="#cb471-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb471-7"><a href="#cb471-7" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> TYPED_FUNCTOR = <span class="kw">sig</span></span>
-<span id="cb471-8"><a href="#cb471-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Source : CATEGORY</span>
-<span id="cb471-9"><a href="#cb471-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Target : CATEGORY</span>
-<span id="cb471-10"><a href="#cb471-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a obj                  <span class="co">(* object mapping *)</span></span>
-<span id="cb471-11"><a href="#cb471-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> map_hom : (&#39;a, &#39;b) Source.hom -&gt; (&#39;a obj, &#39;b obj) Target.hom</span>
-<span id="cb471-12"><a href="#cb471-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* Laws: *)</span></span>
-<span id="cb471-13"><a href="#cb471-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map_hom id = id *)</span></span>
-<span id="cb471-14"><a href="#cb471-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)</span></span>
-<span id="cb471-15"><a href="#cb471-15" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <div class="sourceCode" id="cb472"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb472-1"><a href="#cb472-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: List is a typed functor from FunCat to FunCat *)</span></span>
-<span id="cb472-2"><a href="#cb472-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Object mapping: &#39;a -&gt; &#39;a list *)</span></span>
-<span id="cb472-3"><a href="#cb472-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Morphism mapping: (f : &#39;a -&gt; &#39;b) -&gt; (List.map f : &#39;a list -&gt; &#39;b list) *)</span></span></code></pre></div>
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb472-1"><a href="#cb472-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> CATEGORY = <span class="kw">sig</span></span>
+<span id="cb472-2"><a href="#cb472-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom</span>
+<span id="cb472-3"><a href="#cb472-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> id : (&#39;a, &#39;a) hom</span>
+<span id="cb472-4"><a href="#cb472-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> compose : (&#39;b, &#39;c) hom -&gt; (&#39;a, &#39;b) hom -&gt; (&#39;a, &#39;c) hom</span>
+<span id="cb472-5"><a href="#cb472-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb472-6"><a href="#cb472-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb472-7"><a href="#cb472-7" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> TYPED_FUNCTOR = <span class="kw">sig</span></span>
+<span id="cb472-8"><a href="#cb472-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Source : CATEGORY</span>
+<span id="cb472-9"><a href="#cb472-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Target : CATEGORY</span>
+<span id="cb472-10"><a href="#cb472-10" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a obj                  <span class="co">(* object mapping *)</span></span>
+<span id="cb472-11"><a href="#cb472-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> map_hom : (&#39;a, &#39;b) Source.hom -&gt; (&#39;a obj, &#39;b obj) Target.hom</span>
+<span id="cb472-12"><a href="#cb472-12" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* Laws: *)</span></span>
+<span id="cb472-13"><a href="#cb472-13" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map_hom id = id *)</span></span>
+<span id="cb472-14"><a href="#cb472-14" aria-hidden="true" tabindex="-1"></a>  <span class="co">(* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)</span></span>
+<span id="cb472-15"><a href="#cb472-15" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<div class="sourceCode" id="cb473"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb473-1"><a href="#cb473-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* FunCat: the category of OCaml functions *)</span></span>
+<span id="cb473-2"><a href="#cb473-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FunCat : CATEGORY <span class="kw">with</span> <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b = <span class="kw">struct</span></span>
+<span id="cb473-3"><a href="#cb473-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b</span>
+<span id="cb473-4"><a href="#cb473-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> id x = x</span>
+<span id="cb473-5"><a href="#cb473-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> compose f g x = f (g x)</span>
+<span id="cb473-6"><a href="#cb473-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb473-7"><a href="#cb473-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb473-8"><a href="#cb473-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* List is a typed functor from FunCat to FunCat: *)</span></span>
+<span id="cb473-9"><a href="#cb473-9" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Object mapping: &#39;a ↦ &#39;a list *)</span></span>
+<span id="cb473-10"><a href="#cb473-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* - Morphism mapping: (f : &#39;a -&gt; &#39;b) ↦ (List.map f : &#39;a list -&gt; &#39;b list) *)</span></span>
+<span id="cb473-11"><a href="#cb473-11" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ListTypedFunctor : TYPED_FUNCTOR</span>
+<span id="cb473-12"><a href="#cb473-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">with</span> <span class="kw">module</span> Source = FunCat</span>
+<span id="cb473-13"><a href="#cb473-13" aria-hidden="true" tabindex="-1"></a>   <span class="kw">and</span> <span class="kw">module</span> Target = FunCat</span>
+<span id="cb473-14"><a href="#cb473-14" aria-hidden="true" tabindex="-1"></a>   <span class="kw">and</span> <span class="kw">type</span> &#39;a obj = &#39;a <span class="dt">list</span> = <span class="kw">struct</span></span>
+<span id="cb473-15"><a href="#cb473-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Source = FunCat</span>
+<span id="cb473-16"><a href="#cb473-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">module</span> Target = FunCat</span>
+<span id="cb473-17"><a href="#cb473-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a obj = &#39;a <span class="dt">list</span></span>
+<span id="cb473-18"><a href="#cb473-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> map_hom f = <span class="dt">List</span>.map f</span>
+<span id="cb473-19"><a href="#cb473-19" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb473-20"><a href="#cb473-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb473-21"><a href="#cb473-21" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify functor laws: *)</span></span>
+<span id="cb473-22"><a href="#cb473-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f x = x + <span class="dv">1</span></span>
+<span id="cb473-23"><a href="#cb473-23" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> g x = x * <span class="dv">2</span></span>
+<span id="cb473-24"><a href="#cb473-24" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> xs = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span>
+<span id="cb473-25"><a href="#cb473-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb473-26"><a href="#cb473-26" aria-hidden="true" tabindex="-1"></a><span class="co">(* map_hom id = id *)</span></span>
+<span id="cb473-27"><a href="#cb473-27" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (ListTypedFunctor.map_hom FunCat.id xs = FunCat.id xs)</span>
+<span id="cb473-28"><a href="#cb473-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb473-29"><a href="#cb473-29" aria-hidden="true" tabindex="-1"></a><span class="co">(* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)</span></span>
+<span id="cb473-30"><a href="#cb473-30" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (</span>
+<span id="cb473-31"><a href="#cb473-31" aria-hidden="true" tabindex="-1"></a>  ListTypedFunctor.map_hom (FunCat.compose f g) xs</span>
+<span id="cb473-32"><a href="#cb473-32" aria-hidden="true" tabindex="-1"></a>  = FunCat.compose (ListTypedFunctor.map_hom f)</span>
+<span id="cb473-33"><a href="#cb473-33" aria-hidden="true" tabindex="-1"></a>      (ListTypedFunctor.map_hom g) xs)</span></code></pre></div>
+<p>This ties the three views together:
+<code>ListTypedFunctor.map_hom</code> is the same operation as
+<code>ListFunctor.map</code>, but expressed as a morphism-to-morphism
+mapping between typed categories rather than a value-level function on
+containers.</p>
 <h3 id="what-unites-the-three-views">What Unites the Three Views</h3>
 <p>All three are “structure-preserving maps”: module functors transform
 module structures, the typeclass pattern transforms values within a type
@@ -15727,56 +15807,56 @@ automatically a natural transformation, because <em>parametric
 polymorphism guarantees naturality</em>. This is a consequence of the
 “free theorems” result (Wadler, 1989): a polymorphic function cannot
 inspect its type argument, so it must commute with <code>map</code>.</p>
-<div class="sourceCode" id="cb473"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb473-1"><a href="#cb473-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation: &#39;a list -&gt; &#39;a option *)</span></span>
-<span id="cb473-2"><a href="#cb473-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> head_opt : &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">option</span> = <span class="kw">function</span></span>
-<span id="cb473-3"><a href="#cb473-3" aria-hidden="true" tabindex="-1"></a>  | [] -&gt; <span class="dt">None</span></span>
-<span id="cb473-4"><a href="#cb473-4" aria-hidden="true" tabindex="-1"></a>  | x :: _ -&gt; <span class="dt">Some</span> x</span>
-<span id="cb473-5"><a href="#cb473-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb473-6"><a href="#cb473-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation: &#39;a option -&gt; &#39;a list *)</span></span>
-<span id="cb473-7"><a href="#cb473-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> option_to_list : &#39;a <span class="dt">option</span> -&gt; &#39;a <span class="dt">list</span> = <span class="kw">function</span></span>
-<span id="cb473-8"><a href="#cb473-8" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">None</span> -&gt; []</span>
-<span id="cb473-9"><a href="#cb473-9" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Some</span> x -&gt; [x]</span>
-<span id="cb473-10"><a href="#cb473-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb473-11"><a href="#cb473-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality: map commutes with the transformation *)</span></span>
-<span id="cb473-12"><a href="#cb473-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f x = x * <span class="dv">2</span></span>
-<span id="cb473-13"><a href="#cb473-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb473-14"><a href="#cb473-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* head_opt ∘ List.map f = Option.map f ∘ head_opt *)</span></span>
-<span id="cb473-15"><a href="#cb473-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test_input = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span>
-<span id="cb473-16"><a href="#cb473-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb473-17"><a href="#cb473-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (head_opt (<span class="dt">List</span>.map f test_input)</span>
-<span id="cb473-18"><a href="#cb473-18" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">Option</span>.map f (head_opt test_input))</span>
-<span id="cb473-19"><a href="#cb473-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb473-20"><a href="#cb473-20" aria-hidden="true" tabindex="-1"></a><span class="co">(* option_to_list ∘ Option.map f = List.map f ∘ option_to_list *)</span></span>
-<span id="cb473-21"><a href="#cb473-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test_opt = <span class="dt">Some</span> <span class="dv">5</span></span>
-<span id="cb473-22"><a href="#cb473-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb473-23"><a href="#cb473-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (option_to_list (<span class="dt">Option</span>.map f test_opt)</span>
-<span id="cb473-24"><a href="#cb473-24" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.map f (option_to_list test_opt))</span></code></pre></div>
+<div class="sourceCode" id="cb474"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb474-1"><a href="#cb474-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation: &#39;a list -&gt; &#39;a option *)</span></span>
+<span id="cb474-2"><a href="#cb474-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> head_opt : &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">option</span> = <span class="kw">function</span></span>
+<span id="cb474-3"><a href="#cb474-3" aria-hidden="true" tabindex="-1"></a>  | [] -&gt; <span class="dt">None</span></span>
+<span id="cb474-4"><a href="#cb474-4" aria-hidden="true" tabindex="-1"></a>  | x :: _ -&gt; <span class="dt">Some</span> x</span>
+<span id="cb474-5"><a href="#cb474-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb474-6"><a href="#cb474-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation: &#39;a option -&gt; &#39;a list *)</span></span>
+<span id="cb474-7"><a href="#cb474-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> option_to_list : &#39;a <span class="dt">option</span> -&gt; &#39;a <span class="dt">list</span> = <span class="kw">function</span></span>
+<span id="cb474-8"><a href="#cb474-8" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">None</span> -&gt; []</span>
+<span id="cb474-9"><a href="#cb474-9" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">Some</span> x -&gt; [x]</span>
+<span id="cb474-10"><a href="#cb474-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb474-11"><a href="#cb474-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality: map commutes with the transformation *)</span></span>
+<span id="cb474-12"><a href="#cb474-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f x = x * <span class="dv">2</span></span>
+<span id="cb474-13"><a href="#cb474-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb474-14"><a href="#cb474-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* head_opt ∘ List.map f = Option.map f ∘ head_opt *)</span></span>
+<span id="cb474-15"><a href="#cb474-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test_input = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span>
+<span id="cb474-16"><a href="#cb474-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb474-17"><a href="#cb474-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (head_opt (<span class="dt">List</span>.map f test_input)</span>
+<span id="cb474-18"><a href="#cb474-18" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">Option</span>.map f (head_opt test_input))</span>
+<span id="cb474-19"><a href="#cb474-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb474-20"><a href="#cb474-20" aria-hidden="true" tabindex="-1"></a><span class="co">(* option_to_list ∘ Option.map f = List.map f ∘ option_to_list *)</span></span>
+<span id="cb474-21"><a href="#cb474-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> test_opt = <span class="dt">Some</span> <span class="dv">5</span></span>
+<span id="cb474-22"><a href="#cb474-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb474-23"><a href="#cb474-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (option_to_list (<span class="dt">Option</span>.map f test_opt)</span>
+<span id="cb474-24"><a href="#cb474-24" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.map f (option_to_list test_opt))</span></code></pre></div>
 <p>This is remarkable: we did not <em>prove</em> that
 <code>head_opt</code> satisfies the naturality condition – the type
 system <em>guarantees</em> it. Any function of type
 <code>'a list -&gt; 'a option</code> is automatically natural.
 Parametricity gives naturality for free.</p>
 <h3 id="more-examples">More Examples</h3>
-<div class="sourceCode" id="cb474"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb474-1"><a href="#cb474-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* length : &#39;a list -&gt; int *)</span></span>
-<span id="cb474-2"><a href="#cb474-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* This is a natural transformation from the List functor *)</span></span>
-<span id="cb474-3"><a href="#cb474-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* to the constant functor K_int (which maps everything to int). *)</span></span>
-<span id="cb474-4"><a href="#cb474-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality says: length (List.map f xs) = length xs *)</span></span>
-<span id="cb474-5"><a href="#cb474-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">List</span>.length (<span class="dt">List</span>.map f [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>]) = <span class="dt">List</span>.length [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>])</span>
-<span id="cb474-6"><a href="#cb474-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb474-7"><a href="#cb474-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* rev : &#39;a list -&gt; &#39;a list *)</span></span>
-<span id="cb474-8"><a href="#cb474-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation from List to List. *)</span></span>
-<span id="cb474-9"><a href="#cb474-9" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality: List.map f (List.rev xs) = List.rev (List.map f xs) *)</span></span>
-<span id="cb474-10"><a href="#cb474-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb474-11"><a href="#cb474-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (<span class="dt">List</span>.map f (<span class="dt">List</span>.rev [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>])</span>
-<span id="cb474-12"><a href="#cb474-12" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.rev (<span class="dt">List</span>.map f [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>]))</span>
-<span id="cb474-13"><a href="#cb474-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb474-14"><a href="#cb474-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* flatten : &#39;a list list -&gt; &#39;a list *)</span></span>
-<span id="cb474-15"><a href="#cb474-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation from List ∘ List to List. *)</span></span>
-<span id="cb474-16"><a href="#cb474-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb474-17"><a href="#cb474-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (<span class="dt">List</span>.flatten (<span class="dt">List</span>.map (<span class="dt">List</span>.map f) [[<span class="dv">1</span>;<span class="dv">2</span>];[<span class="dv">3</span>]])</span>
-<span id="cb474-18"><a href="#cb474-18" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.map f (<span class="dt">List</span>.flatten [[<span class="dv">1</span>;<span class="dv">2</span>];[<span class="dv">3</span>]]))</span></code></pre></div>
+<div class="sourceCode" id="cb475"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb475-1"><a href="#cb475-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* length : &#39;a list -&gt; int *)</span></span>
+<span id="cb475-2"><a href="#cb475-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* This is a natural transformation from the List functor *)</span></span>
+<span id="cb475-3"><a href="#cb475-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* to the constant functor K_int (which maps everything to int). *)</span></span>
+<span id="cb475-4"><a href="#cb475-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality says: length (List.map f xs) = length xs *)</span></span>
+<span id="cb475-5"><a href="#cb475-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">List</span>.length (<span class="dt">List</span>.map f [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>]) = <span class="dt">List</span>.length [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>])</span>
+<span id="cb475-6"><a href="#cb475-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb475-7"><a href="#cb475-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* rev : &#39;a list -&gt; &#39;a list *)</span></span>
+<span id="cb475-8"><a href="#cb475-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation from List to List. *)</span></span>
+<span id="cb475-9"><a href="#cb475-9" aria-hidden="true" tabindex="-1"></a><span class="co">(* Naturality: List.map f (List.rev xs) = List.rev (List.map f xs) *)</span></span>
+<span id="cb475-10"><a href="#cb475-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb475-11"><a href="#cb475-11" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (<span class="dt">List</span>.map f (<span class="dt">List</span>.rev [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>])</span>
+<span id="cb475-12"><a href="#cb475-12" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.rev (<span class="dt">List</span>.map f [<span class="dv">1</span>;<span class="dv">2</span>;<span class="dv">3</span>]))</span>
+<span id="cb475-13"><a href="#cb475-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb475-14"><a href="#cb475-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* flatten : &#39;a list list -&gt; &#39;a list *)</span></span>
+<span id="cb475-15"><a href="#cb475-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Natural transformation from List ∘ List to List. *)</span></span>
+<span id="cb475-16"><a href="#cb475-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb475-17"><a href="#cb475-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (<span class="dt">List</span>.flatten (<span class="dt">List</span>.map (<span class="dt">List</span>.map f) [[<span class="dv">1</span>;<span class="dv">2</span>];[<span class="dv">3</span>]])</span>
+<span id="cb475-18"><a href="#cb475-18" aria-hidden="true" tabindex="-1"></a>        = <span class="dt">List</span>.map f (<span class="dt">List</span>.flatten [[<span class="dv">1</span>;<span class="dv">2</span>];[<span class="dv">3</span>]]))</span></code></pre></div>
 <h3 id="natural-transformations-compose">Natural Transformations
 Compose</h3>
 <p>Natural transformations can be composed “vertically” (composing <span
@@ -15811,18 +15891,18 @@ B</span> (product with <span class="math inline">B</span>) and the right
 adjoint is <span class="math inline">G(C) = B \to C</span> (exponential
 by <span class="math inline">B</span>). The <code>curry</code> and
 <code>uncurry</code> functions witness this adjunction:</p>
-<div class="sourceCode" id="cb475"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb475-1"><a href="#cb475-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> curry f a b = f (a, b)</span>
-<span id="cb475-2"><a href="#cb475-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> uncurry f (a, b) = f a b</span>
-<span id="cb475-3"><a href="#cb475-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb475-4"><a href="#cb475-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* These are inverses: *)</span></span>
-<span id="cb475-5"><a href="#cb475-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f_uncurried (x, y) = x + y</span>
-<span id="cb475-6"><a href="#cb475-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f_curried x y = x + y</span>
-<span id="cb475-7"><a href="#cb475-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb475-8"><a href="#cb475-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (curry f_uncurried <span class="dv">3</span> <span class="dv">4</span> = <span class="dv">7</span>)</span>
-<span id="cb475-9"><a href="#cb475-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (uncurry f_curried (<span class="dv">3</span>, <span class="dv">4</span>) = <span class="dv">7</span>)</span>
-<span id="cb475-10"><a href="#cb475-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (curry (uncurry f_curried) <span class="dv">3</span> <span class="dv">4</span> = f_curried <span class="dv">3</span> <span class="dv">4</span>)</span>
-<span id="cb475-11"><a href="#cb475-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (uncurry (curry f_uncurried) (<span class="dv">3</span>, <span class="dv">4</span>) = f_uncurried (<span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb476"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb476-1"><a href="#cb476-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> curry f a b = f (a, b)</span>
+<span id="cb476-2"><a href="#cb476-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> uncurry f (a, b) = f a b</span>
+<span id="cb476-3"><a href="#cb476-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb476-4"><a href="#cb476-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* These are inverses: *)</span></span>
+<span id="cb476-5"><a href="#cb476-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f_uncurried (x, y) = x + y</span>
+<span id="cb476-6"><a href="#cb476-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f_curried x y = x + y</span>
+<span id="cb476-7"><a href="#cb476-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb476-8"><a href="#cb476-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (curry f_uncurried <span class="dv">3</span> <span class="dv">4</span> = <span class="dv">7</span>)</span>
+<span id="cb476-9"><a href="#cb476-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (uncurry f_curried (<span class="dv">3</span>, <span class="dv">4</span>) = <span class="dv">7</span>)</span>
+<span id="cb476-10"><a href="#cb476-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (curry (uncurry f_curried) <span class="dv">3</span> <span class="dv">4</span> = f_curried <span class="dv">3</span> <span class="dv">4</span>)</span>
+<span id="cb476-11"><a href="#cb476-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (uncurry (curry f_uncurried) (<span class="dv">3</span>, <span class="dv">4</span>) = f_uncurried (<span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre></div>
 <h3 id="freeforgetful-adjunctions">Free/Forgetful Adjunctions</h3>
 <p>Another important class of adjunctions: <strong>free
 constructions</strong>. The <em>free monoid</em> on a set <span
@@ -15836,46 +15916,46 @@ monoid back to its underlying type. The adjunction says:</p>
 class="math inline">M</span> is completely determined by where it sends
 each element – that is, by a function <code>'a -&gt; M.t</code>. This is
 exactly <code>List.fold_right</code>:</p>
-<div class="sourceCode" id="cb476"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb476-1"><a href="#cb476-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The free monoid adjunction, witnessed by fold_right: *)</span></span>
-<span id="cb476-2"><a href="#cb476-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* A monoid homomorphism from &#39;a list is determined by *)</span></span>
-<span id="cb476-3"><a href="#cb476-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* where single elements go. *)</span></span>
-<span id="cb476-4"><a href="#cb476-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-5"><a href="#cb476-5" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> MONOID = <span class="kw">sig</span></span>
-<span id="cb476-6"><a href="#cb476-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t</span>
-<span id="cb476-7"><a href="#cb476-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> empty : t</span>
-<span id="cb476-8"><a href="#cb476-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> append : t -&gt; t -&gt; t</span>
-<span id="cb476-9"><a href="#cb476-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb476-10"><a href="#cb476-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-11"><a href="#cb476-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* Given a function f : &#39;a -&gt; M.t, extend it to a *)</span></span>
-<span id="cb476-12"><a href="#cb476-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* monoid homomorphism &#39;a list -&gt; M.t *)</span></span>
-<span id="cb476-13"><a href="#cb476-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> extend_to_hom</span>
-<span id="cb476-14"><a href="#cb476-14" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">type</span> m) (<span class="kw">module</span> M : MONOID <span class="kw">with</span> <span class="kw">type</span> t = m)</span>
-<span id="cb476-15"><a href="#cb476-15" aria-hidden="true" tabindex="-1"></a>    (f : &#39;a -&gt; m) (xs : &#39;a <span class="dt">list</span>) : m =</span>
-<span id="cb476-16"><a href="#cb476-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.fold_right (<span class="kw">fun</span> x acc -&gt; M.append (f x) acc) xs M.empty</span>
-<span id="cb476-17"><a href="#cb476-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-18"><a href="#cb476-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: summing a list via the (int, +, 0) monoid *)</span></span>
-<span id="cb476-19"><a href="#cb476-19" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> IntAdd : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">int</span> = <span class="kw">struct</span></span>
-<span id="cb476-20"><a href="#cb476-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">int</span></span>
-<span id="cb476-21"><a href="#cb476-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="dv">0</span></span>
-<span id="cb476-22"><a href="#cb476-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( + )</span>
-<span id="cb476-23"><a href="#cb476-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb476-24"><a href="#cb476-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-25"><a href="#cb476-25" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum xs = extend_to_hom (<span class="kw">module</span> IntAdd) <span class="dt">Fun</span>.id xs</span>
-<span id="cb476-26"><a href="#cb476-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (sum [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>; <span class="dv">4</span>] = <span class="dv">10</span>)</span>
-<span id="cb476-27"><a href="#cb476-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-28"><a href="#cb476-28" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: concatenating strings *)</span></span>
-<span id="cb476-29"><a href="#cb476-29" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringConcat : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">string</span> = <span class="kw">struct</span></span>
-<span id="cb476-30"><a href="#cb476-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">string</span></span>
-<span id="cb476-31"><a href="#cb476-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="st">&quot;&quot;</span></span>
-<span id="cb476-32"><a href="#cb476-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( ^ )</span>
-<span id="cb476-33"><a href="#cb476-33" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb476-34"><a href="#cb476-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-35"><a href="#cb476-35" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> concat_with_spaces xs =</span>
-<span id="cb476-36"><a href="#cb476-36" aria-hidden="true" tabindex="-1"></a>  extend_to_hom (<span class="kw">module</span> StringConcat)</span>
-<span id="cb476-37"><a href="#cb476-37" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">fun</span> s -&gt; <span class="kw">if</span> s = <span class="st">&quot;&quot;</span> <span class="kw">then</span> <span class="st">&quot;&quot;</span> <span class="kw">else</span> s ^ <span class="st">&quot; &quot;</span>) xs</span>
-<span id="cb476-38"><a href="#cb476-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb476-39"><a href="#cb476-39" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">String</span>.trim (concat_with_spaces [<span class="st">&quot;hello&quot;</span>; <span class="st">&quot;world&quot;</span>]) = <span class="st">&quot;hello world&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb477"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb477-1"><a href="#cb477-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The free monoid adjunction, witnessed by fold_right: *)</span></span>
+<span id="cb477-2"><a href="#cb477-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* A monoid homomorphism from &#39;a list is determined by *)</span></span>
+<span id="cb477-3"><a href="#cb477-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* where single elements go. *)</span></span>
+<span id="cb477-4"><a href="#cb477-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-5"><a href="#cb477-5" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> MONOID = <span class="kw">sig</span></span>
+<span id="cb477-6"><a href="#cb477-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t</span>
+<span id="cb477-7"><a href="#cb477-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> empty : t</span>
+<span id="cb477-8"><a href="#cb477-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> append : t -&gt; t -&gt; t</span>
+<span id="cb477-9"><a href="#cb477-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb477-10"><a href="#cb477-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-11"><a href="#cb477-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* Given a function f : &#39;a -&gt; M.t, extend it to a *)</span></span>
+<span id="cb477-12"><a href="#cb477-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* monoid homomorphism &#39;a list -&gt; M.t *)</span></span>
+<span id="cb477-13"><a href="#cb477-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> extend_to_hom</span>
+<span id="cb477-14"><a href="#cb477-14" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">type</span> m) (<span class="kw">module</span> M : MONOID <span class="kw">with</span> <span class="kw">type</span> t = m)</span>
+<span id="cb477-15"><a href="#cb477-15" aria-hidden="true" tabindex="-1"></a>    (f : &#39;a -&gt; m) (xs : &#39;a <span class="dt">list</span>) : m =</span>
+<span id="cb477-16"><a href="#cb477-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.fold_right (<span class="kw">fun</span> x acc -&gt; M.append (f x) acc) xs M.empty</span>
+<span id="cb477-17"><a href="#cb477-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-18"><a href="#cb477-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: summing a list via the (int, +, 0) monoid *)</span></span>
+<span id="cb477-19"><a href="#cb477-19" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> IntAdd : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">int</span> = <span class="kw">struct</span></span>
+<span id="cb477-20"><a href="#cb477-20" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">int</span></span>
+<span id="cb477-21"><a href="#cb477-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="dv">0</span></span>
+<span id="cb477-22"><a href="#cb477-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( + )</span>
+<span id="cb477-23"><a href="#cb477-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb477-24"><a href="#cb477-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-25"><a href="#cb477-25" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> sum xs = extend_to_hom (<span class="kw">module</span> IntAdd) <span class="dt">Fun</span>.id xs</span>
+<span id="cb477-26"><a href="#cb477-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (sum [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>; <span class="dv">4</span>] = <span class="dv">10</span>)</span>
+<span id="cb477-27"><a href="#cb477-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-28"><a href="#cb477-28" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: concatenating strings *)</span></span>
+<span id="cb477-29"><a href="#cb477-29" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> StringConcat : MONOID <span class="kw">with</span> <span class="kw">type</span> t = <span class="dt">string</span> = <span class="kw">struct</span></span>
+<span id="cb477-30"><a href="#cb477-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> t = <span class="dt">string</span></span>
+<span id="cb477-31"><a href="#cb477-31" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> empty = <span class="st">&quot;&quot;</span></span>
+<span id="cb477-32"><a href="#cb477-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> append = ( ^ )</span>
+<span id="cb477-33"><a href="#cb477-33" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb477-34"><a href="#cb477-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-35"><a href="#cb477-35" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> concat_with_spaces xs =</span>
+<span id="cb477-36"><a href="#cb477-36" aria-hidden="true" tabindex="-1"></a>  extend_to_hom (<span class="kw">module</span> StringConcat)</span>
+<span id="cb477-37"><a href="#cb477-37" aria-hidden="true" tabindex="-1"></a>    (<span class="kw">fun</span> s -&gt; <span class="kw">if</span> s = <span class="st">&quot;&quot;</span> <span class="kw">then</span> <span class="st">&quot;&quot;</span> <span class="kw">else</span> s ^ <span class="st">&quot; &quot;</span>) xs</span>
+<span id="cb477-38"><a href="#cb477-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb477-39"><a href="#cb477-39" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">String</span>.trim (concat_with_spaces [<span class="st">&quot;hello&quot;</span>; <span class="st">&quot;world&quot;</span>]) = <span class="st">&quot;hello world&quot;</span>)</span></code></pre></div>
 <p>The free monad adjunction from Chapter 8 works the same way: a monad
 homomorphism from the free monad on effects <span
 class="math inline">E</span> to any monad <span
@@ -15894,24 +15974,24 @@ that:</p>
 <span class="math inline">g \circ f : A \to A</span>, where the
 <em>closed elements</em> (fixed points of <span class="math inline">g
 \circ f</span>) form a complete lattice.</p>
-<div class="sourceCode" id="cb477"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb477-1"><a href="#cb477-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A simple Galois connection: *)</span></span>
-<span id="cb477-2"><a href="#cb477-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* floor and ceiling between reals and integers *)</span></span>
-<span id="cb477-3"><a href="#cb477-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* f = floor : float -&gt; int (left adjoint) *)</span></span>
-<span id="cb477-4"><a href="#cb477-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* g = embed : int -&gt; float (right adjoint) *)</span></span>
-<span id="cb477-5"><a href="#cb477-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* floor(x) &lt;= n  iff  x &lt;= float(n) *)</span></span>
-<span id="cb477-6"><a href="#cb477-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb477-7"><a href="#cb477-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_floor (x : <span class="dt">float</span>) : <span class="dt">int</span> = <span class="dt">int_of_float</span> (Float.<span class="dt">floor</span> x)</span>
-<span id="cb477-8"><a href="#cb477-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_embed (n : <span class="dt">int</span>) : <span class="dt">float</span> = <span class="dt">float_of_int</span> n</span>
-<span id="cb477-9"><a href="#cb477-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb477-10"><a href="#cb477-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify the Galois connection property: *)</span></span>
-<span id="cb477-11"><a href="#cb477-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb477-12"><a href="#cb477-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> x = <span class="fl">3.7</span> <span class="kw">and</span> n = <span class="dv">4</span> <span class="kw">in</span></span>
-<span id="cb477-13"><a href="#cb477-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> ((galois_floor x &lt;= n) = (x &lt;= galois_embed n))</span>
-<span id="cb477-14"><a href="#cb477-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb477-15"><a href="#cb477-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
-<span id="cb477-16"><a href="#cb477-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> x = <span class="fl">4.0</span> <span class="kw">and</span> n = <span class="dv">3</span> <span class="kw">in</span></span>
-<span id="cb477-17"><a href="#cb477-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> ((galois_floor x &lt;= n) = (x &lt;= galois_embed n))</span></code></pre></div>
+<div class="sourceCode" id="cb478"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb478-1"><a href="#cb478-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A simple Galois connection: *)</span></span>
+<span id="cb478-2"><a href="#cb478-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* floor and ceiling between reals and integers *)</span></span>
+<span id="cb478-3"><a href="#cb478-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* f = floor : float -&gt; int (left adjoint) *)</span></span>
+<span id="cb478-4"><a href="#cb478-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* g = embed : int -&gt; float (right adjoint) *)</span></span>
+<span id="cb478-5"><a href="#cb478-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* floor(x) &lt;= n  iff  x &lt;= float(n) *)</span></span>
+<span id="cb478-6"><a href="#cb478-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb478-7"><a href="#cb478-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_floor (x : <span class="dt">float</span>) : <span class="dt">int</span> = <span class="dt">int_of_float</span> (Float.<span class="dt">floor</span> x)</span>
+<span id="cb478-8"><a href="#cb478-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_embed (n : <span class="dt">int</span>) : <span class="dt">float</span> = <span class="dt">float_of_int</span> n</span>
+<span id="cb478-9"><a href="#cb478-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb478-10"><a href="#cb478-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify the Galois connection property: *)</span></span>
+<span id="cb478-11"><a href="#cb478-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb478-12"><a href="#cb478-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> x = <span class="fl">3.7</span> <span class="kw">and</span> n = <span class="dv">4</span> <span class="kw">in</span></span>
+<span id="cb478-13"><a href="#cb478-13" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> ((galois_floor x &lt;= n) = (x &lt;= galois_embed n))</span>
+<span id="cb478-14"><a href="#cb478-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb478-15"><a href="#cb478-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
+<span id="cb478-16"><a href="#cb478-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> x = <span class="fl">4.0</span> <span class="kw">and</span> n = <span class="dv">3</span> <span class="kw">in</span></span>
+<span id="cb478-17"><a href="#cb478-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> ((galois_floor x &lt;= n) = (x &lt;= galois_embed n))</span></code></pre></div>
 <h3 id="formal-concept-analysis">Formal Concept Analysis</h3>
 <p>A deep application of Galois connections is <strong>Formal Concept
 Analysis</strong> (Wille, 1982). Given a binary relation <span
@@ -15929,45 +16009,45 @@ connection. The closed pairs <span class="math inline">(S, T)</span>
 where <span class="math inline">S = g(T)</span> and <span
 class="math inline">T = f(S)</span> are called <strong>formal
 concepts</strong> and form a lattice.</p>
-<div class="sourceCode" id="cb478"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb478-1"><a href="#cb478-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Formal concept analysis: a small example *)</span></span>
-<span id="cb478-2"><a href="#cb478-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Objects: animals; Attributes: properties *)</span></span>
-<span id="cb478-3"><a href="#cb478-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* Relation: &quot;animal has property&quot; *)</span></span>
-<span id="cb478-4"><a href="#cb478-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-5"><a href="#cb478-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> animals = [| <span class="st">&quot;dog&quot;</span>; <span class="st">&quot;cat&quot;</span>; <span class="st">&quot;salmon&quot;</span>; <span class="st">&quot;eagle&quot;</span> |]</span>
-<span id="cb478-6"><a href="#cb478-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> attributes = [| <span class="st">&quot;legs&quot;</span>; <span class="st">&quot;flies&quot;</span>; <span class="st">&quot;swims&quot;</span>; <span class="st">&quot;fur&quot;</span> |]</span>
-<span id="cb478-7"><a href="#cb478-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-8"><a href="#cb478-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Incidence matrix: animal × attribute *)</span></span>
-<span id="cb478-9"><a href="#cb478-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> relation = [|</span>
-<span id="cb478-10"><a href="#cb478-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">(*         legs  flies swims fur *)</span></span>
-<span id="cb478-11"><a href="#cb478-11" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>  |];  <span class="co">(* dog *)</span></span>
-<span id="cb478-12"><a href="#cb478-12" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>  |];  <span class="co">(* cat *)</span></span>
-<span id="cb478-13"><a href="#cb478-13" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>;  <span class="kw">false</span> |];  <span class="co">(* salmon *)</span></span>
-<span id="cb478-14"><a href="#cb478-14" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">false</span>; <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span> |];  <span class="co">(* eagle *)</span></span>
-<span id="cb478-15"><a href="#cb478-15" aria-hidden="true" tabindex="-1"></a>|]</span>
-<span id="cb478-16"><a href="#cb478-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-17"><a href="#cb478-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> n_obj = <span class="dt">Array</span>.length animals</span>
-<span id="cb478-18"><a href="#cb478-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> n_att = <span class="dt">Array</span>.length attributes</span>
-<span id="cb478-19"><a href="#cb478-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-20"><a href="#cb478-20" aria-hidden="true" tabindex="-1"></a><span class="co">(* f: set of objects -&gt; common attributes *)</span></span>
-<span id="cb478-21"><a href="#cb478-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> common_attributes (objs : <span class="dt">int</span> <span class="dt">list</span>) : <span class="dt">int</span> <span class="dt">list</span> =</span>
-<span id="cb478-22"><a href="#cb478-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.init n_att <span class="dt">Fun</span>.id |&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> j -&gt;</span>
-<span id="cb478-23"><a href="#cb478-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all (<span class="kw">fun</span> i -&gt; relation.(i).(j)) objs)</span>
-<span id="cb478-24"><a href="#cb478-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-25"><a href="#cb478-25" aria-hidden="true" tabindex="-1"></a><span class="co">(* g: set of attributes -&gt; objects sharing all *)</span></span>
-<span id="cb478-26"><a href="#cb478-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> shared_objects (atts : <span class="dt">int</span> <span class="dt">list</span>) : <span class="dt">int</span> <span class="dt">list</span> =</span>
-<span id="cb478-27"><a href="#cb478-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.init n_obj <span class="dt">Fun</span>.id |&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> i -&gt;</span>
-<span id="cb478-28"><a href="#cb478-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all (<span class="kw">fun</span> j -&gt; relation.(i).(j)) atts)</span>
-<span id="cb478-29"><a href="#cb478-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-30"><a href="#cb478-30" aria-hidden="true" tabindex="-1"></a><span class="co">(* Closure operator: g ∘ f *)</span></span>
-<span id="cb478-31"><a href="#cb478-31" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> closure objs = shared_objects (common_attributes objs)</span>
-<span id="cb478-32"><a href="#cb478-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-33"><a href="#cb478-33" aria-hidden="true" tabindex="-1"></a><span class="co">(* {dog} closes to {dog, cat}: they share exactly {legs, fur} *)</span></span>
-<span id="cb478-34"><a href="#cb478-34" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (closure [<span class="dv">0</span>] = [<span class="dv">0</span>; <span class="dv">1</span>])</span>
-<span id="cb478-35"><a href="#cb478-35" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (common_attributes [<span class="dv">0</span>; <span class="dv">1</span>] = [<span class="dv">0</span>; <span class="dv">3</span>])</span>
-<span id="cb478-36"><a href="#cb478-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb478-37"><a href="#cb478-37" aria-hidden="true" tabindex="-1"></a><span class="co">(* {salmon} is already closed *)</span></span>
-<span id="cb478-38"><a href="#cb478-38" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (closure [<span class="dv">2</span>] = [<span class="dv">2</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb479"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb479-1"><a href="#cb479-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Formal concept analysis: a small example *)</span></span>
+<span id="cb479-2"><a href="#cb479-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Objects: animals; Attributes: properties *)</span></span>
+<span id="cb479-3"><a href="#cb479-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* Relation: &quot;animal has property&quot; *)</span></span>
+<span id="cb479-4"><a href="#cb479-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-5"><a href="#cb479-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> animals = [| <span class="st">&quot;dog&quot;</span>; <span class="st">&quot;cat&quot;</span>; <span class="st">&quot;salmon&quot;</span>; <span class="st">&quot;eagle&quot;</span> |]</span>
+<span id="cb479-6"><a href="#cb479-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> attributes = [| <span class="st">&quot;legs&quot;</span>; <span class="st">&quot;flies&quot;</span>; <span class="st">&quot;swims&quot;</span>; <span class="st">&quot;fur&quot;</span> |]</span>
+<span id="cb479-7"><a href="#cb479-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-8"><a href="#cb479-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Incidence matrix: animal × attribute *)</span></span>
+<span id="cb479-9"><a href="#cb479-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> relation = [|</span>
+<span id="cb479-10"><a href="#cb479-10" aria-hidden="true" tabindex="-1"></a>  <span class="co">(*         legs  flies swims fur *)</span></span>
+<span id="cb479-11"><a href="#cb479-11" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>  |];  <span class="co">(* dog *)</span></span>
+<span id="cb479-12"><a href="#cb479-12" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>  |];  <span class="co">(* cat *)</span></span>
+<span id="cb479-13"><a href="#cb479-13" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">false</span>; <span class="kw">false</span>; <span class="kw">true</span>;  <span class="kw">false</span> |];  <span class="co">(* salmon *)</span></span>
+<span id="cb479-14"><a href="#cb479-14" aria-hidden="true" tabindex="-1"></a>  [| <span class="kw">false</span>; <span class="kw">true</span>;  <span class="kw">false</span>; <span class="kw">false</span> |];  <span class="co">(* eagle *)</span></span>
+<span id="cb479-15"><a href="#cb479-15" aria-hidden="true" tabindex="-1"></a>|]</span>
+<span id="cb479-16"><a href="#cb479-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-17"><a href="#cb479-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> n_obj = <span class="dt">Array</span>.length animals</span>
+<span id="cb479-18"><a href="#cb479-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> n_att = <span class="dt">Array</span>.length attributes</span>
+<span id="cb479-19"><a href="#cb479-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-20"><a href="#cb479-20" aria-hidden="true" tabindex="-1"></a><span class="co">(* f: set of objects -&gt; common attributes *)</span></span>
+<span id="cb479-21"><a href="#cb479-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> common_attributes (objs : <span class="dt">int</span> <span class="dt">list</span>) : <span class="dt">int</span> <span class="dt">list</span> =</span>
+<span id="cb479-22"><a href="#cb479-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.init n_att <span class="dt">Fun</span>.id |&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> j -&gt;</span>
+<span id="cb479-23"><a href="#cb479-23" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all (<span class="kw">fun</span> i -&gt; relation.(i).(j)) objs)</span>
+<span id="cb479-24"><a href="#cb479-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-25"><a href="#cb479-25" aria-hidden="true" tabindex="-1"></a><span class="co">(* g: set of attributes -&gt; objects sharing all *)</span></span>
+<span id="cb479-26"><a href="#cb479-26" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> shared_objects (atts : <span class="dt">int</span> <span class="dt">list</span>) : <span class="dt">int</span> <span class="dt">list</span> =</span>
+<span id="cb479-27"><a href="#cb479-27" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.init n_obj <span class="dt">Fun</span>.id |&gt; <span class="dt">List</span>.filter (<span class="kw">fun</span> i -&gt;</span>
+<span id="cb479-28"><a href="#cb479-28" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.for_all (<span class="kw">fun</span> j -&gt; relation.(i).(j)) atts)</span>
+<span id="cb479-29"><a href="#cb479-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-30"><a href="#cb479-30" aria-hidden="true" tabindex="-1"></a><span class="co">(* Closure operator: g ∘ f *)</span></span>
+<span id="cb479-31"><a href="#cb479-31" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> closure objs = shared_objects (common_attributes objs)</span>
+<span id="cb479-32"><a href="#cb479-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-33"><a href="#cb479-33" aria-hidden="true" tabindex="-1"></a><span class="co">(* {dog} closes to {dog, cat}: they share exactly {legs, fur} *)</span></span>
+<span id="cb479-34"><a href="#cb479-34" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (closure [<span class="dv">0</span>] = [<span class="dv">0</span>; <span class="dv">1</span>])</span>
+<span id="cb479-35"><a href="#cb479-35" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (common_attributes [<span class="dv">0</span>; <span class="dv">1</span>] = [<span class="dv">0</span>; <span class="dv">3</span>])</span>
+<span id="cb479-36"><a href="#cb479-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb479-37"><a href="#cb479-37" aria-hidden="true" tabindex="-1"></a><span class="co">(* {salmon} is already closed *)</span></span>
+<span id="cb479-38"><a href="#cb479-38" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (closure [<span class="dv">2</span>] = [<span class="dv">2</span>])</span></code></pre></div>
 <p><strong>Connection to abstract interpretation.</strong> The
 Cousot–Cousot framework (1977) for static analysis is built on Galois
 connections between concrete and abstract domains. The
@@ -15998,11 +16078,11 @@ Interface</h3>
 first-class value. Where a zipper gives you concrete navigation through
 a data structure, a lens specifies <em>how to focus</em> on a part
 without committing to a particular traversal:</p>
-<div class="sourceCode" id="cb479"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb479-1"><a href="#cb479-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;s, &#39;a) lens = {</span>
-<span id="cb479-2"><a href="#cb479-2" aria-hidden="true" tabindex="-1"></a>  get : &#39;s -&gt; &#39;a;</span>
-<span id="cb479-3"><a href="#cb479-3" aria-hidden="true" tabindex="-1"></a>  set : &#39;a -&gt; &#39;s -&gt; &#39;s;</span>
-<span id="cb479-4"><a href="#cb479-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb480"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb480-1"><a href="#cb480-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;s, &#39;a) lens = {</span>
+<span id="cb480-2"><a href="#cb480-2" aria-hidden="true" tabindex="-1"></a>  get : &#39;s -&gt; &#39;a;</span>
+<span id="cb480-3"><a href="#cb480-3" aria-hidden="true" tabindex="-1"></a>  set : &#39;a -&gt; &#39;s -&gt; &#39;s;</span>
+<span id="cb480-4"><a href="#cb480-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>Here <code>'s</code> is the “whole” type and <code>'a</code> is the
 “part” type. A lens must satisfy three laws:</p>
 <ol type="1">
@@ -16013,30 +16093,30 @@ what you set)</li>
 <li><strong>Set-Set</strong>: <code>set a' (set a s) = set a' s</code>
 (setting twice is setting once)</li>
 </ol>
-<div class="sourceCode" id="cb480"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb480-1"><a href="#cb480-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A record type with two lenses *)</span></span>
-<span id="cb480-2"><a href="#cb480-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> person = { name : <span class="dt">string</span>; age : <span class="dt">int</span> }</span>
-<span id="cb480-3"><a href="#cb480-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb480-4"><a href="#cb480-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> name_lens : (person, <span class="dt">string</span>) lens = {</span>
-<span id="cb480-5"><a href="#cb480-5" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> p -&gt; p.name);</span>
-<span id="cb480-6"><a href="#cb480-6" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> n p -&gt; { p <span class="kw">with</span> name = n });</span>
-<span id="cb480-7"><a href="#cb480-7" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb480-8"><a href="#cb480-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb480-9"><a href="#cb480-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> age_lens : (person, <span class="dt">int</span>) lens = {</span>
-<span id="cb480-10"><a href="#cb480-10" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> p -&gt; p.age);</span>
-<span id="cb480-11"><a href="#cb480-11" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> a p -&gt; { p <span class="kw">with</span> age = a });</span>
-<span id="cb480-12"><a href="#cb480-12" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb480-13"><a href="#cb480-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb480-14"><a href="#cb480-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify lens laws *)</span></span>
-<span id="cb480-15"><a href="#cb480-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> alice = { name = <span class="st">&quot;Alice&quot;</span>; age = <span class="dv">30</span> }</span>
-<span id="cb480-16"><a href="#cb480-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb480-17"><a href="#cb480-17" aria-hidden="true" tabindex="-1"></a><span class="co">(* Get-Set *)</span></span>
-<span id="cb480-18"><a href="#cb480-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.set (name_lens.get alice) alice = alice)</span>
-<span id="cb480-19"><a href="#cb480-19" aria-hidden="true" tabindex="-1"></a><span class="co">(* Set-Get *)</span></span>
-<span id="cb480-20"><a href="#cb480-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.get (name_lens.set <span class="st">&quot;Bob&quot;</span> alice) = <span class="st">&quot;Bob&quot;</span>)</span>
-<span id="cb480-21"><a href="#cb480-21" aria-hidden="true" tabindex="-1"></a><span class="co">(* Set-Set *)</span></span>
-<span id="cb480-22"><a href="#cb480-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.set <span class="st">&quot;Carol&quot;</span> (name_lens.set <span class="st">&quot;Bob&quot;</span> alice)</span>
-<span id="cb480-23"><a href="#cb480-23" aria-hidden="true" tabindex="-1"></a>               = name_lens.set <span class="st">&quot;Carol&quot;</span> alice)</span></code></pre></div>
+<div class="sourceCode" id="cb481"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb481-1"><a href="#cb481-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A record type with two lenses *)</span></span>
+<span id="cb481-2"><a href="#cb481-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> person = { name : <span class="dt">string</span>; age : <span class="dt">int</span> }</span>
+<span id="cb481-3"><a href="#cb481-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb481-4"><a href="#cb481-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> name_lens : (person, <span class="dt">string</span>) lens = {</span>
+<span id="cb481-5"><a href="#cb481-5" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> p -&gt; p.name);</span>
+<span id="cb481-6"><a href="#cb481-6" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> n p -&gt; { p <span class="kw">with</span> name = n });</span>
+<span id="cb481-7"><a href="#cb481-7" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb481-8"><a href="#cb481-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb481-9"><a href="#cb481-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> age_lens : (person, <span class="dt">int</span>) lens = {</span>
+<span id="cb481-10"><a href="#cb481-10" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> p -&gt; p.age);</span>
+<span id="cb481-11"><a href="#cb481-11" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> a p -&gt; { p <span class="kw">with</span> age = a });</span>
+<span id="cb481-12"><a href="#cb481-12" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb481-13"><a href="#cb481-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb481-14"><a href="#cb481-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify lens laws *)</span></span>
+<span id="cb481-15"><a href="#cb481-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> alice = { name = <span class="st">&quot;Alice&quot;</span>; age = <span class="dv">30</span> }</span>
+<span id="cb481-16"><a href="#cb481-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb481-17"><a href="#cb481-17" aria-hidden="true" tabindex="-1"></a><span class="co">(* Get-Set *)</span></span>
+<span id="cb481-18"><a href="#cb481-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.set (name_lens.get alice) alice = alice)</span>
+<span id="cb481-19"><a href="#cb481-19" aria-hidden="true" tabindex="-1"></a><span class="co">(* Set-Get *)</span></span>
+<span id="cb481-20"><a href="#cb481-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.get (name_lens.set <span class="st">&quot;Bob&quot;</span> alice) = <span class="st">&quot;Bob&quot;</span>)</span>
+<span id="cb481-21"><a href="#cb481-21" aria-hidden="true" tabindex="-1"></a><span class="co">(* Set-Set *)</span></span>
+<span id="cb481-22"><a href="#cb481-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (name_lens.set <span class="st">&quot;Carol&quot;</span> (name_lens.set <span class="st">&quot;Bob&quot;</span> alice)</span>
+<span id="cb481-23"><a href="#cb481-23" aria-hidden="true" tabindex="-1"></a>               = name_lens.set <span class="st">&quot;Carol&quot;</span> alice)</span></code></pre></div>
 <h3 id="lens-composition">Lens Composition</h3>
 <p>The power of lenses comes from composition. If you have a lens from
 <span class="math inline">S</span> to <span
@@ -16044,27 +16124,27 @@ class="math inline">A</span>, and a lens from <span
 class="math inline">A</span> to <span class="math inline">B</span>, you
 can compose them to get a lens from <span class="math inline">S</span>
 to <span class="math inline">B</span>:</p>
-<div class="sourceCode" id="cb481"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb481-1"><a href="#cb481-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> compose_lens (outer : (&#39;s, &#39;a) lens) (inner : (&#39;a, &#39;b) lens)</span>
-<span id="cb481-2"><a href="#cb481-2" aria-hidden="true" tabindex="-1"></a>  : (&#39;s, &#39;b) lens = {</span>
-<span id="cb481-3"><a href="#cb481-3" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> s -&gt; inner.get (outer.get s));</span>
-<span id="cb481-4"><a href="#cb481-4" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> b s -&gt; outer.set (inner.set b (outer.get s)) s);</span>
-<span id="cb481-5"><a href="#cb481-5" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb481-6"><a href="#cb481-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb481-7"><a href="#cb481-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* Nested record example *)</span></span>
-<span id="cb481-8"><a href="#cb481-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> company = { ceo : person; founded : <span class="dt">int</span> }</span>
-<span id="cb481-9"><a href="#cb481-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb481-10"><a href="#cb481-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ceo_lens : (company, person) lens = {</span>
-<span id="cb481-11"><a href="#cb481-11" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> c -&gt; c.ceo);</span>
-<span id="cb481-12"><a href="#cb481-12" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> p c -&gt; { c <span class="kw">with</span> ceo = p });</span>
-<span id="cb481-13"><a href="#cb481-13" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb481-14"><a href="#cb481-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb481-15"><a href="#cb481-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ceo_name : (company, <span class="dt">string</span>) lens = compose_lens ceo_lens name_lens</span>
-<span id="cb481-16"><a href="#cb481-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb481-17"><a href="#cb481-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> acme = { ceo = alice; founded = <span class="dv">2000</span> }</span>
-<span id="cb481-18"><a href="#cb481-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (ceo_name.get acme = <span class="st">&quot;Alice&quot;</span>)</span>
-<span id="cb481-19"><a href="#cb481-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> acme&#39; = ceo_name.set <span class="st">&quot;Bob&quot;</span> acme</span>
-<span id="cb481-20"><a href="#cb481-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (acme&#39;.ceo.name = <span class="st">&quot;Bob&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb482"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb482-1"><a href="#cb482-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> compose_lens (outer : (&#39;s, &#39;a) lens) (inner : (&#39;a, &#39;b) lens)</span>
+<span id="cb482-2"><a href="#cb482-2" aria-hidden="true" tabindex="-1"></a>  : (&#39;s, &#39;b) lens = {</span>
+<span id="cb482-3"><a href="#cb482-3" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> s -&gt; inner.get (outer.get s));</span>
+<span id="cb482-4"><a href="#cb482-4" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> b s -&gt; outer.set (inner.set b (outer.get s)) s);</span>
+<span id="cb482-5"><a href="#cb482-5" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb482-6"><a href="#cb482-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb482-7"><a href="#cb482-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* Nested record example *)</span></span>
+<span id="cb482-8"><a href="#cb482-8" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> company = { ceo : person; founded : <span class="dt">int</span> }</span>
+<span id="cb482-9"><a href="#cb482-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb482-10"><a href="#cb482-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ceo_lens : (company, person) lens = {</span>
+<span id="cb482-11"><a href="#cb482-11" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> c -&gt; c.ceo);</span>
+<span id="cb482-12"><a href="#cb482-12" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> p c -&gt; { c <span class="kw">with</span> ceo = p });</span>
+<span id="cb482-13"><a href="#cb482-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb482-14"><a href="#cb482-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb482-15"><a href="#cb482-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ceo_name : (company, <span class="dt">string</span>) lens = compose_lens ceo_lens name_lens</span>
+<span id="cb482-16"><a href="#cb482-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb482-17"><a href="#cb482-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> acme = { ceo = alice; founded = <span class="dv">2000</span> }</span>
+<span id="cb482-18"><a href="#cb482-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (ceo_name.get acme = <span class="st">&quot;Alice&quot;</span>)</span>
+<span id="cb482-19"><a href="#cb482-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> acme&#39; = ceo_name.set <span class="st">&quot;Bob&quot;</span> acme</span>
+<span id="cb482-20"><a href="#cb482-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (acme&#39;.ceo.name = <span class="st">&quot;Bob&quot;</span>)</span></code></pre></div>
 <h3 id="why-lenses-go-beyond-zippers">Why Lenses Go Beyond Zippers</h3>
 <p>Zippers work for <em>polynomial</em> types – types built from sums
 and products, where the algebraic derivative is well-defined. But what
@@ -16074,15 +16154,15 @@ about types involving <em>exponentials</em> (function types)?</p>
 Its derivative is not a simple algebraic expression – you cannot “take
 the derivative” of a function type the way you can a product type. Yet a
 lens can still focus on the head:</p>
-<div class="sourceCode" id="cb482"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb482-1"><a href="#cb482-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A stream has no algebraic derivative / concrete zipper, *)</span></span>
-<span id="cb482-2"><a href="#cb482-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* but we can still define lenses on it. *)</span></span>
-<span id="cb482-3"><a href="#cb482-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a stream = { head : &#39;a; tail : <span class="dt">unit</span> -&gt; &#39;a stream }</span>
-<span id="cb482-4"><a href="#cb482-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb482-5"><a href="#cb482-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> stream_head_lens = {</span>
-<span id="cb482-6"><a href="#cb482-6" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> s -&gt; s.head);</span>
-<span id="cb482-7"><a href="#cb482-7" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> a s -&gt; { s <span class="kw">with</span> head = a });</span>
-<span id="cb482-8"><a href="#cb482-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb483"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb483-1"><a href="#cb483-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* A stream has no algebraic derivative / concrete zipper, *)</span></span>
+<span id="cb483-2"><a href="#cb483-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* but we can still define lenses on it. *)</span></span>
+<span id="cb483-3"><a href="#cb483-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a stream = { head : &#39;a; tail : <span class="dt">unit</span> -&gt; &#39;a stream }</span>
+<span id="cb483-4"><a href="#cb483-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb483-5"><a href="#cb483-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> stream_head_lens = {</span>
+<span id="cb483-6"><a href="#cb483-6" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> s -&gt; s.head);</span>
+<span id="cb483-7"><a href="#cb483-7" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> a s -&gt; { s <span class="kw">with</span> head = a });</span>
+<span id="cb483-8"><a href="#cb483-8" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <p>This is the key advantage: lenses abstract over the
 <em>interface</em> to a subpart, regardless of whether the containing
 type has a concrete derivative.</p>
@@ -16092,27 +16172,27 @@ type has a concrete derivative.</p>
 prism for a constructor <code>C</code> of a sum type provides a way to
 try to extract the value (which may fail if the value uses a different
 constructor) and a way to inject a value:</p>
-<div class="sourceCode" id="cb483"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb483-1"><a href="#cb483-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;s, &#39;a) prism = {</span>
-<span id="cb483-2"><a href="#cb483-2" aria-hidden="true" tabindex="-1"></a>  preview : &#39;s -&gt; &#39;a <span class="dt">option</span>;     <span class="co">(* try to extract *)</span></span>
-<span id="cb483-3"><a href="#cb483-3" aria-hidden="true" tabindex="-1"></a>  review  : &#39;a -&gt; &#39;s;            <span class="co">(* inject *)</span></span>
-<span id="cb483-4"><a href="#cb483-4" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb483-5"><a href="#cb483-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb483-6"><a href="#cb483-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Prism for the Some constructor of option *)</span></span>
-<span id="cb483-7"><a href="#cb483-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> some_prism : (&#39;a <span class="dt">option</span>, &#39;a) prism = {</span>
-<span id="cb483-8"><a href="#cb483-8" aria-hidden="true" tabindex="-1"></a>  preview = <span class="dt">Fun</span>.id;</span>
-<span id="cb483-9"><a href="#cb483-9" aria-hidden="true" tabindex="-1"></a>  review = <span class="dt">Option</span>.some;</span>
-<span id="cb483-10"><a href="#cb483-10" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb483-11"><a href="#cb483-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb483-12"><a href="#cb483-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* Prism for the Ok constructor of result *)</span></span>
-<span id="cb483-13"><a href="#cb483-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ok_prism : ((&#39;a, &#39;e) <span class="dt">result</span>, &#39;a) prism = {</span>
-<span id="cb483-14"><a href="#cb483-14" aria-hidden="true" tabindex="-1"></a>  preview = Result.to_option;</span>
-<span id="cb483-15"><a href="#cb483-15" aria-hidden="true" tabindex="-1"></a>  review = Result.ok;</span>
-<span id="cb483-16"><a href="#cb483-16" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb483-17"><a href="#cb483-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb483-18"><a href="#cb483-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.preview (<span class="dt">Some</span> <span class="dv">42</span>) = <span class="dt">Some</span> <span class="dv">42</span>)</span>
-<span id="cb483-19"><a href="#cb483-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.preview <span class="dt">None</span> = <span class="dt">None</span>)</span>
-<span id="cb483-20"><a href="#cb483-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.review <span class="dv">42</span> = <span class="dt">Some</span> <span class="dv">42</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb484"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb484-1"><a href="#cb484-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;s, &#39;a) prism = {</span>
+<span id="cb484-2"><a href="#cb484-2" aria-hidden="true" tabindex="-1"></a>  preview : &#39;s -&gt; &#39;a <span class="dt">option</span>;     <span class="co">(* try to extract *)</span></span>
+<span id="cb484-3"><a href="#cb484-3" aria-hidden="true" tabindex="-1"></a>  review  : &#39;a -&gt; &#39;s;            <span class="co">(* inject *)</span></span>
+<span id="cb484-4"><a href="#cb484-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb484-5"><a href="#cb484-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb484-6"><a href="#cb484-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Prism for the Some constructor of option *)</span></span>
+<span id="cb484-7"><a href="#cb484-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> some_prism : (&#39;a <span class="dt">option</span>, &#39;a) prism = {</span>
+<span id="cb484-8"><a href="#cb484-8" aria-hidden="true" tabindex="-1"></a>  preview = <span class="dt">Fun</span>.id;</span>
+<span id="cb484-9"><a href="#cb484-9" aria-hidden="true" tabindex="-1"></a>  review = <span class="dt">Option</span>.some;</span>
+<span id="cb484-10"><a href="#cb484-10" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb484-11"><a href="#cb484-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb484-12"><a href="#cb484-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* Prism for the Ok constructor of result *)</span></span>
+<span id="cb484-13"><a href="#cb484-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> ok_prism : ((&#39;a, &#39;e) <span class="dt">result</span>, &#39;a) prism = {</span>
+<span id="cb484-14"><a href="#cb484-14" aria-hidden="true" tabindex="-1"></a>  preview = Result.to_option;</span>
+<span id="cb484-15"><a href="#cb484-15" aria-hidden="true" tabindex="-1"></a>  review = Result.ok;</span>
+<span id="cb484-16"><a href="#cb484-16" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb484-17"><a href="#cb484-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb484-18"><a href="#cb484-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.preview (<span class="dt">Some</span> <span class="dv">42</span>) = <span class="dt">Some</span> <span class="dv">42</span>)</span>
+<span id="cb484-19"><a href="#cb484-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.preview <span class="dt">None</span> = <span class="dt">None</span>)</span>
+<span id="cb484-20"><a href="#cb484-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (some_prism.review <span class="dv">42</span> = <span class="dt">Some</span> <span class="dv">42</span>)</span></code></pre></div>
 <p>This connects to Chapter 11’s expression problem: you want a
 structure with both good <em>lens access</em> (extending operations on
 products) and good <em>prism access</em> (extending constructors as
@@ -16127,29 +16207,55 @@ discovered by Twan van Laarhoven. A lens from <code>'s</code> to
 <p>This encoding composes with ordinary function composition, which is
 why lens libraries are so ergonomic. We will see in Section 12.8 that
 this is an instance of the <em>Yoneda lemma</em>.</p>
-<div class="sourceCode" id="cb484"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb484-1"><a href="#cb484-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Van Laarhoven lens using a concrete functor *)</span></span>
-<span id="cb484-2"><a href="#cb484-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* We pick the Identity and Const functors to recover get/set *)</span></span>
-<span id="cb484-3"><a href="#cb484-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb484-4"><a href="#cb484-4" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a identity = Id <span class="kw">of</span> &#39;a</span>
-<span id="cb484-5"><a href="#cb484-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> run_id (Id x) = x</span>
-<span id="cb484-6"><a href="#cb484-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb484-7"><a href="#cb484-7" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) const = Const <span class="kw">of</span> &#39;a</span>
-<span id="cb484-8"><a href="#cb484-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> get_const (Const x) = x</span>
-<span id="cb484-9"><a href="#cb484-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb484-10"><a href="#cb484-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* A van Laarhoven lens, specialized to Identity for &quot;set&quot; *)</span></span>
-<span id="cb484-11"><a href="#cb484-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> vl_set (l : (&#39;a -&gt; &#39;a identity) -&gt; &#39;s -&gt; &#39;s identity)</span>
-<span id="cb484-12"><a href="#cb484-12" aria-hidden="true" tabindex="-1"></a>    (a : &#39;a) (s : &#39;s) : &#39;s =</span>
-<span id="cb484-13"><a href="#cb484-13" aria-hidden="true" tabindex="-1"></a>  run_id (l (<span class="kw">fun</span> _ -&gt; Id a) s)</span>
-<span id="cb484-14"><a href="#cb484-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb484-15"><a href="#cb484-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Specialized to Const for &quot;get&quot; *)</span></span>
-<span id="cb484-16"><a href="#cb484-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> vl_get (l : (&#39;a -&gt; (&#39;a, &#39;b) const) -&gt; &#39;s -&gt; (&#39;a, &#39;c) const)</span>
-<span id="cb484-17"><a href="#cb484-17" aria-hidden="true" tabindex="-1"></a>    (s : &#39;s) : &#39;a =</span>
-<span id="cb484-18"><a href="#cb484-18" aria-hidden="true" tabindex="-1"></a>  get_const (l (<span class="kw">fun</span> a -&gt; Const a) s)</span>
-<span id="cb484-19"><a href="#cb484-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb484-20"><a href="#cb484-20" aria-hidden="true" tabindex="-1"></a><span class="co">(* Define a VL lens for the first component of a pair *)</span></span>
-<span id="cb484-21"><a href="#cb484-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> _fst f (a, b) = <span class="kw">let</span> fa = f a <span class="kw">in</span> <span class="kw">match</span> fa <span class="kw">with</span> Id a&#39; -&gt; Id (a&#39;, b)</span>
-<span id="cb484-22"><a href="#cb484-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (vl_set _fst <span class="dv">10</span> (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>) = (<span class="dv">10</span>, <span class="st">&quot;hello&quot;</span>))</span></code></pre></div>
+<p>In Haskell, a VL lens is a single rank-2 polymorphic definition:</p>
+<div class="sourceCode" id="cb485"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb485-1"><a href="#cb485-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Haskell-style Van Laarhoven lens (not valid OCaml): *)</span></span>
+<span id="cb485-2"><a href="#cb485-2" aria-hidden="true" tabindex="-1"></a><span class="co">(*   type Lens s a = forall f. Functor f =&gt; (a -&gt; f a) -&gt; s -&gt; f s   *)</span></span>
+<span id="cb485-3"><a href="#cb485-3" aria-hidden="true" tabindex="-1"></a><span class="co">(*   _fst :: Lens (a, b) a                                          *)</span></span>
+<span id="cb485-4"><a href="#cb485-4" aria-hidden="true" tabindex="-1"></a><span class="co">(*   _fst f (x, y) = fmap (\x&#39; -&gt; (x&#39;, y)) (f x)                   *)</span></span>
+<span id="cb485-5"><a href="#cb485-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* Instantiating f = Identity gives &quot;set&quot;; f = Const gives &quot;get&quot;.   *)</span></span></code></pre></div>
+<p>OCaml lacks higher-rank polymorphism, so a single definition cannot
+quantify over the functor <code>f</code>. We can recover a single lens
+definition by parameterizing over the functor with an OCaml module:</p>
+<div class="sourceCode" id="cb486"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb486-1"><a href="#cb486-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> <span class="kw">type</span> VL_FUNCTOR = <span class="kw">sig</span></span>
+<span id="cb486-2"><a href="#cb486-2" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t</span>
+<span id="cb486-3"><a href="#cb486-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">val</span> fmap : (&#39;a -&gt; &#39;b) -&gt; &#39;a t -&gt; &#39;b t</span>
+<span id="cb486-4"><a href="#cb486-4" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb486-5"><a href="#cb486-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-6"><a href="#cb486-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* One definition of the lens logic, parameterized by the functor: *)</span></span>
+<span id="cb486-7"><a href="#cb486-7" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> VL_Fst (F : VL_FUNCTOR) = <span class="kw">struct</span></span>
+<span id="cb486-8"><a href="#cb486-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> _fst (f : &#39;a -&gt; &#39;a F.t) (x, y) : (_ * _) F.t =</span>
+<span id="cb486-9"><a href="#cb486-9" aria-hidden="true" tabindex="-1"></a>    F.fmap (<span class="kw">fun</span> x&#39; -&gt; (x&#39;, y)) (f x)</span>
+<span id="cb486-10"><a href="#cb486-10" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb486-11"><a href="#cb486-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-12"><a href="#cb486-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* Identity functor -- instantiate for &quot;set&quot;: *)</span></span>
+<span id="cb486-13"><a href="#cb486-13" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> IdF : VL_FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = &#39;a = <span class="kw">struct</span></span>
+<span id="cb486-14"><a href="#cb486-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = &#39;a</span>
+<span id="cb486-15"><a href="#cb486-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fmap f x = f x</span>
+<span id="cb486-16"><a href="#cb486-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb486-17"><a href="#cb486-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-18"><a href="#cb486-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Const functor -- instantiate for &quot;get&quot;: *)</span></span>
+<span id="cb486-19"><a href="#cb486-19" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ConstF (T : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) :</span>
+<span id="cb486-20"><a href="#cb486-20" aria-hidden="true" tabindex="-1"></a>  VL_FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = T.t = <span class="kw">struct</span></span>
+<span id="cb486-21"><a href="#cb486-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = T.t</span>
+<span id="cb486-22"><a href="#cb486-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fmap _ x = x</span>
+<span id="cb486-23"><a href="#cb486-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb486-24"><a href="#cb486-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-25"><a href="#cb486-25" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstSet = VL_Fst(IdF)</span>
+<span id="cb486-26"><a href="#cb486-26" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstGet = VL_Fst(ConstF(<span class="kw">struct</span> <span class="kw">type</span> t = <span class="dt">int</span> <span class="kw">end</span>))</span>
+<span id="cb486-27"><a href="#cb486-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-28"><a href="#cb486-28" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstSet._fst (<span class="kw">fun</span> _ -&gt; <span class="dv">10</span>) (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>) = (<span class="dv">10</span>, <span class="st">&quot;hello&quot;</span>))</span>
+<span id="cb486-29"><a href="#cb486-29" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstGet._fst (<span class="kw">fun</span> a -&gt; a) (<span class="dv">42</span>, <span class="st">&quot;world&quot;</span>) = <span class="dv">42</span>)</span></code></pre></div>
+<p>The lens logic lives in a single place – <code>VL_Fst._fst</code> –
+and both get and set are obtained by choosing the functor. The set
+direction (<code>FstSet._fst</code>) is fully polymorphic in the pair
+types. The get direction requires fixing the focused type when
+instantiating <code>ConstF</code> (here, <code>int</code>), a limitation
+of OCaml’s module system compared to Haskell’s rank-2 types. This is
+OCaml’s module-level analogue of Haskell’s rank-2 polymorphism. The key
+insight remains: Van Laarhoven lenses compose with ordinary function
+composition.</p>
 <h2 id="the-yoneda-lemma">12.8 The Yoneda Lemma</h2>
 <p>The Yoneda lemma is one of the deepest results in category theory. It
 says:</p>
@@ -16163,25 +16269,25 @@ with elements of <span class="math inline">F(A)</span>.</p>
 <p>In programming terms: a polymorphic function
 <code>forall b. (a -&gt; b) -&gt; f b</code> is the same as a value of
 type <code>f a</code>. You can always convert between the two:</p>
-<div class="sourceCode" id="cb485"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb485-1"><a href="#cb485-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The Yoneda lemma in OCaml: *)</span></span>
-<span id="cb485-2"><a href="#cb485-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* A value of type &#39;a F.t is equivalent to *)</span></span>
-<span id="cb485-3"><a href="#cb485-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* a polymorphic function (forall &#39;b. (&#39;a -&gt; &#39;b) -&gt; &#39;b F.t) *)</span></span>
-<span id="cb485-4"><a href="#cb485-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb485-5"><a href="#cb485-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* Forward direction: given f a, produce the natural transformation *)</span></span>
-<span id="cb485-6"><a href="#cb485-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> yoneda_fwd (map : (&#39;a -&gt; &#39;b) -&gt; &#39;a <span class="dt">list</span> -&gt; &#39;b <span class="dt">list</span>)</span>
-<span id="cb485-7"><a href="#cb485-7" aria-hidden="true" tabindex="-1"></a>    (x : &#39;a <span class="dt">list</span>) : (&#39;a -&gt; &#39;b) -&gt; &#39;b <span class="dt">list</span> =</span>
-<span id="cb485-8"><a href="#cb485-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> f -&gt; map f x</span>
-<span id="cb485-9"><a href="#cb485-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb485-10"><a href="#cb485-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Backward direction: given the nat trans, recover f a *)</span></span>
-<span id="cb485-11"><a href="#cb485-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> yoneda_bwd (phi : (&#39;a -&gt; &#39;a) -&gt; &#39;a <span class="dt">list</span>) : &#39;a <span class="dt">list</span> =</span>
-<span id="cb485-12"><a href="#cb485-12" aria-hidden="true" tabindex="-1"></a>  phi <span class="dt">Fun</span>.id    <span class="co">(* apply to the identity! *)</span></span>
-<span id="cb485-13"><a href="#cb485-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb485-14"><a href="#cb485-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Round-trip: *)</span></span>
-<span id="cb485-15"><a href="#cb485-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> original = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span>
-<span id="cb485-16"><a href="#cb485-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> phi = yoneda_fwd <span class="dt">List</span>.map original</span>
-<span id="cb485-17"><a href="#cb485-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> recovered = yoneda_bwd phi</span>
-<span id="cb485-18"><a href="#cb485-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (recovered = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb487"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb487-1"><a href="#cb487-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The Yoneda lemma in OCaml: *)</span></span>
+<span id="cb487-2"><a href="#cb487-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* A value of type &#39;a F.t is equivalent to *)</span></span>
+<span id="cb487-3"><a href="#cb487-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* a polymorphic function (forall &#39;b. (&#39;a -&gt; &#39;b) -&gt; &#39;b F.t) *)</span></span>
+<span id="cb487-4"><a href="#cb487-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb487-5"><a href="#cb487-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* Forward direction: given f a, produce the natural transformation *)</span></span>
+<span id="cb487-6"><a href="#cb487-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> yoneda_fwd (map : (&#39;a -&gt; &#39;b) -&gt; &#39;a <span class="dt">list</span> -&gt; &#39;b <span class="dt">list</span>)</span>
+<span id="cb487-7"><a href="#cb487-7" aria-hidden="true" tabindex="-1"></a>    (x : &#39;a <span class="dt">list</span>) : (&#39;a -&gt; &#39;b) -&gt; &#39;b <span class="dt">list</span> =</span>
+<span id="cb487-8"><a href="#cb487-8" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> f -&gt; map f x</span>
+<span id="cb487-9"><a href="#cb487-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb487-10"><a href="#cb487-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Backward direction: given the nat trans, recover f a *)</span></span>
+<span id="cb487-11"><a href="#cb487-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> yoneda_bwd (phi : (&#39;a -&gt; &#39;a) -&gt; &#39;a <span class="dt">list</span>) : &#39;a <span class="dt">list</span> =</span>
+<span id="cb487-12"><a href="#cb487-12" aria-hidden="true" tabindex="-1"></a>  phi <span class="dt">Fun</span>.id    <span class="co">(* apply to the identity! *)</span></span>
+<span id="cb487-13"><a href="#cb487-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb487-14"><a href="#cb487-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Round-trip: *)</span></span>
+<span id="cb487-15"><a href="#cb487-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> original = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>]</span>
+<span id="cb487-16"><a href="#cb487-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> phi = yoneda_fwd <span class="dt">List</span>.map original</span>
+<span id="cb487-17"><a href="#cb487-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> recovered = yoneda_bwd phi</span>
+<span id="cb487-18"><a href="#cb487-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (recovered = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>])</span></code></pre></div>
 <h3 id="the-cps-transform">The CPS Transform</h3>
 <p>The most common programming application of Yoneda is the
 <strong>continuation-passing style</strong> (CPS) transform. For the
@@ -16191,36 +16297,36 @@ identity functor, Yoneda gives:</p>
 <p>That is: a value of type <code>'a</code> is the same as a polymorphic
 function <code>forall 'b. ('a -&gt; 'b) -&gt; 'b</code>. This is exactly
 CPS:</p>
-<div class="sourceCode" id="cb486"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb486-1"><a href="#cb486-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* CPS: a value &#39;a ≅ (forall &#39;b. (&#39;a -&gt; &#39;b) -&gt; &#39;b) *)</span></span>
-<span id="cb486-2"><a href="#cb486-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> to_cps (x : &#39;a) : (&#39;a -&gt; &#39;b) -&gt; &#39;b = <span class="kw">fun</span> k -&gt; k x</span>
-<span id="cb486-3"><a href="#cb486-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> from_cps (f : (&#39;a -&gt; &#39;a) -&gt; &#39;a) : &#39;a = f <span class="dt">Fun</span>.id</span>
-<span id="cb486-4"><a href="#cb486-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb486-5"><a href="#cb486-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (from_cps (to_cps <span class="dv">42</span>) = <span class="dv">42</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb488"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb488-1"><a href="#cb488-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* CPS: a value &#39;a ≅ (forall &#39;b. (&#39;a -&gt; &#39;b) -&gt; &#39;b) *)</span></span>
+<span id="cb488-2"><a href="#cb488-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> to_cps (x : &#39;a) : (&#39;a -&gt; &#39;b) -&gt; &#39;b = <span class="kw">fun</span> k -&gt; k x</span>
+<span id="cb488-3"><a href="#cb488-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> from_cps (f : (&#39;a -&gt; &#39;a) -&gt; &#39;a) : &#39;a = f <span class="dt">Fun</span>.id</span>
+<span id="cb488-4"><a href="#cb488-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb488-5"><a href="#cb488-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (from_cps (to_cps <span class="dv">42</span>) = <span class="dv">42</span>)</span></code></pre></div>
 <h3 id="difference-lists">Difference Lists</h3>
 <p>Another Yoneda application: <strong>difference lists</strong>. A list
 <code>xs</code> can be represented as the function
 <code>fun ys -&gt; xs @ ys</code> – that is, as “the operation of
 prepending <code>xs</code>”. This is the Yoneda embedding for the list
 monoid:</p>
-<div class="sourceCode" id="cb487"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb487-1"><a href="#cb487-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Difference lists: represent a list as a function *)</span></span>
-<span id="cb487-2"><a href="#cb487-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a dlist = &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">list</span></span>
-<span id="cb487-3"><a href="#cb487-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb487-4"><a href="#cb487-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_empty : &#39;a dlist = <span class="dt">Fun</span>.id</span>
-<span id="cb487-5"><a href="#cb487-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_singleton (x : &#39;a) : &#39;a dlist = <span class="kw">fun</span> rest -&gt; x :: rest</span>
-<span id="cb487-6"><a href="#cb487-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_append (f : &#39;a dlist) (g : &#39;a dlist) : &#39;a dlist =</span>
-<span id="cb487-7"><a href="#cb487-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> rest -&gt; f (g rest)    <span class="co">(* O(1) append! *)</span></span>
-<span id="cb487-8"><a href="#cb487-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_to_list (f : &#39;a dlist) : &#39;a <span class="dt">list</span> = f []</span>
-<span id="cb487-9"><a href="#cb487-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb487-10"><a href="#cb487-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Building a list incrementally with O(1) append *)</span></span>
-<span id="cb487-11"><a href="#cb487-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="dt">result</span> =</span>
-<span id="cb487-12"><a href="#cb487-12" aria-hidden="true" tabindex="-1"></a>  dlist_append</span>
-<span id="cb487-13"><a href="#cb487-13" aria-hidden="true" tabindex="-1"></a>    (dlist_append (dlist_singleton <span class="dv">1</span>) (dlist_singleton <span class="dv">2</span>))</span>
-<span id="cb487-14"><a href="#cb487-14" aria-hidden="true" tabindex="-1"></a>    (dlist_singleton <span class="dv">3</span>)</span>
-<span id="cb487-15"><a href="#cb487-15" aria-hidden="true" tabindex="-1"></a>  |&gt; dlist_to_list</span>
-<span id="cb487-16"><a href="#cb487-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb487-17"><a href="#cb487-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">result</span> = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>])</span></code></pre></div>
+<div class="sourceCode" id="cb489"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb489-1"><a href="#cb489-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Difference lists: represent a list as a function *)</span></span>
+<span id="cb489-2"><a href="#cb489-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a dlist = &#39;a <span class="dt">list</span> -&gt; &#39;a <span class="dt">list</span></span>
+<span id="cb489-3"><a href="#cb489-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb489-4"><a href="#cb489-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_empty : &#39;a dlist = <span class="dt">Fun</span>.id</span>
+<span id="cb489-5"><a href="#cb489-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_singleton (x : &#39;a) : &#39;a dlist = <span class="kw">fun</span> rest -&gt; x :: rest</span>
+<span id="cb489-6"><a href="#cb489-6" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_append (f : &#39;a dlist) (g : &#39;a dlist) : &#39;a dlist =</span>
+<span id="cb489-7"><a href="#cb489-7" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> rest -&gt; f (g rest)    <span class="co">(* O(1) append! *)</span></span>
+<span id="cb489-8"><a href="#cb489-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> dlist_to_list (f : &#39;a dlist) : &#39;a <span class="dt">list</span> = f []</span>
+<span id="cb489-9"><a href="#cb489-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb489-10"><a href="#cb489-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Building a list incrementally with O(1) append *)</span></span>
+<span id="cb489-11"><a href="#cb489-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="dt">result</span> =</span>
+<span id="cb489-12"><a href="#cb489-12" aria-hidden="true" tabindex="-1"></a>  dlist_append</span>
+<span id="cb489-13"><a href="#cb489-13" aria-hidden="true" tabindex="-1"></a>    (dlist_append (dlist_singleton <span class="dv">1</span>) (dlist_singleton <span class="dv">2</span>))</span>
+<span id="cb489-14"><a href="#cb489-14" aria-hidden="true" tabindex="-1"></a>    (dlist_singleton <span class="dv">3</span>)</span>
+<span id="cb489-15"><a href="#cb489-15" aria-hidden="true" tabindex="-1"></a>  |&gt; dlist_to_list</span>
+<span id="cb489-16"><a href="#cb489-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb489-17"><a href="#cb489-17" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (<span class="dt">result</span> = [<span class="dv">1</span>; <span class="dv">2</span>; <span class="dv">3</span>])</span></code></pre></div>
 <p>Difference lists turn <span class="math inline">O(n)</span> append
 into <span class="math inline">O(1)</span> by delaying the actual
 construction. The Yoneda lemma guarantees no information is lost.</p>
@@ -16230,32 +16336,32 @@ monad</strong>: given a monad <span class="math inline">M</span>, the
 type <code>forall b. (a -&gt; m b) -&gt; m b</code> is a monad (the
 “Codensity monad of <span class="math inline">M</span>”) that often has
 better performance for left-associated binds:</p>
-<div class="sourceCode" id="cb488"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb488-1"><a href="#cb488-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The Codensity monad improves left-associated binds *)</span></span>
-<span id="cb488-2"><a href="#cb488-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Codensity M a = forall b. (a -&gt; M b) -&gt; M b *)</span></span>
-<span id="cb488-3"><a href="#cb488-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-4"><a href="#cb488-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* For lists, Codensity gives efficient left-to-right construction *)</span></span>
-<span id="cb488-5"><a href="#cb488-5" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a clist = { run : &#39;b. (&#39;a -&gt; &#39;b <span class="dt">list</span>) -&gt; &#39;b <span class="dt">list</span> }</span>
-<span id="cb488-6"><a href="#cb488-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-7"><a href="#cb488-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> creturn (x : &#39;a) : &#39;a clist =</span>
-<span id="cb488-8"><a href="#cb488-8" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; k x }</span>
-<span id="cb488-9"><a href="#cb488-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-10"><a href="#cb488-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cbind (m : &#39;a clist) (f : &#39;a -&gt; &#39;b clist) : &#39;b clist =</span>
-<span id="cb488-11"><a href="#cb488-11" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; m.run (<span class="kw">fun</span> a -&gt; (f a).run k) }</span>
-<span id="cb488-12"><a href="#cb488-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-13"><a href="#cb488-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> clift (xs : &#39;a <span class="dt">list</span>) : &#39;a clist =</span>
-<span id="cb488-14"><a href="#cb488-14" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; <span class="dt">List</span>.concat_map k xs }</span>
-<span id="cb488-15"><a href="#cb488-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-16"><a href="#cb488-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> crun (m : &#39;a clist) : &#39;a <span class="dt">list</span> = m.run (<span class="kw">fun</span> x -&gt; [x])</span>
-<span id="cb488-17"><a href="#cb488-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-18"><a href="#cb488-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: all pairs from two lists *)</span></span>
-<span id="cb488-19"><a href="#cb488-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pairs xs ys =</span>
-<span id="cb488-20"><a href="#cb488-20" aria-hidden="true" tabindex="-1"></a>  crun (cbind (clift xs) (<span class="kw">fun</span> x -&gt;</span>
-<span id="cb488-21"><a href="#cb488-21" aria-hidden="true" tabindex="-1"></a>        cbind (clift ys) (<span class="kw">fun</span> y -&gt;</span>
-<span id="cb488-22"><a href="#cb488-22" aria-hidden="true" tabindex="-1"></a>        creturn (x, y))))</span>
-<span id="cb488-23"><a href="#cb488-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb488-24"><a href="#cb488-24" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (pairs [<span class="dv">1</span>;<span class="dv">2</span>] [<span class="st">&quot;a&quot;</span>;<span class="st">&quot;b&quot;</span>]</span>
-<span id="cb488-25"><a href="#cb488-25" aria-hidden="true" tabindex="-1"></a>               = [(<span class="dv">1</span>,<span class="st">&quot;a&quot;</span>); (<span class="dv">1</span>,<span class="st">&quot;b&quot;</span>); (<span class="dv">2</span>,<span class="st">&quot;a&quot;</span>); (<span class="dv">2</span>,<span class="st">&quot;b&quot;</span>)])</span></code></pre></div>
+<div class="sourceCode" id="cb490"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb490-1"><a href="#cb490-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* The Codensity monad improves left-associated binds *)</span></span>
+<span id="cb490-2"><a href="#cb490-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* Codensity M a = forall b. (a -&gt; M b) -&gt; M b *)</span></span>
+<span id="cb490-3"><a href="#cb490-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-4"><a href="#cb490-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* For lists, Codensity gives efficient left-to-right construction *)</span></span>
+<span id="cb490-5"><a href="#cb490-5" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a clist = { run : &#39;b. (&#39;a -&gt; &#39;b <span class="dt">list</span>) -&gt; &#39;b <span class="dt">list</span> }</span>
+<span id="cb490-6"><a href="#cb490-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-7"><a href="#cb490-7" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> creturn (x : &#39;a) : &#39;a clist =</span>
+<span id="cb490-8"><a href="#cb490-8" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; k x }</span>
+<span id="cb490-9"><a href="#cb490-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-10"><a href="#cb490-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> cbind (m : &#39;a clist) (f : &#39;a -&gt; &#39;b clist) : &#39;b clist =</span>
+<span id="cb490-11"><a href="#cb490-11" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; m.run (<span class="kw">fun</span> a -&gt; (f a).run k) }</span>
+<span id="cb490-12"><a href="#cb490-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-13"><a href="#cb490-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> clift (xs : &#39;a <span class="dt">list</span>) : &#39;a clist =</span>
+<span id="cb490-14"><a href="#cb490-14" aria-hidden="true" tabindex="-1"></a>  { run = <span class="kw">fun</span> k -&gt; <span class="dt">List</span>.concat_map k xs }</span>
+<span id="cb490-15"><a href="#cb490-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-16"><a href="#cb490-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> crun (m : &#39;a clist) : &#39;a <span class="dt">list</span> = m.run (<span class="kw">fun</span> x -&gt; [x])</span>
+<span id="cb490-17"><a href="#cb490-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-18"><a href="#cb490-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Example: all pairs from two lists *)</span></span>
+<span id="cb490-19"><a href="#cb490-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> pairs xs ys =</span>
+<span id="cb490-20"><a href="#cb490-20" aria-hidden="true" tabindex="-1"></a>  crun (cbind (clift xs) (<span class="kw">fun</span> x -&gt;</span>
+<span id="cb490-21"><a href="#cb490-21" aria-hidden="true" tabindex="-1"></a>        cbind (clift ys) (<span class="kw">fun</span> y -&gt;</span>
+<span id="cb490-22"><a href="#cb490-22" aria-hidden="true" tabindex="-1"></a>        creturn (x, y))))</span>
+<span id="cb490-23"><a href="#cb490-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb490-24"><a href="#cb490-24" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (pairs [<span class="dv">1</span>;<span class="dv">2</span>] [<span class="st">&quot;a&quot;</span>;<span class="st">&quot;b&quot;</span>]</span>
+<span id="cb490-25"><a href="#cb490-25" aria-hidden="true" tabindex="-1"></a>               = [(<span class="dv">1</span>,<span class="st">&quot;a&quot;</span>); (<span class="dv">1</span>,<span class="st">&quot;b&quot;</span>); (<span class="dv">2</span>,<span class="st">&quot;a&quot;</span>); (<span class="dv">2</span>,<span class="st">&quot;b&quot;</span>)])</span></code></pre></div>
 <p>The deep insight: every object in a category is completely determined
 by how other objects map <em>into</em> it. The representable functors
 <span class="math inline">\text{Hom}(A, -)</span> form a “coordinate
@@ -16303,11 +16409,37 @@ Transformations</h3>
 the type index</em> – it must work uniformly for any extension of the
 base type. This is exactly the requirement that the operation be a
 <strong>natural transformation</strong>:</p>
-<div class="sourceCode" id="cb489"><pre
-class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb489-1"><a href="#cb489-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Each eval function has a type like: *)</span></span>
-<span id="cb489-2"><a href="#cb489-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* val eval : [&gt; `Var of string | `Num of int ] -&gt; value *)</span></span>
-<span id="cb489-3"><a href="#cb489-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* The [&gt; ...] means it works for any extension -- *)</span></span>
-<span id="cb489-4"><a href="#cb489-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* this is naturality in the row variable. *)</span></span></code></pre></div>
+<div class="sourceCode" id="cb491"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb491-1"><a href="#cb491-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Each eval function has a type like: *)</span></span>
+<span id="cb491-2"><a href="#cb491-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* val eval : [&gt; `Var of string | `Num of int ] -&gt; value *)</span></span>
+<span id="cb491-3"><a href="#cb491-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* The [&gt; ...] means it works for any extension -- *)</span></span>
+<span id="cb491-4"><a href="#cb491-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* this is naturality in the row variable. *)</span></span></code></pre></div>
+<p>We can see the naturality square in action with polymorphic variants.
+Base operations are reused unchanged when the type is extended:</p>
+<div class="sourceCode" id="cb492"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb492-1"><a href="#cb492-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Base language with eval and show: *)</span></span>
+<span id="cb492-2"><a href="#cb492-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> eval_base = <span class="kw">function</span> `Num n -&gt; n | `Neg n -&gt; -n</span>
+<span id="cb492-3"><a href="#cb492-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> show_base = <span class="kw">function</span></span>
+<span id="cb492-4"><a href="#cb492-4" aria-hidden="true" tabindex="-1"></a>  | `Num n -&gt; <span class="dt">string_of_int</span> n</span>
+<span id="cb492-5"><a href="#cb492-5" aria-hidden="true" tabindex="-1"></a>  | `Neg n -&gt; <span class="st">&quot;-&quot;</span> ^ <span class="dt">string_of_int</span> n</span>
+<span id="cb492-6"><a href="#cb492-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb492-7"><a href="#cb492-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* Extended language -- base cases reuse the base operations: *)</span></span>
+<span id="cb492-8"><a href="#cb492-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> eval_ext = <span class="kw">function</span></span>
+<span id="cb492-9"><a href="#cb492-9" aria-hidden="true" tabindex="-1"></a>  | (`Num _ | `Neg _) <span class="kw">as</span> e -&gt; eval_base e    <span class="co">(* reuse *)</span></span>
+<span id="cb492-10"><a href="#cb492-10" aria-hidden="true" tabindex="-1"></a>  | `Add (a, b) -&gt; a + b</span>
+<span id="cb492-11"><a href="#cb492-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> show_ext = <span class="kw">function</span></span>
+<span id="cb492-12"><a href="#cb492-12" aria-hidden="true" tabindex="-1"></a>  | (`Num _ | `Neg _) <span class="kw">as</span> e -&gt; show_base e    <span class="co">(* reuse *)</span></span>
+<span id="cb492-13"><a href="#cb492-13" aria-hidden="true" tabindex="-1"></a>  | `Add (a, b) -&gt; <span class="dt">string_of_int</span> a ^ <span class="st">&quot;+&quot;</span> ^ <span class="dt">string_of_int</span> b</span>
+<span id="cb492-14"><a href="#cb492-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb492-15"><a href="#cb492-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* The naturality square commutes: embedding a base expression *)</span></span>
+<span id="cb492-16"><a href="#cb492-16" aria-hidden="true" tabindex="-1"></a><span class="co">(* into the extended type and then evaluating gives the same   *)</span></span>
+<span id="cb492-17"><a href="#cb492-17" aria-hidden="true" tabindex="-1"></a><span class="co">(* result as evaluating in the base language directly.         *)</span></span>
+<span id="cb492-18"><a href="#cb492-18" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e1 = `Num <span class="dv">5</span></span>
+<span id="cb492-19"><a href="#cb492-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> e2 = `Neg <span class="dv">3</span></span>
+<span id="cb492-20"><a href="#cb492-20" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (eval_ext e1 = eval_base e1)</span>
+<span id="cb492-21"><a href="#cb492-21" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (eval_ext e2 = eval_base e2)</span>
+<span id="cb492-22"><a href="#cb492-22" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (show_ext e1 = show_base e1)</span>
+<span id="cb492-23"><a href="#cb492-23" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (show_ext e2 = show_base e2)</span></code></pre></div>
 <p>The dynamic failure when no handler covers a constructor (e.g., in
 the extensible GADT approach from the OCaml discussion thread) is the
 <em>colimit not existing</em>: we tried to form a coproduct of partial
@@ -16402,6 +16534,26 @@ are simultaneously: - <strong>Proving</strong> the logical tautology
 <strong>Programming</strong> the swap function on pairs -
 <strong>Constructing</strong> a morphism <span class="math inline">A
 \times B \to B \times A</span> in a CCC</p>
+<div class="sourceCode" id="cb493"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb493-1"><a href="#cb493-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Programs that are simultaneously logical proofs *)</span></span>
+<span id="cb493-2"><a href="#cb493-2" aria-hidden="true" tabindex="-1"></a><span class="co">(* and morphisms in a cartesian closed category:   *)</span></span>
+<span id="cb493-3"><a href="#cb493-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb493-4"><a href="#cb493-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* A ∧ B ⊃ B ∧ A  (commutativity of conjunction) *)</span></span>
+<span id="cb493-5"><a href="#cb493-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> comm : &#39;a * &#39;b -&gt; &#39;b * &#39;a = <span class="kw">fun</span> (x, y) -&gt; (y, x)</span>
+<span id="cb493-6"><a href="#cb493-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb493-7"><a href="#cb493-7" aria-hidden="true" tabindex="-1"></a><span class="co">(* A ⊃ B ⊃ A  (weakening / the K combinator) *)</span></span>
+<span id="cb493-8"><a href="#cb493-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> weaken : &#39;a -&gt; &#39;b -&gt; &#39;a = <span class="kw">fun</span> a _b -&gt; a</span>
+<span id="cb493-9"><a href="#cb493-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb493-10"><a href="#cb493-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* (A ⊃ B ⊃ C) ⊃ (A ∧ B ⊃ C)  (flip of currying) *)</span></span>
+<span id="cb493-11"><a href="#cb493-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> uncurry&#39; : (&#39;a -&gt; &#39;b -&gt; &#39;c) -&gt; &#39;a * &#39;b -&gt; &#39;c =</span>
+<span id="cb493-12"><a href="#cb493-12" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> f (a, b) -&gt; f a b</span>
+<span id="cb493-13"><a href="#cb493-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb493-14"><a href="#cb493-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* (A ⊃ B) ⊃ (B ⊃ C) ⊃ (A ⊃ C)  (transitivity = composition) *)</span></span>
+<span id="cb493-15"><a href="#cb493-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> trans : (&#39;a -&gt; &#39;b) -&gt; (&#39;b -&gt; &#39;c) -&gt; &#39;a -&gt; &#39;c =</span>
+<span id="cb493-16"><a href="#cb493-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">fun</span> ab bc a -&gt; bc (ab a)</span>
+<span id="cb493-17"><a href="#cb493-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb493-18"><a href="#cb493-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* trans is compose with arguments reordered: *)</span></span>
+<span id="cb493-19"><a href="#cb493-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (trans f g <span class="dv">3</span> = compose g f <span class="dv">3</span>)</span></code></pre></div>
 <h3 id="negation-and-continuations">Negation and Continuations</h3>
 <p>Classical logic allows double negation elimination: <span
 class="math inline">\neg\neg A \Rightarrow A</span>. In the Curry–Howard
@@ -16449,25 +16601,83 @@ mechanism. The round-trip <span class="math inline">\text{reflect} \circ
 <em>canonical form</em>, not necessarily the original.</p>
 <h2 id="exercises-11">12.11 Exercises</h2>
 <ol type="1">
-<li><p><strong>Category laws.</strong> Define a <code>CATEGORY</code>
+<li><strong>Category laws.</strong> Define a <code>CATEGORY</code>
 instance for the <code>option</code> type, where
 <code>('a, 'b) hom = 'a -&gt; 'b option</code> (the Kleisli category of
 <code>Option</code>). Implement <code>id</code> and
 <code>compose</code>, and verify the three category laws on test cases.
 (Hint: this is the composition you get from
-<code>Option.bind</code>.)</p></li>
-<li><p><strong>Free category.</strong> Extend the pipeline example from
+<code>Option.bind</code>.)</li>
+</ol>
+<div class="sourceCode" id="cb494"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb494-1"><a href="#cb494-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Starter code for Exercise 1 *)</span></span>
+<span id="cb494-2"><a href="#cb494-2" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> KleisliOption <span class="co">(* : CATEGORY ... *)</span> = <span class="kw">struct</span></span>
+<span id="cb494-3"><a href="#cb494-3" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> (&#39;a, &#39;b) hom = &#39;a -&gt; &#39;b <span class="dt">option</span></span>
+<span id="cb494-4"><a href="#cb494-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> id x = <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span></span>
+<span id="cb494-5"><a href="#cb494-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> compose g f x = <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span></span>
+<span id="cb494-6"><a href="#cb494-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb494-7"><a href="#cb494-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb494-8"><a href="#cb494-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Test the laws with these morphisms: *)</span></span>
+<span id="cb494-9"><a href="#cb494-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f x = <span class="kw">if</span> x &gt; <span class="dv">0</span> <span class="kw">then</span> <span class="dt">Some</span> (x + <span class="dv">1</span>) <span class="kw">else</span> <span class="dt">None</span></span>
+<span id="cb494-10"><a href="#cb494-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> g x = <span class="kw">if</span> x &lt; <span class="dv">100</span> <span class="kw">then</span> <span class="dt">Some</span> (x * <span class="dv">2</span>) <span class="kw">else</span> <span class="dt">None</span></span>
+<span id="cb494-11"><a href="#cb494-11" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> x = <span class="dv">5</span></span>
+<span id="cb494-12"><a href="#cb494-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb494-13"><a href="#cb494-13" aria-hidden="true" tabindex="-1"></a><span class="co">(* Left identity:  compose id f x = f x *)</span></span>
+<span id="cb494-14"><a href="#cb494-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Right identity: compose f id x = f x *)</span></span>
+<span id="cb494-15"><a href="#cb494-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Associativity:  compose h (compose g f) x</span></span>
+<span id="cb494-16"><a href="#cb494-16" aria-hidden="true" tabindex="-1"></a><span class="co">                 = compose (compose h g) f x *)</span></span></code></pre></div>
+<ol start="2" type="1">
+<li><strong>Free category.</strong> Extend the pipeline example from
 Section 12.3 with two new stages (e.g.,
 <code>Uppercase : (string, string) stage</code> and
 <code>Length : (string, int) stage</code>). Build three distinct paths
 through the graph and interpret each one. Verify that
 <code>concat</code> is associative:
-<code>interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x</code>.</p></li>
-<li><p><strong>Functor laws.</strong> Write a functor instance for
+<code>interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x</code>.</li>
+</ol>
+<div class="sourceCode" id="cb495"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb495-1"><a href="#cb495-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Starter code for Exercise 2 *)</span></span>
+<span id="cb495-2"><a href="#cb495-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> (&#39;a, &#39;b) stage =</span>
+<span id="cb495-3"><a href="#cb495-3" aria-hidden="true" tabindex="-1"></a>  | Parse     : (<span class="dt">string</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
+<span id="cb495-4"><a href="#cb495-4" aria-hidden="true" tabindex="-1"></a>  | Filter    : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">string</span> <span class="dt">list</span>) stage</span>
+<span id="cb495-5"><a href="#cb495-5" aria-hidden="true" tabindex="-1"></a>  | Count     : (<span class="dt">string</span> <span class="dt">list</span>, <span class="dt">int</span>) stage</span>
+<span id="cb495-6"><a href="#cb495-6" aria-hidden="true" tabindex="-1"></a>  | Show      : (<span class="dt">int</span>, <span class="dt">string</span>) stage</span>
+<span id="cb495-7"><a href="#cb495-7" aria-hidden="true" tabindex="-1"></a>  | Uppercase : (<span class="dt">string</span>, <span class="dt">string</span>) stage      <span class="co">(* new *)</span></span>
+<span id="cb495-8"><a href="#cb495-8" aria-hidden="true" tabindex="-1"></a>  | Length    : (<span class="dt">string</span>, <span class="dt">int</span>) stage          <span class="co">(* new *)</span></span>
+<span id="cb495-9"><a href="#cb495-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb495-10"><a href="#cb495-10" aria-hidden="true" tabindex="-1"></a><span class="co">(* Copy the path type, concat, interpret_stage, and interpret *)</span></span>
+<span id="cb495-11"><a href="#cb495-11" aria-hidden="true" tabindex="-1"></a><span class="co">(* from Section 12.3, then extend interpret_stage for the     *)</span></span>
+<span id="cb495-12"><a href="#cb495-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* new constructors.                                          *)</span></span>
+<span id="cb495-13"><a href="#cb495-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb495-14"><a href="#cb495-14" aria-hidden="true" tabindex="-1"></a><span class="co">(* Build three distinct paths and verify: *)</span></span>
+<span id="cb495-15"><a href="#cb495-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* interpret (concat (concat p q) r) x                       *)</span></span>
+<span id="cb495-16"><a href="#cb495-16" aria-hidden="true" tabindex="-1"></a><span class="co">(*   = interpret (concat p (concat q r)) x                   *)</span></span></code></pre></div>
+<ol start="3" type="1">
+<li><strong>Functor laws.</strong> Write a functor instance for
 <code>type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree</code> and
 test the functor laws (<code>map id = id</code> and
 <code>map (f ∘ g) = map f ∘ map g</code>) on at least two non-trivial
-trees.</p></li>
+trees.</li>
+</ol>
+<div class="sourceCode" id="cb496"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb496-1"><a href="#cb496-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Starter code for Exercise 3 *)</span></span>
+<span id="cb496-2"><a href="#cb496-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> &#39;a tree = Leaf | Node <span class="kw">of</span> &#39;a tree * &#39;a * &#39;a tree</span>
+<span id="cb496-3"><a href="#cb496-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb496-4"><a href="#cb496-4" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> map_tree (f : &#39;a -&gt; &#39;b) : &#39;a tree -&gt; &#39;b tree = <span class="kw">function</span></span>
+<span id="cb496-5"><a href="#cb496-5" aria-hidden="true" tabindex="-1"></a>  | Leaf -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span></span>
+<span id="cb496-6"><a href="#cb496-6" aria-hidden="true" tabindex="-1"></a>  | Node (l, v, r) -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span></span>
+<span id="cb496-7"><a href="#cb496-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb496-8"><a href="#cb496-8" aria-hidden="true" tabindex="-1"></a><span class="co">(* Test trees: *)</span></span>
+<span id="cb496-9"><a href="#cb496-9" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t1 = Node (Node (Leaf, <span class="dv">1</span>, Leaf), <span class="dv">2</span>, Node (Leaf, <span class="dv">3</span>, Leaf))</span>
+<span id="cb496-10"><a href="#cb496-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> t2 = Node (Leaf, <span class="dv">10</span>, Node (Node (Leaf, <span class="dv">20</span>, Leaf), <span class="dv">30</span>, Leaf))</span>
+<span id="cb496-11"><a href="#cb496-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb496-12"><a href="#cb496-12" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> f x = x + <span class="dv">1</span></span>
+<span id="cb496-13"><a href="#cb496-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> g x = x * <span class="dv">2</span></span>
+<span id="cb496-14"><a href="#cb496-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb496-15"><a href="#cb496-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Law 1: map_tree Fun.id t = t *)</span></span>
+<span id="cb496-16"><a href="#cb496-16" aria-hidden="true" tabindex="-1"></a><span class="co">(* Law 2: map_tree (fun x -&gt; f (g x)) t *)</span></span>
+<span id="cb496-17"><a href="#cb496-17" aria-hidden="true" tabindex="-1"></a><span class="co">(*      = map_tree f (map_tree g t)      *)</span></span></code></pre></div>
+<ol start="4" type="1">
 <li><p><strong>Naturality verification.</strong> The function
 <code>List.rev</code> is a natural transformation from the List functor
 to itself. State and test the naturality condition for three different
@@ -16485,6 +16695,31 @@ ordering. Explain why. Then find a pair of monotone functions between
 lenses <code>street_lens</code>, <code>addr_lens</code>, and compose
 them to create <code>employee_street_lens</code>. Verify all three lens
 laws (Get-Set, Set-Get, Set-Set) for the composed lens.</p></li>
+</ol>
+<div class="sourceCode" id="cb497"><pre
+class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb497-1"><a href="#cb497-1" aria-hidden="true" tabindex="-1"></a><span class="co">(* Starter code for Exercise 6 *)</span></span>
+<span id="cb497-2"><a href="#cb497-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> address = { street : <span class="dt">string</span>; city : <span class="dt">string</span> }</span>
+<span id="cb497-3"><a href="#cb497-3" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> employee = { name : <span class="dt">string</span>; addr : address }</span>
+<span id="cb497-4"><a href="#cb497-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb497-5"><a href="#cb497-5" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> street_lens : (address, <span class="dt">string</span>) lens = {</span>
+<span id="cb497-6"><a href="#cb497-6" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> a -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span>);</span>
+<span id="cb497-7"><a href="#cb497-7" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> s a -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span>);</span>
+<span id="cb497-8"><a href="#cb497-8" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb497-9"><a href="#cb497-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb497-10"><a href="#cb497-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> addr_lens : (employee, address) lens = {</span>
+<span id="cb497-11"><a href="#cb497-11" aria-hidden="true" tabindex="-1"></a>  get = (<span class="kw">fun</span> e -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span>);</span>
+<span id="cb497-12"><a href="#cb497-12" aria-hidden="true" tabindex="-1"></a>  set = (<span class="kw">fun</span> a e -&gt; <span class="dt">failwith</span> <span class="st">&quot;todo&quot;</span>);</span>
+<span id="cb497-13"><a href="#cb497-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb497-14"><a href="#cb497-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb497-15"><a href="#cb497-15" aria-hidden="true" tabindex="-1"></a><span class="co">(* Compose using compose_lens from Section 12.7: *)</span></span>
+<span id="cb497-16"><a href="#cb497-16" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> employee_street = compose_lens addr_lens street_lens</span>
+<span id="cb497-17"><a href="#cb497-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb497-18"><a href="#cb497-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Test data: *)</span></span>
+<span id="cb497-19"><a href="#cb497-19" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> emp = { name = <span class="st">&quot;Alice&quot;</span>;</span>
+<span id="cb497-20"><a href="#cb497-20" aria-hidden="true" tabindex="-1"></a>            addr = { street = <span class="st">&quot;123 Main&quot;</span>; city = <span class="st">&quot;NYC&quot;</span> } }</span>
+<span id="cb497-21"><a href="#cb497-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb497-22"><a href="#cb497-22" aria-hidden="true" tabindex="-1"></a><span class="co">(* Verify all three lens laws for the composed lens. *)</span></span></code></pre></div>
+<ol start="7" type="1">
 <li><p><strong>Prism round-trip.</strong> For the type
 <code>type shape = Circle of float | Rect of float * float</code>, write
 a prism for <code>Circle</code> and a prism for <code>Rect</code>.
