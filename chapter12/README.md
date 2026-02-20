@@ -1,6 +1,6 @@
 ## Chapter 12: Categories and GADTs
 
-<!-- ![Chapter 12 illustration](Curious_OCaml-chapter_12.jpg){.chapter-image} -->
+![Chapter 12 illustration](Curious_OCaml-chapter_12.jpg){.chapter-image}
 
 **In this chapter, you will:**
 
