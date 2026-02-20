@@ -115,13 +115,21 @@
 
 (copy_files
  (mode promote)
+ (files ../chapter12/*.png))
+
+(copy_files
+ (mode promote)
+ (files ../chapter12/*.jpg))
+
+(copy_files
+ (mode promote)
  (files ../exam/*.png))
 
 (rule
  (alias new_book)
  (mode promote)
  (target new_book.html)
- (deps README.md style.css inject-toc-toggle.sh)
+ (deps README.md style.css inject-toc-toggle.sh Curious_OCaml-chapter_12.jpg)
  (action
   (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Curious OCaml' --top-level-division=chapter --shift-heading-level-by=-1 | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\[-0.5em] \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' | ./inject-toc-toggle.sh > %{target}")))
 
