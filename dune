@@ -15,7 +15,8 @@
   chapter8/README.md
   chapter9/README.md
   chapter10/README.md
-  chapter11/README.md)
+  chapter11/README.md
+  chapter12/README.md)
  (action
   (with-stdout-to
    README.md
@@ -45,7 +46,9 @@
     (echo "\n\n")
     (cat chapter10/README.md)
     (echo "\n\n")
-    (cat chapter11/README.md)))))
+    (cat chapter11/README.md)
+    (echo "\n\n")
+    (cat chapter12/README.md)))))
 
 (rule
  (target old_lectures_as_book.md)
