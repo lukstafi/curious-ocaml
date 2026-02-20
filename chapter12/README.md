@@ -957,6 +957,34 @@ In the polymorphic variant approach, each operation (like `eval` or `string_of`)
 (* this is naturality in the row variable. *)
 ```
 
+We can see the naturality square in action with polymorphic variants. Base operations are reused unchanged when the type is extended:
+
+```ocaml env=expr
+(* Base language with eval and show: *)
+let eval_base = function `Num n -> n | `Neg n -> -n
+let show_base = function
+  | `Num n -> string_of_int n
+  | `Neg n -> "-" ^ string_of_int n
+
+(* Extended language -- base cases reuse the base operations: *)
+let eval_ext = function
+  | (`Num _ | `Neg _) as e -> eval_base e    (* reuse *)
+  | `Add (a, b) -> a + b
+let show_ext = function
+  | (`Num _ | `Neg _) as e -> show_base e    (* reuse *)
+  | `Add (a, b) -> string_of_int a ^ "+" ^ string_of_int b
+
+(* The naturality square commutes: embedding a base expression *)
+(* into the extended type and then evaluating gives the same   *)
+(* result as evaluating in the base language directly.         *)
+let e1 = `Num 5
+let e2 = `Neg 3
+let () = assert (eval_ext e1 = eval_base e1)
+let () = assert (eval_ext e2 = eval_base e2)
+let () = assert (show_ext e1 = show_base e1)
+let () = assert (show_ext e2 = show_base e2)
+```
+
 The dynamic failure when no handler covers a constructor (e.g., in the extensible GADT approach from the OCaml discussion thread) is the *colimit not existing*: we tried to form a coproduct of partial natural transformations, but the components do not cover the whole type. A fully static GADT encoding would make this a compile-time error.
 
 ### 12.10 Curry--Howard--Lambek: The Trinity
