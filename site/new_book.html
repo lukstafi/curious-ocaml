@@ -15292,6 +15292,21 @@ naming it. Type isomorphisms (Chapter 2), <code>map</code> and
 10), and the expression problem (Chapter 11) all have precise
 categorical descriptions. This chapter makes the hidden structure
 explicit.</p>
+<p>Category theory is even woven into the name of the language. “Caml”
+stands for <em>Categorical Abstract Machine Language</em>: the first
+Caml implementation (Cousineau, Curien, and Mauny, 1987) compiled lambda
+terms into sequences of categorical combinators – <em>curry</em>,
+<em>apply</em>, <em>pair</em>, <em>fst</em>, <em>snd</em> – derived from
+the cartesian closed structure of the simply-typed lambda calculus. The
+CAM turned out to be inefficient in practice – too many closures, too
+much copying – and was quickly abandoned in favor of the ZINC machine
+(Leroy, 1990), a more conventional environment-based abstract machine.
+Modern OCaml goes further: native compilation via the
+<code>ocamlopt</code> backend is the default route, leaving no trace of
+the original categorical machine at runtime. The “O” was added later for
+the object system. But the name “Caml” endures, and so does the insight
+this chapter explores: the structures of typed functional programming
+<em>are</em> categorical structures.</p>
 <p>The distinctive quality of this chapter is not “here is some category
 theory” but rather “here is the hidden structure of everything you have
 learned” – a retrospective unification of the whole book through a

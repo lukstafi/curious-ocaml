@@ -11724,6 +11724,8 @@ The following exercises will help you deepen your understanding of the expressio
 
 Throughout Chapters 1--11, we have been doing category theory without naming it. Type isomorphisms (Chapter 2), `map` and `fold` (Chapter 6), monad laws (Chapter 8), zippers (Chapter 10), and the expression problem (Chapter 11) all have precise categorical descriptions. This chapter makes the hidden structure explicit.
 
+Category theory is even woven into the name of the language. "Caml" stands for *Categorical Abstract Machine Language*: the first Caml implementation (Cousineau, Curien, and Mauny, 1987) compiled lambda terms into sequences of categorical combinators -- *curry*, *apply*, *pair*, *fst*, *snd* -- derived from the cartesian closed structure of the simply-typed lambda calculus. The CAM turned out to be inefficient in practice -- too many closures, too much copying -- and was quickly abandoned in favor of the ZINC machine (Leroy, 1990), a more conventional environment-based abstract machine. Modern OCaml goes further: native compilation via the `ocamlopt` backend is the default route, leaving no trace of the original categorical machine at runtime. The "O" was added later for the object system. But the name "Caml" endures, and so does the insight this chapter explores: the structures of typed functional programming *are* categorical structures.
+
 The distinctive quality of this chapter is not "here is some category theory" but rather "here is the hidden structure of everything you have learned" -- a retrospective unification of the whole book through a categorical lens, with GADTs as the OCaml-specific mechanism that makes categorical structure *enforceable* at the type level.
 
 ### 12.1 What Is a Category?
