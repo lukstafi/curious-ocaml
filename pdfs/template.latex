@@ -96,8 +96,14 @@ $endif$
 % Float package for figure placement control
 \usepackage{float}
 
-% Suppress automatic section numbering (headings already contain explicit numbers)
-\setcounter{secnumdepth}{-1}
+% Suppress visible section numbering (headings already contain explicit numbers).
+% secnumdepth=3 keeps bookmarks and ToC working; the titleformat empty labels
+% below hide the numbers from the rendered headings.
+% We also patch \numberline to suppress numbers in the printed ToC.
+\setcounter{secnumdepth}{3}
+\makeatletter
+\renewcommand{\numberline}[1]{}
+\makeatother
 
 % ============================================
 % CHAPTER STYLING - Make chapters more prominent

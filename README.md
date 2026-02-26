@@ -12517,7 +12517,8 @@ end
 
 (* Const functor -- instantiate for "get": *)
 module ConstF (T : sig type t end) :
-  VL_FUNCTOR with type 'a t = T.t = struct
+  VL_FUNCTOR with type 'a t = T.t =
+struct
   type 'a t = T.t
   let fmap _ x = x
 end

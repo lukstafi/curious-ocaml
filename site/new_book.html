@@ -16263,16 +16263,17 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb486-1"><a hr
 <span id="cb486-17"><a href="#cb486-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb486-18"><a href="#cb486-18" aria-hidden="true" tabindex="-1"></a><span class="co">(* Const functor -- instantiate for &quot;get&quot;: *)</span></span>
 <span id="cb486-19"><a href="#cb486-19" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> ConstF (T : <span class="kw">sig</span> <span class="kw">type</span> t <span class="kw">end</span>) :</span>
-<span id="cb486-20"><a href="#cb486-20" aria-hidden="true" tabindex="-1"></a>  VL_FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = T.t = <span class="kw">struct</span></span>
-<span id="cb486-21"><a href="#cb486-21" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = T.t</span>
-<span id="cb486-22"><a href="#cb486-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fmap _ x = x</span>
-<span id="cb486-23"><a href="#cb486-23" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb486-24"><a href="#cb486-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb486-25"><a href="#cb486-25" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstSet = VL_Fst(IdF)</span>
-<span id="cb486-26"><a href="#cb486-26" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstGet = VL_Fst(ConstF(<span class="kw">struct</span> <span class="kw">type</span> t = <span class="dt">int</span> <span class="kw">end</span>))</span>
-<span id="cb486-27"><a href="#cb486-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb486-28"><a href="#cb486-28" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstSet._fst (<span class="kw">fun</span> _ -&gt; <span class="dv">10</span>) (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>) = (<span class="dv">10</span>, <span class="st">&quot;hello&quot;</span>))</span>
-<span id="cb486-29"><a href="#cb486-29" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstGet._fst (<span class="kw">fun</span> a -&gt; a) (<span class="dv">42</span>, <span class="st">&quot;world&quot;</span>) = <span class="dv">42</span>)</span></code></pre></div>
+<span id="cb486-20"><a href="#cb486-20" aria-hidden="true" tabindex="-1"></a>  VL_FUNCTOR <span class="kw">with</span> <span class="kw">type</span> &#39;a t = T.t =</span>
+<span id="cb486-21"><a href="#cb486-21" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span></span>
+<span id="cb486-22"><a href="#cb486-22" aria-hidden="true" tabindex="-1"></a>  <span class="kw">type</span> &#39;a t = T.t</span>
+<span id="cb486-23"><a href="#cb486-23" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> fmap _ x = x</span>
+<span id="cb486-24"><a href="#cb486-24" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb486-25"><a href="#cb486-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-26"><a href="#cb486-26" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstSet = VL_Fst(IdF)</span>
+<span id="cb486-27"><a href="#cb486-27" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> FstGet = VL_Fst(ConstF(<span class="kw">struct</span> <span class="kw">type</span> t = <span class="dt">int</span> <span class="kw">end</span>))</span>
+<span id="cb486-28"><a href="#cb486-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb486-29"><a href="#cb486-29" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstSet._fst (<span class="kw">fun</span> _ -&gt; <span class="dv">10</span>) (<span class="dv">1</span>, <span class="st">&quot;hello&quot;</span>) = (<span class="dv">10</span>, <span class="st">&quot;hello&quot;</span>))</span>
+<span id="cb486-30"><a href="#cb486-30" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="kw">assert</span> (FstGet._fst (<span class="kw">fun</span> a -&gt; a) (<span class="dv">42</span>, <span class="st">&quot;world&quot;</span>) = <span class="dv">42</span>)</span></code></pre></div>
 <p>The lens logic lives in a single place – <code>VL_Fst._fst</code> –
 and both get and set are obtained by choosing the functor. The set
 direction (<code>FstSet._fst</code>) is fully polymorphic in the pair
