@@ -25,6 +25,21 @@
 % Use upquote for straight quotes in verbatim environments
 \usepackage{upquote}
 
+% ============================================
+% UNICODE GLYPH FALLBACK FOR CODE BLOCKS
+% ============================================
+% Latin Modern Mono lacks some Unicode math symbols used in code comments.
+% We use newunicodechar to map them to a fallback font (Menlo on macOS).
+% If Menlo is unavailable, substitute another Unicode-rich font.
+\usepackage{newunicodechar}
+\newfontfamily\UnicodeFallbackMono{Menlo}[Scale=MatchLowercase]
+\newunicodechar{∘}{{\UnicodeFallbackMono ∘}}% U+2218 RING OPERATOR
+\newunicodechar{≅}{{\UnicodeFallbackMono ≅}}% U+2245 APPROXIMATELY EQUAL TO
+\newunicodechar{⊃}{{\UnicodeFallbackMono ⊃}}% U+2283 SUPERSET OF
+\newunicodechar{∧}{{\UnicodeFallbackMono ∧}}% U+2227 LOGICAL AND
+\newunicodechar{↦}{{\UnicodeFallbackMono ↦}}% U+21A6 RIGHTWARDS ARROW FROM BAR
+\newunicodechar{≠}{{\UnicodeFallbackMono ≠}}% U+2260 NOT EQUAL TO
+
 % Use microtype for better typography
 \usepackage{microtype}
 
@@ -162,6 +177,7 @@ $endif$
 % Redefine Shaded to discourage page breaks but allow them for large blocks
 % needspace=4\baselineskip means: try to keep at least 4 lines together before breaking
 % splittopskip/splitbottomskip provide visual continuity when breaks occur
+% \small reduces code font size to ~10pt (from default 12pt) to prevent margin overflow
 \renewenvironment{Shaded}{%
   \begin{mdframed}[
     backgroundcolor=shadecolor,
@@ -176,6 +192,7 @@ $endif$
     splittopskip=\topsep,
     splitbottomskip=\topsep
   ]%
+  \small% Reduce code block font size for PDF (keeps HTML unaffected)
 }{%
   \end{mdframed}%
 }

@@ -5667,7 +5667,7 @@ The key insight is that we introduced the operator `|->` defined as:
 let ( |-> ) x f = concat_map f x
 ```
 
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in functional languages like Haskell (and was later adopted by Python and others).
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in functional languages and was already present in Miranda, the precursor of Haskell.
 
 With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
