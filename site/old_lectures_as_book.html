@@ -192,7 +192,9 @@ OCaml</a>
 </ul></li>
 <li><a href="#exercises" id="toc-exercises">4 Exercises</a>
 <ul>
-<li><a href="#exercise-1" id="toc-exercise-1">Exercise 1</a></li>
+<li><a href="#exercise-1-type-and-value-predictions"
+id="toc-exercise-1-type-and-value-predictions">Exercise 1: Type and
+Value Predictions</a></li>
 </ul></li>
 <li><a href="#a-glimpse-at-type-inference"
 id="toc-a-glimpse-at-type-inference">1 A Glimpse at Type Inference</a>
@@ -222,7 +224,7 @@ example</a></li>
 id="toc-lecture-2-type-inference-example-derivation">Lecture 2: Type
 inference example derivation</a>
 <ul>
-<li><a href="#exercise-1-1" id="toc-exercise-1-1">Exercise 1</a></li>
+<li><a href="#exercise-1" id="toc-exercise-1">Exercise 1</a></li>
 <li><a href="#exercise-2" id="toc-exercise-2">Exercise 2</a></li>
 <li><a href="#exercise-3" id="toc-exercise-3">Exercise 3</a></li>
 <li><a href="#exercise-4" id="toc-exercise-4">Exercise 4</a></li>
@@ -243,7 +245,7 @@ id="toc-first-encounter-of-continuation-passing-style">5 First Encounter
 of Continuation Passing Style</a></li>
 <li><a href="#homework-1" id="toc-homework-1">6 Homework</a>
 <ul>
-<li><a href="#exercise-1-2" id="toc-exercise-1-2">Exercise 1</a></li>
+<li><a href="#exercise-1-1" id="toc-exercise-1-1">Exercise 1</a></li>
 <li><a href="#exercise-2-1" id="toc-exercise-2-1">Exercise 2</a></li>
 <li><a href="#exercise-3-1" id="toc-exercise-3-1">Exercise 3</a></li>
 <li><a href="#exercise-4-1" id="toc-exercise-4-1">Exercise 4</a></li>
@@ -276,8 +278,12 @@ Recursion</a></li>
 <li><a href="#in-class-work-and-homework"
 id="toc-in-class-work-and-homework">10 In-class Work and Homework</a>
 <ul>
-<li><a href="#exercise-1-3" id="toc-exercise-1-3">Exercise 1</a></li>
-<li><a href="#exercise-2-2" id="toc-exercise-2-2">Exercise 2</a></li>
+<li><a href="#exercise-1-core-lambda-encodings"
+id="toc-exercise-1-core-lambda-encodings">Exercise 1: Core Lambda
+Encodings</a></li>
+<li><a href="#exercise-2-state-passing-imperative-constructs"
+id="toc-exercise-2-state-passing-imperative-constructs">Exercise 2:
+State-Passing Imperative Constructs</a></li>
 </ul></li>
 <li><a href="#type-inference" id="toc-type-inference">1 Type
 Inference</a></li>
@@ -332,13 +338,26 @@ deletion</a></li>
 </ul></li>
 <li><a href="#homework-2" id="toc-homework-2">11 Homework</a>
 <ul>
-<li><a href="#exercise-1-4" id="toc-exercise-1-4">Exercise 1</a></li>
-<li><a href="#exercise-2-3" id="toc-exercise-2-3">Exercise 2</a></li>
-<li><a href="#exercise-3-2" id="toc-exercise-3-2">Exercise 3</a></li>
-<li><a href="#exercise-4-2" id="toc-exercise-4-2">Exercise 4</a></li>
-<li><a href="#exercise-5-1" id="toc-exercise-5-1">Exercise 5</a></li>
-<li><a href="#exercise-6" id="toc-exercise-6">Exercise 6</a></li>
-<li><a href="#exercise-7" id="toc-exercise-7">Exercise 7</a></li>
+<li><a href="#exercise-1-type-equation-solving"
+id="toc-exercise-1-type-equation-solving">Exercise 1: Type Equation
+Solving</a></li>
+<li><a href="#exercise-2-unification-practice"
+id="toc-exercise-2-unification-practice">Exercise 2: Unification
+Practice</a></li>
+<li><a href="#exercise-3-algebraic-specs-and-junk"
+id="toc-exercise-3-algebraic-specs-and-junk">Exercise 3: Algebraic Specs
+and Junk</a></li>
+<li><a href="#exercise-4-map-specification-audit"
+id="toc-exercise-4-map-specification-audit">Exercise 4: Map
+Specification Audit</a></li>
+<li><a href="#exercise-5-queue-adt-design"
+id="toc-exercise-5-queue-adt-design">Exercise 5: Queue ADT
+Design</a></li>
+<li><a href="#exercise-6-set-adt-design"
+id="toc-exercise-6-set-adt-design">Exercise 6: Set ADT Design</a></li>
+<li><a href="#exercise-7-efficient-set-operations"
+id="toc-exercise-7-efficient-set-operations">Exercise 7: Efficient Set
+Operations</a></li>
 </ul></li>
 <li><a href="#plan" id="toc-plan">1 Plan</a></li>
 <li><a href="#basic-generic-list-operations"
@@ -426,16 +445,32 @@ Islands</em></a></li>
 <li><a href="#constraint-based-puzzles"
 id="toc-constraint-based-puzzles">8 Constraint-based puzzles</a>
 <ul>
-<li><a href="#exercise-1-5" id="toc-exercise-1-5">Exercise 1</a></li>
-<li><a href="#exercise-2-4" id="toc-exercise-2-4">Exercise 2</a></li>
-<li><a href="#exercise-3-3" id="toc-exercise-3-3">Exercise 3</a></li>
-<li><a href="#exercise-4-3" id="toc-exercise-4-3">Exercise 4</a></li>
-<li><a href="#exercise-5-2" id="toc-exercise-5-2">Exercise 5</a></li>
-<li><a href="#exercise-6-1" id="toc-exercise-6-1">Exercise 6</a></li>
-<li><a href="#exercise-7-1" id="toc-exercise-7-1">Exercise 7</a></li>
+<li><a href="#exercise-1-combinatorial-generation"
+id="toc-exercise-1-combinatorial-generation">Exercise 1: Combinatorial
+Generation</a></li>
+<li><a href="#exercise-2-polynomial-degree-via-fold"
+id="toc-exercise-2-polynomial-degree-via-fold">Exercise 2: Polynomial
+Degree via Fold</a></li>
+<li><a href="#exercise-3-simplification-via-map"
+id="toc-exercise-3-simplification-via-map">Exercise 3: Simplification
+via Map</a></li>
+<li><a href="#exercise-4-rewriting-with-folds"
+id="toc-exercise-4-rewriting-with-folds">Exercise 4: Rewriting with
+Folds</a></li>
+<li><a href="#exercise-5-efficient-list-utilities"
+id="toc-exercise-5-efficient-list-utilities">Exercise 5: Efficient List
+Utilities</a></li>
+<li><a href="#exercise-6-function-list-composition"
+id="toc-exercise-6-function-list-composition">Exercise 6: Function List
+Composition</a></li>
+<li><a href="#exercise-7-tents-puzzle-solver"
+id="toc-exercise-7-tents-puzzle-solver">Exercise 7: Tents Puzzle
+Solver</a></li>
 <li><a href="#exercise-8-robot-squad"
 id="toc-exercise-8-robot-squad">Exercise 8: Robot Squad</a></li>
-<li><a href="#exercise-9" id="toc-exercise-9">Exercise 9</a></li>
+<li><a href="#exercise-9-plinx-puzzle-solver"
+id="toc-exercise-9-plinx-puzzle-solver">Exercise 9: Plinx Puzzle
+Solver</a></li>
 </ul></li>
 <li><a href="#laziness" id="toc-laziness">1 Laziness</a></li>
 <li><a href="#evaluation-strategies-and-parameter-passing"
@@ -466,15 +501,33 @@ Input-Output streams</a>
 <li><a href="#pipes" id="toc-pipes">8.1 Pipes</a></li>
 <li><a href="#example-pretty-printing"
 id="toc-example-pretty-printing">8.2 Example: pretty-printing</a></li>
-<li><a href="#exercise-1-6" id="toc-exercise-1-6">Exercise 1</a></li>
-<li><a href="#exercise-2-5" id="toc-exercise-2-5">Exercise 2</a></li>
-<li><a href="#exercise-3-4" id="toc-exercise-3-4">Exercise 3</a></li>
-<li><a href="#exercise-4-4" id="toc-exercise-4-4">Exercise 4</a></li>
-<li><a href="#exercise-5-3" id="toc-exercise-5-3">Exercise 5</a></li>
-<li><a href="#exercise-6-2" id="toc-exercise-6-2">Exercise 6</a></li>
-<li><a href="#exercise-7-2" id="toc-exercise-7-2">Exercise 7</a></li>
-<li><a href="#exercise-8" id="toc-exercise-8">Exercise 8</a></li>
-<li><a href="#exercise-9-1" id="toc-exercise-9-1">Exercise 9</a></li>
+<li><a href="#exercise-1-lazy-list-combinators"
+id="toc-exercise-1-lazy-list-combinators">Exercise 1: Lazy List
+Combinators</a></li>
+<li><a href="#exercise-2-cyclic-lazy-lists"
+id="toc-exercise-2-cyclic-lazy-lists">Exercise 2: Cyclic Lazy
+Lists</a></li>
+<li><a href="#exercise-3-lazy-puzzle-search"
+id="toc-exercise-3-lazy-puzzle-search">Exercise 3: Lazy Puzzle
+Search</a></li>
+<li><a href="#exercise-4-hamming-numbers-stream"
+id="toc-exercise-4-hamming-numbers-stream">Exercise 4: Hamming Numbers
+Stream</a></li>
+<li><a href="#exercise-5-flattening-pretty-printer-state"
+id="toc-exercise-5-flattening-pretty-printer-state">Exercise 5:
+Flattening Pretty-Printer State</a></li>
+<li><a href="#exercise-6-indentation-aware-pretty-printing"
+id="toc-exercise-6-indentation-aware-pretty-printing">Exercise 6:
+Indentation-Aware Pretty-Printing</a></li>
+<li><a href="#exercise-7-linecolumn-annotation-pipe"
+id="toc-exercise-7-linecolumn-annotation-pipe">Exercise 7: Line/Column
+Annotation Pipe</a></li>
+<li><a href="#exercise-8-reconstructing-subdocuments"
+id="toc-exercise-8-reconstructing-subdocuments">Exercise 8:
+Reconstructing Subdocuments</a></li>
+<li><a href="#exercise-9-memoizing-pipe-fan-out"
+id="toc-exercise-9-memoizing-pipe-fan-out">Exercise 9: Memoizing Pipe
+Fan-Out</a></li>
 </ul></li>
 <li><a href="#list-comprehensions" id="toc-list-comprehensions">1 List
 comprehensions</a></li>
@@ -543,17 +596,39 @@ encoding a Bayes net</a></li>
 id="toc-lightweight-cooperative-threads">11 Lightweight cooperative
 threads</a>
 <ul>
-<li><a href="#exercise-1-7" id="toc-exercise-1-7">Exercise 1</a></li>
-<li><a href="#exercise-2-6" id="toc-exercise-2-6">Exercise 2</a></li>
-<li><a href="#exercise-3-5" id="toc-exercise-3-5">Exercise 3</a></li>
-<li><a href="#exercise-4-5" id="toc-exercise-4-5">Exercise 4</a></li>
-<li><a href="#exercise-5-4" id="toc-exercise-5-4">Exercise 5</a></li>
-<li><a href="#exercise-6-3" id="toc-exercise-6-3">Exercise 6</a></li>
-<li><a href="#exercise-7-3" id="toc-exercise-7-3">Exercise 7</a></li>
-<li><a href="#exercise-8-1" id="toc-exercise-8-1">Exercise 8</a></li>
-<li><a href="#exercise-9-2" id="toc-exercise-9-2">Exercise 9</a></li>
-<li><a href="#exercise-10" id="toc-exercise-10">Exercise 10</a></li>
-<li><a href="#exercise-11" id="toc-exercise-11">Exercise 11</a></li>
+<li><a href="#exercise-1-olegs-monad-puzzle"
+id="toc-exercise-1-olegs-monad-puzzle">Exercise 1: Oleg’s Monad
+Puzzle</a></li>
+<li><a href="#exercise-2-predict-monadic-results"
+id="toc-exercise-2-predict-monadic-results">Exercise 2: Predict Monadic
+Results</a></li>
+<li><a href="#exercise-3-bind-from-lift-and-join"
+id="toc-exercise-3-bind-from-lift-and-join">Exercise 3: Bind from Lift
+and Join</a></li>
+<li><a href="#exercise-4-tree-based-monad-plus"
+id="toc-exercise-4-tree-based-monad-plus">Exercise 4: Tree-Based Monad
+Plus</a></li>
+<li><a href="#exercise-5-prove-monad-plus-laws"
+id="toc-exercise-5-prove-monad-plus-laws">Exercise 5: Prove Monad-Plus
+Laws</a></li>
+<li><a href="#exercise-6-laziness-diagnosis"
+id="toc-exercise-6-laziness-diagnosis">Exercise 6: Laziness
+Diagnosis</a></li>
+<li><a href="#exercise-7-column-aligned-matrix-printing"
+id="toc-exercise-7-column-aligned-matrix-printing">Exercise 7:
+Column-Aligned Matrix Printing</a></li>
+<li><a href="#exercise-8-enriched-exception-signatures"
+id="toc-exercise-8-enriched-exception-signatures">Exercise 8: Enriched
+Exception Signatures</a></li>
+<li><a href="#exercise-9-generic-monadic-control-constructs"
+id="toc-exercise-9-generic-monadic-control-constructs">Exercise 9:
+Generic Monadic Control Constructs</a></li>
+<li><a href="#exercise-10-wet-grass-inference-model"
+id="toc-exercise-10-wet-grass-inference-model">Exercise 10: Wet-Grass
+Inference Model</a></li>
+<li><a href="#exercise-11-coarse-grained-concurrency"
+id="toc-exercise-11-coarse-grained-concurrency">Exercise 11:
+Coarse-Grained Concurrency</a></li>
 </ul></li>
 <li><a href="#ocaml-compilers" id="toc-ocaml-compilers">1 OCaml
 Compilers</a>
@@ -659,16 +734,36 @@ id="toc-imperative-linear-scan">7.1.4 Imperative, linear scan</a></li>
 id="toc-imperative-galloping-search">7.1.5 Imperative, galloping
 search</a></li>
 </ul></li>
-<li><a href="#exercise-1-8" id="toc-exercise-1-8">Exercise 1</a></li>
-<li><a href="#exercise-2-7" id="toc-exercise-2-7">Exercise 2</a></li>
-<li><a href="#exercise-3-6" id="toc-exercise-3-6">Exercise 3</a></li>
-<li><a href="#exercise-4-6" id="toc-exercise-4-6">Exercise 4</a></li>
-<li><a href="#exercise-5-5" id="toc-exercise-5-5">Exercise 5</a></li>
-<li><a href="#exercise-6-4" id="toc-exercise-6-4">Exercise 6</a></li>
-<li><a href="#exercise-7-4" id="toc-exercise-7-4">Exercise 7</a></li>
-<li><a href="#exercise-8-2" id="toc-exercise-8-2">Exercise 8</a></li>
-<li><a href="#exercise-9-3" id="toc-exercise-9-3">Exercise 9</a></li>
-<li><a href="#exercise-10-1" id="toc-exercise-10-1">Exercise 10</a></li>
+<li><a href="#exercise-1-closure-conversion-check"
+id="toc-exercise-1-closure-conversion-check">Exercise 1: Closure
+Conversion Check</a></li>
+<li><a href="#exercise-2-escaping-variable-allocation"
+id="toc-exercise-2-escaping-variable-allocation">Exercise 2: Escaping
+Variable Allocation</a></li>
+<li><a href="#exercise-3-inlining-verification"
+id="toc-exercise-3-inlining-verification">Exercise 3: Inlining
+Verification</a></li>
+<li><a href="#exercise-4-text-anonymizer-lexer"
+id="toc-exercise-4-text-anonymizer-lexer">Exercise 4: Text Anonymizer
+Lexer</a></li>
+<li><a href="#exercise-5-abbreviation-lexing"
+id="toc-exercise-5-abbreviation-lexing">Exercise 5: Abbreviation
+Lexing</a></li>
+<li><a href="#exercise-6-re-entrant-menhir-lexer"
+id="toc-exercise-6-re-entrant-menhir-lexer">Exercise 6: Re-entrant
+Menhir Lexer</a></li>
+<li><a href="#exercise-7-optional-determiner-grammar"
+id="toc-exercise-7-optional-determiner-grammar">Exercise 7: Optional
+Determiner Grammar</a></li>
+<li><a href="#exercise-8-porter-stemmer-integration"
+id="toc-exercise-8-porter-stemmer-integration">Exercise 8: Porter
+Stemmer Integration</a></li>
+<li><a href="#exercise-9-search-engine-revisit"
+id="toc-exercise-9-search-engine-revisit">Exercise 9: Search Engine
+Revisit</a></li>
+<li><a href="#exercise-10-shakespeare-xml-parser"
+id="toc-exercise-10-shakespeare-xml-parser">Exercise 10: Shakespeare XML
+Parser</a></li>
 </ul></li>
 <li><a href="#zippers" id="toc-zippers">1 Zippers</a>
 <ul>
@@ -719,34 +814,79 @@ Flow</a></li>
 <em>LablTk</em></a></li>
 <li><a href="#gtk-lablgtk" id="toc-gtk-lablgtk">7.3 <em>GTk+</em>:
 <em>LablGTk</em></a></li>
-<li><a href="#exercise-1-9" id="toc-exercise-1-9">Exercise 1</a></li>
-<li><a href="#exercise-2-8" id="toc-exercise-2-8">Exercise 2</a></li>
-<li><a href="#exercise-3-7" id="toc-exercise-3-7">Exercise 3</a></li>
-<li><a href="#exercise-4-7" id="toc-exercise-4-7">Exercise 4</a></li>
-<li><a href="#exercise-5-6" id="toc-exercise-5-6">Exercise 5</a></li>
-<li><a href="#exercise-6-5" id="toc-exercise-6-5">Exercise 6</a></li>
-<li><a href="#exercise-7-5" id="toc-exercise-7-5">Exercise 7</a></li>
-<li><a href="#exercise-8-3" id="toc-exercise-8-3">Exercise 8</a></li>
-<li><a href="#exercise-9-4" id="toc-exercise-9-4">Exercise 9</a></li>
-<li><a href="#exercise-10-2" id="toc-exercise-10-2">Exercise 10</a></li>
+<li><a href="#exercise-1-non-commutative-rewriting"
+id="toc-exercise-1-non-commutative-rewriting">Exercise 1:
+Non-Commutative Rewriting</a></li>
+<li><a href="#exercise-2-paddle-game-features"
+id="toc-exercise-2-paddle-game-features">Exercise 2: Paddle Game
+Features</a></li>
+<li><a href="#exercise-3-better-numerical-integration"
+id="toc-exercise-3-better-numerical-integration">Exercise 3: Better
+Numerical Integration</a></li>
+<li><a href="#exercise-4-recursive-integration-trace"
+id="toc-exercise-4-recursive-integration-trace">Exercise 4: Recursive
+Integration Trace</a></li>
+<li><a href="#exercise-5-pure-froc-paddle-ball"
+id="toc-exercise-5-pure-froc-paddle-ball">Exercise 5: Pure Froc Paddle
+Ball</a></li>
+<li><a href="#exercise-6-continuation-based-flows"
+id="toc-exercise-6-continuation-based-flows">Exercise 6:
+Continuation-Based Flows</a></li>
+<li><a href="#exercise-7-parallel-flows"
+id="toc-exercise-7-parallel-flows">Exercise 7: Parallel Flows</a></li>
+<li><a href="#exercise-8-painter-quit-event"
+id="toc-exercise-8-painter-quit-event">Exercise 8: Painter Quit
+Event</a></li>
+<li><a href="#exercise-9-decimal-input-in-calculator"
+id="toc-exercise-9-decimal-input-in-calculator">Exercise 9: Decimal
+Input in Calculator</a></li>
+<li><a href="#exercise-10-reader-monad-utilities"
+id="toc-exercise-10-reader-monad-utilities">Exercise 10: Reader Monad
+Utilities</a></li>
 </ul></li>
 <li><a href="#the-expression-problem-exercises"
 id="toc-the-expression-problem-exercises">The Expression Problem –
 Exercises</a>
 <ul>
-<li><a href="#exercise-1-10" id="toc-exercise-1-10">Exercise 1</a></li>
-<li><a href="#exercise-2-9" id="toc-exercise-2-9">Exercise 2</a></li>
-<li><a href="#exercise-3-8" id="toc-exercise-3-8">Exercise 3</a></li>
-<li><a href="#exercise-4-8" id="toc-exercise-4-8">Exercise 4</a></li>
-<li><a href="#exercise-5-7" id="toc-exercise-5-7">Exercise 5</a></li>
-<li><a href="#exercise-6-6" id="toc-exercise-6-6">Exercise 6</a></li>
-<li><a href="#exercise-7-6" id="toc-exercise-7-6">Exercise 7</a></li>
-<li><a href="#exercise-8-4" id="toc-exercise-8-4">Exercise 8</a></li>
-<li><a href="#exercise-9-5" id="toc-exercise-9-5">Exercise 9</a></li>
-<li><a href="#exercise-10-3" id="toc-exercise-10-3">Exercise 10</a></li>
-<li><a href="#exercise-11-1" id="toc-exercise-11-1">Exercise 11</a></li>
-<li><a href="#exercise-12" id="toc-exercise-12">Exercise 12</a></li>
-<li><a href="#exercise-13" id="toc-exercise-13">Exercise 13</a></li>
+<li><a href="#exercise-1-pretty-printers-for-evaluators"
+id="toc-exercise-1-pretty-printers-for-evaluators">Exercise 1:
+Pretty-Printers for Evaluators</a></li>
+<li><a href="#exercise-2-separate-compilation-split"
+id="toc-exercise-2-separate-compilation-split">Exercise 2: Separate
+Compilation Split</a></li>
+<li><a href="#exercise-3-removing-variant-tags"
+id="toc-exercise-3-removing-variant-tags">Exercise 3: Removing Variant
+Tags</a></li>
+<li><a href="#exercise-4-factoring-variable-sublanguage"
+id="toc-exercise-4-factoring-variable-sublanguage">Exercise 4: Factoring
+Variable Sublanguage</a></li>
+<li><a href="#exercise-5-extensible-variant-bug-hunt"
+id="toc-exercise-5-extensible-variant-bug-hunt">Exercise 5:
+Extensible-Variant Bug Hunt</a></li>
+<li><a href="#exercise-6-object-solution-cleanup"
+id="toc-exercise-6-object-solution-cleanup">Exercise 6: Object Solution
+Cleanup</a></li>
+<li><a href="#exercise-7-functional-visitor-refactor"
+id="toc-exercise-7-functional-visitor-refactor">Exercise 7: Functional
+Visitor Refactor</a></li>
+<li><a href="#exercise-8-visitor-with-variables-and-substitution"
+id="toc-exercise-8-visitor-with-variables-and-substitution">Exercise 8:
+Visitor with Variables and Substitution</a></li>
+<li><a href="#exercise-9-polyv-feature-extensions"
+id="toc-exercise-9-polyv-feature-extensions">Exercise 9: PolyV Feature
+Extensions</a></li>
+<li><a href="#exercise-10-streamlined-polyrecm"
+id="toc-exercise-10-streamlined-polyrecm">Exercise 10: Streamlined
+PolyRecM</a></li>
+<li><a href="#exercise-11-parser-state-with-positions"
+id="toc-exercise-11-parser-state-with-positions">Exercise 11: Parser
+State with Positions</a></li>
+<li><a href="#exercise-12-parser-combinator-_of_string"
+id="toc-exercise-12-parser-combinator-_of_string">Exercise 12: Parser
+Combinator _of_string</a></li>
+<li><a href="#exercise-13-odd-vs-even-lazy-monad-plus"
+id="toc-exercise-13-odd-vs-even-lazy-monad-plus">Exercise 13: Odd vs
+Even Lazy Monad-Plus</a></li>
 </ul></li>
 <li><a href="#exam-set-0" id="toc-exam-set-0">Exam set 0</a></li>
 <li><a href="#exam-set-1" id="toc-exam-set-1">Exam set 1</a></li>
@@ -1034,13 +1174,14 @@ values other than functions.</p>
 <h1 id="exercises">4 Exercises</h1>
 <p>Exercises from <em>Think OCaml. How to Think Like a Computer
 Scientist</em> by Nicholas Monje and Allen Downey.</p>
-<h2 id="exercise-1">Exercise 1</h2>
+<h2 id="exercise-1-type-and-value-predictions">Exercise 1: Type and
+Value Predictions</h2>
 <p>Assume that we execute the following assignment statements:</p>
 <p>let width = 17;;let height = 12.0;;let delimiter = ‘.’;;</p>
 <p>For each of the following expressions, write the value of the
 expression and the type (of the value of the expression), or the
 resulting type error. 1. width/2 1. width/.2.0 1. height/3 1. 1 + 2 * 5
-1. delimiter * 5 ### Exercise 2</p>
+1. delimiter * 5 ### Exercise 2: REPL Calculator Drills</p>
 <p>Practice using the OCaml interpreter as a calculator: 1. The volume
 of a sphere with radius <span class="math inline">r</span> is <span
 class="math inline">\frac{4}{3} \pi r^3</span>. What is the volume of a
@@ -1052,7 +1193,8 @@ sphere with radius 5?</p>
 additional copy. What is the total wholesale cost for 60 copies?</li>
 <li>If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15
 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace
-again, what time do I get home for breakfast? ### Exercise 3</li>
+again, what time do I get home for breakfast? ### Exercise 3: Recursive
+Fibonacci</li>
 </ol>
 <p>You’ve probably heard of the fibonacci numbers before, but in case
 you haven’t, they’re defined by the following recursive
@@ -1064,7 +1206,7 @@ relationship:</p>
 3, \ldots
    \end{matrix}\right. </span></p>
 <p>Write a recursive function to calculate these numbers. ### Exercise
-4</p>
+4: Recursive Palindromes</p>
 <p>A palindrome is a word that is spelled the same backward and forward,
 like “noon” and “redivider”. Recursively, a word is a palindrome if the
 first and last letters are the same and the middle is a palindrome.</p>
@@ -1077,7 +1219,7 @@ functions into the toplevel and test them out. What happens if you call
 middle with a string with two letters? One letter? What about the empty
 string, which is written ““? 1. Write a function called is_palindrome
 that takes a string argument and returns true if it is a palindrome and
-false otherwise. ### Exercise 5</p>
+false otherwise. ### Exercise 5: Euclid’s GCD</p>
 <p>The greatest common divisor (GCD) of <span
 class="math inline">a</span> and <span class="math inline">b</span> is
 the largest number that divides both of them with no remainder.</p>
@@ -1623,7 +1765,7 @@ elimination:} </span></p>
    {\texttt{int}}}}{\text{{\texttt{fun x -&gt; ((+) x)
    1}}} : {\texttt{int}} \rightarrow
    {\texttt{int}}} </span></p>
-<h2 id="exercise-1-1">Exercise 1</h2>
+<h2 id="exercise-1">Exercise 1</h2>
 <p>Due to Yaron Minsky.</p>
 <p>Consider a datatype to store internet connection information. The
 time <code>when_initiated</code> marks the start of connecting and is
@@ -2037,7 +2179,7 @@ class="math inline">f^n (x) = f^{n + 1} (x)</span>.</li>
 </ol>
 <p>Functional Programming</p>
 <p>Computation</p>
-<h2 id="exercise-1-2">Exercise 1</h2>
+<h2 id="exercise-1-1">Exercise 1</h2>
 <p><span id="TravTreeEx"></span>By “traverse a</p>
 <p>tree” below we mean: write a function that takes a tree and returns a
 list of values in the nodes of the tree.</p>
@@ -2861,7 +3003,8 @@ done; !s</li>
 </ol>
 <p>Functional Programming</p>
 <p>Functions</p>
-<h2 id="exercise-1-3">Exercise 1</h2>
+<h2 id="exercise-1-core-lambda-encodings">Exercise 1: Core Lambda
+Encodings</h2>
 <p>Define (implement) and test on a couple of examples functions</p>
 <p>corresponding to / computing:</p>
 <ol type="1">
@@ -2877,7 +3020,8 @@ pair-encoded natural numbers.</em></li>
 numerals;</em></li>
 <li><em>the depth of a tree (in Church numerals).</em></li>
 </ol>
-<h2 id="exercise-2-2">Exercise 2</h2>
+<h2 id="exercise-2-state-passing-imperative-constructs">Exercise 2:
+State-Passing Imperative Constructs</h2>
 <p>Representing side-effects as an explicitly “passed around”</p>
 <p>state value, write (higher-order) functions that represent the
 imperative constructs:</p>
@@ -3638,7 +3782,8 @@ based on AVL trees. See
 <p>Functional Programming</p>
 <p>Type Inference</p>
 <p>Abstract Data Types</p>
-<h2 id="exercise-1-4">Exercise 1</h2>
+<h2 id="exercise-1-type-equation-solving">Exercise 1: Type Equation
+Solving</h2>
 <p>Derive the equations and solve them to find the type for:</p>
 <p><em>let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr
 (true::false::[])</em></p>
@@ -3651,7 +3796,8 @@ based on AVL trees. See
 \operatorname{list} \rightarrow \alpha \operatorname{list}
 \right\rbrace</span>. You can take “shortcuts” if it is too many
 equations to write down.</em></p>
-<h2 id="exercise-2-3">Exercise 2</h2>
+<h2 id="exercise-2-unification-practice">Exercise 2: Unification
+Practice</h2>
 <p><em>Terms</em> <span class="math inline">t_{1}, t_{2}, \ldots \in T
 (\Sigma, X)</span> are built</p>
 <p>out of variables <span class="math inline">x, y, \ldots \in X</span>
@@ -3750,7 +3896,8 @@ f (y)), (y, g (z)), (z, a)</span><em>. (Hint: iterated substitutions
 should be unfolded lazily, i.e. only so far that either a non-variable
 term or the end of the instantiation chain is found.)</em></li>
 </ol>
-<h2 id="exercise-3-2">Exercise 3</h2>
+<h2 id="exercise-3-algebraic-specs-and-junk">Exercise 3: Algebraic Specs
+and Junk</h2>
 <ol type="1">
 <li><em>What does it mean that an implementation has junk (as an
 algebraic structure for a given signature)? Is it bad?</em></li>
@@ -3763,7 +3910,8 @@ data type).</em></li>
 where it would be useful to drop some axioms (giving up monomorphicity)
 to allow more efficient implementations.</em></li>
 </ol>
-<h2 id="exercise-4-2">Exercise 4</h2>
+<h2 id="exercise-4-map-specification-audit">Exercise 4: Map
+Specification Audit</h2>
 <ol type="1">
 <li><p><em>Does the example</em> <em>ListMap</em> <em>meet the
 requirements of the algebraic specification for maps? Hint: here is the
@@ -3789,13 +3937,13 @@ equivalence relation</em> <span class="math inline">\approx</span>
 <em>meaning “have the same keys”, defined and used just in the axioms of
 the specification.</em></p></li>
 </ol>
-<h2 id="exercise-5-1">Exercise 5</h2>
+<h2 id="exercise-5-queue-adt-design">Exercise 5: Queue ADT Design</h2>
 <p>Design an algebraic specification and write a signature for</p>
 <p>first-in-first-out queues. Provide two implementations: one
 straightforward using a list, and another one using two lists: one for
 freshly added elements providing efficient queueing of new elements, and
 “reversed” one for efficient popping of old elements.</p>
-<h2 id="exercise-6">Exercise 6</h2>
+<h2 id="exercise-6-set-adt-design">Exercise 6: Set ADT Design</h2>
 <p>Design an algebraic specification and write a signature for</p>
 <p>sets. Provide two implementations: one straightforward using a list,
 and another one using a map into the unit type.</p>
@@ -3804,7 +3952,8 @@ and another one using a map into the unit type.</p>
 the maps ADT with generally useful operations that you find necessary or
 convenient for map-based implementation of sets.</em></li>
 </ul>
-<h2 id="exercise-7">Exercise 7</h2>
+<h2 id="exercise-7-efficient-set-operations">Exercise 7: Efficient Set
+Operations</h2>
 <ol type="1">
 <li><em>(Ex. 2.2 in</em> *Chris Okasaki “Purely Functional Data
 Structures”**) In the worst case,* <code>*member*</code> <em>performs
@@ -4906,7 +5055,8 @@ algorithm is sketchy. Questions?</li>
 <li>We will not discuss a complete implementation example, but you can
 exploit ideas from the algorithm in your homework.</li>
 </ul>
-<h2 id="exercise-1-5">Exercise 1</h2>
+<h2 id="exercise-1-combinatorial-generation">Exercise 1: Combinatorial
+Generation</h2>
 <p>Recall how we generated all subsequences of a list. Find
 (i.e. generate) all:</p>
 <ol type="1">
@@ -4915,14 +5065,17 @@ exploit ideas from the algorithm in your homework.</li>
 <li>combinations of K distinct objects chosen from the N elements of a
 list</li>
 </ol>
-<h2 id="exercise-2-4">Exercise 2</h2>
+<h2 id="exercise-2-polynomial-degree-via-fold">Exercise 2: Polynomial
+Degree via Fold</h2>
 <p>Using folding for the <code>expression</code> data type, compute the
 degree of the corresponding polynomial. See <a
 href="http://en.wikipedia.org/wiki/Degree_of_a_polynomial">http://en.wikipedia.org/wiki/Degree_of_a_polynomial</a>.</p>
-<h2 id="exercise-3-3">Exercise 3</h2>
+<h2 id="exercise-3-simplification-via-map">Exercise 3: Simplification
+via Map</h2>
 <p>Implement simplification of expressions using mapping for the
 <code>expression</code> data type.</p>
-<h2 id="exercise-4-3">Exercise 4</h2>
+<h2 id="exercise-4-rewriting-with-folds">Exercise 4: Rewriting with
+Folds</h2>
 <p>Express in terms of <code>fold_left</code> or
 <code>fold_right</code>:</p>
 <ol type="1">
@@ -4941,19 +5094,22 @@ Problems</em>)
 <li><code>encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]</code></li>
 </ul></li>
 </ol>
-<h2 id="exercise-5-2">Exercise 5</h2>
+<h2 id="exercise-5-efficient-list-utilities">Exercise 5: Efficient List
+Utilities</h2>
 <ol type="1">
 <li>Write a more efficient variant of <code>list_diff</code> that
 computes the difference of sets represented as sorted lists.</li>
 <li><code>is_unique</code> in the provided code takes quadratic time;
 optimize it.</li>
 </ol>
-<h2 id="exercise-6-1">Exercise 6</h2>
+<h2 id="exercise-6-function-list-composition">Exercise 6: Function List
+Composition</h2>
 <p>Write functions <code>compose</code> and <code>perform</code> that
 take a list of functions and return their composition, i.e. a function
 <code>compose [f1; ...; fn] = x -&gt; f1 (... (fn x)...)</code> and
 <code>perform [f1; ...; fn] = x -&gt; fn (... (f1 x)...)</code>.</p>
-<h2 id="exercise-7-1">Exercise 7</h2>
+<h2 id="exercise-7-tents-puzzle-solver">Exercise 7: Tents Puzzle
+Solver</h2>
 <p>Write a solver for the <em>Tents Puzzle</em> <a
 href="http://www.mathsisfun.com/games/tents-puzzle.html">http://www.mathsisfun.com/games/tents-puzzle.html</a>.</p>
 <h2 id="exercise-8-robot-squad">Exercise 8: Robot Squad</h2>
@@ -4962,7 +5118,8 @@ readings for multiple robots: 8 readings of the distance to wall or
 another robot, for each robot. Robots are equipped with compasses; the
 lidar readings are in directions E, NE, N, NW, W, SW, S, SE. Determine
 the possible positions of robots.</p>
-<h2 id="exercise-9">Exercise 9</h2>
+<h2 id="exercise-9-plinx-puzzle-solver">Exercise 9: Plinx Puzzle
+Solver</h2>
 <p>Write a solver for the <em>Plinx Puzzle</em> <a
 href="http://www.mathsisfun.com/games/plinx-puzzle.html">http://www.mathsisfun.com/games/plinx-puzzle.html</a>.
 It does not need to always return correct solutions, but it should
@@ -5635,7 +5792,8 @@ testdoc</p></li>
 </ul>
 <p>Functional Programming</p>
 <p>Streams and lazy evaluation</p>
-<h2 id="exercise-1-6">Exercise 1</h2>
+<h2 id="exercise-1-lazy-list-combinators">Exercise 1: Lazy List
+Combinators</h2>
 <p>My first impulse was to define lazy list functions as here:</p>
 <p><em>let rec wrong_lzip = function | LNil, LNil -&gt; LNil | LCons
 (a1, lazy l1), LCons (a2, lazy l2) -&gt; LCons ((a1, a2), lazy
@@ -5644,7 +5802,7 @@ wrong_lmap f = function | LNil -&gt; LNil | LCons (a, lazy l) -&gt;
 LCons (f a, lazy (wrong_lmap f l))</em></p>
 <p><em>What is wrong with these definitions – for which edge cases they
 do not work as intended?</em></p>
-<h2 id="exercise-2-5">Exercise 2</h2>
+<h2 id="exercise-2-cyclic-lazy-lists">Exercise 2: Cyclic Lazy Lists</h2>
 <p>Cyclic lazy lists:</p>
 <ol type="1">
 <li><p><em>Implement a function</em>
@@ -5697,7 +5855,8 @@ class="math inline">\sin (\cdot)</span> <em>and</em> <span
 class="math inline">\cos
    (\cdot)</span><em>, and draw their graphs using helper functions from
 the lecture script</em> <code>*Lec7.ml*</code>.</p>
-<h2 id="exercise-3-4">Exercise 3</h2>
+<h2 id="exercise-3-lazy-puzzle-search">Exercise 3: Lazy Puzzle
+Search</h2>
 <ul>
 <li>Modify one of the puzzle solving programs (either from the</li>
 </ul>
@@ -5706,7 +5865,8 @@ lists. Implement the necessary higher-order lazy list functions. Check
 that indeed displaying only the first solution when there are multiple
 solutions in the result takes shorter than computing solutions by the
 original program.</p>
-<h2 id="exercise-4-4">Exercise 4</h2>
+<h2 id="exercise-4-hamming-numbers-stream">Exercise 4: Hamming Numbers
+Stream</h2>
 <p><em>Hamming’s problem</em>. Generate in increasing order the
 numbers</p>
 <p>of the form <span class="math inline">2^{a_{1}} 3^{a_{2}} 5^{a_{3}}
@@ -5732,12 +5892,14 @@ LCons (x, lazy (merge xr ys)) else if x &gt; y then LCons (y, lazy
 (merge xs yr)) else LCons (x, lazy (merge xr yr)) | r, LNil | LNil, r
 -&gt; rlet hamming k = let pr = ltake k primes in let rec h = LCons (1,
 lazy ( <TODO> )) in h*</p>
-<h2 id="exercise-5-3">Exercise 5</h2>
+<h2 id="exercise-5-flattening-pretty-printer-state">Exercise 5:
+Flattening Pretty-Printer State</h2>
 <p>Modify <code>format</code> and/or <code>breaks</code> to use just a
 single number</p>
 <p>instead of a stack of booleans to keep track of what groups should be
 inlined.</p>
-<h2 id="exercise-6-2">Exercise 6</h2>
+<h2 id="exercise-6-indentation-aware-pretty-printing">Exercise 6:
+Indentation-Aware Pretty-Printing</h2>
 <p>Add <strong>indentation</strong> to the pretty-printer for groups: if
 a</p>
 <p>group does not fit in a single line, its consecutive lines are
@@ -5760,7 +5922,8 @@ of indentation: indent the first line of a group, when the group starts
 on a new line, at the same level as the consecutive lines (rather than
 at the parent level of indentation).*</li>
 </ol>
-<h2 id="exercise-7-2">Exercise 7</h2>
+<h2 id="exercise-7-linecolumn-annotation-pipe">Exercise 7: Line/Column
+Annotation Pipe</h2>
 <p>Write a pipe that takes document elements annotated with</p>
 <p>linear position, and produces document elements annotated with (line,
 column) coordinates.</p>
@@ -5770,7 +5933,8 @@ coordinate. Test the pipes by plugging them before the <code>emit</code>
 pipe.</em></p>
 <pre><code>1: first line
 2: second line, etc.</code></pre>
-<h2 id="exercise-8">Exercise 8</h2>
+<h2 id="exercise-8-reconstructing-subdocuments">Exercise 8:
+Reconstructing Subdocuments</h2>
 <p>Write a pipe that consumes document elements <code>doc_e</code>
 and</p>
 <p>yields the toplevel subdocuments <code>doc</code> which would
@@ -5779,7 +5943,8 @@ generate the corresponding elements.</p>
 so that the element annotations are preserved (<code>gen</code> should
 ignore annotations to keep things simple):type ’a doc = Text of ’a </em>
 string | Line of ’a | Cat of doc * doc | Group of ’a * doc*</p>
-<h2 id="exercise-9-1">Exercise 9</h2>
+<h2 id="exercise-9-memoizing-pipe-fan-out">Exercise 9: Memoizing Pipe
+Fan-Out</h2>
 <ul>
 <li>Design and implement a way to duplicate arrows outgoing</li>
 </ul>
@@ -7478,7 +7643,8 @@ Cooperative.access thread2before we proceed.</li>
 </ul>
 <div class="sourceCode" id="cb69"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a># <span class="kw">let</span> test =    Cooperative.killthreads ();    <span class="kw">let</span> thread1 = TT.loop <span class="st">&quot;A&quot;</span> <span class="dv">5</span> <span class="kw">in</span>    <span class="kw">let</span> thread2 = TT.loop <span class="st">&quot;B&quot;</span> <span class="dv">4</span> <span class="kw">in</span>    Cooperative.access thread1;    Cooperative.access thread2;;-- A(<span class="dv">5</span>)-- B(<span class="dv">4</span>)-- A(<span class="dv">4</span>)-- B(<span class="dv">3</span>)-- A(<span class="dv">3</span>)-- B(<span class="dv">2</span>)-- A(<span class="dv">2</span>)-- B(<span class="dv">1</span>)-- A(<span class="dv">1</span>)-- B(<span class="dv">0</span>)-- A(<span class="dv">0</span>)<span class="kw">val</span> test : <span class="dt">unit</span> = ()</span></code></pre></div>
-<h2 id="exercise-1-7">Exercise 1</h2>
+<h2 id="exercise-1-olegs-monad-puzzle">Exercise 1: Oleg’s Monad
+Puzzle</h2>
 <p>Puzzle via Oleg Kiselyov.</p>
 <p>“U2” has a concert that starts in 17 minutes and they must all cross
 a bridge to get there. All four men begin on the same side of the
@@ -7500,7 +7666,8 @@ returns with the flashlight, a total of 20 minutes have passed and you
 have failed the mission.</p>
 <p>Find all answers to the puzzle using a list comprehension. The
 comprehension will be a bit long but recursion is not needed.</p>
-<h2 id="exercise-2-6">Exercise 2</h2>
+<h2 id="exercise-2-predict-monadic-results">Exercise 2: Predict Monadic
+Results</h2>
 <p>Assume <code>concat_map</code> as defined in lecture 6. What will the
 following expresions return? Why?</p>
 <ol type="1">
@@ -7509,24 +7676,28 @@ following expresions return? Why?</p>
 false; return 7;;</li>
 <li>perform with (|-&gt;) in return 5; guard false; return 7;;</li>
 </ol>
-<h2 id="exercise-3-5">Exercise 3</h2>
+<h2 id="exercise-3-bind-from-lift-and-join">Exercise 3: Bind from Lift
+and Join</h2>
 <p>Define <code>bind</code> in terms of <code>lift</code> and
 <code>join</code>.</p>
-<h2 id="exercise-4-5">Exercise 4</h2>
+<h2 id="exercise-4-tree-based-monad-plus">Exercise 4: Tree-Based Monad
+Plus</h2>
 <p><span id="TreeM"></span>Define a monad-plus implementation based on
 binary trees, with constant-time <code>mzero</code> and
 <code>mplus</code>. Starter code:type ’a tree = Empty | Leaf of ’a | T
 of ’a t * ’a tmodule TreeM = MonadPlus (struct type ’a t = ’a tree let
 bind a b = TODO let return a = TODO let mzero = TODO let mplus a b =
 TODOend)</p>
-<h2 id="exercise-5-4">Exercise 5</h2>
+<h2 id="exercise-5-prove-monad-plus-laws">Exercise 5: Prove Monad-Plus
+Laws</h2>
 <p>Show the monad-plus laws for one of:</p>
 <ol type="1">
 <li><code>TreeM</code> from your solution of exercise <a
 href="#TreeM"></a>;</li>
 <li><code>ListM</code> from lecture.</li>
 </ol>
-<h2 id="exercise-6-3">Exercise 6</h2>
+<h2 id="exercise-6-laziness-diagnosis">Exercise 6: Laziness
+Diagnosis</h2>
 <p>Why the following monad-plus is not lazy enough?</p>
 <ul>
 <li>let rec badappend l1 l2 = match l1 with lazy LazNil -&gt; l2 | lazy
@@ -7549,11 +7720,13 @@ sol5);;val t5c : float = 7.8678131103515625e-06val sol59 : string list =
 2.59876251220703125e-05val sol539 : string list =<br />
 [“((25-(3+7))*(1+50))”; “(((25-3)-7)*(1+50))”; …</li>
 </ul>
-<h2 id="exercise-7-3">Exercise 7</h2>
+<h2 id="exercise-7-column-aligned-matrix-printing">Exercise 7:
+Column-Aligned Matrix Printing</h2>
 <p>Convert a “rectangular” list of lists of strings, representing a
 matrix with inner lists being rows, into a string, where elements are
 column-aligned. (Exercise not related to recent material.)</p>
-<h2 id="exercise-8-1">Exercise 8</h2>
+<h2 id="exercise-8-enriched-exception-signatures">Exercise 8: Enriched
+Exception Signatures</h2>
 <p>Recall the overly rich way to introduce monads – providing the
 freedom of additional parametermodule type MONAD = sig type (’s, ’a) t
 val return : ’a -&gt; (’s, ’a) t val bind : (’s, ’a) t -&gt; (’a -&gt;
@@ -7578,7 +7751,8 @@ type (’e, ’a) t = KEEP/TODO let return a = OK a let bind m b = KEEP/TODO
 end include M include RMonadOps(M) let throw e = KEEP/TODO<br />
 let catch m handler = KEEP/TODOend</li>
 </ol>
-<h2 id="exercise-9-2">Exercise 9</h2>
+<h2 id="exercise-9-generic-monadic-control-constructs">Exercise 9:
+Generic Monadic Control Constructs</h2>
 <p>Implement the following constructs for <em>all</em> monads:</p>
 <ol type="1">
 <li>for…to…</li>
@@ -7589,7 +7763,8 @@ let catch m handler = KEEP/TODOend</li>
 </ol>
 <p>Explain how, when your implementation is instantiated with the StateM
 monad, we get the solution to exercise 2 from lecture 4.</p>
-<h2 id="exercise-10">Exercise 10</h2>
+<h2 id="exercise-10-wet-grass-inference-model">Exercise 10: Wet-Grass
+Inference Model</h2>
 <p>A canonical example of a probabilistic model is that of a lawn whose
 grass may be wet because it rained, because the sprinkler was on, or for
 some other reason. Oleg Kiselyov builds on this example with variables
@@ -7620,7 +7795,8 @@ probability tables are:</p>
 \end{eqnarray*}</span></p>
 <p>We observe whether the grass is wet and whether the roof is wet. What
 is the probability that it rained?</p>
-<h2 id="exercise-11">Exercise 11</h2>
+<h2 id="exercise-11-coarse-grained-concurrency">Exercise 11:
+Coarse-Grained Concurrency</h2>
 <p>Implement the coarse-grained concurrency model.</p>
 <ul>
 <li>Modify <code>bind</code> to compute the resulting monad straight
@@ -10285,7 +10461,8 @@ cw := binse b e ); ps.(!cw)</p>
 <li>File: <code>InvIndex7.ml</code></li>
 <li>Time: 2.4s – minimal speedup in our simple test case.</li>
 </ul>
-<h2 id="exercise-1-8">Exercise 1</h2>
+<h2 id="exercise-1-closure-conversion-check">Exercise 1: Closure
+Conversion Check</h2>
 <p>(Exercise 6.1 from <em>“Modern Compiler Implementation in ML”</em> by
 Andrew W. Appel.) Using the <code>ocamlopt</code> compiler with
 parameter <code>-S</code> and other parameters turning on all possible
@@ -10302,17 +10479,20 @@ call, is it properly kept in a caller-save register? Explain how doing
 thes would speed up the program:let h y = let x = y+1 in let z = f y in
 f z</li>
 </ol>
-<h2 id="exercise-2-7">Exercise 2</h2>
+<h2 id="exercise-2-escaping-variable-allocation">Exercise 2: Escaping
+Variable Allocation</h2>
 <p>As above, verify whether escaping variables of a function are kept in
 a closure corresponding to the function, or in closures corresponding to
 the local, i.e. nested, functions that are returned from the function
 (or assigned to a mutable field).</p>
-<h2 id="exercise-3-6">Exercise 3</h2>
+<h2 id="exercise-3-inlining-verification">Exercise 3: Inlining
+Verification</h2>
 <p>As above, verify that OCaml compiler performs <em>inline
 expansion</em> of small functions. Check whether the compiler can
 inline, or specialize (produce a local function to help inlining),
 recursive functions.</p>
-<h2 id="exercise-4-6">Exercise 4</h2>
+<h2 id="exercise-4-text-anonymizer-lexer">Exercise 4: Text Anonymizer
+Lexer</h2>
 <p>Write a “<code>.mll</code> program” that anonymizes, or masks, text.
 That is, it replaces identified probable full names (of persons,
 companies etc.) with fresh shorthands <em>Mr. A</em>, <em>Ms. B</em>, or
@@ -10322,25 +10502,30 @@ companies etc.) with fresh shorthands <em>Mr. A</em>, <em>Ms. B</em>, or
 <li>Do only a very rough job of course, starting with recognizing two or
 more capitalized words in a row.</li>
 </ul>
-<h2 id="exercise-5-5">Exercise 5</h2>
+<h2 id="exercise-5-abbreviation-lexing">Exercise 5: Abbreviation
+Lexing</h2>
 <p>In the lexer EngLexer we call function <code>abridged</code> from the
 module EngMorph. Inline the operation of <code>abridged</code> into the
 lexer by adding a new regular expression pattern for each if clause.
 Assess the speedup on the <em>Shakespeare</em> corpus and the
 readability and either keep the change or revert it.</p>
-<h2 id="exercise-6-4">Exercise 6</h2>
+<h2 id="exercise-6-re-entrant-menhir-lexer">Exercise 6: Re-entrant
+Menhir Lexer</h2>
 <p>Make the lexer re-entrant for the second Menhir example (toy English
 grammar parser).</p>
-<h2 id="exercise-7-4">Exercise 7</h2>
+<h2 id="exercise-7-optional-determiner-grammar">Exercise 7: Optional
+Determiner Grammar</h2>
 <p>Make the determiner optional in the toy English grammar.</p>
 <ol type="1">
 <li>* Can you come up with a factorization that would avoid having two
 more productions in total?</li>
 </ol>
-<h2 id="exercise-8-2">Exercise 8</h2>
+<h2 id="exercise-8-porter-stemmer-integration">Exercise 8: Porter
+Stemmer Integration</h2>
 <p>Integrate into the <em>Phrase search</em> example, the <em>Porter
 Stemmer</em> whose source is in the <code>stemmer.ml</code> file.</p>
-<h2 id="exercise-9-3">Exercise 9</h2>
+<h2 id="exercise-9-search-engine-revisit">Exercise 9: Search Engine
+Revisit</h2>
 <p>Revisit the search engine example from lecture 6.</p>
 <ol type="1">
 <li>Perform optimization of data structure, i.e. replace association
@@ -10353,7 +10538,8 @@ language with <em>OR</em> and <em>NOT</em> connectives, in addition to
 <li>* Extend query optimization to the query language with <em>AND</em>,
 <em>OR</em> and <em>NOT</em> connectives.</li>
 </ol>
-<h2 id="exercise-10-1">Exercise 10</h2>
+<h2 id="exercise-10-shakespeare-xml-parser">Exercise 10: Shakespeare XML
+Parser</h2>
 <p>Write an XML parser tailored to the <code>shakespeare.xml</code>
 corpus provided with the phrase search example. Modify the phrase search
 engine to provide detailed information for each found location,
@@ -11526,19 +11712,22 @@ window#show (); GMain.Main.main ()</p></li>
 </ul>
 <p>Functional Programming</p>
 <p>Zippers, Reactivity, GUIs</p>
-<h2 id="exercise-1-9">Exercise 1</h2>
+<h2 id="exercise-1-non-commutative-rewriting">Exercise 1:
+Non-Commutative Rewriting</h2>
 <p>Introduce operators <span class="math inline">-, /</span> into the
 context rewriting “pull</p>
 <p>out subexpression” example. Remember that they are not
 commutative.</p>
-<h2 id="exercise-2-8">Exercise 2</h2>
+<h2 id="exercise-2-paddle-game-features">Exercise 2: Paddle Game
+Features</h2>
 <p>Add to the <em>paddle game</em> example:</p>
 <ol type="1">
 <li><em>game restart,</em></li>
 <li><em>score keeping,</em></li>
 <li><em>game quitting (in more-or-less elegant way).</em></li>
 </ol>
-<h2 id="exercise-3-7">Exercise 3</h2>
+<h2 id="exercise-3-better-numerical-integration">Exercise 3: Better
+Numerical Integration</h2>
 <p>Our numerical integration function roughly corresponds to the</p>
 <p>rectangle rule. Modify the rule and write a test for the accuracy
 of:</p>
@@ -11548,7 +11737,8 @@ of:</p>
 </ol>
 <p>rule.* <em><a
 href="http://en.wikipedia.org/wiki/Simpson%27s_rule">http://en.wikipedia.org/wiki/Simpson%27s_rule</a></em></p>
-<h2 id="exercise-4-7">Exercise 4</h2>
+<h2 id="exercise-4-recursive-integration-trace">Exercise 4: Recursive
+Integration Trace</h2>
 <p>Explain the recursive behavior of integration:</p>
 <ol type="1">
 <li><em>In</em> <em>paddle game</em> <em>implemented by stream
@@ -11562,11 +11752,13 @@ with the latter in the</em> <code>*pbal*</code> <em>function? How about
 after rewriting</em> <code>*pbal*</code> <em>into pure style as in the
 following exercise?</em></li>
 </ol>
-<h2 id="exercise-5-6">Exercise 5</h2>
+<h2 id="exercise-5-pure-froc-paddle-ball">Exercise 5: Pure Froc Paddle
+Ball</h2>
 <p>Reimplement the <em>Froc</em> based paddle ball example in a pure</p>
 <p>style: rewrite the <code>pbal</code> function to not use
 <code>notify_e</code>.</p>
-<h2 id="exercise-6-5">Exercise 6</h2>
+<h2 id="exercise-6-continuation-based-flows">Exercise 6:
+Continuation-Based Flows</h2>
 <ul>
 <li>Our implementation of flows is a bit heavy. One alternative</li>
 </ul>
@@ -11574,19 +11766,22 @@ following exercise?</em></li>
 OCaml has a continuations library <em>Delimcc</em>; for how it can
 cooperate with <em>Froc</em>, see<a
 href="http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html">http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html</a></p>
-<h2 id="exercise-7-5">Exercise 7</h2>
+<h2 id="exercise-7-parallel-flows">Exercise 7: Parallel Flows</h2>
 <p>Implement <code>parallel</code> for flows, retaining
 coarse-grained</p>
 <p>implementation and using the event queue from <em>Froc</em> somehow
 (instead of introducing a new job queue).</p>
-<h2 id="exercise-8-3">Exercise 8</h2>
+<h2 id="exercise-8-painter-quit-event">Exercise 8: Painter Quit
+Event</h2>
 <p>Add quitting, e.g. via a <code>'q'</code> key press, to the
 <em>painter</em></p>
 <p>example. Use the <code>is_cancelled</code> function.</p>
-<h2 id="exercise-9-4">Exercise 9</h2>
+<h2 id="exercise-9-decimal-input-in-calculator">Exercise 9: Decimal
+Input in Calculator</h2>
 <p>Our calculator example is not finished. Implement entering</p>
 <p>decimal fractions: add handling of the <code>dots</code> event.</p>
-<h2 id="exercise-10-2">Exercise 10</h2>
+<h2 id="exercise-10-reader-monad-utilities">Exercise 10: Reader Monad
+Utilities</h2>
 <p>The Flow module has reader monad functions that have not been</p>
 <p>discussed on slides:let local f m = fun emit -&gt; m (fun x -&gt;
 emit (f x))let localopt f m = fun emit -&gt; m (fun x -&gt; match f x
@@ -12278,33 +12473,39 @@ S)</span>.0.5em0.5em0.5em0.5emliteral0.5em”(“;0.5emn10.5em&lt;–0.5emlang;0
 PluginBase.(grammarrules0.5em:=0.5emmultiplication0.5em::0.5em!grammarrules)</p>
 <h1 id="the-expression-problem-exercises">The Expression Problem –
 Exercises</h1>
-<h2 id="exercise-1-10">Exercise 1</h2>
+<h2 id="exercise-1-pretty-printers-for-evaluators">Exercise 1:
+Pretty-Printers for Evaluators</h2>
 <p><span id="ExStringOf"></span>Implement the</p>
 <p><code>string_of_</code> functions or methods, covering all data
 cases, corresponding to the <code>eval_</code> functions in at least two
 examples from the lecture, including both an object-based example and a
 variant-based example (either standard, or polymorphic, or extensible
 variants).</p>
-<h2 id="exercise-2-9">Exercise 2</h2>
+<h2 id="exercise-2-separate-compilation-split">Exercise 2: Separate
+Compilation Split</h2>
 <p><span id="ExSplitFiles"></span>Split at</p>
 <p>least one of the examples from the previous exercise into multiple
 files and demonstrate separate compilation.</p>
-<h2 id="exercise-3-8">Exercise 3</h2>
+<h2 id="exercise-3-removing-variant-tags">Exercise 3: Removing Variant
+Tags</h2>
 <p>Can we drop the tags <code>Lambda_t</code>, <code>Expr_t</code> and
 <code>LExpr_t</code> used</p>
 <p>in the examples based on standard variants (file
 <code>FP_ADT.ml</code>)? When using polymorphic variants, such tags are
 not needed.</p>
-<h2 id="exercise-4-8">Exercise 4</h2>
+<h2 id="exercise-4-factoring-variable-sublanguage">Exercise 4: Factoring
+Variable Sublanguage</h2>
 <p>Factor-out the sub-language consisting only of variables, thus</p>
 <p>eliminating the duplication of tags <code>VarL</code>,
 <code>VarE</code> in the examples based on standard variants (file
 <code>FP_ADT.ml</code>).</p>
-<h2 id="exercise-5-7">Exercise 5</h2>
+<h2 id="exercise-5-extensible-variant-bug-hunt">Exercise 5:
+Extensible-Variant Bug Hunt</h2>
 <p>Come up with a scenario where the extensible variant</p>
 <p>types-based solution leads to a non-obvious or hard to locate
 bug.</p>
-<h2 id="exercise-6-6">Exercise 6</h2>
+<h2 id="exercise-6-object-solution-cleanup">Exercise 6: Object Solution
+Cleanup</h2>
 <ul>
 <li>Re-implement the direct object-based solution to the</li>
 </ul>
@@ -12312,7 +12513,8 @@ bug.</p>
 satisfying. For example, eliminate the need for some of the
 <code>rename</code>, <code>apply</code>, <code>compute</code>
 methods.</p>
-<h2 id="exercise-7-6">Exercise 7</h2>
+<h2 id="exercise-7-functional-visitor-refactor">Exercise 7: Functional
+Visitor Refactor</h2>
 <p>Re-implement the visitor pattern-based solution to the</p>
 <p>expression problem (file <code>Visitor.ml</code>) in a functional
 way, i.e. replace the mutable fields <code>subst</code> and
@@ -12323,14 +12525,16 @@ non-<code>abs</code> expressions differently.</p>
 <code>evalN</code> and <code>freevarsN</code> functions (for
 <code>N=1,2,3</code>) with a different solution to the problem of
 polymorphism wrt. the type of the computed values.*</p>
-<h2 id="exercise-8-4">Exercise 8</h2>
+<h2 id="exercise-8-visitor-with-variables-and-substitution">Exercise 8:
+Visitor with Variables and Substitution</h2>
 <p>Extend the sub-language <code>expr_visit</code> with variables, and
 add</p>
 <p>to arguments of the evaluation constructor <code>eval_expr</code> the
 substitution. Handle the problem of potentially duplicate fields
 <code>subst</code>. (One approach might be to use ideas from exercise
 6.)</p>
-<h2 id="exercise-9-5">Exercise 9</h2>
+<h2 id="exercise-9-polyv-feature-extensions">Exercise 9: PolyV Feature
+Extensions</h2>
 <p>Impement the following modifications to the example from the</p>
 <p>file <code>PolyV.ml</code>:</p>
 <ol type="1">
@@ -12346,25 +12550,29 @@ is not necessary.</em></li>
 <code>*freevars_lexpr*</code><em>, by implementing a cascading design
 rather than a “divide-and-conquer” design.</em></li>
 </ol>
-<h2 id="exercise-10-3">Exercise 10</h2>
+<h2 id="exercise-10-streamlined-polyrecm">Exercise 10: Streamlined
+PolyRecM</h2>
 <p>Streamline the solution <code>PolyRecM.ml</code> by extending the</p>
 <p>language of <span class="math inline">\lambda</span>-expressions with
 arithmetic expressions, rather than defining the sub-languages
 separately and then merging them. See slide on page 15 of Jacques
 Garrigue <em>Structural Types, Recursive Modules, and the Expression
 Problem</em>.</p>
-<h2 id="exercise-11-1">Exercise 11</h2>
+<h2 id="exercise-11-parser-state-with-positions">Exercise 11: Parser
+State with Positions</h2>
 <p>Transform a parser monad, or rewrite the parser monad</p>
 <p>transformer, by adding state for the line and column numbers.</p>
 <p>** How to implement a monad transformer transformer in OCaml?*</p>
-<h2 id="exercise-12">Exercise 12</h2>
+<h2 id="exercise-12-parser-combinator-_of_string">Exercise 12: Parser
+Combinator _of_string</h2>
 <p>Implement <code>_of_string</code> functions as parser combinators on
 top</p>
 <p>of the example <code>PolyRecM.ml</code>. Sections 4.3 and 6.2 of
 <em>Monadic Parser Combinators</em> by Graham Hutton and Erik Meijer
 might be helpful. Split the result into multiple files as in Exercise <a
 href="#ExSplitFiles">2</a> and demonstrate dynamic loading of code.</p>
-<h2 id="exercise-13">Exercise 13</h2>
+<h2 id="exercise-13-odd-vs-even-lazy-monad-plus">Exercise 13: Odd vs
+Even Lazy Monad-Plus</h2>
 <p>What are the benefits and drawbacks of our lazy-monad-plus</p>
 <p>(built on top of <em>odd lazy lists</em>) approach, as compared to
 regular monad-plus built on top of <em>even lazy lists</em>? To

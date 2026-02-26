@@ -900,7 +900,7 @@ Now `breaks` can be replaced with a different strategy (for example, one that ad
 
 ### 7.10 Exercises
 
-#### Exercise 1
+#### Exercise 1: Lazy List Combinators
 
 My first impulse was to define lazy list functions as follows:
 
@@ -919,7 +919,7 @@ let rec wrong_lmap f = function
 
 What is wrong with these definitions -- for which edge cases do they not work as intended?
 
-#### Exercise 2
+#### Exercise 2: Cyclic Lazy Lists
 
 Cyclic lazy lists.
 
@@ -930,12 +930,12 @@ Cyclic lazy lists.
 
 2. Note that `inv_fact` from the lecture defines the power series for the $\exp(\cdot)$ function ($\exp(x) = e^x$). Using `cycle` and `inv_fact`, define the power series for $\sin(\cdot)$ and $\cos(\cdot)$, and draw their graphs using helper functions from the lecture script `Lec7.ml`.
 
-#### Exercise 3
+#### Exercise 3: Lazy Puzzle Search
 
 Modify one of the puzzle solving programs (either from the previous lecture or from your previous homework) to work with lazy lists. Implement the necessary higher-order lazy list functions. Check that indeed displaying only the first solution when there are multiple solutions in the result takes shorter than computing solutions by the original program.
 
 
-#### Exercise 4
+#### Exercise 4: Hamming Numbers Stream
 
 *Hamming's problem*. Generate in increasing order the numbers of the form $2^{a_1} 3^{a_2} 5^{a_3} \ldots p_k^{a_k}$, that is numbers not divisible by prime numbers greater than the $k$th prime number.
 
@@ -976,12 +976,12 @@ let hamming k =
   )) in h
 ```
 
-#### Exercise 5
+#### Exercise 5: Flattening Pretty-Printer State
 
 Modify `format` and/or `breaks` to use just a single number instead of a stack of booleans to keep track of what groups should be inlined.
 
 
-#### Exercise 6
+#### Exercise 6: Indentation-Aware Pretty-Printing
 
 Add **indentation** to the pretty-printer for groups: if a group does not fit in a single line, its consecutive lines are indented by a given amount `tab` of spaces deeper than its parent group lines would be. For comparison, let's do several implementations.
 
@@ -991,7 +991,7 @@ Add **indentation** to the pretty-printer for groups: if a group does not fit in
 3. Modify the second pipe-based implementation of `pretty` by modifying the `breaks` function. Recover the positions of elements -- the number of characters from the beginning of the document -- by keeping track of the growing offset.
 4. (Harder) Modify a pipe-based implementation to provide a different style of indentation: indent the first line of a group, when the group starts on a new line, at the same level as the consecutive lines (rather than at the parent level of indentation).
 
-#### Exercise 7
+#### Exercise 7: Line/Column Annotation Pipe
 
 Write a pipe that takes document elements annotated with linear position, and produces document elements annotated with (line, column) coordinates.
 
@@ -1003,7 +1003,7 @@ Write another pipe that takes so annotated elements and adds a line number indic
 2: second line, etc.
 ```
 
-#### Exercise 8
+#### Exercise 8: Reconstructing Subdocuments
 
 Write a pipe that consumes document elements `doc_e` and yields the toplevel subdocuments `doc` which would generate the corresponding elements.
 
@@ -1015,7 +1015,7 @@ type 'a doc =
   Text of 'a * string | Line of 'a | Cat of 'a doc * 'a doc | Group of 'a * 'a doc
 ```
 
-#### Exercise 9
+#### Exercise 9: Memoizing Pipe Fan-Out
 
 (Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
 

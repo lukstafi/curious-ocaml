@@ -312,7 +312,7 @@ This design choice makes type inference simpler and more predictable. When you s
 
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
-#### Exercise 1
+#### Exercise 1: Type and Value Predictions
 
 Assume that we execute the following assignment statements:
 
@@ -330,7 +330,7 @@ For each of the following expressions, write the value of the expression and the
 4. `1 + 2 * 5`
 5. `delimiter * 5`
 
-#### Exercise 2
+#### Exercise 2: REPL Calculator Drills
 
 Practice using the OCaml interpreter as a calculator:
 
@@ -338,7 +338,7 @@ Practice using the OCaml interpreter as a calculator:
 2. Suppose the cover price of a book is \$24.95, but bookstores get a 40% discount. Shipping costs \$3 for the first copy and 75 cents for each additional copy. What is the total wholesale cost for 60 copies?
 3. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace again, what time do I get home for breakfast?
 
-#### Exercise 3
+#### Exercise 3: Recursive Fibonacci
 
 You've probably heard of the Fibonacci numbers before, but in case you haven't, they're defined by the following recursive relationship:
 
@@ -352,7 +352,7 @@ $$
 
 Write a recursive function to calculate these numbers.
 
-#### Exercise 4
+#### Exercise 4: Recursive Palindromes
 
 A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
 
@@ -371,7 +371,7 @@ let middle word =
 1. Enter these functions into the toplevel and test them out. What happens if you call `middle` with a string with two letters? One letter? What about the empty string `""`?
 2. Write a function called `is_palindrome` that takes a string argument and returns `true` if it is a palindrome and `false` otherwise.
 
-#### Exercise 5
+#### Exercise 5: Euclid's GCD
 
 The greatest common divisor (GCD) of $a$ and $b$ is the largest number that divides both of them with no remainder.
 

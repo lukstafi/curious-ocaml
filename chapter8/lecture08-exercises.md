@@ -1,4 +1,4 @@
-### Exercise 1
+### Exercise 1: Oleg's Monad Puzzle
 
 Puzzle via Oleg Kiselyov.
 
@@ -24,7 +24,7 @@ will be a bit long but recursion is not needed.
 
 
 
-### Exercise 2
+### Exercise 2: Predict Monadic Results
 
 Assume `concat_map` as defined in lecture 6. What will the following 
 expresions return? Why?
@@ -36,13 +36,13 @@ expresions return? Why?
 
 
 
-### Exercise 3
+### Exercise 3: Bind from Lift and Join
 
 Define `bind` in terms of `lift` and `join`.
 
 
 
-### Exercise 4
+### Exercise 4: Tree-Based Monad Plus
 
 <span id="TreeM"></span>Define a monad-plus implementation 
 based on binary trees, with constant-time `mzero` and `mplus`. Starter 
@@ -52,7 +52,7 @@ TODO  let mzero = TODO  let mplus a b = TODOend)
 
 
 
-### Exercise 5
+### Exercise 5: Prove Monad-Plus Laws
 
 Show the monad-plus laws for one of:
 
@@ -61,7 +61,7 @@ Show the monad-plus laws for one of:
 
 
 
-### Exercise 6
+### Exercise 6: Laziness Diagnosis
 
 Why the following monad-plus is not lazy enough?
 
@@ -86,7 +86,7 @@ Why the following monad-plus is not lazy enough?
 
 
 
-### Exercise 7
+### Exercise 7: Column-Aligned Matrix Printing
 
 Convert a “rectangular” list of lists of strings, representing a matrix with 
 inner lists being rows, into a string, where elements are column-aligned. 
@@ -94,7 +94,7 @@ inner lists being rows, into a string, where elements are column-aligned.
 
 
 
-### Exercise 8
+### Exercise 8: Enriched Exception Signatures
 
 Recall the overly rich way to introduce monads – providing the freedom of 
 additional parametermodule type MONAD = sig  type ('s, 'a) t  val return : 
@@ -121,7 +121,7 @@ monadval catch : 'a monad -> (excn -> 'a monad) -> 'a monad
 
 
 
-### Exercise 9
+### Exercise 9: Generic Monadic Control Constructs
 
  Implement the following constructs for *all* monads:
 
@@ -136,7 +136,7 @@ we get the solution to exercise 2 from lecture 4.
 
 
 
-### Exercise 10
+### Exercise 10: Wet-Grass Inference Model
 
 A canonical example of a probabilistic model is that of a lawn whose grass may 
 be wet because it rained, because the sprinkler was on, or for some other 
@@ -167,7 +167,7 @@ probability that it rained?
 
 
 
-### Exercise 11
+### Exercise 11: Coarse-Grained Concurrency
 
 Implement the coarse-grained concurrency model.
 

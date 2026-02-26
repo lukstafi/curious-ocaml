@@ -2,13 +2,13 @@ Functional Programming
 
 Zippers, Reactivity, GUIs
 
-### Exercise 1
+### Exercise 1: Non-Commutative Rewriting
 
 Introduce operators $-, /$ into the context rewriting “pull 
 
 out subexpression” example. Remember that they are not commutative.
 
-### Exercise 2
+### Exercise 2: Paddle Game Features
 
 Add to the *paddle game* example:
 
@@ -17,7 +17,7 @@ Add to the *paddle game* example:
 1. *score keeping,*
 1. *game quitting (in more-or-less elegant way).*
 
-### Exercise 3
+### Exercise 3: Better Numerical Integration
 
 Our numerical integration function roughly corresponds to the 
 
@@ -28,7 +28,7 @@ rectangle rule. Modify the rule and write a test for the accuracy of:
    
 rule.* *[http://en.wikipedia.org/wiki/Simpson%27s\_rule](http://en.wikipedia.org/wiki/Simpson%27s_rule)*
 
-### Exercise 4
+### Exercise 4: Recursive Integration Trace
 
 Explain the recursive behavior of integration:
 
@@ -41,13 +41,13 @@ Explain the recursive behavior of integration:
    the* `*pbal*` *function? How about after rewriting* `*pbal*` *into pure
    style as in the following exercise?*
 
-### Exercise 5
+### Exercise 5: Pure Froc Paddle Ball
 
 Reimplement the *Froc* based paddle ball example in a pure 
 
 style: rewrite the `pbal` function to not use `notify_e`.
 
-### Exercise 6
+### Exercise 6: Continuation-Based Flows
 
 * Our implementation of flows is a bit heavy. One alternative 
 
@@ -55,26 +55,26 @@ approach is to use continuations, as in `Scala.React`. OCaml has a
 continuations library *Delimcc*; for how it can cooperate with *Froc*, 
 see[http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html](http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html)
 
-### Exercise 7
+### Exercise 7: Parallel Flows
 
 Implement `parallel` for flows, retaining coarse-grained 
 
 implementation and using the event queue from *Froc* somehow (instead of 
 introducing a new job queue).
 
-### Exercise 8
+### Exercise 8: Painter Quit Event
 
 Add quitting, e.g. via a `'q'` key press, to the *painter* 
 
 example. Use the `is_cancelled` function.
 
-### Exercise 9
+### Exercise 9: Decimal Input in Calculator
 
 Our calculator example is not finished. Implement entering 
 
 decimal fractions: add handling of the `dots` event.
 
-### Exercise 10
+### Exercise 10: Reader Monad Utilities
 
 The Flow module has reader monad functions that have not been 
 

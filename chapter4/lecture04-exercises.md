@@ -2,7 +2,7 @@ Functional Programming
 
 Functions
 
-### Exercise 1
+### Exercise 1: Core Lambda Encodings
 
 Define (implement) and test on a couple of examples functions 
 
@@ -18,7 +18,7 @@ corresponding to / computing:
 1. `*cn_max*` *– maximum of two Church numerals;*
 1. *the depth of a tree (in Church numerals).*
 
-### Exercise 2
+### Exercise 2: State-Passing Imperative Constructs
 
 Representing side-effects as an explicitly “passed around” 
 

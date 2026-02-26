@@ -1,6 +1,6 @@
 ## The Expression Problem -- Exercises
 
-### Exercise 1
+### Exercise 1: Pretty-Printers for Evaluators
 
 <span id="ExStringOf"></span>Implement the 
 
@@ -9,34 +9,34 @@ the `eval_` functions in at least two examples from the lecture, including
 both an object-based example and a variant-based example (either standard, or 
 polymorphic, or extensible variants).
 
-### Exercise 2
+### Exercise 2: Separate Compilation Split
 
 <span id="ExSplitFiles"></span>Split at 
 
 least one of the examples from the previous exercise into multiple files and 
 demonstrate separate compilation.
 
-### Exercise 3
+### Exercise 3: Removing Variant Tags
 
 Can we drop the tags `Lambda_t`, `Expr_t` and `LExpr_t` used 
 
 in the examples based on standard variants (file `FP_ADT.ml`)? When using 
 polymorphic variants, such tags are not needed.
 
-### Exercise 4
+### Exercise 4: Factoring Variable Sublanguage
 
 Factor-out the sub-language consisting only of variables, thus 
 
 eliminating the duplication of tags `VarL`, `VarE` in the examples based on 
 standard variants (file `FP_ADT.ml`).
 
-### Exercise 5
+### Exercise 5: Extensible-Variant Bug Hunt
 
 Come up with a scenario where the extensible variant 
 
 types-based solution leads to a non-obvious or hard to locate bug.
 
-### Exercise 6
+### Exercise 6: Object Solution Cleanup
 
 * Re-implement the direct object-based solution to the 
 
@@ -44,7 +44,7 @@ expression problem (file `Objects.ml`) to make it more satisfying. For
 example, eliminate the need for some of the `rename`, `apply`, `compute` 
 methods.
 
-### Exercise 7
+### Exercise 7: Functional Visitor Refactor
 
 Re-implement the visitor pattern-based solution to the 
 
@@ -57,7 +57,7 @@ differently.
 `freevarsN` functions (for `N=1,2,3`) with a different solution to the problem
 of polymorphism wrt. the type of the computed values.*
 
-### Exercise 8
+### Exercise 8: Visitor with Variables and Substitution
 
 Extend the sub-language `expr_visit` with variables, and add 
 
@@ -65,7 +65,7 @@ to arguments of the evaluation constructor `eval_expr` the substitution.
 Handle the problem of potentially duplicate fields `subst`. (One approach 
 might be to use ideas from exercise 6.)
 
-### Exercise 9
+### Exercise 9: PolyV Feature Extensions
 
 Impement the following modifications to the example from the 
 
@@ -81,7 +81,7 @@ file `PolyV.ml`:
    `*freevars_lexpr*`*, by implementing a cascading design rather than a
    “divide-and-conquer” design.*
 
-### Exercise 10
+### Exercise 10: Streamlined PolyRecM
 
 Streamline the solution `PolyRecM.ml` by extending the 
 
@@ -90,7 +90,7 @@ defining the sub-languages separately and then merging them. See slide on page
 15 of Jacques Garrigue *Structural Types, Recursive Modules, and the 
 Expression Problem*.
 
-### Exercise 11
+### Exercise 11: Parser State with Positions
 
 Transform a parser monad, or rewrite the parser monad 
 
@@ -98,7 +98,7 @@ transformer, by adding state for the line and column numbers.
 
 ** How to implement a monad transformer transformer in OCaml?*
 
-### Exercise 12
+### Exercise 12: Parser Combinator _of_string
 
 Implement `_of_string` functions as parser combinators on top 
 
@@ -107,7 +107,7 @@ Combinators* by Graham Hutton and Erik Meijer might be helpful. Split the
 result into multiple files as in Exercise [2](#ExSplitFiles) and demonstrate 
 dynamic loading of code.
 
-### Exercise 13
+### Exercise 13: Odd vs Even Lazy Monad-Plus
 
 What are the benefits and drawbacks of our lazy-monad-plus 
 

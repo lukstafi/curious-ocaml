@@ -2,7 +2,7 @@ Functional Programming
 
 Streams and lazy evaluation
 
-### Exercise 1
+### Exercise 1: Lazy List Combinators
 
 My first impulse was to define lazy list functions as here:
 
@@ -16,7 +16,7 @@ l))*
 *What is wrong with these definitions – for which edge cases they do not work
 as intended?*
 
-### Exercise 2
+### Exercise 2: Cyclic Lazy Lists
 
 Cyclic lazy lists:
 
@@ -53,7 +53,7 @@ Cyclic lazy lists:
    (\cdot)$*, and draw their graphs using helper functions from the lecture
    script* `*Lec7.ml*`.
 
-### Exercise 3
+### Exercise 3: Lazy Puzzle Search
 
 * Modify one of the puzzle solving programs (either from the 
 
@@ -62,7 +62,7 @@ Implement the necessary higher-order lazy list functions. Check that indeed
 displaying only the first solution when there are multiple solutions in the 
 result takes shorter than computing solutions by the original program.
 
-### Exercise 4
+### Exercise 4: Hamming Numbers Stream
 
 *Hamming's problem*. Generate in increasing order the numbers 
 
@@ -87,13 +87,13 @@ if x > y then LCons (y, lazy (merge xs yr))     else LCons (x, lazy (merge
 xr yr)) | r, LNil | LNil, r -> rlet hamming k = let pr = ltake k primes in
 let rec h = LCons (1, lazy (   <TODO> )) in h*
 
-### Exercise 5
+### Exercise 5: Flattening Pretty-Printer State
 
 Modify `format` and/or `breaks` to use just a single number 
 
 instead of a stack of booleans to keep track of what groups should be inlined.
 
-### Exercise 6
+### Exercise 6: Indentation-Aware Pretty-Printing
 
 Add **indentation** to the pretty-printer for groups: if a 
 
@@ -113,7 +113,7 @@ comparison, let's do several implementations.
    new line, at the same level as the consecutive lines (rather than at the
    parent level of indentation).*
 
-### Exercise 7
+### Exercise 7: Line/Column Annotation Pipe
 
 Write a pipe that takes document elements annotated with 
 
@@ -129,7 +129,7 @@ pipes by plugging them before the `emit` pipe.*
 2: second line, etc.
 ```
 
-### Exercise 8
+### Exercise 8: Reconstructing Subdocuments
 
 Write a pipe that consumes document elements `doc_e` and 
 
@@ -141,7 +141,7 @@ element annotations are preserved (`gen` should ignore annotations to keep
 things simple):type 'a doc =  Text of 'a * string | Line of 'a | Cat of doc
 * doc | Group of 'a * doc*
 
-### Exercise 9
+### Exercise 9: Memoizing Pipe Fan-Out
 
 * Design and implement a way to duplicate arrows outgoing 
 

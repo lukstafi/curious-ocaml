@@ -201,7 +201,7 @@ let encode_bool b = if b then c_true else c_false
 let decode_bool c = (Obj.magic c) true false  (* Don't enforce type on c *)
 ```
 
-#### Exercise
+#### Exercise: Church Boolean Combinators
 
 Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
 
@@ -303,7 +303,7 @@ The successor function adds one more application of `f`:
 let cn_succ = fun n f x -> f (n f x)
 ```
 
-#### Exercise
+#### Exercise: Church Numeral Arithmetic
 
 Define addition, multiplication, and comparing to zero for Church numerals. Also try to define the predecessor function "-1".
 
@@ -547,12 +547,12 @@ $$
 
 The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
 
-#### Exercise
+#### Exercise: Hand-Reduce `fact cn2`
 
 Compute `fact cn2` by hand, tracing through the reduction steps.
 
 
-#### Exercise
+#### Exercise: Fixed Point of Successor
 
 What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate it? Think about whether there is any value `x` such that `x = cn_succ x`.
 
@@ -672,7 +672,7 @@ In OCaml or F# we would typically guard by `fun () ->` and then apply to `()`, b
 
 The following exercises will help solidify your understanding of lambda-calculus encodings. For each exercise involving lambda-calculus, test your implementation by encoding some inputs, applying your function, and decoding the result.
 
-#### Exercise 1
+#### Exercise 1: Core Lambda Encodings
 
 Define (implement) and test on a couple of examples functions corresponding to or computing:
 
@@ -687,7 +687,7 @@ Define (implement) and test on a couple of examples functions corresponding to o
 8. `cn_max` -- maximum of two Church numerals;
 9. the depth of a tree (in Church numerals).
 
-#### Exercise 2
+#### Exercise 2: Numeral-like Lambda Terms
 
 Construct lambda-terms $m_0, m_1, \ldots$ such that for all $n$ one has:
 
@@ -701,7 +701,7 @@ $$
 
 (where equality is after performing $\beta$-reductions).
 
-#### Exercise 3
+#### Exercise 3: State-Passing Imperative Constructs
 
 Representing side-effects as an explicitly "passed around" state value, write (higher-order) functions that represent the imperative constructs:
 

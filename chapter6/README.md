@@ -1166,7 +1166,7 @@ The efficiency comes from *early pruning*: constraint propagation often eliminat
 
 ### 6.11 Exercises
 
-#### Exercise 1
+#### Exercise 1: Combinatorial Generation
 
 Recall how we generated all subsequences of a list. Find (generate) all:
 
@@ -1174,15 +1174,15 @@ Recall how we generated all subsequences of a list. Find (generate) all:
 - ways of choosing without repetition from a list
 - combinations of K distinct objects chosen from N elements of a list
 
-#### Exercise 2
+#### Exercise 2: Polynomial Degree via Fold
 
 Using folding for the `expression` data type, compute the degree of the corresponding polynomial.
 
-#### Exercise 3
+#### Exercise 3: Simplification via Map
 
 Implement simplification of expressions using mapping for the `expression` data type.
 
-#### Exercise 4
+#### Exercise 4: Rewriting with Folds
 
 Express in terms of `fold_left` or `fold_right`:
 
@@ -1190,21 +1190,21 @@ Express in terms of `fold_left` or `fold_right`:
 - `concat_fold` as used in Honey Islands
 - Run-length encoding of a list: `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
 
-#### Exercise 5
+#### Exercise 5: Efficient List Utilities
 
 Write more efficient variants:
 
 - `list_diff` computing difference of sets represented as sorted lists
 - `is_unique` in constant stack space
 
-#### Exercise 6
+#### Exercise 6: Function List Composition
 
 Write functions `compose` and `perform` that take a list of functions and return their composition:
 
 - `compose [f1; ...; fn] = x -> f1 (... (fn x)...)`
 - `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`
 
-#### Exercise 7
+#### Exercise 7: Tents Puzzle Solver
 
 Write a solver for the *Tents Puzzle*.
 
@@ -1212,6 +1212,6 @@ Write a solver for the *Tents Puzzle*.
 
 Given a map with walls and lidar readings (8 directions: E, NE, N, NW, W, SW, S, SE) for multiple robots, determine possible robot positions.
 
-#### Exercise 9
+#### Exercise 9: Plinx Puzzle Solver
 
 Write a solver for the *Plinx Puzzle* (does not need to solve all levels, but should handle initial ones).

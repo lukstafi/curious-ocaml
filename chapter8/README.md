@@ -1712,7 +1712,7 @@ The key insight is that monadic structure gives us precise control over concurre
 
 ### 8.15 Exercises
 
-#### Exercise 1
+#### Exercise 1: Oleg's Monad Puzzle
 
 (Puzzle via Oleg Kiselyov)
 
@@ -1728,7 +1728,7 @@ For example: if Bono and Larry walk across first, 10 minutes have elapsed when t
 
 Find all answers to the puzzle using `let*` notation. The expression will be a bit long but recursion is not needed.
 
-#### Exercise 2
+#### Exercise 2: Predict Monadic Results
 
 Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
 
@@ -1737,12 +1737,12 @@ Assume `concat_map` as defined in lecture 6 and the binding operators defined ab
 2. `let guard p = if p then [()] else [] in let* () = guard false in return 7`
 3. `let* _ = return 5 in let* () = guard false in return 7`
 
-#### Exercise 3
+#### Exercise 3: Bind from Lift and Join
 
 Define `bind` in terms of `lift` and `join`.
 
 
-#### Exercise 4
+#### Exercise 4: Tree-Based Monad Plus
 
 Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
 
@@ -1759,14 +1759,14 @@ module TreeM = MonadPlus (struct
 end)
 ```
 
-#### Exercise 5
+#### Exercise 5: Prove Monad-Plus Laws
 
 Show the monad-plus laws for one of:
 
 1. `TreeM` from your solution of exercise 4
 2. `ListM` from lecture
 
-#### Exercise 6
+#### Exercise 6: Laziness Diagnosis
 
 Why is the following monad-plus not lazy enough?
 
@@ -1791,17 +1791,17 @@ module BadyListM = MonadPlus (struct
 end)
 ```
 
-#### Exercise 7
+#### Exercise 7: Column-Aligned Matrix Printing
 
 Convert a "rectangular" list of lists of strings, representing a matrix with inner lists being rows, into a string, where elements are column-aligned. (Exercise not related to monads.)
 
 
-#### Exercise 8
+#### Exercise 8: Enriched Exception Signatures
 
 Recall the enriched monad signature with `('s, 'a) t` type. Design the signatures for the exception monad operations to provide more flexibility than our exception monad. Does the implementation need to change?
 
 
-#### Exercise 9
+#### Exercise 9: Generic Monadic Control Constructs
 
 Implement the following constructs for *all* monads:
 
@@ -1814,7 +1814,7 @@ Implement the following constructs for *all* monads:
 
 Explain how, when your implementation is instantiated with the StateM monad, we get the solution to exercise 2 from lecture 4.
 
-#### Exercise 10
+#### Exercise 10: Wet-Grass Inference Model
 
 A canonical example of a probabilistic model is that of a lawn whose grass may be wet because it rained, because the sprinkler was on, or for some other reason. The probability tables are:
 
@@ -1835,7 +1835,7 @@ $$
 
 We observe whether the grass is wet and whether the roof is wet. What is the probability that it rained?
 
-#### Exercise 11
+#### Exercise 11: Coarse-Grained Concurrency
 
 Implement the coarse-grained concurrency model:
 

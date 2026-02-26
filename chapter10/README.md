@@ -1642,12 +1642,12 @@ A note on practice: OCaml UI and dataflow systems today often embed an increment
 
 ### 10.9 Exercises
 
-#### Exercise 1
+#### Exercise 1: Non-Commutative Context Rewriting
 
 Extend the context rewriting “pull out subexpression” example to include `-` and `/`. Remember: they are not commutative.
 
 
-#### Exercise 2
+#### Exercise 2: Text Editor Zipper
 
 Implement a simple text editor zipper:
 
@@ -1656,7 +1656,7 @@ Implement a simple text editor zipper:
 2. Implement `insert_char`, `delete_char`, `move_left`, `move_right`, `move_to_start`, and `move_to_end` operations.
 3. Add word-based movement: `move_word_left` and `move_word_right`.
 
-#### Exercise 3
+#### Exercise 3: Paddle Game Extensions
 
 Add the following features to the paddle game example:
 
@@ -1667,7 +1667,7 @@ Add the following features to the paddle game example:
 4. Speed increase: gradually increase ball speed as the game progresses
 
 
-#### Exercise 4
+#### Exercise 4: Integration Rule Comparison
 
 Our numerical integration function uses the rectangle rule (left endpoint). Implement and compare:
 
@@ -1678,7 +1678,7 @@ Our numerical integration function uses the rectangle rule (left endpoint). Impl
 
 Test the accuracy by integrating $\sin(x)$ from 0 to $\pi$ (exact answer: 2).
 
-#### Exercise 5
+#### Exercise 5: FRP Switching and Termination
 
 Implement `switch` and `until` for the stream-based FRP system:
 
@@ -1686,7 +1686,7 @@ Implement `switch` and `until` for the stream-based FRP system:
 - `switch : 'a behavior -> 'a behavior event -> 'a behavior` -- behaves as the most recent behavior from events
 - `until : 'a behavior -> 'a behavior event -> 'a behavior` -- switches once on the first event
 
-#### Exercise 6
+#### Exercise 6: Event Debouncing
 
 Implement a `debounce` combinator for events:
 
@@ -1695,17 +1695,17 @@ val debounce : float -> 'a event -> 'a event
 ```
 The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
 
-#### Exercise 7
+#### Exercise 7: Reactive Spreadsheet
 
 Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
 
 
-#### Exercise 8
+#### Exercise 8: Dynamic Dependency Graphs
 
 Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
 
-#### Exercise 9
+#### Exercise 9: Flow Timeouts
 
 Extend the effect-based interface in Section 10.7 with timeouts.
 
@@ -1716,7 +1716,7 @@ val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
 
 The function should return `Some v` if the awaited action happens before the deadline, and `None` otherwise. Write a small scripted test with `run_script`.
 
-#### Exercise 10
+#### Exercise 10: Parallel Effect Flows
 
 Implement `parallel` for effect-based flows:
 
@@ -1729,7 +1729,7 @@ This should run multiple flows concurrently and collect their results. Think abo
 - What happens if one flow fails?
 - How do you handle cancellation?
 
-#### Exercise 11
+#### Exercise 11: Virtual Time FRP
 
 The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
 
@@ -1738,7 +1738,7 @@ The FRP implementations in this chapter handle time as wall-clock time from `Uni
 2. Modify the integration function to use virtual time
 3. Write tests that use virtual time to verify physics behavior deterministically
 
-#### Exercise 12
+#### Exercise 12: FRP Memory Profiling
 
 Compare the memory characteristics of the three FRP approaches:
 
