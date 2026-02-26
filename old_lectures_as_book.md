@@ -251,7 +251,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.
 
-1. Assume that we execute the following assignment statements:
+### Exercise 1
+
+Assume that we execute the following assignment statements:
 
    let width = 17;;let height = 12.0;;let delimiter = '.';;
 
@@ -262,7 +264,9 @@ Nicholas Monje and Allen Downey.
    1. height/3
    1. 1 + 2 * 5
    1. delimiter * 5
-1. Practice using the OCaml interpreter as a calculator:
+### Exercise 2
+
+Practice using the OCaml interpreter as a calculator:
    1. The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$. What is 
       the volume of a sphere with radius 5?
 
@@ -273,8 +277,10 @@ Nicholas Monje and Allen Downey.
    1. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per 
       mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace 
       again, what time do I get home for breakfast?
-1. You've probably heard of the fibonacci numbers before, but in case you 
-   haven't, they're defined by the following recursive relationship:
+### Exercise 3
+
+You've probably heard of the fibonacci numbers before, but in case you 
+haven't, they're defined by the following recursive relationship:
 
    $$ \left\lbrace\begin{matrix}
      f (0) & = & 0 &  \\\\\\
@@ -283,9 +289,11 @@ Nicholas Monje and Allen Downey.
    \end{matrix}\right. $$
 
    Write a recursive function to calculate these numbers.
-1. A palindrome is a word that is spelled the same backward and forward, like 
-   “noon” and “redivider”. Recursively, a word is a palindrome if the first 
-   and last letters are the same and the middle is a palindrome.
+### Exercise 4
+
+A palindrome is a word that is spelled the same backward and forward, like 
+“noon” and “redivider”. Recursively, a word is a palindrome if the first 
+and last letters are the same and the middle is a palindrome.
 
    The following are functions that take a string argument and return the 
    first, last, and middle letters:
@@ -298,8 +306,10 @@ Nicholas Monje and Allen Downey.
       about the empty string, which is written ""?
    1. Write a function called is\_palindrome that takes a string argument and 
       returns true if it is a palindrome and false otherwise.
-1. The greatest common divisor (GCD) of $a$ and $b$ is the largest number that 
-   divides both of them with no remainder.
+### Exercise 5
+
+The greatest common divisor (GCD) of $a$ and $b$ is the largest number that 
+divides both of them with no remainder.
 
    One way to find the GCD of two numbers is Euclid's algorithm, which is 
    based on the observation that if $r$ is the remainder when $a$ is divided 
@@ -912,7 +922,7 @@ $$ \frac{\frac{\begin{matrix}
 
 
 
-Exercise 1.
+### Exercise 1
 
 Due to Yaron Minsky.
 
@@ -937,7 +947,7 @@ combinations of information.
 
 
 
-Exercise 2.
+### Exercise 2
 
 In OCaml, functions can have named arguments, and also default arguments 
 (parameters, possibly with default values, which can be omitted when providing 
@@ -997,7 +1007,7 @@ let bar = if Random.int 10 < 5 then None else Some 7 infoo ?bar 7;;
 
 
 
-Exercise 3.
+### Exercise 3
 
 From last year's exam.
 
@@ -1013,7 +1023,7 @@ From last year's exam.
 
 
 
-Exercise 4.
+### Exercise 4
 
 We have seen in the class, that algebraic data types can be related to 
 analytic functions (the subset that can be defined out of polynomials via 
@@ -1319,7 +1329,10 @@ Functional Programming
 
 Computation
 
-**Exercise 1:** <span id="TravTreeEx"></span>By “traverse a 
+### Exercise 1
+
+<span id="TravTreeEx"></span>By “traverse a 
+
 tree” below we mean: write a function that takes a tree and returns a list of 
 values in the nodes of the tree.
 
@@ -1331,13 +1344,22 @@ values in the nodes of the tree.
    order);*
 1. *in breadth-first order – first values in more shallow nodes.*
 
-**Exercise 2:** Turn the function from ex. [1](#TravTreeEx) point 1 or 2 into 
+### Exercise 2
+
+Turn the function from ex. [1](#TravTreeEx) point 1 or 2 into 
+
 continuation passing style.
 
-**Exercise 3:** Do the homework from the end of last week slides: write 
+### Exercise 3
+
+Do the homework from the end of last week slides: write 
+
 `btree_deriv_at`.
 
-**Exercise 4:** Write a function `simplify: expression -> expression` that 
+### Exercise 4
+
+Write a function `simplify: expression -> expression` that 
+
 simplifies the expression a bit, so that for example the result of `simplify 
 (deriv exp dv)` looks more like what a human would get computing the 
 derivative of `exp` with respect to `dv`:
@@ -1347,7 +1369,10 @@ simplification, and wrap it using a general `fixpoint` function that performs
 an operation until a *fixed point* is reached: given $f$ and $x$, it computes
 $f^n (x)$ such that $f^n (x) = f^{n + 1} (x)$.*
 
-**Exercise 5:** Write two sorting algorithms, working on lists: merge sort and 
+### Exercise 5
+
+Write two sorting algorithms, working on lists: merge sort and 
+
 quicksort.
 
 1. *Merge sort splits the list roughly in half, sorts the parts, and merges
@@ -2154,7 +2179,10 @@ Functional Programming
 
 Functions
 
-**Exercise 1:** Define (implement) and test on a couple of examples functions 
+### Exercise 1
+
+Define (implement) and test on a couple of examples functions 
+
 corresponding to / computing:
 
 1. `*c_or*` *and* `*c_not*`;
@@ -2167,7 +2195,10 @@ corresponding to / computing:
 1. `*cn_max*` *– maximum of two Church numerals;*
 1. *the depth of a tree (in Church numerals).*
 
-**Exercise 2:** Representing side-effects as an explicitly “passed around” 
+### Exercise 2
+
+Representing side-effects as an explicitly “passed around” 
+
 state value, write (higher-order) functions that represent the imperative 
 constructs:
 
@@ -2824,7 +2855,10 @@ Type Inference
 
 Abstract Data Types
 
-**Exercise 1:** Derive the equations and solve them to find the type for:
+### Exercise 1
+
+Derive the equations and solve them to find the type for:
+
 
 *let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])*
 
@@ -2835,7 +2869,10 @@ Abstract Data Types
 \operatorname{list} \rightarrow \alpha \operatorname{list} \right\rbrace$. You
 can take “shortcuts” if it is too many equations to write down.*
 
-**Exercise 2:** *Terms* $t_{1}, t_{2}, \ldots \in T (\Sigma, X)$ are built 
+### Exercise 2
+
+*Terms* $t_{1}, t_{2}, \ldots \in T (\Sigma, X)$ are built 
+
 out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in 
 \Sigma$ the way you build values out of functions:
 
@@ -2904,7 +2941,7 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    unfolded lazily, i.e. only so far that either a non-variable term or the
    end of the instantiation chain is found.)*
 
-**Exercise 3:**
+### Exercise 3
 
 1. *What does it mean that an implementation has junk (as an algebraic
    structure for a given signature)? Is it bad?*
@@ -2915,7 +2952,7 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    would be useful to drop some axioms (giving up monomorphicity) to allow
    more efficient implementations.*
 
-**Exercise 4:**
+### Exercise 4
 
 1. *Does the example* *ListMap* *meet the requirements of the algebraic
    specification for maps? Hint: here is the definition
@@ -2937,13 +2974,19 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    equivalence relation* $\approx$ *meaning “have the same keys”, defined and
    used just in the axioms of the specification.*
 
-**Exercise 5:** Design an algebraic specification and write a signature for 
+### Exercise 5
+
+Design an algebraic specification and write a signature for 
+
 first-in-first-out queues. Provide two implementations: one straightforward 
 using a list, and another one using two lists: one for freshly added elements 
 providing efficient queueing of new elements, and “reversed” one for efficient 
 popping of old elements.
 
-**Exercise 6:** Design an algebraic specification and write a signature for 
+### Exercise 6
+
+Design an algebraic specification and write a signature for 
+
 sets. Provide two implementations: one straightforward using a list, and 
 another one using a map into the unit type.
 
@@ -2951,7 +2994,7 @@ another one using a map into the unit type.
   ADT with generally useful operations that you find necessary or convenient
   for map-based implementation of sets.*
 
-**Exercise 7:**
+### Exercise 7
 
 1. *(Ex. 2.2 in* *Chris Okasaki “Purely Functional Data Structures”**) In the
    worst case,* `*member*` *performs approximately* $2 d$ *comparisons, where*
@@ -3900,44 +3943,53 @@ findboard (initstate honey cellstoeat)
   ideas from the algorithm in your homework.
 
 
-* Recall how we generated all subsequences of a list. Find (i.e. generate) 
-  all:
-  1. permutations of a list;
-  1. ways of choosing without repetition from a list;
-  1. combinations of K distinct objects chosen from the N elements of a list.
-* Using folding for the `expression` data type, compute the degree of the 
-  corresponding polynomial. See 
-  [http://en.wikipedia.org/wiki/Degree\_of\_a\_polynomial](http://en.wikipedia.org/wiki/Degree_of_a_polynomial).
-* Implement simplification of expressions using mapping for the `expression` 
-  data type.
-* Express in terms of `fold_left` or `fold_right`:
-  1. indexed : 'a list -> (int \* 'a) list, which pairs elements with 
-     their indices in the list;
-  1. \* `concat_fold`, as used in the solution of *Honey Islands* puzzle:
-     * let rec concatfold f a = function  | [] -> [a]  | x::xs ->     
-       f x a |-> (fun a' -> concatfold f a' xs)
-     * Hint – consider the function:let rec concatfoldl f a = function  | 
-       [] -> a  | x::xs -> concatfoldl f (concatmap (f x) a) xs
-  1. run-length encoding of a list (exercise 10 from *99 Problems*).
-     * `encode [‘a;‘a;‘a;‘a;‘b;‘c;‘c;‘a;‘a;‘d] = [4,‘a; 1,‘b; 2,‘c; 2,‘a; 
-       1,‘d]`
-* 
-  1. Write a more efficient variant of `list_diff` that computes the 
-     difference of sets represented as sorted lists.
-  1. `is_unique` in the provided code takes quadratic time – optimize it.
-* Write functions `compose` and `perform` that take a list of functions and
-  return their composition, i.e. a function `compose [f1; ...; fn] = x -> f1 (... (fn x)...)` and `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`.
-* Write a solver for the *Tents Puzzle* 
-  [http://www.mathsisfun.com/games/tents-puzzle.html](http://www.mathsisfun.com/games/tents-puzzle.html).
-* \* **Robot Squad**. We are given a map of terrain with empty spaces and 
-  walls, and lidar readings for multiple robots, 8 readings of the distance to 
-  wall or another robot, for each robot. Robots are equipped with compasses, 
-  the lidar readings are in directions E, NE, N, NW, W,  SW, S, SE. Determine 
-  the possible positions of robots.
-* \* Write a solver for the *Plinx Puzzle* 
-  [http://www.mathsisfun.com/games/plinx-puzzle.html](http://www.mathsisfun.com/games/plinx-puzzle.html). 
-  It does not need to always return correct solutions but it should correctly 
-  solve the initial levels from the game.
+### Exercise 1
+
+Recall how we generated all subsequences of a list. Find (i.e. generate) all:
+
+1. permutations of a list
+2. ways of choosing without repetition from a list
+3. combinations of K distinct objects chosen from the N elements of a list
+
+### Exercise 2
+
+Using folding for the `expression` data type, compute the degree of the corresponding polynomial. See [http://en.wikipedia.org/wiki/Degree_of_a_polynomial](http://en.wikipedia.org/wiki/Degree_of_a_polynomial).
+
+### Exercise 3
+
+Implement simplification of expressions using mapping for the `expression` data type.
+
+### Exercise 4
+
+Express in terms of `fold_left` or `fold_right`:
+
+1. `indexed : 'a list -> (int * 'a) list`, which pairs elements with their indices in the list
+2. `concat_fold`, as used in the solution of the *Honey Islands* puzzle:
+   - `let rec concatfold f a = function | [] -> [a] | x::xs -> f x a |-> (fun a' -> concatfold f a' xs)`
+   - Hint: consider the function `let rec concatfoldl f a = function | [] -> a | x::xs -> concatfoldl f (concatmap (f x) a) xs`
+3. run-length encoding of a list (exercise 10 from *99 Problems*)
+   - `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
+
+### Exercise 5
+
+1. Write a more efficient variant of `list_diff` that computes the difference of sets represented as sorted lists.
+2. `is_unique` in the provided code takes quadratic time; optimize it.
+
+### Exercise 6
+
+Write functions `compose` and `perform` that take a list of functions and return their composition, i.e. a function `compose [f1; ...; fn] = x -> f1 (... (fn x)...)` and `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`.
+
+### Exercise 7
+
+Write a solver for the *Tents Puzzle* [http://www.mathsisfun.com/games/tents-puzzle.html](http://www.mathsisfun.com/games/tents-puzzle.html).
+
+### Exercise 8: Robot Squad
+
+We are given a map of terrain with empty spaces and walls, and lidar readings for multiple robots: 8 readings of the distance to wall or another robot, for each robot. Robots are equipped with compasses; the lidar readings are in directions E, NE, N, NW, W, SW, S, SE. Determine the possible positions of robots.
+
+### Exercise 9
+
+Write a solver for the *Plinx Puzzle* [http://www.mathsisfun.com/games/plinx-puzzle.html](http://www.mathsisfun.com/games/plinx-puzzle.html). It does not need to always return correct solutions, but it should correctly solve the initial levels from the game.
 
 
 # Lecture 7: Laziness
@@ -4520,7 +4572,10 @@ Functional Programming
 
 Streams and lazy evaluation
 
-**Exercise 1:** My first impulse was to define lazy list functions as here:
+### Exercise 1
+
+My first impulse was to define lazy list functions as here:
+
 
 *let rec wrong\_lzip = function | LNil, LNil -> LNil | LCons (a1, lazy
 l1), LCons (a2, lazy l2) ->     LCons ((a1, a2), lazy (wrong\_lzip (l1,
@@ -4531,7 +4586,10 @@ l))*
 *What is wrong with these definitions – for which edge cases they do not work
 as intended?*
 
-**Exercise 2:** Cyclic lazy lists:
+### Exercise 2
+
+Cyclic lazy lists:
+
 
 1. *Implement a function* `*cycle : 'a list -> 'a llist*` *that creates a
    lazy list with elements from standard list, and the whole list as the tail
@@ -4565,13 +4623,19 @@ as intended?*
    (\cdot)$*, and draw their graphs using helper functions from the lecture
    script* `*Lec7.ml*`.
 
-**Exercise 3:** * Modify one of the puzzle solving programs (either from the 
+### Exercise 3
+
+* Modify one of the puzzle solving programs (either from the 
+
 previous lecture or from your previous homework) to work with lazy lists. 
 Implement the necessary higher-order lazy list functions. Check that indeed 
 displaying only the first solution when there are multiple solutions in the 
 result takes shorter than computing solutions by the original program.
 
-**Exercise 4:** *Hamming's problem*. Generate in increasing order the numbers 
+### Exercise 4
+
+*Hamming's problem*. Generate in increasing order the numbers 
+
 of the form $2^{a_{1}} 3^{a_{2}} 5^{a_{3}} \ldots p_{k}^{a_{k}}$, that is 
 numbers not divisible by prime numbers greater than the $k$th prime number.
 
@@ -4593,10 +4657,16 @@ if x > y then LCons (y, lazy (merge xs yr))     else LCons (x, lazy (merge
 xr yr)) | r, LNil | LNil, r -> rlet hamming k = let pr = ltake k primes in
 let rec h = LCons (1, lazy (   <TODO> )) in h*
 
-**Exercise 5:** Modify `format` and/or `breaks` to use just a single number 
+### Exercise 5
+
+Modify `format` and/or `breaks` to use just a single number 
+
 instead of a stack of booleans to keep track of what groups should be inlined.
 
-**Exercise 6:** Add **indentation** to the pretty-printer for groups: if a 
+### Exercise 6
+
+Add **indentation** to the pretty-printer for groups: if a 
+
 group does not fit in a single line, its consecutive lines are indented by a 
 given amount `tab` of spaces deeper than its parent group lines would be. For 
 comparison, let's do several implementations.
@@ -4613,7 +4683,10 @@ comparison, let's do several implementations.
    new line, at the same level as the consecutive lines (rather than at the
    parent level of indentation).*
 
-**Exercise 7:** Write a pipe that takes document elements annotated with 
+### Exercise 7
+
+Write a pipe that takes document elements annotated with 
+
 linear position, and produces document elements annotated with (line, column) 
 coordinates.
 
@@ -4626,7 +4699,10 @@ pipes by plugging them before the `emit` pipe.*
 2: second line, etc.
 ```
 
-**Exercise 8:** Write a pipe that consumes document elements `doc_e` and 
+### Exercise 8
+
+Write a pipe that consumes document elements `doc_e` and 
+
 yields the toplevel subdocuments `doc` which would generate the corresponding 
 elements.
 
@@ -4635,7 +4711,10 @@ element annotations are preserved (`gen` should ignore annotations to keep
 things simple):type 'a doc =  Text of 'a * string | Line of 'a | Cat of doc
 * doc | Group of 'a * doc*
 
-**Exercise 9:** * Design and implement a way to duplicate arrows outgoing 
+### Exercise 9
+
+* Design and implement a way to duplicate arrows outgoing 
+
 from a pipe-box, that would memoize the stream, i.e. not recompute everything 
 “upstream” for the composition of pipes. Such duplicated arrows would behave 
 nicely with pipes reading from files.
@@ -6044,7 +6123,7 @@ assert false  let killthreads () = Queue.clear jobsRemove pending work.end)
 ```
 
 
-Exercise 1.
+### Exercise 1
 
 Puzzle via Oleg Kiselyov.
 
@@ -6070,7 +6149,7 @@ will be a bit long but recursion is not needed.
 
 
 
-Exercise 2.
+### Exercise 2
 
 Assume `concat_map` as defined in lecture 6. What will the following 
 expresions return? Why?
@@ -6082,13 +6161,13 @@ expresions return? Why?
 
 
 
-Exercise 3.
+### Exercise 3
 
 Define `bind` in terms of `lift` and `join`.
 
 
 
-Exercise 4.
+### Exercise 4
 
 <span id="TreeM"></span>Define a monad-plus implementation 
 based on binary trees, with constant-time `mzero` and `mplus`. Starter 
@@ -6098,7 +6177,7 @@ TODO  let mzero = TODO  let mplus a b = TODOend)
 
 
 
-Exercise 5.
+### Exercise 5
 
 Show the monad-plus laws for one of:
 
@@ -6107,7 +6186,7 @@ Show the monad-plus laws for one of:
 
 
 
-Exercise 6.
+### Exercise 6
 
 Why the following monad-plus is not lazy enough?
 
@@ -6132,7 +6211,7 @@ Why the following monad-plus is not lazy enough?
 
 
 
-Exercise 7.
+### Exercise 7
 
 Convert a “rectangular” list of lists of strings, representing a matrix with 
 inner lists being rows, into a string, where elements are column-aligned. 
@@ -6140,7 +6219,7 @@ inner lists being rows, into a string, where elements are column-aligned.
 
 
 
-Exercise 8.
+### Exercise 8
 
 Recall the overly rich way to introduce monads – providing the freedom of 
 additional parametermodule type MONAD = sig  type ('s, 'a) t  val return : 
@@ -6167,7 +6246,7 @@ monadval catch : 'a monad -> (excn -> 'a monad) -> 'a monad
 
 
 
-Exercise 9.
+### Exercise 9
 
  Implement the following constructs for *all* monads:
 
@@ -6182,7 +6261,7 @@ we get the solution to exercise 2 from lecture 4.
 
 
 
-Exercise 10.
+### Exercise 10
 
 A canonical example of a probabilistic model is that of a lawn whose grass may 
 be wet because it rained, because the sprinkler was on, or for some other 
@@ -6213,7 +6292,7 @@ probability that it rained?
 
 
 
-Exercise 11.
+### Exercise 11
 
 Implement the coarse-grained concurrency model.
 
@@ -7956,7 +8035,7 @@ let next ii w cp =  let cw,ps = find w ii in  let l = Array.length ps in  if l =
 
 
 
-Exercise 1.
+### Exercise 1
 
 (Exercise 6.1 from *“Modern Compiler Implementation in ML”* by Andrew W. 
 Appel.) Using the `ocamlopt` compiler with parameter `-S` and other parameters 
@@ -7973,7 +8052,7 @@ by these criteria:
 
 
 
-Exercise 2.
+### Exercise 2
 
 As above, verify whether escaping variables of a function are kept in a 
 closure corresponding to the function, or in closures corresponding to the 
@@ -7982,7 +8061,7 @@ to a mutable field).
 
 
 
-Exercise 3.
+### Exercise 3
 
 As above, verify that OCaml compiler performs *inline expansion* of small 
 functions. Check whether the compiler can inline, or specialize (produce a 
@@ -7990,7 +8069,7 @@ local function to help inlining), recursive functions.
 
 
 
-Exercise 4.
+### Exercise 4
 
 Write a “`.mll` program” that anonymizes, or masks, text. That is, it replaces 
 identified probable full names (of persons, companies etc.) with fresh 
@@ -8002,7 +8081,7 @@ determined. The same (full) name should be replaced with the same letter.
 
 
 
-Exercise 5.
+### Exercise 5
 
 In the lexer EngLexer we call function `abridged` from the module EngMorph. 
 Inline the operation of `abridged` into the lexer by adding a new regular 
@@ -8011,14 +8090,14 @@ corpus and the readability and either keep the change or revert it.
 
 
 
-Exercise 6.
+### Exercise 6
 
 Make the lexer re-entrant for the second Menhir example (toy English grammar 
 parser).
 
 
 
-Exercise 7.
+### Exercise 7
 
 Make the determiner optional in the toy English grammar.
 
@@ -8027,14 +8106,14 @@ Make the determiner optional in the toy English grammar.
 
 
 
-Exercise 8.
+### Exercise 8
 
 Integrate into the *Phrase search* example, the *Porter Stemmer* whose source 
 is in the `stemmer.ml` file.
 
 
 
-Exercise 9.
+### Exercise 9
 
 Revisit the search engine example from lecture 6.
 
@@ -8049,7 +8128,7 @@ Revisit the search engine example from lecture 6.
 
 
 
-Exercise 10.
+### Exercise 10
 
 Write an XML parser tailored to the `shakespeare.xml` corpus provided with the 
 phrase search example. Modify the phrase search engine to provide detailed 
@@ -8994,16 +9073,25 @@ Functional Programming
 
 Zippers, Reactivity, GUIs
 
-**Exercise 1:** Introduce operators $-, /$ into the context rewriting “pull 
+### Exercise 1
+
+Introduce operators $-, /$ into the context rewriting “pull 
+
 out subexpression” example. Remember that they are not commutative.
 
-**Exercise 2:** Add to the *paddle game* example:
+### Exercise 2
+
+Add to the *paddle game* example:
+
 
 1. *game restart,*
 1. *score keeping,*
 1. *game quitting (in more-or-less elegant way).*
 
-**Exercise 3:** Our numerical integration function roughly corresponds to the 
+### Exercise 3
+
+Our numerical integration function roughly corresponds to the 
+
 rectangle rule. Modify the rule and write a test for the accuracy of:
 
 1. *the trapezoidal rule;*
@@ -9011,7 +9099,10 @@ rectangle rule. Modify the rule and write a test for the accuracy of:
    
 rule.* *[http://en.wikipedia.org/wiki/Simpson%27s\_rule](http://en.wikipedia.org/wiki/Simpson%27s_rule)*
 
-**Exercise 4:** Explain the recursive behavior of integration:
+### Exercise 4
+
+Explain the recursive behavior of integration:
+
 
 1. *In* *paddle game* *implemented by stream processing –* `*Lec10b.ml*`*, do
    we look at past velocity to determine current position, at past position to
@@ -9021,25 +9112,43 @@ rule.* *[http://en.wikipedia.org/wiki/Simpson%27s\_rule](http://en.wikipedia.org
    the* `*pbal*` *function? How about after rewriting* `*pbal*` *into pure
    style as in the following exercise?*
 
-**Exercise 5:** Reimplement the *Froc* based paddle ball example in a pure 
+### Exercise 5
+
+Reimplement the *Froc* based paddle ball example in a pure 
+
 style: rewrite the `pbal` function to not use `notify_e`.
 
-**Exercise 6:** * Our implementation of flows is a bit heavy. One alternative 
+### Exercise 6
+
+* Our implementation of flows is a bit heavy. One alternative 
+
 approach is to use continuations, as in `Scala.React`. OCaml has a 
 continuations library *Delimcc*; for how it can cooperate with *Froc*, 
 see[http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html](http://ambassadortothecomputers.blogspot.com/2010/08/mixing-monadic-and-direct-style-code.html)
 
-**Exercise 7:** Implement `parallel` for flows, retaining coarse-grained 
+### Exercise 7
+
+Implement `parallel` for flows, retaining coarse-grained 
+
 implementation and using the event queue from *Froc* somehow (instead of 
 introducing a new job queue).
 
-**Exercise 8:** Add quitting, e.g. via a `'q'` key press, to the *painter* 
+### Exercise 8
+
+Add quitting, e.g. via a `'q'` key press, to the *painter* 
+
 example. Use the `is_cancelled` function.
 
-**Exercise 9:** Our calculator example is not finished. Implement entering 
+### Exercise 9
+
+Our calculator example is not finished. Implement entering 
+
 decimal fractions: add handling of the `dots` event.
 
-**Exercise 10:** The Flow module has reader monad functions that have not been 
+### Exercise 10
+
+The Flow module has reader monad functions that have not been 
+
 discussed on slides:let local f m = fun emit -> m (fun x -> emit (f 
 x))let localopt f m = fun emit ->  m (fun x -> match f x with 
 None -> () | Some y -> emit y)val local : ('a -> 'b) -> ('a, 
@@ -9500,33 +9609,54 @@ open0.5emPluginBase.ParseMlet0.5emmultiplication0.5emlang0.5em=0.5em0.5emperform
 
 ## The Expression Problem -- Exercises
 
-**Exercise 1:** <span id="ExStringOf"></span>Implement the 
+### Exercise 1
+
+<span id="ExStringOf"></span>Implement the 
+
 `string_of_` functions or methods, covering all data cases, corresponding to 
 the `eval_` functions in at least two examples from the lecture, including 
 both an object-based example and a variant-based example (either standard, or 
 polymorphic, or extensible variants).
 
-**Exercise 2:** <span id="ExSplitFiles"></span>Split at 
+### Exercise 2
+
+<span id="ExSplitFiles"></span>Split at 
+
 least one of the examples from the previous exercise into multiple files and 
 demonstrate separate compilation.
 
-**Exercise 3:** Can we drop the tags `Lambda_t`, `Expr_t` and `LExpr_t` used 
+### Exercise 3
+
+Can we drop the tags `Lambda_t`, `Expr_t` and `LExpr_t` used 
+
 in the examples based on standard variants (file `FP_ADT.ml`)? When using 
 polymorphic variants, such tags are not needed.
 
-**Exercise 4:** Factor-out the sub-language consisting only of variables, thus 
+### Exercise 4
+
+Factor-out the sub-language consisting only of variables, thus 
+
 eliminating the duplication of tags `VarL`, `VarE` in the examples based on 
 standard variants (file `FP_ADT.ml`).
 
-**Exercise 5:** Come up with a scenario where the extensible variant 
+### Exercise 5
+
+Come up with a scenario where the extensible variant 
+
 types-based solution leads to a non-obvious or hard to locate bug.
 
-**Exercise 6:** * Re-implement the direct object-based solution to the 
+### Exercise 6
+
+* Re-implement the direct object-based solution to the 
+
 expression problem (file `Objects.ml`) to make it more satisfying. For 
 example, eliminate the need for some of the `rename`, `apply`, `compute` 
 methods.
 
-**Exercise 7:** Re-implement the visitor pattern-based solution to the 
+### Exercise 7
+
+Re-implement the visitor pattern-based solution to the 
+
 expression problem (file `Visitor.ml`) in a functional way, i.e. replace the 
 mutable fields `subst` and `beta_redex` in the `eval_lambda` class with a 
 different solution to the problem of treating `abs` and non-`abs` expressions 
@@ -9536,12 +9666,18 @@ differently.
 `freevarsN` functions (for `N=1,2,3`) with a different solution to the problem
 of polymorphism wrt. the type of the computed values.*
 
-**Exercise 8:** Extend the sub-language `expr_visit` with variables, and add 
+### Exercise 8
+
+Extend the sub-language `expr_visit` with variables, and add 
+
 to arguments of the evaluation constructor `eval_expr` the substitution. 
 Handle the problem of potentially duplicate fields `subst`. (One approach 
 might be to use ideas from exercise 6.)
 
-**Exercise 9:** Impement the following modifications to the example from the 
+### Exercise 9
+
+Impement the following modifications to the example from the 
+
 file `PolyV.ml`:
 
 1. *Factor-out the sub-language of variables, around the already present*
@@ -9554,24 +9690,36 @@ file `PolyV.ml`:
    `*freevars_lexpr*`*, by implementing a cascading design rather than a
    “divide-and-conquer” design.*
 
-**Exercise 10:** Streamline the solution `PolyRecM.ml` by extending the 
+### Exercise 10
+
+Streamline the solution `PolyRecM.ml` by extending the 
+
 language of $\lambda$-expressions with arithmetic expressions, rather than 
 defining the sub-languages separately and then merging them. See slide on page 
 15 of Jacques Garrigue *Structural Types, Recursive Modules, and the 
 Expression Problem*.
 
-**Exercise 11:** Transform a parser monad, or rewrite the parser monad 
+### Exercise 11
+
+Transform a parser monad, or rewrite the parser monad 
+
 transformer, by adding state for the line and column numbers.
 
 ** How to implement a monad transformer transformer in OCaml?*
 
-**Exercise 12:** Implement `_of_string` functions as parser combinators on top 
+### Exercise 12
+
+Implement `_of_string` functions as parser combinators on top 
+
 of the example `PolyRecM.ml`. Sections 4.3 and 6.2 of *Monadic Parser 
 Combinators* by Graham Hutton and Erik Meijer might be helpful. Split the 
 result into multiple files as in Exercise [2](#ExSplitFiles) and demonstrate 
 dynamic loading of code.
 
-**Exercise 13:** What are the benefits and drawbacks of our lazy-monad-plus 
+### Exercise 13
+
+What are the benefits and drawbacks of our lazy-monad-plus 
+
 (built on top of *odd lazy lists*) approach, as compared to regular monad-plus 
 built on top of *even lazy lists*? To additionally illustrate your answer:
 

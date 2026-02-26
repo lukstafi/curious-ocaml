@@ -1642,15 +1642,24 @@ A note on practice: OCaml UI and dataflow systems today often embed an increment
 
 ### 10.9 Exercises
 
-**Exercise 1.** Extend the context rewriting “pull out subexpression” example to include `-` and `/`. Remember: they are not commutative.
+#### Exercise 1
 
-**Exercise 2.** Implement a simple text editor zipper:
+Extend the context rewriting “pull out subexpression” example to include `-` and `/`. Remember: they are not commutative.
+
+
+#### Exercise 2
+
+Implement a simple text editor zipper:
+
 
 1. Define a type for a text buffer as a zipper over characters, with the cursor position represented by the split between left context and right content.
 2. Implement `insert_char`, `delete_char`, `move_left`, `move_right`, `move_to_start`, and `move_to_end` operations.
 3. Add word-based movement: `move_word_left` and `move_word_right`.
 
-**Exercise 3.** Add the following features to the paddle game example:
+#### Exercise 3
+
+Add the following features to the paddle game example:
+
 
 1. Score keeping: increment score when the ball bounces off the paddle
 2. Game over: detect when the ball falls below the paddle
@@ -1658,7 +1667,10 @@ A note on practice: OCaml UI and dataflow systems today often embed an increment
 4. Speed increase: gradually increase ball speed as the game progresses
 
 
-**Exercise 4.** Our numerical integration function uses the rectangle rule (left endpoint). Implement and compare:
+#### Exercise 4
+
+Our numerical integration function uses the rectangle rule (left endpoint). Implement and compare:
+
 
 1. The midpoint rule: $\int_a^b f(x)dx \approx (b-a) \cdot f\left(\frac{a+b}{2}\right)$
 2. The trapezoidal rule: $\int_a^b f(x)dx \approx (b-a) \cdot \frac{f(a) + f(b)}{2}$
@@ -1666,22 +1678,37 @@ A note on practice: OCaml UI and dataflow systems today often embed an increment
 
 Test the accuracy by integrating $\sin(x)$ from 0 to $\pi$ (exact answer: 2).
 
-**Exercise 5.** Implement `switch` and `until` for the stream-based FRP system:
+#### Exercise 5
+
+Implement `switch` and `until` for the stream-based FRP system:
+
 
 - `switch : 'a behavior -> 'a behavior event -> 'a behavior` -- behaves as the most recent behavior from events
 - `until : 'a behavior -> 'a behavior event -> 'a behavior` -- switches once on the first event
 
-**Exercise 6.** Implement a `debounce` combinator for events:
+#### Exercise 6
+
+Implement a `debounce` combinator for events:
+
 ```
 val debounce : float -> 'a event -> 'a event
 ```
 The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
 
-**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
+#### Exercise 7
 
-**Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
+Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
 
-**Exercise 9.** Extend the effect-based interface in Section 10.7 with timeouts.
+
+#### Exercise 8
+
+Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
+
+
+#### Exercise 9
+
+Extend the effect-based interface in Section 10.7 with timeouts.
+
 
 ```ocaml skip
 val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
@@ -1689,7 +1716,10 @@ val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
 
 The function should return `Some v` if the awaited action happens before the deadline, and `None` otherwise. Write a small scripted test with `run_script`.
 
-**Exercise 10.** Implement `parallel` for effect-based flows:
+#### Exercise 10
+
+Implement `parallel` for effect-based flows:
+
 ```
 val parallel : (unit -> 'a) list -> 'a list
 ```
@@ -1699,13 +1729,19 @@ This should run multiple flows concurrently and collect their results. Think abo
 - What happens if one flow fails?
 - How do you handle cancellation?
 
-**Exercise 11.** The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
+#### Exercise 11
+
+The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
+
 
 1. Create a `Clock` module with `advance : float -> unit` and `now : unit -> float` functions
 2. Modify the integration function to use virtual time
 3. Write tests that use virtual time to verify physics behavior deterministically
 
-**Exercise 12.** Compare the memory characteristics of the three FRP approaches:
+#### Exercise 12
+
+Compare the memory characteristics of the three FRP approaches:
+
 
 1. Create a benchmark that builds a dependency graph with N nodes
 2. Measure memory usage for each approach (stream-based, Lwd-based, effect-based)

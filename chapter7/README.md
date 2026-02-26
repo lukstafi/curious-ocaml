@@ -900,7 +900,10 @@ Now `breaks` can be replaced with a different strategy (for example, one that ad
 
 ### 7.10 Exercises
 
-**Exercise 1:** My first impulse was to define lazy list functions as follows:
+#### Exercise 1
+
+My first impulse was to define lazy list functions as follows:
+
 
 ```ocaml env=ch7
 let rec wrong_lzip = function
@@ -916,7 +919,10 @@ let rec wrong_lmap f = function
 
 What is wrong with these definitions -- for which edge cases do they not work as intended?
 
-**Exercise 2:** Cyclic lazy lists.
+#### Exercise 2
+
+Cyclic lazy lists.
+
 
 1. Implement a function `cycle : 'a list -> 'a llist` that creates a lazy list with elements from a standard list, and the whole list as the tail after the last element from the input list:
    `[a1; a2; ...; aN]` maps to a cyclic structure where `aN` points back to `a1`.
@@ -924,9 +930,15 @@ What is wrong with these definitions -- for which edge cases do they not work as
 
 2. Note that `inv_fact` from the lecture defines the power series for the $\exp(\cdot)$ function ($\exp(x) = e^x$). Using `cycle` and `inv_fact`, define the power series for $\sin(\cdot)$ and $\cos(\cdot)$, and draw their graphs using helper functions from the lecture script `Lec7.ml`.
 
-**Exercise 3:** Modify one of the puzzle solving programs (either from the previous lecture or from your previous homework) to work with lazy lists. Implement the necessary higher-order lazy list functions. Check that indeed displaying only the first solution when there are multiple solutions in the result takes shorter than computing solutions by the original program.
+#### Exercise 3
 
-**Exercise 4:** *Hamming's problem*. Generate in increasing order the numbers of the form $2^{a_1} 3^{a_2} 5^{a_3} \ldots p_k^{a_k}$, that is numbers not divisible by prime numbers greater than the $k$th prime number.
+Modify one of the puzzle solving programs (either from the previous lecture or from your previous homework) to work with lazy lists. Implement the necessary higher-order lazy list functions. Check that indeed displaying only the first solution when there are multiple solutions in the result takes shorter than computing solutions by the original program.
+
+
+#### Exercise 4
+
+*Hamming's problem*. Generate in increasing order the numbers of the form $2^{a_1} 3^{a_2} 5^{a_3} \ldots p_k^{a_k}$, that is numbers not divisible by prime numbers greater than the $k$th prime number.
+
 
 In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related to [regular numbers](http://en.wikipedia.org/wiki/Regular_number).
 
@@ -964,16 +976,25 @@ let hamming k =
   )) in h
 ```
 
-**Exercise 5:** Modify `format` and/or `breaks` to use just a single number instead of a stack of booleans to keep track of what groups should be inlined.
+#### Exercise 5
 
-**Exercise 6:** Add **indentation** to the pretty-printer for groups: if a group does not fit in a single line, its consecutive lines are indented by a given amount `tab` of spaces deeper than its parent group lines would be. For comparison, let's do several implementations.
+Modify `format` and/or `breaks` to use just a single number instead of a stack of booleans to keep track of what groups should be inlined.
+
+
+#### Exercise 6
+
+Add **indentation** to the pretty-printer for groups: if a group does not fit in a single line, its consecutive lines are indented by a given amount `tab` of spaces deeper than its parent group lines would be. For comparison, let's do several implementations.
+
 
 1. Modify the straightforward implementation of `pretty`.
 2. Modify the first pipe-based implementation of `pretty` by modifying the `format` function.
 3. Modify the second pipe-based implementation of `pretty` by modifying the `breaks` function. Recover the positions of elements -- the number of characters from the beginning of the document -- by keeping track of the growing offset.
 4. (Harder) Modify a pipe-based implementation to provide a different style of indentation: indent the first line of a group, when the group starts on a new line, at the same level as the consecutive lines (rather than at the parent level of indentation).
 
-**Exercise 7:** Write a pipe that takes document elements annotated with linear position, and produces document elements annotated with (line, column) coordinates.
+#### Exercise 7
+
+Write a pipe that takes document elements annotated with linear position, and produces document elements annotated with (line, column) coordinates.
+
 
 Write another pipe that takes so annotated elements and adds a line number indicator in front of each line. Do not update the column coordinate. Test the pipes by plugging them before the `emit` pipe.
 
@@ -982,7 +1003,10 @@ Write another pipe that takes so annotated elements and adds a line number indic
 2: second line, etc.
 ```
 
-**Exercise 8:** Write a pipe that consumes document elements `doc_e` and yields the toplevel subdocuments `doc` which would generate the corresponding elements.
+#### Exercise 8
+
+Write a pipe that consumes document elements `doc_e` and yields the toplevel subdocuments `doc` which would generate the corresponding elements.
+
 
 You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
 
@@ -991,4 +1015,7 @@ type 'a doc =
   Text of 'a * string | Line of 'a | Cat of 'a doc * 'a doc | Group of 'a * 'a doc
 ```
 
-**Exercise 9:** (Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
+#### Exercise 9
+
+(Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
+

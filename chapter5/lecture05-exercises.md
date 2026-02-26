@@ -4,7 +4,10 @@ Type Inference
 
 Abstract Data Types
 
-**Exercise 1:** Derive the equations and solve them to find the type for:
+### Exercise 1
+
+Derive the equations and solve them to find the type for:
+
 
 *let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])*
 
@@ -15,7 +18,10 @@ Abstract Data Types
 \operatorname{list} \rightarrow \alpha \operatorname{list} \right\rbrace$. You
 can take “shortcuts” if it is too many equations to write down.*
 
-**Exercise 2:** *Terms* $t_{1}, t_{2}, \ldots \in T (\Sigma, X)$ are built 
+### Exercise 2
+
+*Terms* $t_{1}, t_{2}, \ldots \in T (\Sigma, X)$ are built 
+
 out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in 
 \Sigma$ the way you build values out of functions:
 
@@ -84,7 +90,7 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    unfolded lazily, i.e. only so far that either a non-variable term or the
    end of the instantiation chain is found.)*
 
-**Exercise 3:**
+### Exercise 3
 
 1. *What does it mean that an implementation has junk (as an algebraic
    structure for a given signature)? Is it bad?*
@@ -95,7 +101,7 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    would be useful to drop some axioms (giving up monomorphicity) to allow
    more efficient implementations.*
 
-**Exercise 4:**
+### Exercise 4
 
 1. *Does the example* *ListMap* *meet the requirements of the algebraic
    specification for maps? Hint: here is the definition
@@ -117,13 +123,19 @@ the variables $\lbrace x_{1}, \ldots, x_{n} \rbrace$; i.e. $\lbrace x_{1},
    equivalence relation* $\approx$ *meaning “have the same keys”, defined and
    used just in the axioms of the specification.*
 
-**Exercise 5:** Design an algebraic specification and write a signature for 
+### Exercise 5
+
+Design an algebraic specification and write a signature for 
+
 first-in-first-out queues. Provide two implementations: one straightforward 
 using a list, and another one using two lists: one for freshly added elements 
 providing efficient queueing of new elements, and “reversed” one for efficient 
 popping of old elements.
 
-**Exercise 6:** Design an algebraic specification and write a signature for 
+### Exercise 6
+
+Design an algebraic specification and write a signature for 
+
 sets. Provide two implementations: one straightforward using a list, and 
 another one using a map into the unit type.
 
@@ -131,7 +143,7 @@ another one using a map into the unit type.
   ADT with generally useful operations that you find necessary or convenient
   for map-based implementation of sets.*
 
-**Exercise 7:**
+### Exercise 7
 
 1. *(Ex. 2.2 in* *Chris Okasaki “Purely Functional Data Structures”**) In the
    worst case,* `*member*` *performs approximately* $2 d$ *comparisons, where*

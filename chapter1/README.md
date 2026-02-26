@@ -312,53 +312,71 @@ This design choice makes type inference simpler and more predictable. When you s
 
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
-1. Assume that we execute the following assignment statements:
-   ```ocaml env=ch1
-   let width = 17
-   let height = 12.0
-   let delimiter = '.'
-   ```
-   For each of the following expressions, write the value of the expression and the type (of the value of the expression), or the resulting type error.
-   1. `width/2`
-   2. `width/.2.0`
-   3. `height/3`
-   4. `1 + 2 * 5`
-   5. `delimiter * 5`
+#### Exercise 1
 
-2. Practice using the OCaml interpreter as a calculator:
-   1. The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$. What is the volume of a sphere with radius 5? (*Hint:* 392.6 is wrong!)
-   2. Suppose the cover price of a book is \$24.95, but bookstores get a 40% discount. Shipping costs \$3 for the first copy and 75 cents for each additional copy. What is the total wholesale cost for 60 copies?
-   3. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace again, what time do I get home for breakfast?
+Assume that we execute the following assignment statements:
 
-3. You've probably heard of the Fibonacci numbers before, but in case you haven't, they're defined by the following recursive relationship:
-   $$
-   \begin{cases}
-   f(0) = 0 \\
-   f(1) = 1 \\
-   f(n+1) = f(n) + f(n-1) & \text{for } n = 2, 3, \ldots
-   \end{cases}
-   $$
-   Write a recursive function to calculate these numbers.
+```ocaml env=ch1
+let width = 17
+let height = 12.0
+let delimiter = '.'
+```
 
-4. A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
+For each of the following expressions, write the value of the expression and the type (of the value of the expression), or the resulting type error.
 
-   The following are functions that take a string argument and return the first, last, and middle letters:
-   ```ocaml env=ch1
-   let first_char word = word.[0]
-   let last_char word =
-     let len = String.length word - 1 in
-     word.[len]
-   let middle word =
-     let len = String.length word - 2 in
-     String.sub word 1 len
-   ```
-   1. Enter these functions into the toplevel and test them out. What happens if you call `middle` with a string with two letters? One letter? What about the empty string `""`?
-   2. Write a function called `is_palindrome` that takes a string argument and returns `true` if it is a palindrome and `false` otherwise.
+1. `width/2`
+2. `width/.2.0`
+3. `height/3`
+4. `1 + 2 * 5`
+5. `delimiter * 5`
 
-5. The greatest common divisor (GCD) of $a$ and $b$ is the largest number that divides both of them with no remainder.
+#### Exercise 2
 
-   One way to find the GCD of two numbers is Euclid's algorithm, which is based on the observation that if $r$ is the remainder when $a$ is divided by $b$, then $\gcd(a, b) = \gcd(b, r)$. As a base case, we can consider $\gcd(a, 0) = a$.
+Practice using the OCaml interpreter as a calculator:
 
-   Write a function called `gcd` that takes parameters `a` and `b` and returns their greatest common divisor.
+1. The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$. What is the volume of a sphere with radius 5? (*Hint:* 392.6 is wrong!)
+2. Suppose the cover price of a book is \$24.95, but bookstores get a 40% discount. Shipping costs \$3 for the first copy and 75 cents for each additional copy. What is the total wholesale cost for 60 copies?
+3. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace again, what time do I get home for breakfast?
 
-   If you need help, see [http://en.wikipedia.org/wiki/Euclidean_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).
+#### Exercise 3
+
+You've probably heard of the Fibonacci numbers before, but in case you haven't, they're defined by the following recursive relationship:
+
+$$
+\begin{cases}
+f(0) = 0 \\
+f(1) = 1 \\
+f(n+1) = f(n) + f(n-1) & \text{for } n = 2, 3, \ldots
+\end{cases}
+$$
+
+Write a recursive function to calculate these numbers.
+
+#### Exercise 4
+
+A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
+
+The following are functions that take a string argument and return the first, last, and middle letters:
+
+```ocaml env=ch1
+let first_char word = word.[0]
+let last_char word =
+  let len = String.length word - 1 in
+  word.[len]
+let middle word =
+  let len = String.length word - 2 in
+  String.sub word 1 len
+```
+
+1. Enter these functions into the toplevel and test them out. What happens if you call `middle` with a string with two letters? One letter? What about the empty string `""`?
+2. Write a function called `is_palindrome` that takes a string argument and returns `true` if it is a palindrome and `false` otherwise.
+
+#### Exercise 5
+
+The greatest common divisor (GCD) of $a$ and $b$ is the largest number that divides both of them with no remainder.
+
+One way to find the GCD of two numbers is Euclid's algorithm, which is based on the observation that if $r$ is the remainder when $a$ is divided by $b$, then $\gcd(a, b) = \gcd(b, r)$. As a base case, we can consider $\gcd(a, 0) = a$.
+
+Write a function called `gcd` that takes parameters `a` and `b` and returns their greatest common divisor.
+
+If you need help, see [http://en.wikipedia.org/wiki/Euclidean_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).

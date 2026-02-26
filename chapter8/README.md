@@ -1712,7 +1712,10 @@ The key insight is that monadic structure gives us precise control over concurre
 
 ### 8.15 Exercises
 
-**Exercise 1.** (Puzzle via Oleg Kiselyov)
+#### Exercise 1
+
+(Puzzle via Oleg Kiselyov)
+
 
 "U2" has a concert that starts in 17 minutes and they must all cross a bridge to get there. All four men begin on the same side of the bridge. It is night. There is one flashlight. A maximum of two people can cross at one time. Any party who crosses, either 1 or 2 people, must have the flashlight with them. The flashlight must be walked back and forth, it cannot be thrown, etc. Each band member walks at a different speed. A pair must walk together at the rate of the slower man's pace:
 
@@ -1725,15 +1728,24 @@ For example: if Bono and Larry walk across first, 10 minutes have elapsed when t
 
 Find all answers to the puzzle using `let*` notation. The expression will be a bit long but recursion is not needed.
 
-**Exercise 2.** Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
+#### Exercise 2
+
+Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
+
 
 1. `let* _ = return 5 in return 7`
 2. `let guard p = if p then [()] else [] in let* () = guard false in return 7`
 3. `let* _ = return 5 in let* () = guard false in return 7`
 
-**Exercise 3.** Define `bind` in terms of `lift` and `join`.
+#### Exercise 3
 
-**Exercise 4.** Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
+Define `bind` in terms of `lift` and `join`.
+
+
+#### Exercise 4
+
+Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
+
 
 ```ocaml skip
 type 'a tree = Empty | Leaf of 'a | T of 'a tree * 'a tree
@@ -1747,11 +1759,17 @@ module TreeM = MonadPlus (struct
 end)
 ```
 
-**Exercise 5.** Show the monad-plus laws for one of:
+#### Exercise 5
+
+Show the monad-plus laws for one of:
+
 1. `TreeM` from your solution of exercise 4
 2. `ListM` from lecture
 
-**Exercise 6.** Why is the following monad-plus not lazy enough?
+#### Exercise 6
+
+Why is the following monad-plus not lazy enough?
+
 
 ```ocaml skip
 let rec badappend l1 l2 =
@@ -1773,11 +1791,20 @@ module BadyListM = MonadPlus (struct
 end)
 ```
 
-**Exercise 7.** Convert a "rectangular" list of lists of strings, representing a matrix with inner lists being rows, into a string, where elements are column-aligned. (Exercise not related to monads.)
+#### Exercise 7
 
-**Exercise 8.** Recall the enriched monad signature with `('s, 'a) t` type. Design the signatures for the exception monad operations to provide more flexibility than our exception monad. Does the implementation need to change?
+Convert a "rectangular" list of lists of strings, representing a matrix with inner lists being rows, into a string, where elements are column-aligned. (Exercise not related to monads.)
 
-**Exercise 9.** Implement the following constructs for *all* monads:
+
+#### Exercise 8
+
+Recall the enriched monad signature with `('s, 'a) t` type. Design the signatures for the exception monad operations to provide more flexibility than our exception monad. Does the implementation need to change?
+
+
+#### Exercise 9
+
+Implement the following constructs for *all* monads:
+
 
 1. `for...to...`
 2. `for...downto...`
@@ -1787,7 +1814,10 @@ end)
 
 Explain how, when your implementation is instantiated with the StateM monad, we get the solution to exercise 2 from lecture 4.
 
-**Exercise 10.** A canonical example of a probabilistic model is that of a lawn whose grass may be wet because it rained, because the sprinkler was on, or for some other reason. The probability tables are:
+#### Exercise 10
+
+A canonical example of a probabilistic model is that of a lawn whose grass may be wet because it rained, because the sprinkler was on, or for some other reason. The probability tables are:
+
 
 $$
 \begin{aligned}
@@ -1805,7 +1835,10 @@ $$
 
 We observe whether the grass is wet and whether the roof is wet. What is the probability that it rained?
 
-**Exercise 11.** Implement the coarse-grained concurrency model:
+#### Exercise 11
+
+Implement the coarse-grained concurrency model:
+
 
 - Modify `bind` to compute the resulting monad straight away if the input monad has returned.
 - Introduce `suspend` to do what in the fine-grained model was the effect of `bind (return a) b`, i.e., suspend the work although it could already be started.

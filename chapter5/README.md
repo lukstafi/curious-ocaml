@@ -642,7 +642,10 @@ The `insert` function works like insertion into an ordinary binary search tree, 
 
 ### Exercises
 
-**Exercise 1.** Derive the equations and solve them to find the type for:
+#### Exercise 1
+
+Derive the equations and solve them to find the type for:
+
 
 ```ocaml env=ch5
 let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
@@ -650,7 +653,10 @@ let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
 
 in environment $\Gamma = \{ \text{List.hd} : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha ; \text{List.tl} : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha \ \text{list} \}$. You can take "shortcuts" if it is too many equations to write down.
 
-**Exercise 2.** *Terms* $t_1, t_2, \ldots \in T(\Sigma, X)$ are built out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in \Sigma$ the way you build values out of functions:
+#### Exercise 2
+
+*Terms* $t_1, t_2, \ldots \in T(\Sigma, X)$ are built out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in \Sigma$ the way you build values out of functions:
+
 
 - $X \subset T(\Sigma, X)$ -- variables are terms; usually an infinite set,
 - for terms $t_1, \ldots, t_n \in T(\Sigma, X)$ and a function symbol $f \in \Sigma_n$ of arity $n$, $f(t_1, \ldots, t_n) \in T(\Sigma, X)$ -- bigger terms arise from applying function symbols to smaller terms; $\Sigma = \dot{\cup}_n \Sigma_n$ is called a signature.
@@ -673,13 +679,13 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 2. (Ex. 4.22 in Franz Baader and Tobias Nipkow "Term Rewriting and All That", p. 82.) Modify the implementation of unification to achieve linear space complexity by working with what could be called iterated substitutions.
 
-**Exercise 3.**
+#### Exercise 3
 
 1. What does it mean that an implementation has junk (as an algebraic structure for a given signature)? Is it bad?
 2. Define a monomorphic algebraic specification (other than, but similar to, $\text{nat}_p$ or $\text{string}_p$, some useful data type).
 3. Discuss an example of a (monomorphic) algebraic specification where it would be useful to drop some axioms (giving up monomorphicity) to allow more efficient implementations.
 
-**Exercise 4.**
+#### Exercise 4
 
 1. Does the example `ListMap` meet the requirements of the algebraic specification for maps? Hint: here is the definition of `List.remove_assoc`; `compare a x` equals `0` if and only if `a = x`.
 
@@ -696,11 +702,17 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
 
 4. Add (and specify) $\text{isEmpty} : (\alpha, \beta) \ \text{map} \rightarrow \text{bool}$ to the example algebraic specification of maps without increasing the burden on its implementations. Hint: equational reasoning might be not enough; consider an equivalence relation $\approx$ meaning "have the same keys".
 
-**Exercise 5.** Design an algebraic specification and write a signature for first-in-first-out queues. Provide two implementations: one straightforward using a list, and another one using two lists: one for freshly added elements providing efficient queueing of new elements, and "reversed" one for efficient popping of old elements.
+#### Exercise 5
 
-**Exercise 6.** Design an algebraic specification and write a signature for sets. Provide two implementations: one straightforward using a list, and another one using a map into the unit type.
+Design an algebraic specification and write a signature for first-in-first-out queues. Provide two implementations: one straightforward using a list, and another one using two lists: one for freshly added elements providing efficient queueing of new elements, and "reversed" one for efficient popping of old elements.
 
-**Exercise 7.**
+
+#### Exercise 6
+
+Design an algebraic specification and write a signature for sets. Provide two implementations: one straightforward using a list, and another one using a map into the unit type.
+
+
+#### Exercise 7
 
 1. (Ex. 2.2 in Chris Okasaki "Purely Functional Data Structures") In the worst case, `member` performs approximately $2d$ comparisons, where $d$ is the depth of the tree. Rewrite `member` to take no more than $d + 1$ comparisons by keeping track of a candidate element that *might* be equal to the query element (say, the last element for which $<$ returned false) and checking for equality only when you hit the bottom of the tree.
 
@@ -708,4 +720,7 @@ A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots,
    - Split `balance` into `lbalance` and `rbalance` that test for violations of left resp. right child only. Replace calls to `balance` appropriately.
    - One of the remaining tests on grandchildren is also unnecessary. Rewrite `ins` so that it never tests the color of nodes not on the search path.
 
-**Exercise 8.** (*) Implement maps (i.e. write a module for the map signature) based on AVL trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
+#### Exercise 8
+
+(*) Implement maps (i.e. write a module for the map signature) based on AVL trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
+

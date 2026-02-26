@@ -331,11 +331,20 @@ let fix f =
 
 The best way to understand reduction semantics is to work through examples by hand. Trace the evaluation of these expressions step by step:
 
-**Exercise 1:** Evaluate `let double x = x + x in double 3`
+#### Exercise 1
 
-**Exercise 2:** Evaluate `(fun f -> fun x -> f (f x)) (fun y -> y + 1) 0`
+Evaluate `let double x = x + x in double 3`
 
-**Exercise 3:** Define the factorial function using `fix` and trace the evaluation of `factorial 3`
+
+#### Exercise 2
+
+Evaluate `(fun f -> fun x -> f (f x)) (fun y -> y + 1) 0`
+
+
+#### Exercise 3
+
+Define the factorial function using `fix` and trace the evaluation of `factorial 3`
+
 
 ### 3.3 Symbolic Derivation Example
 
@@ -672,7 +681,7 @@ We will encounter CPS again when studying monads and advanced control flow, wher
 
 These exercises will help you practice the concepts from this chapter: function composition, reduction semantics, tail recursion, and continuation passing style.
 
-**Exercise 1: Tree Traversals**
+#### Exercise 1: Tree Traversals
 
 By "traverse a tree" below we mean: write a function that takes a tree and returns a list of values in the nodes of the tree. Use the `btree` type defined earlier.
 
@@ -682,15 +691,15 @@ By "traverse a tree" below we mean: write a function that takes a tree and retur
 
 3. Write a traversal in **breadth-first order** (also called *level order*)---visit all nodes at depth 0, then all nodes at depth 1, and so on. Hint: you will need an auxiliary data structure (a queue) to keep track of nodes to visit.
 
-**Exercise 2: CPS Transformation**
+#### Exercise 2: CPS Transformation
 
 Turn the function from Exercise 1 (prefix or infix traversal) into continuation passing style. Compare the structure of your CPS version to the original. What are the trade-offs?
 
-**Exercise 3: Tree Derivatives Revisited**
+#### Exercise 3: Tree Derivatives Revisited
 
 Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a predicate over integers and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position (using your chosen traversal order) for which the predicate returns true.
 
-**Exercise 4: Expression Simplification**
+#### Exercise 4: Expression Simplification
 
 Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
 
@@ -708,7 +717,7 @@ Approach this in two steps:
 
 Why do we need iteration to a fixed point rather than a single pass?
 
-**Exercise 5: Sorting Algorithms**
+#### Exercise 5: Sorting Algorithms
 
 Write two sorting algorithms working on lists: merge sort and quicksort.
 

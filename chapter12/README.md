@@ -1070,7 +1070,9 @@ This also connects to **reification and reflection**: reification promotes a com
 
 ### 12.11 Exercises
 
-1. **Category laws.** Define a `CATEGORY` instance for the `option` type, where `('a, 'b) hom = 'a -> 'b option` (the Kleisli category of `Option`). Implement `id` and `compose`, and verify the three category laws on test cases. (Hint: this is the composition you get from `Option.bind`.)
+#### Exercise 1: Category laws
+
+Define a `CATEGORY` instance for the `option` type, where `('a, 'b) hom = 'a -> 'b option` (the Kleisli category of `Option`). Implement `id` and `compose`, and verify the three category laws on test cases. (Hint: this is the composition you get from `Option.bind`.)
 
 ```ocaml skip
 (* Starter code for Exercise 1 *)
@@ -1091,7 +1093,9 @@ let x = 5
                  = compose (compose h g) f x *)
 ```
 
-2. **Free category.** Extend the pipeline example from Section 12.3 with two new stages (e.g., `Uppercase : (string, string) stage` and `Length : (string, int) stage`). Build three distinct paths through the graph and interpret each one. Verify that `concat` is associative: `interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x`.
+#### Exercise 2: Free category
+
+Extend the pipeline example from Section 12.3 with two new stages (e.g., `Uppercase : (string, string) stage` and `Length : (string, int) stage`). Build three distinct paths through the graph and interpret each one. Verify that `concat` is associative: `interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x`.
 
 ```ocaml skip
 (* Starter code for Exercise 2 *)
@@ -1112,7 +1116,9 @@ type ('a, 'b) stage =
 (*   = interpret (concat p (concat q r)) x                   *)
 ```
 
-3. **Functor laws.** Write a functor instance for `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree` and test the functor laws (`map id = id` and `map (f ∘ g) = map f ∘ map g`) on at least two non-trivial trees.
+#### Exercise 3: Functor laws
+
+Write a functor instance for `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree` and test the functor laws (`map id = id` and `map (f ∘ g) = map f ∘ map g`) on at least two non-trivial trees.
 
 ```ocaml skip
 (* Starter code for Exercise 3 *)
@@ -1134,11 +1140,17 @@ let g x = x * 2
 (*      = map_tree f (map_tree g t)      *)
 ```
 
-4. **Naturality verification.** The function `List.rev` is a natural transformation from the List functor to itself. State and test the naturality condition for three different functions `f`. Then consider `List.sort compare` -- is it a natural transformation? Why or why not?
+#### Exercise 4: Naturality verification
 
-5. **Galois connection.** The functions `abs : int -> int` and `negate : int -> int` do *not* form a Galois connection on integers with the usual ordering. Explain why. Then find a pair of monotone functions between `(int, <=)` and `(int, >=)` that *does* form a Galois connection.
+The function `List.rev` is a natural transformation from the List functor to itself. State and test the naturality condition for three different functions `f`. Then consider `List.sort compare` -- is it a natural transformation? Why or why not?
 
-6. **Lens composition.** Define a type `type address = { street : string; city : string }` and `type employee = { name : string; addr : address }`. Write lenses `street_lens`, `addr_lens`, and compose them to create `employee_street_lens`. Verify all three lens laws (Get-Set, Set-Get, Set-Set) for the composed lens.
+#### Exercise 5: Galois connection
+
+The functions `abs : int -> int` and `negate : int -> int` do *not* form a Galois connection on integers with the usual ordering. Explain why. Then find a pair of monotone functions between `(int, <=)` and `(int, >=)` that *does* form a Galois connection.
+
+#### Exercise 6: Lens composition
+
+Define a type `type address = { street : string; city : string }` and `type employee = { name : string; addr : address }`. Write lenses `street_lens`, `addr_lens`, and compose them to create `employee_street_lens`. Verify all three lens laws (Get-Set, Set-Get, Set-Set) for the composed lens.
 
 ```ocaml skip
 (* Starter code for Exercise 6 *)
@@ -1165,14 +1177,26 @@ let emp = { name = "Alice";
 (* Verify all three lens laws for the composed lens. *)
 ```
 
-7. **Prism round-trip.** For the type `type shape = Circle of float | Rect of float * float`, write a prism for `Circle` and a prism for `Rect`. Verify the prism law: `review a |> preview = Some a`. What happens when you `preview` a value built with the other constructor?
+#### Exercise 7: Prism round-trip
 
-8. **Difference lists.** Implement a `dlist` module with `empty`, `singleton`, `append`, `cons`, `snoc`, and `to_list`. Write a function that builds a list of $n$ elements using repeated `append` with regular lists (quadratic) and with difference lists (linear). Test that both produce the same result.
+For the type `type shape = Circle of float | Rect of float * float`, write a prism for `Circle` and a prism for `Rect`. Verify the prism law: `review a |> preview = Some a`. What happens when you `preview` a value built with the other constructor?
 
-9. **Codensity optimization.** Consider a computation that left-associates many `bind` operations on lists: `bind (bind (bind (return 1) f) g) h`. Implement this computation both using regular list bind and using the Codensity monad from Section 12.8, and verify they produce the same result. (The Codensity version avoids re-traversal for left-associated binds.)
+#### Exercise 8: Difference lists
 
-10. **The trinity in action.** For each of the following OCaml types, state the corresponding logical proposition and verify it is a tautology: (a) `'a * 'b -> 'b * 'a`, (b) `'a -> 'b -> 'a`, (c) `('a -> 'b -> 'c) -> 'a * 'b -> 'c`, (d) `('a -> 'b) -> ('b -> 'c) -> 'a -> 'c`. For (d), what is the categorical interpretation?
+Implement a `dlist` module with `empty`, `singleton`, `append`, `cons`, `snoc`, and `to_list`. Write a function that builds a list of $n$ elements using repeated `append` with regular lists (quadratic) and with difference lists (linear). Test that both produce the same result.
 
-11. **Expression problem, categorically.** Take two of the solutions from Chapter 11 (e.g., ordinary ADTs and polymorphic variants). For each, explain in categorical language *why* one direction of extension is easy and the other is hard. Use the vocabulary from Section 12.9 (initial algebra, colimit, natural transformation).
+#### Exercise 9: Codensity optimization
 
-12. **Concept lattice.** Extend the Formal Concept Analysis example from Section 12.6 with two more animals and two more attributes. Compute all formal concepts (closed pairs) of the extended context. Which concepts form the top and bottom of the lattice?
+Consider a computation that left-associates many `bind` operations on lists: `bind (bind (bind (return 1) f) g) h`. Implement this computation both using regular list bind and using the Codensity monad from Section 12.8, and verify they produce the same result. (The Codensity version avoids re-traversal for left-associated binds.)
+
+#### Exercise 10: The trinity in action
+
+For each of the following OCaml types, state the corresponding logical proposition and verify it is a tautology: (a) `'a * 'b -> 'b * 'a`, (b) `'a -> 'b -> 'a`, (c) `('a -> 'b -> 'c) -> 'a * 'b -> 'c`, (d) `('a -> 'b) -> ('b -> 'c) -> 'a -> 'c`. For (d), what is the categorical interpretation?
+
+#### Exercise 11: Expression problem, categorically
+
+Take two of the solutions from Chapter 11 (e.g., ordinary ADTs and polymorphic variants). For each, explain in categorical language *why* one direction of extension is easy and the other is hard. Use the vocabulary from Section 12.9 (initial algebra, colimit, natural transformation).
+
+#### Exercise 12: Concept lattice
+
+Extend the Formal Concept Analysis example from Section 12.6 with two more animals and two more attributes. Compute all formal concepts (closed pairs) of the extended context. Which concepts form the top and bottom of the lattice?

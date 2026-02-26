@@ -201,7 +201,10 @@ let encode_bool b = if b then c_true else c_false
 let decode_bool c = (Obj.magic c) true false  (* Don't enforce type on c *)
 ```
 
-**Exercise:** Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
+#### Exercise
+
+Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
+
 
 ### 4.4 If-then-else and Pairs
 
@@ -300,7 +303,10 @@ The successor function adds one more application of `f`:
 let cn_succ = fun n f x -> f (n f x)
 ```
 
-**Exercise:** Define addition, multiplication, and comparing to zero for Church numerals. Also try to define the predecessor function "-1".
+#### Exercise
+
+Define addition, multiplication, and comparing to zero for Church numerals. Also try to define the predecessor function "-1".
+
 
 It turns out even Alonzo Church could not define predecessor right away! The story goes that his student Stephen Kleene figured it out while at the dentist. Try to make some progress on addition and multiplication first (they are not too hard), and then attempt predecessor before looking at the solution below.
 
@@ -541,9 +547,15 @@ $$
 
 The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
 
-**Exercise:** Compute `fact cn2` by hand, tracing through the reduction steps.
+#### Exercise
 
-**Exercise:** What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate it? Think about whether there is any value `x` such that `x = cn_succ x`.
+Compute `fact cn2` by hand, tracing through the reduction steps.
+
+
+#### Exercise
+
+What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate it? Think about whether there is any value `x` such that `x = cn_succ x`.
+
 
 ### 4.8 Encoding Lists and Trees
 
@@ -660,7 +672,10 @@ In OCaml or F# we would typically guard by `fun () ->` and then apply to `()`, b
 
 The following exercises will help solidify your understanding of lambda-calculus encodings. For each exercise involving lambda-calculus, test your implementation by encoding some inputs, applying your function, and decoding the result.
 
-**Exercise 1:** Define (implement) and test on a couple of examples functions corresponding to or computing:
+#### Exercise 1
+
+Define (implement) and test on a couple of examples functions corresponding to or computing:
+
 
 1. `c_or` and `c_not`;
 2. exponentiation for Church numerals;
@@ -672,7 +687,10 @@ The following exercises will help solidify your understanding of lambda-calculus
 8. `cn_max` -- maximum of two Church numerals;
 9. the depth of a tree (in Church numerals).
 
-**Exercise 2:** Construct lambda-terms $m_0, m_1, \ldots$ such that for all $n$ one has:
+#### Exercise 2
+
+Construct lambda-terms $m_0, m_1, \ldots$ such that for all $n$ one has:
+
 
 $$
 \begin{aligned}
@@ -683,7 +701,10 @@ $$
 
 (where equality is after performing $\beta$-reductions).
 
-**Exercise 3:** Representing side-effects as an explicitly "passed around" state value, write (higher-order) functions that represent the imperative constructs:
+#### Exercise 3
+
+Representing side-effects as an explicitly "passed around" state value, write (higher-order) functions that represent the imperative constructs:
+
 
 1. `for`...`to`...
 2. `for`...`downto`...

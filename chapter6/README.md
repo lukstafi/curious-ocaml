@@ -1166,30 +1166,52 @@ The efficiency comes from *early pruning*: constraint propagation often eliminat
 
 ### 6.11 Exercises
 
-1. Recall how we generated all subsequences of a list. Find (generate) all:
-   - permutations of a list
-   - ways of choosing without repetition from a list
-   - combinations of K distinct objects chosen from N elements of a list
+#### Exercise 1
 
-2. Using folding for the `expression` data type, compute the degree of the corresponding polynomial.
+Recall how we generated all subsequences of a list. Find (generate) all:
 
-3. Implement simplification of expressions using mapping for the `expression` data type.
+- permutations of a list
+- ways of choosing without repetition from a list
+- combinations of K distinct objects chosen from N elements of a list
 
-4. Express in terms of `fold_left` or `fold_right`:
-   - `indexed : 'a list -> (int * 'a) list`, which pairs elements with their indices
-   - `concat_fold` as used in Honey Islands
-   - Run-length encoding of a list: `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
+#### Exercise 2
 
-5. Write more efficient variants:
-   - `list_diff` computing difference of sets represented as sorted lists
-   - `is_unique` in constant stack space
+Using folding for the `expression` data type, compute the degree of the corresponding polynomial.
 
-6. Write functions `compose` and `perform` that take a list of functions and return their composition:
-   - `compose [f1; ...; fn] = x -> f1 (... (fn x)...)`
-   - `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`
+#### Exercise 3
 
-7. Write a solver for the *Tents Puzzle*.
+Implement simplification of expressions using mapping for the `expression` data type.
 
-8. **Robot Squad** (harder): Given a map with walls and lidar readings (8 directions: E, NE, N, NW, W, SW, S, SE) for multiple robots, determine possible robot positions.
+#### Exercise 4
 
-9. Write a solver for the *Plinx Puzzle* (does not need to solve all levels, but should handle initial ones).
+Express in terms of `fold_left` or `fold_right`:
+
+- `indexed : 'a list -> (int * 'a) list`, which pairs elements with their indices
+- `concat_fold` as used in Honey Islands
+- Run-length encoding of a list: `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
+
+#### Exercise 5
+
+Write more efficient variants:
+
+- `list_diff` computing difference of sets represented as sorted lists
+- `is_unique` in constant stack space
+
+#### Exercise 6
+
+Write functions `compose` and `perform` that take a list of functions and return their composition:
+
+- `compose [f1; ...; fn] = x -> f1 (... (fn x)...)`
+- `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`
+
+#### Exercise 7
+
+Write a solver for the *Tents Puzzle*.
+
+#### Exercise 8: Robot Squad (Harder)
+
+Given a map with walls and lidar readings (8 directions: E, NE, N, NW, W, SW, S, SE) for multiple robots, determine possible robot positions.
+
+#### Exercise 9
+
+Write a solver for the *Plinx Puzzle* (does not need to solve all levels, but should handle initial ones).

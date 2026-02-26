@@ -1,4 +1,4 @@
-Exercise 1.
+### Exercise 1
 
 (Exercise 6.1 from *“Modern Compiler Implementation in ML”* by Andrew W. 
 Appel.) Using the `ocamlopt` compiler with parameter `-S` and other parameters 
@@ -15,7 +15,7 @@ by these criteria:
 
 
 
-Exercise 2.
+### Exercise 2
 
 As above, verify whether escaping variables of a function are kept in a 
 closure corresponding to the function, or in closures corresponding to the 
@@ -24,7 +24,7 @@ to a mutable field).
 
 
 
-Exercise 3.
+### Exercise 3
 
 As above, verify that OCaml compiler performs *inline expansion* of small 
 functions. Check whether the compiler can inline, or specialize (produce a 
@@ -32,7 +32,7 @@ local function to help inlining), recursive functions.
 
 
 
-Exercise 4.
+### Exercise 4
 
 Write a “`.mll` program” that anonymizes, or masks, text. That is, it replaces 
 identified probable full names (of persons, companies etc.) with fresh 
@@ -44,7 +44,7 @@ determined. The same (full) name should be replaced with the same letter.
 
 
 
-Exercise 5.
+### Exercise 5
 
 In the lexer EngLexer we call function `abridged` from the module EngMorph. 
 Inline the operation of `abridged` into the lexer by adding a new regular 
@@ -53,14 +53,14 @@ corpus and the readability and either keep the change or revert it.
 
 
 
-Exercise 6.
+### Exercise 6
 
 Make the lexer re-entrant for the second Menhir example (toy English grammar 
 parser).
 
 
 
-Exercise 7.
+### Exercise 7
 
 Make the determiner optional in the toy English grammar.
 
@@ -69,14 +69,14 @@ Make the determiner optional in the toy English grammar.
 
 
 
-Exercise 8.
+### Exercise 8
 
 Integrate into the *Phrase search* example, the *Porter Stemmer* whose source 
 is in the `stemmer.ml` file.
 
 
 
-Exercise 9.
+### Exercise 9
 
 Revisit the search engine example from lecture 6.
 
@@ -91,7 +91,7 @@ Revisit the search engine example from lecture 6.
 
 
 
-Exercise 10.
+### Exercise 10
 
 Write an XML parser tailored to the `shakespeare.xml` corpus provided with the 
 phrase search example. Modify the phrase search engine to provide detailed 

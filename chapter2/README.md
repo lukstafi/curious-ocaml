@@ -532,7 +532,10 @@ let iso1 (t : btree) : repr =
 
 Each step function handles one small transformation, and the compiler verifies that our pattern matching is exhaustive. No more missed cases!
 
-**Exercise:** Define `step1l`, `step2l`, `step3l`, and `iso2`.
+#### Exercise
+
+Define `step1l`, `step2l`, `step3l`, and `iso2`.
+
 
 *Hint:* Now it is straightforward---each step is simply the inverse of its corresponding forward step. The left-going functions undo what the right-going functions do.
 
@@ -637,7 +640,10 @@ The `Here` constructor means the hole is at the current position, and we have th
 
 (You might someday hear about *zippers*---they are "inverted" relative to our type. In a zipper, the hole comes first, and the context trails behind. Both representations are useful in different situations.)
 
-**Exercise:** Write a function that takes a number and a `btree_deriv`, and builds a `btree` by putting the number into the "hole" in `btree_deriv`.
+#### Exercise
+
+Write a function that takes a number and a `btree_deriv`, and builds a `btree` by putting the number into the "hole" in `btree_deriv`.
+
 
 <details>
 <summary>Solution</summary>

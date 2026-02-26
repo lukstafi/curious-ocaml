@@ -1,4 +1,4 @@
-Exercise 1.
+### Exercise 1
 
 Due to Yaron Minsky.
 
@@ -23,7 +23,7 @@ combinations of information.
 
 
 
-Exercise 2.
+### Exercise 2
 
 In OCaml, functions can have named arguments, and also default arguments 
 (parameters, possibly with default values, which can be omitted when providing 
@@ -83,7 +83,7 @@ let bar = if Random.int 10 < 5 then None else Some 7 infoo ?bar 7;;
 
 
 
-Exercise 3.
+### Exercise 3
 
 From last year's exam.
 
@@ -99,7 +99,7 @@ From last year's exam.
 
 
 
-Exercise 4.
+### Exercise 4
 
 We have seen in the class, that algebraic data types can be related to 
 analytic functions (the subset that can be defined out of polynomials via 

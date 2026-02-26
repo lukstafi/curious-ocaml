@@ -168,7 +168,9 @@ about **polymorphism.*** Type definitions we have seen above are *global*: they 
 Exercises from *Think OCaml. How to Think Like a Computer Scientist* by 
 Nicholas Monje and Allen Downey.
 
-1. Assume that we execute the following assignment statements:
+### Exercise 1
+
+Assume that we execute the following assignment statements:
 
    let width = 17;;let height = 12.0;;let delimiter = '.';;
 
@@ -179,7 +181,9 @@ Nicholas Monje and Allen Downey.
    1. height/3
    1. 1 + 2 * 5
    1. delimiter * 5
-1. Practice using the OCaml interpreter as a calculator:
+### Exercise 2
+
+Practice using the OCaml interpreter as a calculator:
    1. The volume of a sphere with radius $r$ is $\frac{4}{3} \pi r^3$. What is 
       the volume of a sphere with radius 5?
 
@@ -190,8 +194,10 @@ Nicholas Monje and Allen Downey.
    1. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per 
       mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace 
       again, what time do I get home for breakfast?
-1. You've probably heard of the fibonacci numbers before, but in case you 
-   haven't, they're defined by the following recursive relationship:
+### Exercise 3
+
+You've probably heard of the fibonacci numbers before, but in case you 
+haven't, they're defined by the following recursive relationship:
 
    $$ \left\lbrace\begin{matrix}
      f (0) & = & 0 &  \\\\\\
@@ -200,9 +206,11 @@ Nicholas Monje and Allen Downey.
    \end{matrix}\right. $$
 
    Write a recursive function to calculate these numbers.
-1. A palindrome is a word that is spelled the same backward and forward, like 
-   “noon” and “redivider”. Recursively, a word is a palindrome if the first 
-   and last letters are the same and the middle is a palindrome.
+### Exercise 4
+
+A palindrome is a word that is spelled the same backward and forward, like 
+“noon” and “redivider”. Recursively, a word is a palindrome if the first 
+and last letters are the same and the middle is a palindrome.
 
    The following are functions that take a string argument and return the 
    first, last, and middle letters:
@@ -215,8 +223,10 @@ Nicholas Monje and Allen Downey.
       about the empty string, which is written ""?
    1. Write a function called is\_palindrome that takes a string argument and 
       returns true if it is a palindrome and false otherwise.
-1. The greatest common divisor (GCD) of $a$ and $b$ is the largest number that 
-   divides both of them with no remainder.
+### Exercise 5
+
+The greatest common divisor (GCD) of $a$ and $b$ is the largest number that 
+divides both of them with no remainder.
 
    One way to find the GCD of two numbers is Euclid's algorithm, which is 
    based on the observation that if $r$ is the remainder when $a$ is divided 

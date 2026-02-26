@@ -2,7 +2,10 @@ Functional Programming
 
 Streams and lazy evaluation
 
-**Exercise 1:** My first impulse was to define lazy list functions as here:
+### Exercise 1
+
+My first impulse was to define lazy list functions as here:
+
 
 *let rec wrong\_lzip = function | LNil, LNil -> LNil | LCons (a1, lazy
 l1), LCons (a2, lazy l2) ->     LCons ((a1, a2), lazy (wrong\_lzip (l1,
@@ -13,7 +16,10 @@ l))*
 *What is wrong with these definitions – for which edge cases they do not work
 as intended?*
 
-**Exercise 2:** Cyclic lazy lists:
+### Exercise 2
+
+Cyclic lazy lists:
+
 
 1. *Implement a function* `*cycle : 'a list -> 'a llist*` *that creates a
    lazy list with elements from standard list, and the whole list as the tail
@@ -47,13 +53,19 @@ as intended?*
    (\cdot)$*, and draw their graphs using helper functions from the lecture
    script* `*Lec7.ml*`.
 
-**Exercise 3:** * Modify one of the puzzle solving programs (either from the 
+### Exercise 3
+
+* Modify one of the puzzle solving programs (either from the 
+
 previous lecture or from your previous homework) to work with lazy lists. 
 Implement the necessary higher-order lazy list functions. Check that indeed 
 displaying only the first solution when there are multiple solutions in the 
 result takes shorter than computing solutions by the original program.
 
-**Exercise 4:** *Hamming's problem*. Generate in increasing order the numbers 
+### Exercise 4
+
+*Hamming's problem*. Generate in increasing order the numbers 
+
 of the form $2^{a_{1}} 3^{a_{2}} 5^{a_{3}} \ldots p_{k}^{a_{k}}$, that is 
 numbers not divisible by prime numbers greater than the $k$th prime number.
 
@@ -75,10 +87,16 @@ if x > y then LCons (y, lazy (merge xs yr))     else LCons (x, lazy (merge
 xr yr)) | r, LNil | LNil, r -> rlet hamming k = let pr = ltake k primes in
 let rec h = LCons (1, lazy (   <TODO> )) in h*
 
-**Exercise 5:** Modify `format` and/or `breaks` to use just a single number 
+### Exercise 5
+
+Modify `format` and/or `breaks` to use just a single number 
+
 instead of a stack of booleans to keep track of what groups should be inlined.
 
-**Exercise 6:** Add **indentation** to the pretty-printer for groups: if a 
+### Exercise 6
+
+Add **indentation** to the pretty-printer for groups: if a 
+
 group does not fit in a single line, its consecutive lines are indented by a 
 given amount `tab` of spaces deeper than its parent group lines would be. For 
 comparison, let's do several implementations.
@@ -95,7 +113,10 @@ comparison, let's do several implementations.
    new line, at the same level as the consecutive lines (rather than at the
    parent level of indentation).*
 
-**Exercise 7:** Write a pipe that takes document elements annotated with 
+### Exercise 7
+
+Write a pipe that takes document elements annotated with 
+
 linear position, and produces document elements annotated with (line, column) 
 coordinates.
 
@@ -108,7 +129,10 @@ pipes by plugging them before the `emit` pipe.*
 2: second line, etc.
 ```
 
-**Exercise 8:** Write a pipe that consumes document elements `doc_e` and 
+### Exercise 8
+
+Write a pipe that consumes document elements `doc_e` and 
+
 yields the toplevel subdocuments `doc` which would generate the corresponding 
 elements.
 
@@ -117,7 +141,10 @@ element annotations are preserved (`gen` should ignore annotations to keep
 things simple):type 'a doc =  Text of 'a * string | Line of 'a | Cat of doc
 * doc | Group of 'a * doc*
 
-**Exercise 9:** * Design and implement a way to duplicate arrows outgoing 
+### Exercise 9
+
+* Design and implement a way to duplicate arrows outgoing 
+
 from a pipe-box, that would memoize the stream, i.e. not recompute everything 
 “upstream” for the composition of pipes. Such duplicated arrows would behave 
 nicely with pipes reading from files.

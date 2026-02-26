@@ -2,7 +2,10 @@ Functional Programming
 
 Functions
 
-**Exercise 1:** Define (implement) and test on a couple of examples functions 
+### Exercise 1
+
+Define (implement) and test on a couple of examples functions 
+
 corresponding to / computing:
 
 1. `*c_or*` *and* `*c_not*`;
@@ -15,7 +18,10 @@ corresponding to / computing:
 1. `*cn_max*` *– maximum of two Church numerals;*
 1. *the depth of a tree (in Church numerals).*
 
-**Exercise 2:** Representing side-effects as an explicitly “passed around” 
+### Exercise 2
+
+Representing side-effects as an explicitly “passed around” 
+
 state value, write (higher-order) functions that represent the imperative 
 constructs:
 
