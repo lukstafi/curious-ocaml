@@ -1677,7 +1677,7 @@ val debounce : float -> 'a event -> 'a event
 ```
 The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
 
-**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: cells are variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
+**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
 
 **Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 

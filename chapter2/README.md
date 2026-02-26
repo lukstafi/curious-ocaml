@@ -134,7 +134,7 @@ Let us see what values inhabit `int_list`. The definition tells us there are two
 
 - `Empty` represents the empty list---a list with no elements
 - `Cons (5, Empty)` is a list containing just 5
-- `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13
+- `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13.
 
 Notice how `Cons` takes an integer and another `int_list`, allowing us to chain together as many elements as we like. This recursive structure is the essence of how functional languages represent unbounded data.
 
@@ -233,7 +233,7 @@ let greet_person () =
   | { name = _; surname = sn; age = _ } -> "Hi " ^ sn ^ "!"
 ```
 
-Here we match against a record pattern, binding each field to a variable. Note that we bind `name` to `n`, `surname` to `sn`, and `age` to `a`---then use `sn` in the greeting.
+Here we match against a record pattern. Note that we use wildcards `_` for `name` and `age` (ignoring them), while binding `surname` to `sn`---then use `sn` in the greeting.
 
 #### Understanding Patterns
 
@@ -580,7 +580,7 @@ Each variant represents a "hole" at a different position:
 
 - `Year (m, d)` means the year field is the hole (and we have the month `m` and day `d`)
 - `Month (y, d)` means the month field is the hole (and we have year `y` and day `d`)
-- `Day (y, m)` means the day field is the hole
+- `Day (y, m)` means the day field is the hole.
 
 Now we can define functions to introduce and eliminate this derivative type:
 

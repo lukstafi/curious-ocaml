@@ -641,7 +641,7 @@ let search index words =
 
 The `option` type is OCaml's way of representing values that might be absent. Rather than using null pointers (a common source of bugs), we explicitly mark possibly-missing values with `Some x` or `None`. Here are some useful higher-order functions for working with options.
 
-First, applying a function to an optional value:
+First, applying a function that may fail to an optional value (this is a monadic bind, also called `flatmap`---the function `f` itself returns an `option`):
 
 ```ocaml env=ch6
 let map_option f = function

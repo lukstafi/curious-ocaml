@@ -302,7 +302,7 @@ let rec sub xs ys =
     | LNil, _ -> lmap (fun x -> -.x) ys
     | _, LNil -> xs
     | LCons (x,xs), LCons (y,ys) ->
-      LCons (x -. y, lazy (add (Lazy.force xs) (Lazy.force ys)))
+      LCons (x -. y, lazy (sub (Lazy.force xs) (Lazy.force ys)))
 
 let scale s = lmap (fun x -> s *. x)
 
@@ -355,7 +355,7 @@ $$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 
 
 We will solve the corresponding integral equations. Why integral equations rather than differential equations? Because integration gives us a way to build up the solution coefficient by coefficient, starting from the initial conditions.
 
-Our first attempt might be to define them by direct recursion:
+Our first attempt might be to define them by direct recursion (repeating the `~-:` definition from earlier for self-contained context):
 
 ```
 let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)

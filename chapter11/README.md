@@ -750,7 +750,7 @@ let fv_old_test = freevars3 (test2 :> lexpr_t)
 
 Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments. The module system handles the recursion for us, making the code cleaner and more modular.
 
-We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
+We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., ``[> `Int of int | `String of string]`` as using a *row variable*, e.g., `'a`:
 
 ```
 [`Int of int | `String of string | 'a]

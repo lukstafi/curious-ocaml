@@ -2050,7 +2050,7 @@ tells us there are two ways to build an <code>int_list</code>:</p>
 elements</li>
 <li><code>Cons (5, Empty)</code> is a list containing just 5</li>
 <li><code>Cons (5, Cons (7, Cons (13, Empty)))</code> is a list
-containing 5, 7, and 13</li>
+containing 5, 7, and 13.</li>
 </ul>
 <p>Notice how <code>Cons</code> takes an integer and another
 <code>int_list</code>, allowing us to chain together as many elements as
@@ -2178,10 +2178,10 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb21-1"><a hre
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> greet_person () =</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> { name = <span class="st">&quot;Walker&quot;</span>; surname = <span class="st">&quot;Johnnie&quot;</span>; age = <span class="dv">207</span> } <span class="kw">with</span></span>
 <span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  | { name = _; surname = sn; age = _ } -&gt; <span class="st">&quot;Hi &quot;</span> ^ sn ^ <span class="st">&quot;!&quot;</span></span></code></pre></div>
-<p>Here we match against a record pattern, binding each field to a
-variable. Note that we bind <code>name</code> to <code>n</code>,
-<code>surname</code> to <code>sn</code>, and <code>age</code> to
-<code>a</code>—then use <code>sn</code> in the greeting.</p>
+<p>Here we match against a record pattern. Note that we use wildcards
+<code>_</code> for <code>name</code> and <code>age</code> (ignoring
+them), while binding <code>surname</code> to <code>sn</code>—then use
+<code>sn</code> in the greeting.</p>
 <h3 id="understanding-patterns">Understanding Patterns</h3>
 <p>The left-hand sides of <code>-&gt;</code> in <code>match</code>
 expressions are called <strong>patterns</strong>. Patterns describe the
@@ -2548,7 +2548,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb39-1"><a hre
 have the month <code>m</code> and day <code>d</code>)</li>
 <li><code>Month (y, d)</code> means the month field is the hole (and we
 have year <code>y</code> and day <code>d</code>)</li>
-<li><code>Day (y, m)</code> means the day field is the hole</li>
+<li><code>Day (y, m)</code> means the day field is the hole.</li>
 </ul>
 <p>Now we can define functions to introduce and eliminate this
 derivative type:</p>
@@ -6676,7 +6676,9 @@ that might be absent. Rather than using null pointers (a common source
 of bugs), we explicitly mark possibly-missing values with
 <code>Some x</code> or <code>None</code>. Here are some useful
 higher-order functions for working with options.</p>
-<p>First, applying a function to an optional value:</p>
+<p>First, applying a function that may fail to an optional value (this
+is a monadic bind, also called <code>flatmap</code>—the function
+<code>f</code> itself returns an <code>option</code>):</p>
 <div class="sourceCode" id="cb180"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb180-1"><a href="#cb180-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> map_option f = <span class="kw">function</span></span>
 <span id="cb180-2"><a href="#cb180-2" aria-hidden="true" tabindex="-1"></a>  | <span class="dt">None</span> -&gt; <span class="dt">None</span></span>
@@ -7695,7 +7697,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb219-1"><a hr
 <span id="cb219-10"><a href="#cb219-10" aria-hidden="true" tabindex="-1"></a>    | LNil, _ -&gt; lmap (<span class="kw">fun</span> x -&gt; -.x) ys</span>
 <span id="cb219-11"><a href="#cb219-11" aria-hidden="true" tabindex="-1"></a>    | _, LNil -&gt; xs</span>
 <span id="cb219-12"><a href="#cb219-12" aria-hidden="true" tabindex="-1"></a>    | LCons (x,xs), LCons (y,ys) -&gt;</span>
-<span id="cb219-13"><a href="#cb219-13" aria-hidden="true" tabindex="-1"></a>      LCons (x -. y, <span class="kw">lazy</span> (add (<span class="dt">Lazy</span>.force xs) (<span class="dt">Lazy</span>.force ys)))</span>
+<span id="cb219-13"><a href="#cb219-13" aria-hidden="true" tabindex="-1"></a>      LCons (x -. y, <span class="kw">lazy</span> (sub (<span class="dt">Lazy</span>.force xs) (<span class="dt">Lazy</span>.force ys)))</span>
 <span id="cb219-14"><a href="#cb219-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb219-15"><a href="#cb219-15" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> scale s = lmap (<span class="kw">fun</span> x -&gt; s *. x)</span>
 <span id="cb219-16"><a href="#cb219-16" aria-hidden="true" tabindex="-1"></a></span>
@@ -7749,7 +7751,9 @@ equations for sine and cosine:</p>
 equations rather than differential equations? Because integration gives
 us a way to build up the solution coefficient by coefficient, starting
 from the initial conditions.</p>
-<p>Our first attempt might be to define them by direct recursion:</p>
+<p>Our first attempt might be to define them by direct recursion
+(repeating the <code>~-:</code> definition from earlier for
+self-contained context):</p>
 <pre><code>let (~-:) = lmap (fun x -&gt; -.x)  (* Unary negation for series *)
 
 let rec sin = integrate (of_int 0) cos
@@ -8443,7 +8447,7 @@ alt="Chapter 8 illustration" />
 <li>Recognize the “bind + return” pattern behind list comprehensions and
 other effects</li>
 <li>Learn the monad laws (and what they do and do not guarantee)</li>
-<li>Use monad-plus for nondeterministic/backtracking computation</li>
+<li>Use monad-plus for non-deterministic/backtracking computation</li>
 <li>Work through several concrete monads (lazy, list, exception, state,
 probability)</li>
 <li>Combine effects with monad transformers and model cooperative
@@ -8496,7 +8500,8 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb262-1"><a hr
 returns a list, then flatten the results” is so common that many
 languages provide special syntax for it. We can express such
 computations much more elegantly with <em>list comprehensions</em>, a
-syntax that originated in languages like Haskell and Python.</p>
+syntax that originated in functional languages like Haskell (and was
+later adopted by Python and others).</p>
 <p>With list comprehensions, we can write expressions that read almost
 like set-builder notation in mathematics:</p>
 <div class="sourceCode" id="cb263"><pre
@@ -8755,8 +8760,9 @@ are regular OCaml operators and require no syntax extensions – a
 significant improvement over the old Camlp4 approach.</p>
 <p>Note: For pattern matching in bindings, if the pattern is refutable
 (can fail to match), the monadic operation should handle the failure
-appropriately. For example, <code>let* Some x = e in body</code>
-requires a way to handle the <code>None</code> case.</p>
+appropriately. For example, <code>let* Some x = e in body</code> is
+incomplete as written and needs to be augmented with handling of the
+<code>None</code> case.</p>
 <h2 id="monad-laws">8.4 Monad Laws</h2>
 <p>Not every type with <code>bind</code> and <code>return</code>
 operations is a proper monad. A parametric data type is a monad only if
@@ -10103,16 +10109,16 @@ known.</p>
 <p>For concurrency, we need to “suppress” this sequentiality. We
 introduce a parallel bind:</p>
 <pre><code>parallel : &#39;a monad -&gt; &#39;b monad -&gt; (&#39;a -&gt; &#39;b -&gt; &#39;c monad) -&gt; &#39;c monad</code></pre>
-<p>With <code>parallel a b (fun x y -&gt; c)</code>, computations
-<code>a</code> and <code>b</code> can proceed concurrently. The
-continuation <code>c</code> runs once both results are available.</p>
+<p>With <code>parallel ea eb f</code>, computations <code>ea</code> and
+<code>eb</code> can proceed concurrently. The continuation
+<code>f</code> runs once both results are available.</p>
 <p>If the monad starts computing right away (as in the Lwt library),
-<code>parallel ea eb c</code> is equivalent to:</p>
+<code>parallel ea eb f</code> is equivalent to:</p>
 <pre><code>let a = ea in
 let b = eb in
 let* x = a in
 let* y = b in
-c x y</code></pre>
+f x y</code></pre>
 <h3 id="fine-grained-vs.-coarse-grained-concurrency">Fine-Grained
 vs. Coarse-Grained Concurrency</h3>
 <p>There are two approaches to when threads switch:</p>
@@ -11124,7 +11130,7 @@ estimates. This is where more sophisticated inference methods help.</p>
 <h2 id="importance-sampling">9.7 Importance Sampling</h2>
 <p>Rejection sampling throws away information: every rejected sample is
 wasted computation. <em>Importance sampling</em> does better by keeping
-track of weights. Instead of rejecting unlikely executions, we weight
+track of weights. Instead of rejecting unlikely executions, we weigh
 them by their likelihood.</p>
 <p>The idea is simple: run particles and track a weight for each. When
 an observation occurs, multiply the particle’s weight by the likelihood
@@ -13768,9 +13774,9 @@ for the specified time interval. This is useful for handling rapid user
 input like typing. Example: throttling API requests for auto-complete in
 a text field.</p>
 <p><strong>Exercise 7.</strong> Build a tiny “spreadsheet” with either
-<code>Lwd</code> or <code>Incremental</code>: cells are variables; other
-cells are formulas over them. Measure how much recomputation happens
-when you update a single input cell.</p>
+<code>Lwd</code> or <code>Incremental</code>: some cells are input
+variables; other cells are formulas over them. Measure how much
+recomputation happens when you update a single input cell.</p>
 <p><strong>Exercise 8.</strong> Using <code>Lwd.join</code> (or
 <code>Incremental.bind</code>), build a reactive computation with
 <em>dynamic dependencies</em> (e.g. a toggle that chooses which subgraph
@@ -14694,8 +14700,9 @@ arguments. The module system handles the recursion for us, making the
 code cleaner and more modular.</p>
 <p>We need <strong>private types</strong>, which for objects and
 polymorphic variants means <em>private rows</em>. We can conceive of
-open row types, e.g., <code>[&gt; \</code>Int of int | `String of
-string]<code>as using a *row variable*, e.g.,</code>’a`:</p>
+open row types, e.g.,
+<code>[&gt; `Int of int | `String of string]</code> as using a <em>row
+variable</em>, e.g., <code>'a</code>:</p>
 <pre><code>[`Int of int | `String of string | &#39;a]</code></pre>
 <p>and then of private row types as abstracting the row variable:</p>
 <pre><code>type &#39;row t = [`Int of int | `String of string | &#39;row]</code></pre>
@@ -15539,9 +15546,9 @@ previous chapters taught us – now with categorical vocabulary.</p>
 </table>
 <p><strong>Type isomorphisms are categorical isomorphisms.</strong> In
 Chapter 2, we showed that <code>'a * 'b</code> is isomorphic to
-<code>'b * 'a</code> by providing functions <code>swap</code> and
-<code>swap</code> that compose to the identity in both directions. This
-is exactly what it means for two objects to be <em>isomorphic</em> in a
+<code>'b * 'a</code> by providing a function <code>swap</code> that
+composes with itself to give the identity in both directions. This is
+exactly what it means for two objects to be <em>isomorphic</em> in a
 category: there exist morphisms <span class="math inline">f : A \to
 B</span> and <span class="math inline">g : B \to A</span> such that
 <span class="math inline">g \circ f = \text{id}_A</span> and <span

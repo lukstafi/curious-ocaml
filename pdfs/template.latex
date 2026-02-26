@@ -81,30 +81,41 @@ $endif$
 % Float package for figure placement control
 \usepackage{float}
 
+% Suppress automatic section numbering (headings already contain explicit numbers)
+\setcounter{secnumdepth}{-1}
+
 % ============================================
 % CHAPTER STYLING - Make chapters more prominent
 % ============================================
 \usepackage{titlesec}
 
 % Chapter styling: large bold title with extra space
+% No automatic label -- headings already contain "Chapter N:" in the text
 \titleformat{\chapter}[display]
   {\normalfont\huge\bfseries}
-  {\chaptertitlename\ \thechapter}
-  {20pt}
+  {}
+  {0pt}
   {\Huge}
 
-% Section styling
+% Section styling (no automatic numbering -- headings already contain explicit numbers)
 \titleformat{\section}
   {\normalfont\Large\bfseries}
-  {\thesection}
-  {1em}
+  {}
+  {0em}
   {}
 
-% Subsection styling
+% Subsection styling (no automatic numbering -- headings already contain explicit numbers)
 \titleformat{\subsection}
   {\normalfont\large\bfseries}
-  {\thesubsection}
-  {1em}
+  {}
+  {0em}
+  {}
+
+% Subsubsection styling
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}
+  {}
+  {0em}
   {}
 
 % ============================================

@@ -600,7 +600,7 @@ Let us see what values inhabit `int_list`. The definition tells us there are two
 
 - `Empty` represents the empty list---a list with no elements
 - `Cons (5, Empty)` is a list containing just 5
-- `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13
+- `Cons (5, Cons (7, Cons (13, Empty)))` is a list containing 5, 7, and 13.
 
 Notice how `Cons` takes an integer and another `int_list`, allowing us to chain together as many elements as we like. This recursive structure is the essence of how functional languages represent unbounded data.
 
@@ -699,7 +699,7 @@ let greet_person () =
   | { name = _; surname = sn; age = _ } -> "Hi " ^ sn ^ "!"
 ```
 
-Here we match against a record pattern, binding each field to a variable. Note that we bind `name` to `n`, `surname` to `sn`, and `age` to `a`---then use `sn` in the greeting.
+Here we match against a record pattern. Note that we use wildcards `_` for `name` and `age` (ignoring them), while binding `surname` to `sn`---then use `sn` in the greeting.
 
 #### Understanding Patterns
 
@@ -1046,7 +1046,7 @@ Each variant represents a "hole" at a different position:
 
 - `Year (m, d)` means the year field is the hole (and we have the month `m` and day `d`)
 - `Month (y, d)` means the month field is the hole (and we have year `y` and day `d`)
-- `Day (y, m)` means the day field is the hole
+- `Day (y, m)` means the day field is the hole.
 
 Now we can define functions to introduce and eliminate this derivative type:
 
@@ -4066,7 +4066,7 @@ let search index words =
 
 The `option` type is OCaml's way of representing values that might be absent. Rather than using null pointers (a common source of bugs), we explicitly mark possibly-missing values with `Some x` or `None`. Here are some useful higher-order functions for working with options.
 
-First, applying a function to an optional value:
+First, applying a function that may fail to an optional value (this is a monadic bind, also called `flatmap`---the function `f` itself returns an `option`):
 
 ```ocaml env=ch6
 let map_option f = function
@@ -4924,7 +4924,7 @@ let rec sub xs ys =
     | LNil, _ -> lmap (fun x -> -.x) ys
     | _, LNil -> xs
     | LCons (x,xs), LCons (y,ys) ->
-      LCons (x -. y, lazy (add (Lazy.force xs) (Lazy.force ys)))
+      LCons (x -. y, lazy (sub (Lazy.force xs) (Lazy.force ys)))
 
 let scale s = lmap (fun x -> s *. x)
 
@@ -4977,7 +4977,7 @@ $$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 
 
 We will solve the corresponding integral equations. Why integral equations rather than differential equations? Because integration gives us a way to build up the solution coefficient by coefficient, starting from the initial conditions.
 
-Our first attempt might be to define them by direct recursion:
+Our first attempt might be to define them by direct recursion (repeating the `~-:` definition from earlier for self-contained context):
 
 ```
 let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)
@@ -5624,7 +5624,7 @@ type 'a doc =
 
 - Recognize the “bind + return” pattern behind list comprehensions and other effects
 - Learn the monad laws (and what they do and do not guarantee)
-- Use monad-plus for nondeterministic/backtracking computation
+- Use monad-plus for non-deterministic/backtracking computation
 - Work through several concrete monads (lazy, list, exception, state, probability)
 - Combine effects with monad transformers and model cooperative concurrency
 
@@ -5667,7 +5667,7 @@ The key insight is that we introduced the operator `|->` defined as:
 let ( |-> ) x f = concat_map f x
 ```
 
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in languages like Haskell and Python.
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in functional languages like Haskell (and was later adopted by Python and others).
 
 With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
@@ -5883,7 +5883,7 @@ For reference, OCaml 5's binding operators translate as follows:
 
 The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
-Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` requires a way to handle the `None` case.
+Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` is incomplete as written and needs to be augmented with handling of the `None` case.
 
 ### 8.4 Monad Laws
 
@@ -7156,16 +7156,16 @@ For concurrency, we need to "suppress" this sequentiality. We introduce a parall
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-With `parallel a b (fun x y -> c)`, computations `a` and `b` can proceed concurrently. The continuation `c` runs once both results are available.
+With `parallel ea eb f`, computations `ea` and `eb` can proceed concurrently. The continuation `f` runs once both results are available.
 
-If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
+If the monad starts computing right away (as in the Lwt library), `parallel ea eb f` is equivalent to:
 
 ```
 let a = ea in
 let b = eb in
 let* x = a in
 let* y = b in
-c x y
+f x y
 ```
 
 #### Fine-Grained vs. Coarse-Grained Concurrency
@@ -8092,7 +8092,7 @@ With rare observations, we need many more samples to get accurate estimates. Thi
 
 ### 9.7 Importance Sampling
 
-Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weight them by their likelihood.
+Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weigh them by their likelihood.
 
 The idea is simple: run particles and track a weight for each. When an observation occurs, multiply the particle's weight by the likelihood instead of rejecting.
 
@@ -10438,7 +10438,7 @@ val debounce : float -> 'a event -> 'a event
 ```
 The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
 
-**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: cells are variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
+**Exercise 7.** Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
 
 **Exercise 8.** Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
 
@@ -11226,7 +11226,7 @@ let fv_old_test = freevars3 (test2 :> lexpr_t)
 
 Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments. The module system handles the recursion for us, making the code cleaner and more modular.
 
-We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., `[> \`Int of int | \`String of string]` as using a *row variable*, e.g., `'a`:
+We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., ``[> `Int of int | `String of string]`` as using a *row variable*, e.g., `'a`:
 
 ```
 [`Int of int | `String of string | 'a]
@@ -11863,7 +11863,7 @@ Before introducing new material, let us look back at what the previous chapters 
 | 10 | Zippers | Concrete lens (derivative made operational) |
 | 11 | Expression problem | Commutativity of a naturality square |
 
-**Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing functions `swap` and `swap` that compose to the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
+**Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing a function `swap` that composes with itself to give the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
 
 ```ocaml env=cat
 (* Type isomorphism from Chapter 2, restated categorically: *)

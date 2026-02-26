@@ -153,7 +153,7 @@ Before introducing new material, let us look back at what the previous chapters 
 | 10 | Zippers | Concrete lens (derivative made operational) |
 | 11 | Expression problem | Commutativity of a naturality square |
 
-**Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing functions `swap` and `swap` that compose to the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
+**Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing a function `swap` that composes with itself to give the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
 
 ```ocaml env=cat
 (* Type isomorphism from Chapter 2, restated categorically: *)

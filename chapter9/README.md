@@ -660,7 +660,7 @@ With rare observations, we need many more samples to get accurate estimates. Thi
 
 ### 9.7 Importance Sampling
 
-Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weight them by their likelihood.
+Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weigh them by their likelihood.
 
 The idea is simple: run particles and track a weight for each. When an observation occurs, multiply the particle's weight by the likelihood instead of rejecting.
 

@@ -6,7 +6,7 @@
 
 - Recognize the “bind + return” pattern behind list comprehensions and other effects
 - Learn the monad laws (and what they do and do not guarantee)
-- Use monad-plus for nondeterministic/backtracking computation
+- Use monad-plus for non-deterministic/backtracking computation
 - Work through several concrete monads (lazy, list, exception, state, probability)
 - Combine effects with monad transformers and model cooperative concurrency
 
@@ -49,7 +49,7 @@ The key insight is that we introduced the operator `|->` defined as:
 let ( |-> ) x f = concat_map f x
 ```
 
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in languages like Haskell and Python.
+This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in functional languages and was already present in Miranda, the precursor of Haskell.
 
 With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
 
@@ -265,7 +265,7 @@ For reference, OCaml 5's binding operators translate as follows:
 
 The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
-Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` requires a way to handle the `None` case.
+Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` is incomplete as written and needs to be augmented with handling of the `None` case.
 
 ### 8.4 Monad Laws
 
@@ -1538,16 +1538,16 @@ For concurrency, we need to "suppress" this sequentiality. We introduce a parall
 parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
 ```
 
-With `parallel a b (fun x y -> c)`, computations `a` and `b` can proceed concurrently. The continuation `c` runs once both results are available.
+With `parallel ea eb f`, computations `ea` and `eb` can proceed concurrently. The continuation `f` runs once both results are available.
 
-If the monad starts computing right away (as in the Lwt library), `parallel ea eb c` is equivalent to:
+If the monad starts computing right away (as in the Lwt library), `parallel ea eb f` is equivalent to:
 
 ```
 let a = ea in
 let b = eb in
 let* x = a in
 let* y = b in
-c x y
+f x y
 ```
 
 #### Fine-Grained vs. Coarse-Grained Concurrency
