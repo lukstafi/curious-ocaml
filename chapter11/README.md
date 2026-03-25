@@ -5,8 +5,9 @@
 **In this chapter, you will:**
 
 - Understand the expression problem and why it matters for evolving codebases
-- Compare extensibility trade-offs across ADTs, objects, and variants in OCaml
+- Compare extensibility trade-offs across ADTs, objects, variants, and GADTs in OCaml
 - Learn how polymorphic variants and recursive modules enable modular extension
+- Understand why extensible GADTs offer stronger typing but the same exhaustiveness penalty
 - Build a practical capstone: parser combinators (including dynamic loading)
 
 This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
@@ -896,7 +897,155 @@ let e_old_test = LExpr.eval [] (test2 :> LExpr.exp)
 let fv_old_test = LExpr.freevars (test2 :> LExpr.exp)
 ```
 
-### 11.9 Parser Combinators
+### 11.9 Extensible GADTs: Strong Typing, Same Non-Solution
+
+OCaml's **extensible variant types** (`type expr = ..`, section 11.3) allow open data definitions but give up exhaustiveness checking. **GADTs** (Generalized Algebraic Data Types, covered in Chapter 9) add type-level precision: each constructor specifies the exact type it produces. Can combining these two features — extensible *and* typed — solve the expression problem?
+
+The answer is *almost, but not quite*. Extensible GADTs give stronger compile-time guarantees per constructor, but OCaml still cannot check exhaustiveness for an open type, so every pattern match still requires a catch-all arm.
+
+#### Syntax and Type Precision
+
+We declare an extensible GADT with `type _ expr = ..` — the `_` is the type parameter that each constructor fills in:
+
+```ocaml env=sol7
+(** Extensible GADT: ['a expr] is an expression that evaluates to a value of type ['a]. *)
+type _ expr = ..
+
+(** Arithmetic sub-language: all constructors produce [int]. *)
+type _ expr +=
+  | Num : int -> int expr
+  | Add : int expr * int expr -> int expr
+  | Mul : int expr * int expr -> int expr
+```
+
+With plain extensible variants (`type expr = ..`) all constructors share the same unindexed type `expr`. Here, `Num 3 : int expr`, `Add (…) : int expr`, so the compiler can statically distinguish integer expressions from expressions of other types.
+
+We extend later with a boolean sub-language, including a **cross-type** constructor `Gt` whose sub-expressions are `int expr` but whose result is `bool expr`:
+
+```ocaml env=sol7
+type _ expr +=
+  | Bool : bool -> bool expr
+  | And  : bool expr * bool expr -> bool expr
+  | Not  : bool expr -> bool expr
+  | Gt   : int expr * int expr -> bool expr
+```
+
+#### Typed Evaluation with Required Catch-All
+
+Matching a GADT requires a locally abstract type (`type a.`). The type checker refines `a` in each arm — matching `Num n` proves `a = int`, so `n : int` and the return type `a` is resolved to `int`:
+
+```ocaml env=sol7
+let rec eval_arith : type a. a expr -> a = function
+  | Num n        -> n
+  | Add (e1, e2) -> eval_arith e1 + eval_arith e2
+  | Mul (e1, e2) -> eval_arith e1 * eval_arith e2
+  | _            -> failwith "eval_arith: unhandled constructor"
+  (* ^^^ Required because [_ expr] is extensible:
+     the compiler cannot verify all constructors are covered. *)
+```
+
+```ocaml env=sol7
+# eval_arith (Add (Mul (Num 3, Num 4), Num 2));;
+- : int = 14
+```
+
+The `Gt` constructor in the boolean evaluator benefits directly from type precision: `e1 : int expr`, so `eval_arith e1 : int` without any wrapping or unboxing. With plain extensible variants, `eval_rec e1 : expr` and we would need an additional pattern match to extract the integer value:
+
+```ocaml env=sol7
+let rec eval_bool : type a. a expr -> a = function
+  | Bool b       -> b
+  | And (e1, e2) -> eval_bool e1 && eval_bool e2
+  | Not e        -> not (eval_bool e)
+  | Gt (e1, e2)  -> eval_arith e1 > eval_arith e2
+  (* ^^^ eval_arith e1 : int, e2 : int  — types known at compile time *)
+  | _            -> failwith "eval_bool: unhandled constructor"
+```
+
+```ocaml env=sol7
+# eval_bool (Gt (Add (Num 2, Num 3), Num 4));;
+- : bool = true
+```
+
+#### Handler Composition with Open Recursion
+
+Separate evaluators per sub-language only work when constructors stay within their own sub-language. The moment we want a *composed* evaluator for an extended language, we face the same tying-the-knot problem as section 11.3. The pattern from the [OCaml Discuss thread](https://discuss.ocaml.org/t/best-approach-for-implementing-open-recursion-over-extensible-types/11678) composes partial *layers*, each of which handles its own constructors and delegates unknown ones:
+
+```ocaml env=sol7
+(** A composed evaluator uses a universally polymorphic [eval] field so a
+    single value handles expressions of any type index. *)
+type eval_chain = { eval : 'a. 'a expr -> 'a }
+
+(** Each layer handles some constructors ([Some result]) or delegates ([None]). *)
+type eval_layer = { layer : 'a. eval_chain -> 'a expr -> 'a option }
+```
+
+```ocaml env=sol7
+let arith_layer = {
+  layer = fun (type a) (chain : eval_chain) (e : a expr) : a option ->
+    match e with
+    | Num n        -> Some n
+    | Add (e1, e2) -> Some (chain.eval e1 + chain.eval e2)
+    | Mul (e1, e2) -> Some (chain.eval e1 * chain.eval e2)
+    | _            -> None }
+
+let bool_layer = {
+  layer = fun (type a) (chain : eval_chain) (e : a expr) : a option ->
+    match e with
+    | Bool b       -> Some b
+    | And (e1, e2) -> Some (chain.eval e1 && chain.eval e2)
+    | Not e        -> Some (not (chain.eval e))
+    | Gt (e1, e2)  -> Some (chain.eval e1 > chain.eval e2)
+    (* ^^^ chain.eval : 'b. 'b expr -> 'b, so chain.eval e1 : int directly *)
+    | _            -> None }
+```
+
+`build_eval` threads open recursion through a mutable reference: `chain` is set to the fully-composed evaluator after it is built, so every sub-expression call goes through all registered layers:
+
+```ocaml env=sol7
+let build_eval (layers : eval_layer list) : eval_chain =
+  let chain : eval_chain ref =
+    ref { eval = fun _ -> failwith "build_eval: not yet initialised" } in
+  let full_eval : type a. a expr -> a = fun e ->
+    match List.find_map (fun l -> l.layer !chain e) layers with
+    | Some v -> v
+    | None   -> failwith "build_eval: no handler for this constructor"
+  in
+  chain := { eval = full_eval };
+  { eval = full_eval }
+```
+
+```ocaml env=sol7
+let combined = build_eval [arith_layer; bool_layer]
+```
+
+```ocaml env=sol7
+# combined.eval (Gt (Add (Num 2, Num 3), Num 4));;
+- : bool = true
+# combined.eval (Mul (Add (Num 3, Num 4), Num 2));;
+- : int = 14
+```
+
+The full implementation is in `chapter11/ExtGADT.ml`.
+
+#### Why This Is Still a Non-Solution
+
+Adding a new constructor — say `type _ expr += Str : string -> string expr` in a new module — does not trigger any warning in `arith_layer` or `bool_layer`. The catch-all `| _ -> None` silently skips it. Calling `combined.eval (Str "hello")` raises a runtime exception.
+
+**Non-solution penalty points:**
+
+- **No exhaustiveness checking**: the same core penalty as section 11.3 (extensible variant types). New constructors produce silent runtime failures, not compile-time warnings.
+- **Separate evaluators per sub-language are not composable without boilerplate**: the `build_eval` infrastructure is non-trivial and must be replicated for each operation.
+- **The untyped lambda calculus does not fit cleanly**: the running example from earlier sections uses an untyped `App` and `Abs` with a uniform `expr` type. Fitting lambda calculus into a typed GADT requires either a universal value type (`type value = VInt of int | VLam of (value -> value)`) or moving to a typed lambda calculus with de Bruijn indices — significantly increasing complexity.
+
+**Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
+
+| Approach | Data extensibility | Functional extensibility | Exhaustiveness | Type precision |
+|---|---|---|---|---|
+| Extensible variants (11.3) | ✓ | ✓ | ✗ | Low (unindexed) |
+| **Extensible GADTs (11.9)** | ✓ | ✓ | ✗ | **High (indexed)** |
+| Polymorphic variants (11.7–11.8) | ✓ | ✓ | ✓ | Medium (row types) |
+
+### 11.10 Parser Combinators
 
 We now turn to an application that demonstrates the extensibility concepts we have been discussing. Large-scale parsing in OCaml is typically done using external languages like OCamlLex and Menhir, which generate efficient parsers from grammar specifications. But it is often convenient to have parsers written directly in OCaml, especially for smaller grammars or when we want to extend the parser dynamically.
 
@@ -932,7 +1081,7 @@ For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits
 
 On the other hand, rules can share common prefixes, and the backtracking monad will handle trying alternatives correctly.
 
-### 11.10 Parser Combinators: Implementation
+### 11.11 Parser Combinators: Implementation
 
 The parser monad is actually a composition of two monads:
 
@@ -1083,7 +1232,7 @@ struct
 end
 ```
 
-### 11.11 Parser Combinators: Tying the Recursive Knot
+### 11.12 Parser Combinators: Tying the Recursive Knot
 
 Now we come to the key insight connecting parser combinators to the expression problem: how do we allow the grammar to be extended dynamically? The answer is to use a mutable reference holding a list of grammar rules, and tie the recursive knot lazily.
 
@@ -1105,7 +1254,7 @@ let get_language () : int monad =
   let* () = end_of_text in return r  (* Ensure we parse the whole text *)
 ```
 
-### 11.12 Parser Combinators: Dynamic Code Loading
+### 11.13 Parser Combinators: Dynamic Code Loading
 
 OCaml supports dynamic code loading through the `Dynlink` module. This allows us to load compiled modules at runtime, which can register new grammar rules by mutating the `grammar_rules` reference. This is a powerful form of extensibility: we can add new syntax to our language without recompiling the main program.
 
@@ -1138,7 +1287,7 @@ let () =
   | r::_ -> Printf.printf "\nResult: %d\n%!" r
 ```
 
-### 11.13 Parser Combinators: Toy Example
+### 11.14 Parser Combinators: Toy Example
 
 Let us see how this works with a concrete example. We will define two plugins: one for parsing numbers and addition, and another for parsing multiplication. Each plugin registers its grammar rules by appending to the `grammar_rules` list.
 
@@ -1189,10 +1338,11 @@ let () = grammar_rules := multiplication :: !grammar_rules
 
 - The expression problem asks for *two independent dimensions of extension*: add new cases (data) and add new operations, while keeping separate compilation and static typing.
 - Ordinary ADTs make new operations easy and new cases hard; OO makes new cases easy and new operations hard; extensible variants make new cases easy but weaken exhaustiveness guarantees.
+- Extensible GADTs (`type _ expr = ..`) add type-level precision: each constructor carries a result-type index the compiler tracks. However, OCaml still cannot check exhaustiveness for open types, so the same runtime-failure risk as plain extensible variants remains. They are a stronger, but still incomplete, non-solution.
 - Polymorphic variants (especially with recursive modules) support a pragmatic “structural” style of extension: you can grow a language in separate files with less tagging boilerplate, at the cost of more sophisticated typing.
 - Parser combinators are a capstone example because they *are* a language combinator library: you extend the language by adding new combinators/rules, and dynamic loading makes the modularity aspect very concrete.
 
-### 11.14 Exercises
+### 11.15 Exercises
 
 The following exercises will help you deepen your understanding of the expression problem and the various solutions we have explored. They range from implementing additional operations to refactoring the code for better organization.
 
