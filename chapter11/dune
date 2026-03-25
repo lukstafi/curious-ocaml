@@ -1,3 +1,8 @@
 (mdx
  (files README.md)
  (preludes prelude.ml))
+
+(library
+ (name chapter11_examples)
+ (modules ExtGADT)
+ (ocamlopt_flags (:standard -O2)))
