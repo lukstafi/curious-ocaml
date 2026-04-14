@@ -1037,13 +1037,25 @@ Adding a new constructor — say `type _ expr += Str : string -> string expr` in
 - **Separate evaluators per sub-language are not composable without boilerplate**: the `build_eval` infrastructure is non-trivial and must be replicated for each operation.
 - **The untyped lambda calculus does not fit cleanly**: the running example from earlier sections uses an untyped `App` and `Abs` with a uniform `expr` type. Fitting lambda calculus into a typed GADT requires either a universal value type (`type value = VInt of int | VLam of (value -> value)`) or moving to a typed lambda calculus with de Bruijn indices — significantly increasing complexity.
 
+  To see why concretely, consider the most natural attempt:
+
+  ```ocaml skip
+  (* Attempt: lambda calculus as an extensible GADT *)
+  type _ expr +=
+    | Var : string -> 'a expr          (* 'a is unconstrained — what type does a variable have? *)
+    | Abs : string * 'b expr -> ('a -> 'b) expr   (* 'a is not bound to anything *)
+    | App : ('a -> 'b) expr * 'a expr -> 'b expr
+  ```
+
+  The problem is `Var`: a free variable could have any type, so `'a` is existentially unconstrained — the type checker cannot determine what `'a` is at runtime. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
+
 **Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
 
-| Approach | Data extensibility | Functional extensibility | Exhaustiveness | Type precision |
-|---|---|---|---|---|
-| Extensible variants (11.3) | ✓ | ✓ | ✗ | Low (unindexed) |
-| **Extensible GADTs (11.9)** | ✓ | ✓ | ✗ | **High (indexed)** |
-| Polymorphic variants (11.7–11.8) | ✓ | ✓ | ✓ | Medium (row types) |
+All three extensible approaches — extensible variants (section 11.3), extensible GADTs (this section), and polymorphic variants (sections 11.7–11.8) — support both data extensibility and functional extensibility. The interesting distinctions lie in a three-way tradeoff:
+
+- **Exhaustiveness checking**: Only polymorphic variants provide it. With extensible variants and extensible GADTs, new constructors are silently skipped by catch-all handlers, producing runtime failures rather than compile-time warnings.
+- **Type precision**: Extensible GADTs offer the finest type guarantees — each constructor's return type is indexed, so handled cases are type-safe without runtime coercions. Polymorphic variants give row-type precision (the type tracks which tags are present), while plain extensible variants carry no type-level distinction between constructors.
+- **Separate-compilation friendliness**: Extensible variants and GADTs extend cleanly across module boundaries with simple `type t += ...` declarations. Polymorphic variants with recursive modules require tying type-level knots across compilation units, making cross-module composition more complex.
 
 ### 11.10 Parser Combinators
 
@@ -1419,3 +1431,12 @@ What are the benefits and drawbacks of our lazy-monad-plus (built on top of *odd
 2. Select one example from Lecture 8 and rewrite it using lazy-monad-plus and odd lazy lists.
 
 (In an "odd" lazy list, the first element is strict and only the tail is lazy. In an "even" lazy list, the entire list is wrapped in laziness. The choice affects when computation happens and how infinite structures are handled.)
+
+
+#### Exercise 14: Extensible GADT Pretty-Printer
+
+Using the extensible GADT infrastructure from `chapter11/ExtGADT.ml` (section 11.9):
+
+1. Implement a `string_of_expr` operation as a new handler layer, analogous to `arith_eval_layer` and `bool_eval_layer`. Define `arith_string_layer` and `bool_string_layer` that convert arithmetic and boolean expressions to strings, respectively. Each layer should have the signature `(string -> string option) -> string expr -> string option`.
+2. Compose the pretty-printer layers using `build_eval` (or a copy of it adapted for `string` return type) to obtain a complete `string_of_expr : 'a expr -> string` function. Test it on expressions like `Add (Num 2, Num 3)` and `Gt (Num 1, Num 0)`.
+3. Identify which parts of the `build_eval` boilerplate must be duplicated for `string_of_expr`. Is the duplication acceptable, or does it suggest a further abstraction? Optionally, factor the common boilerplate into a functor or a higher-order function parameterized by the layer type.
