@@ -971,7 +971,7 @@ let reactimate (scene : scene behavior) =
   let current = ref sc0 in
 
   Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
       ~w ~h (0, 0);
     while !pending > 0 do
       decr pending;
@@ -1585,7 +1585,7 @@ let run_bogue ~(w : int) ~(h : int) (script : unit -> unit) : unit =
   in
 
   Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
       ~w ~h (0, 0);
     draw area ~h !current);
 

@@ -411,7 +411,7 @@ module LwdPaddle = struct
     Sdl_area.add area (fun _renderer ->
       let t = Unix.gettimeofday () -. t0 in
       Lwd.set time_v t;
-      Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+      Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
         ~w ~h (0, 0);
       let sc = Lwd.quick_sample root in
       draw area ~h sc);
@@ -720,7 +720,7 @@ module StreamFRP = struct
       let r = ref sc0 in
 
       Sdl_area.add area (fun _renderer ->
-        Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+        Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
           ~w ~h (0, 0);
         while !pending > 0 do
           decr pending;
@@ -970,7 +970,7 @@ module EffectsPaddle = struct
      | Awaiting {feed} -> st_ref := feed (User (Resize (w, h))));
 
     Sdl_area.add area (fun _renderer ->
-      Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+      Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
         ~w ~h (0, 0);
       draw area ~h !current);
 
