@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
@@ -9,7 +9,9 @@
   <meta name="author" content="GPT-5.2" />
   <title>Functional Programming 2012-2013</title>
   <style>
-    code{white-space: pre-wrap;}
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
     div.column{flex: auto; overflow-x: auto;}
@@ -9987,10 +9989,10 @@ whether a rule applies.</p>
 grammars are a small subset of <em>context free grammars</em>, the
 semantic actions can depend on context: actions can be functions that
 take some form of context as input.</p></li>
-<li><p>Positions are available in actions via keywords <span
-class="math inline">`startpos`(`x`)
-and</span><code>endpos</code>(<code>x</code>) where <code>x</code> is
-name given to part of pattern.</p>
+<li><p>Positions are available in actions via keywords
+$<code>startpos</code>(<code>x</code>) and
+$<code>endpos</code>(<code>x</code>) where <code>x</code> is name given
+to part of pattern.</p>
 <ul>
 <li>Do not use the Parsing module from OCaml standard library.</li>
 </ul></li>

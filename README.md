@@ -9904,7 +9904,7 @@ let reactimate (scene : scene behavior) =
   let current = ref sc0 in
 
   Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
       ~w ~h (0, 0);
     while !pending > 0 do
       decr pending;
@@ -10518,7 +10518,7 @@ let run_bogue ~(w : int) ~(h : int) (script : unit -> unit) : unit =
   in
 
   Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque Draw.grey)
+    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
       ~w ~h (0, 0);
     draw area ~h !current);
 
@@ -11721,13 +11721,25 @@ Adding a new constructor — say `type _ expr += Str : string -> string expr` in
 - **Separate evaluators per sub-language are not composable without boilerplate**: the `build_eval` infrastructure is non-trivial and must be replicated for each operation.
 - **The untyped lambda calculus does not fit cleanly**: the running example from earlier sections uses an untyped `App` and `Abs` with a uniform `expr` type. Fitting lambda calculus into a typed GADT requires either a universal value type (`type value = VInt of int | VLam of (value -> value)`) or moving to a typed lambda calculus with de Bruijn indices — significantly increasing complexity.
 
+  To see why concretely, consider the most natural attempt:
+
+  ```ocaml skip
+  (* Attempt: lambda calculus as an extensible GADT *)
+  type _ expr +=
+    | Var : string -> 'a expr          (* 'a is unconstrained — what type does a variable have? *)
+    | Abs : string * 'b expr -> ('a -> 'b) expr   (* 'a is not bound to anything *)
+    | App : ('a -> 'b) expr * 'a expr -> 'b expr
+  ```
+
+  The problem is `Var`: a free variable could have any type, so `'a` is existentially unconstrained — the type checker cannot determine what `'a` is at runtime. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
+
 **Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
 
-| Approach | Data extensibility | Functional extensibility | Exhaustiveness | Type precision |
-|---|---|---|---|---|
-| Extensible variants (11.3) | ✓ | ✓ | ✗ | Low (unindexed) |
-| **Extensible GADTs (11.9)** | ✓ | ✓ | ✗ | **High (indexed)** |
-| Polymorphic variants (11.7–11.8) | ✓ | ✓ | ✓ | Medium (row types) |
+All three extensible approaches — extensible variants (section 11.3), extensible GADTs (this section), and polymorphic variants (sections 11.7–11.8) — support both data extensibility and functional extensibility. The interesting distinctions lie in a three-way tradeoff:
+
+- **Exhaustiveness checking**: Only polymorphic variants provide it. With extensible variants and extensible GADTs, new constructors are silently skipped by catch-all handlers, producing runtime failures rather than compile-time warnings.
+- **Type precision**: Extensible GADTs offer the finest type guarantees — each constructor's return type is indexed, so handled cases are type-safe without runtime coercions. Polymorphic variants give row-type precision (the type tracks which tags are present), while plain extensible variants carry no type-level distinction between constructors.
+- **Separate-compilation friendliness**: Extensible variants and GADTs extend cleanly across module boundaries with simple `type t += ...` declarations. Polymorphic variants with recursive modules require tying type-level knots across compilation units, making cross-module composition more complex.
 
 ### 11.10 Parser Combinators
 
@@ -12103,6 +12115,16 @@ What are the benefits and drawbacks of our lazy-monad-plus (built on top of *odd
 2. Select one example from Lecture 8 and rewrite it using lazy-monad-plus and odd lazy lists.
 
 (In an "odd" lazy list, the first element is strict and only the tail is lazy. In an "even" lazy list, the entire list is wrapped in laziness. The choice affects when computation happens and how infinite structures are handled.)
+
+
+#### Exercise 14: Extensible GADT Pretty-Printer
+
+Using the extensible GADT infrastructure from `chapter11/ExtGADT.ml` (section 11.9):
+
+1. The existing `eval_layer` type is `{ layer : 'a. eval_chain -> 'a expr -> 'a option }` — the return type varies with the expression's type index. A pretty-printer always returns `string`, so it cannot reuse `eval_layer` directly. Define new record types `string_chain` and `string_layer` analogous to `eval_chain` and `eval_layer`, where the handler always returns `string option` regardless of the expression's type index. Then implement `arith_string_layer` and `bool_string_layer` that convert arithmetic and boolean expressions to strings, using the `string_chain` for recursive calls.
+2. Write a `build_string_eval` function (analogous to `build_eval`) that ties the open-recursion knot for `string_layer` values, producing a `string_chain`. Compose your layers to obtain a complete `string_of_expr : 'a expr -> string`. Test it on expressions like `Add (Num 2, Num 3)` and `Gt (Num 1, Num 0)`.
+3. Now compose the pretty-printer with the arithmetic evaluator: build a program that uses both `build_eval` (with `arith_layer` and `bool_layer`) and `build_string_eval` (with your string layers) on the same expressions. Observe that the two operations require separate composition pipelines.
+4. Identify which parts of the `build_eval` boilerplate had to be duplicated for `build_string_eval` (the mutable reference, the `List.find_map` loop, the initialization). Is this duplication acceptable, or does it suggest a further abstraction? Optionally, factor the common pattern into a functor or higher-order function parameterized by the chain and layer types.
 
 
 ## Chapter 12: Categories and GADTs
