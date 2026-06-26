@@ -100,7 +100,27 @@
  (alias new_book)
  (mode promote)
  (target new_book.pdf)
- (deps README.md template.latex Curious_OCaml-chapter_12.jpg)
+ (deps README.md template.latex
+       Curious_OCaml-chapter_1.jpg
+       Curious_OCaml-chapter_2.jpg
+       Curious_OCaml-chapter_3.jpg
+       Curious_OCaml-chapter_4.jpg
+       Curious_OCaml-chapter_5.jpg
+       Curious_OCaml-chapter_6.jpg
+       Curious_OCaml-chapter_7.jpg
+       Curious_OCaml-chapter_8.jpg
+       Curious_OCaml-chapter_9.jpg
+       Curious_OCaml-chapter_10.jpg
+       Curious_OCaml-chapter_11.jpg
+       Curious_OCaml-chapter_12.jpg
+       chain_reaction.png
+       honey0.png honey1.png
+       how-froc-works-a.png
+       how-froc-works-b.png
+       how-froc-works-c.png
+       how-froc-works-d.png
+       how-froc-works-e.png
+       sin_cos_1.png)
  (action
   (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=lualatex -o %{target}")))
 
