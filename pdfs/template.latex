@@ -72,6 +72,7 @@
 
 % Tables
 \usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables (pandoc \def\LTcaptype{none} sentinel)
 \usepackage{calc}
 \usepackage{etoolbox}
 \makeatletter
