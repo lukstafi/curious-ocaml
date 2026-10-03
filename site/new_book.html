@@ -2646,7 +2646,7 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb26-1"><a hre
 <span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  { year : <span class="dt">int</span>; month : month; day : <span class="dt">int</span>; weekday : weekday }</span>
 <span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> day =</span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  { year = <span class="dv">2012</span>; month = Feb; day = <span class="dv">14</span>; weekday = Wed }</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  { year = <span class="dv">2012</span>; month = Feb; day = <span class="dv">14</span>; weekday = Tue }</span>
 <span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> day_kind =</span>
 <span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">match</span> day <span class="kw">with</span></span>
@@ -3082,9 +3082,10 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb46-1"><a hre
 <span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> pos = <span class="dt">Random</span>.<span class="dt">int</span> <span class="dv">26</span> <span class="kw">in</span></span>
 <span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> len = <span class="dt">Random</span>.<span class="dt">int</span> <span class="dv">10</span> <span class="kw">in</span></span>
 <span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">print_string</span> (g ~pos ~len)</span></code></pre></div>
-<p>When some function arguments are optional, the function must take
-non-optional arguments after the last optional argument. Optional
-parameters with default values:</p>
+<p>When some function arguments are optional, a following positional
+argument lets OCaml determine when omitted optional arguments should be
+filled in. A required labeled argument alone does not provide that
+boundary. Optional parameters with default values:</p>
 <div class="sourceCode" id="cb47"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> h ?(len=<span class="dv">1</span>) pos = g ~pos ~len</span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () = <span class="dt">print_string</span> (h <span class="dv">10</span>)</span></code></pre></div>
@@ -3248,7 +3249,7 @@ programming languages:</p>
 </tr>
 <tr>
 <td>OCaml</td>
-<td><code>let (-|) f g x = f (g x)</code></td>
+<td><code>let (-\|) f g x = f (g x)</code></td>
 </tr>
 <tr>
 <td>F#</td>
@@ -6766,7 +6767,11 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb146-1"><a hr
 <span id="cb146-13"><a href="#cb146-13" aria-hidden="true" tabindex="-1"></a>  fold_sum = op; fold_diff = op;</span>
 <span id="cb146-14"><a href="#cb146-14" aria-hidden="true" tabindex="-1"></a>  fold_prod = op; fold_quot = op;</span>
 <span id="cb146-15"><a href="#cb146-15" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
-<p>The actual <code>map</code> and <code>fold</code> functions:</p>
+<p>The actual functions follow. Unlike list <code>map</code>, this
+<code>expr_map</code> is a bottom-up rewriter: its handlers can replace
+whole subtrees and change the shape. It is a specialized fold returning
+expressions, rather than a functor map that must preserve the
+constructors.</p>
 <div class="sourceCode" id="cb147"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb147-1"><a href="#cb147-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> <span class="kw">rec</span> expr_map emap = <span class="kw">function</span></span>
 <span id="cb147-2"><a href="#cb147-2" aria-hidden="true" tabindex="-1"></a>  | Const c -&gt; emap.map_const c</span>
@@ -7868,9 +7873,11 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb198-1"><a hr
 <span id="cb198-4"><a href="#cb198-4" aria-hidden="true" tabindex="-1"></a>  SCons (n, <span class="kw">fun</span> () -&gt; s_from (n+<span class="dv">1</span>))</span></code></pre></div>
 <p>The stream <code>s_ones</code> is an infinite sequence of 1s – it
 refers to itself as its own tail! The stream <code>s_from n</code>
-produces all integers starting from <code>n</code>. These definitions
-would cause infinite loops in a strict language, but with streams, we
-only compute as much as we request.</p>
+produces all integers starting from <code>n</code>. The thunks delay the
+recursive calls, so a dynamically generated stream computes only the
+requested prefix. OCaml also permits some static cyclic strict values,
+such as <code>let rec ones = 1 :: ones</code>; a finite cyclic value is
+different from computing an unbounded sequence of new nodes eagerly.</p>
 <h3 id="stream-operations">Stream Operations</h3>
 <p>Just as we can define higher-order functions on lists, streams admit
 similar operations. The key difference is that we must wrap recursive
@@ -9316,8 +9323,8 @@ operation should not add any extra “effects.”</li>
 <li><strong>Associativity</strong>: Binding is associative – it does not
 matter how you group nested binds. This means
 <code>let* x = (let* y = a in b) in c</code> is equivalent to
-<code>let* y = a in let* x = b in c</code> (when <code>x</code> does not
-appear free in <code>b</code>).</li>
+<code>let* y = a in let* x = b in c</code> (after renaming binders so
+<code>y</code> does not occur free in <code>c</code>).</li>
 </ul>
 <p>You should verify that these laws hold for our list monad:</p>
 <div class="sourceCode" id="cb273"><pre
@@ -15809,9 +15816,10 @@ class="math inline">S = \varnothing = \{ \}</span></li>
 <li><strong>MPlus</strong>:
 <code>val (&lt;|&gt;) : 'a parser -&gt; 'a parser -&gt; 'a parser</code>
 <ul>
-<li><code>p &lt;|&gt; q</code> tries <code>p</code>, and if
-<code>p</code> succeeds, its result is returned, otherwise the parser
-<code>q</code> is used</li>
+<li><code>p &lt;|&gt; q</code> combines alternatives. The lazy-list
+implementation below enumerates results from <code>p</code> and then
+<code>q</code>, even if <code>p</code> succeeds; it does not commit to
+the first successful branch.</li>
 </ul></li>
 </ul>
 <p>The only non-monad-plus operation that has to be built into the monad

@@ -305,7 +305,7 @@ let make_fold op base = {
 }
 ```
 
-The actual `map` and `fold` functions:
+The actual functions follow. Unlike list `map`, this `expr_map` is a bottom-up rewriter: its handlers can replace whole subtrees and change the shape. It is a specialized fold returning expressions, rather than a functor map that must preserve the constructors.
 
 ```ocaml env=ch6
 let rec expr_map emap = function

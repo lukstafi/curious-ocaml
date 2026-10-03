@@ -283,7 +283,7 @@ Let us understand what these laws mean:
 
 - **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
 - **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
-- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (when `x` does not appear free in `b`).
+- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (after renaming binders so `y` does not occur free in `c`).
 
 You should verify that these laws hold for our list monad:
 

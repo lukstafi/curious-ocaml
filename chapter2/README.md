@@ -314,7 +314,7 @@ type calendar_date =
   { year : int; month : month; day : int; weekday : weekday }
 
 let day =
-  { year = 2012; month = Feb; day = 14; weekday = Wed }
+  { year = 2012; month = Feb; day = 14; weekday = Tue }
 
 let day_kind =
   match day with
@@ -714,7 +714,7 @@ let () =  (* A nicer way to mark computations that return unit. *)
   print_string (g ~pos ~len)
 ```
 
-When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
+When some function arguments are optional, a following positional argument lets OCaml determine when omitted optional arguments should be filled in. A required labeled argument alone does not provide that boundary. Optional parameters with default values:
 
 ```ocaml env=ch2
 let h ?(len=1) pos = g ~pos ~len

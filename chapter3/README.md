@@ -31,7 +31,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 | Language | Definition |
 |----------|-----------|
 | Math | $(f \circ g)(x) = f(g(x))$ |
-| OCaml | `let (-|) f g x = f (g x)` |
+| OCaml | `let (-\|) f g x = f (g x)` |
 | F# | `let (<<) f g x = f (g x)` |
 | Haskell | `(.) f g = \x -> f (g x)` |
 

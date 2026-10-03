@@ -80,7 +80,7 @@ let rec s_from n =
   SCons (n, fun () -> s_from (n+1))
 ```
 
-The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
+The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. The thunks delay the recursive calls, so a dynamically generated stream computes only the requested prefix. OCaml also permits some static cyclic strict values, such as `let rec ones = 1 :: ones`; a finite cyclic value is different from computing an unbounded sequence of new nodes eagerly.
 
 #### Stream Operations
 

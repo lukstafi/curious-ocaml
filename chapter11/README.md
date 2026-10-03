@@ -1101,7 +1101,7 @@ Parsers implemented directly in a functional programming paradigm are functions 
 - **MZero**: `val fail : 'a parser`
   - `fail` fails to parse anything, symbolically $S = \varnothing = \{ \}$
 - **MPlus**: `val (<|>) : 'a parser -> 'a parser -> 'a parser`
-  - `p <|> q` tries `p`, and if `p` succeeds, its result is returned, otherwise the parser `q` is used
+  - `p <|> q` combines alternatives. The lazy-list implementation below enumerates results from `p` and then `q`, even if `p` succeeds; it does not commit to the first successful branch.
 
 The only non-monad-plus operation that has to be built into the monad is some way to consume a single character from the input stream, for example:
 

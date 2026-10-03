@@ -813,7 +813,7 @@ type calendar_date =
   { year : int; month : month; day : int; weekday : weekday }
 
 let day =
-  { year = 2012; month = Feb; day = 14; weekday = Wed }
+  { year = 2012; month = Feb; day = 14; weekday = Tue }
 
 let day_kind =
   match day with
@@ -1213,7 +1213,7 @@ let () =  (* A nicer way to mark computations that return unit. *)
   print_string (g ~pos ~len)
 ```
 
-When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
+When some function arguments are optional, a following positional argument lets OCaml determine when omitted optional arguments should be filled in. A required labeled argument alone does not provide that boundary. Optional parameters with default values:
 
 ```ocaml env=ch2
 let h ?(len=1) pos = g ~pos ~len
@@ -1316,7 +1316,7 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 | Language | Definition |
 |----------|-----------|
 | Math | $(f \circ g)(x) = f(g(x))$ |
-| OCaml | `let (-|) f g x = f (g x)` |
+| OCaml | `let (-\|) f g x = f (g x)` |
 | F# | `let (<<) f g x = f (g x)` |
 | Haskell | `(.) f g = \x -> f (g x)` |
 
@@ -3768,7 +3768,7 @@ let make_fold op base = {
 }
 ```
 
-The actual `map` and `fold` functions:
+The actual functions follow. Unlike list `map`, this `expr_map` is a bottom-up rewriter: its handlers can replace whole subtrees and change the shape. It is a specialized fold returning expressions, rather than a functor map that must preserve the constructors.
 
 ```ocaml env=ch6
 let rec expr_map emap = function
@@ -4801,7 +4801,7 @@ let rec s_from n =
   SCons (n, fun () -> s_from (n+1))
 ```
 
-The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
+The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. The thunks delay the recursive calls, so a dynamically generated stream computes only the requested prefix. OCaml also permits some static cyclic strict values, such as `let rec ones = 1 :: ones`; a finite cyclic value is different from computing an unbounded sequence of new nodes eagerly.
 
 #### Stream Operations
 
@@ -6051,7 +6051,7 @@ Let us understand what these laws mean:
 
 - **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
 - **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
-- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (when `x` does not appear free in `b`).
+- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (after renaming binders so `y` does not occur free in `c`).
 
 You should verify that these laws hold for our list monad:
 
@@ -11911,7 +11911,7 @@ Parsers implemented directly in a functional programming paradigm are functions 
 - **MZero**: `val fail : 'a parser`
   - `fail` fails to parse anything, symbolically $S = \varnothing = \{ \}$
 - **MPlus**: `val (<|>) : 'a parser -> 'a parser -> 'a parser`
-  - `p <|> q` tries `p`, and if `p` succeeds, its result is returned, otherwise the parser `q` is used
+  - `p <|> q` combines alternatives. The lazy-list implementation below enumerates results from `p` and then `q`, even if `p` succeeds; it does not commit to the first successful branch.
 
 The only non-monad-plus operation that has to be built into the monad is some way to consume a single character from the input stream, for example:
 
