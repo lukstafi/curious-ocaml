@@ -119,7 +119,7 @@ The power of induction lies in this: once we have the base case and the inductiv
 
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
+We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
 
 Under this correspondence:
 
@@ -139,7 +139,7 @@ The following table shows how each logical connective corresponds to a programmi
 | $\wedge$ | `*` | `(,)` | Conjunction corresponds to pairs: having both A and B |
 | $\vee$ | a variant type | `Left x` / `Right y` | Disjunction corresponds to sums: having either A or B |
 | $\rightarrow$ | `->` | `fun` | Implication corresponds to functions: given A, produce B |
-| induction | - | `let rec` | Inductive proofs correspond to recursive definitions |
+| induction | - | structurally decreasing recursion | Inductive proofs correspond to terminating recursive definitions |
 
 For example, the identity function corresponds to the tautology $a \rightarrow a$:
 
@@ -222,6 +222,8 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Recursion (induction):** recursion is not a connective, but it matches the *shape* of induction: in a recursive definition you are allowed to assume the function being defined (the “induction hypothesis”) when defining its body.
 
+  General recursion alone is not an induction proof: `let rec loop x = loop x` never returns. The proof interpretation requires termination, for example by recursion on a strictly smaller substructure.
+
   In OCaml, recursion is introduced with `let rec` (there is no standalone `rec` expression).
 
 #### Definitions
@@ -276,7 +278,7 @@ These rules are slightly simplified. The full rules involve a concept called **p
 
 Understanding *scope*—where names are visible—is essential for reading and writing OCaml programs.
 
-- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session. You cannot define a type inside a function.
+- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session. A bare `type` declaration cannot occur inside an expression, but a function can introduce a type through a local module; we will meet modules in Chapter 5.
 
 - **`let`-`in` definitions** for expressions: `let x = e1 in e2` are *local*—the name $x$ is only visible within $e_2$. Once you exit the `in` part, $x$ no longer exists. This is useful for temporary values that should not pollute the global namespace.
 
@@ -299,7 +301,7 @@ val ( +: ) : string -> string -> string = <fun>
 
 Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".
 
-An important feature of OCaml is that operators are **not overloaded**. This means that a single operator cannot work for multiple types. Each type needs its own set of operators:
+OCaml's built-in arithmetic operators are **not overloaded** across numeric types: integer and floating-point arithmetic use different operators. This is distinct from parametric polymorphism, which allows operations such as equality to have polymorphic types:
 
 - `+`, `*`, `/` work for integers
 - `+.`, `*.`, `/.` work for floating point numbers
@@ -346,7 +348,7 @@ $$
 \begin{cases}
 f(0) = 0 \\
 f(1) = 1 \\
-f(n+1) = f(n) + f(n-1) & \text{for } n = 2, 3, \ldots
+f(n+1) = f(n) + f(n-1) & \text{for } n = 1, 2, \ldots
 \end{cases}
 $$
 

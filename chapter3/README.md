@@ -173,9 +173,9 @@ Programs consist of **expressions**. Here is the grammar of expressions for a si
 
 **Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
 
-**Meta-syntax note.** In the grammar and rules below, we write constructors as if they were truly $n$-ary, e.g. $C^3(a_1,a_2,a_3)$. In actual OCaml syntax, constructors take exactly one argument; “multiple arguments” are represented by a tuple, e.g. `Node (v1, v2, v3)`. The $n$-ary presentation is a convenient mathematical shorthand.
+**Meta-syntax note.** OCaml constructors can have multiple arguments. As in Chapter 2, `C of int * string` declares two arguments, whereas `C of (int * string)` declares one tuple argument. Both are written `C (1, "one")` when constructing a value, but the distinction matters when passing an existing tuple. The rules below use an explicit arity, such as $C^3(a_1,a_2,a_3)$.
 
-**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. Real OCaml is *strict* (call-by-value) and evaluates subexpressions in a deterministic order (in current OCaml implementations this is often right-to-left); the details matter when you have effects (exceptions, printing, mutation), but are usually irrelevant for purely functional code.
+**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. OCaml is *strict* (call-by-value), but the language does not specify the relative evaluation order of a function expression and its arguments. Current implementations often evaluate arguments right-to-left. Use explicit `let` bindings when effects require a particular order; do not rely on that implementation behavior.
 
 #### The `fix` Primitive
 
@@ -205,7 +205,7 @@ Partially applied primitives like `(+) 3` are also values. The expression `(+) 3
 
 #### Substitution
 
-The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every occurrence of $x$ in $a$ is replaced by $v$.
+The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every free occurrence of $x$ in $a$ is replaced by $v$.
 
 For example, if $a$ is the expression `x + x * y` and we substitute 3 for `x`, we get `3 + 3 * y`. In our notation: `(x + x * y)[x := 3] = 3 + 3 * y`.
 
@@ -298,7 +298,7 @@ $$
 
 These rules describe *where* reduction can happen:
 
-- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml itself uses a fixed evaluation order.
+- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml is strict but leaves the relative order unspecified.
 - In a constructor application, any argument can be evaluated.
 - In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
 - In a match expression, the scrutinee (the expression being matched) must be evaluated before pattern matching can proceed.
@@ -627,9 +627,9 @@ let rec depth tree = match tree with
   | Node(_, left, right) -> 1 + max (depth left) (depth right)
 ```
 
-This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A simple accumulator will not work---we cannot proceed with one subtree until we know the result of the other.
+This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A single running depth does not record the branches still to visit. We can add an explicit worklist of subtrees and their depths, or represent the pending work with continuations.
 
-This seems like an impossible situation. How can we make a function tail recursive when it inherently needs to explore two branches? The answer involves a technique called *continuation passing style*, which we explore in the next section.
+The next section explores the continuation approach: it records what to do after each branch has been visited.
 
 #### Note on Lazy Languages
 
@@ -673,7 +673,7 @@ The magic is that *every recursive call is now a tail call*! Look carefully: `de
 
 Where does the "pending work" go? Instead of being stored on the call stack, it is captured in the continuation closures. These closures are allocated on the heap. We have traded stack space for heap space.
 
-**Important caveat:** This does not completely solve the stack overflow problem---we are just moving the problem from the stack to the heap. For very deep trees, the continuation closures can grow very large, potentially exhausting memory. True solutions for extreme cases involve techniques like *trampolining* (returning control to a loop) or using explicit data structures to represent the pending work. Nevertheless, CPS is often more space-efficient than direct recursion, and it is a fundamental technique that appears throughout functional programming.
+With OCaml's tail-call optimization, this CPS traversal uses constant call-stack space. Its pending continuations still occupy heap space proportional to tree height, so constant stack space does not mean constant total space. An explicit worklist is another representation of that pending work. Trampolining is useful in languages without reliable tail calls; it is not required for these OCaml tail calls.
 
 We will encounter CPS again when studying monads and advanced control flow, where it provides the foundation for powerful abstractions.
 

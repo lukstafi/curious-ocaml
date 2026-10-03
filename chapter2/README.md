@@ -371,7 +371,7 @@ We also need translations for some special types:
 
 - Defined types translate according to their definitions (substituting variables as necessary).
 
-Give a name to the type being defined (representing a function of the introduced variables). Now interpret the result as an ordinary numeric polynomial! (Or a "rational function" if recursively defined.)
+Give a name to the type being defined (representing a function of the introduced variables). For finite, nonrecursive sum-and-product types, the result is a polynomial counting possible values. Recursive types instead give equations for formal power series counting finite structures. Lists yield a rational series; trees generally yield algebraic series that are not rational. Unrestricted subtraction, division, and identities involving infinite cardinalities are not automatically type isomorphisms: justify a proposed isomorphism with inverse functions.
 
 This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
 

@@ -18,6 +18,8 @@ Category theory is even woven into the name of the language. "Caml" stands for *
 
 The distinctive quality of this chapter is not "here is some category theory" but rather "here is the hidden structure of everything you have learned" -- a retrospective unification of the whole book through a categorical lens, with GADTs as the OCaml-specific mechanism that makes categorical structure *enforceable* at the type level.
 
+**Scope of the equations:** when interpreting types and functions as sets and maps, we reason about total, pure functions extensionally. General OCaml programs can diverge, raise exceptions, mutate state, or inspect values through polymorphic comparison. Their laws need the corresponding restrictions or a richer semantics.
+
 ### 12.1 What Is a Category?
 
 A **category** $\mathcal{C}$ consists of:
@@ -121,7 +123,7 @@ module type CATEGORY = sig
 end
 ```
 
-The type parameters `'a` and `'b` are phantom types -- they track the source and target of morphisms at the type level, ensuring only composable morphisms can be composed. OCaml functions form the most basic instance:
+The type parameters `'a` and `'b` track the source and target of morphisms, ensuring that composition has matching endpoints. They need not be phantom parameters: the function instance below uses them in its representation. The signature does not enforce identity or associativity laws; those require separate proofs or checks. OCaml functions form the most basic instance:
 
 ```ocaml env=cat
 module FunCat : CATEGORY with type ('a, 'b) hom = 'a -> 'b = struct
@@ -142,16 +144,13 @@ Before introducing new material, let us look back at what the previous chapters 
 | 2 | Type derivative (one-hole context) | Derivative of a functor |
 | 3 | Function composition `( -\| )` | Morphism composition in **Types** |
 | 4 | Church encodings | Initial algebra (catamorphism) |
-| 5 | `map` preserving structure | Functor action on morphisms |
-| 5 | Module functors `Map.Make` | Functors between module categories |
 | 6 | `List.map`, `Option.map` | Endofunctor on **Types** |
 | 6 | `List.fold_right` | Catamorphism (universal property of initial algebra) |
 | 7 | Lazy streams, exponential types | Objects in a category with exponentials |
 | 8 | `return`, `bind`, monad laws | Monad = endofunctor + unit + multiplication |
-| 8 | Free monads | Left adjoint to the forgetful functor |
 | 9 | GADTs (`'a expr`) | Reification; typed initial algebra |
-| 10 | Zippers | Concrete lens (derivative made operational) |
-| 11 | Expression problem | Commutativity of a naturality square |
+| 10 | Zippers | Focus paired with a one-hole context |
+| 11 | Expression problem | Extension consistency, discussed in Section 12.9 |
 
 **Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing a function `swap` that composes with itself to give the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
 
@@ -287,7 +286,7 @@ let rec show_ty : type a. a ty -> string = function
 let () = assert (show_ty (List (Pair (Int, Bool))) = "(int * bool) list")
 ```
 
-This reification is OCaml's version of the *Yoneda embedding* for types: each type is represented by a value that "remembers" what it is, enabling type-safe operations that depend on runtime type information.
+These witnesses reify a selected universe of types, enabling type-safe operations driven by runtime type information. This is not the Yoneda embedding: that construction represents an object by a functor of morphisms, rather than by a tag describing its syntax.
 
 ### 12.4 Functors in OCaml: Three Views
 
@@ -446,7 +445,7 @@ let () =
         = List.map f (option_to_list test_opt))
 ```
 
-This is remarkable: we did not *prove* that `head_opt` satisfies the naturality condition -- the type system *guarantees* it. Any function of type `'a list -> 'a option` is automatically natural. Parametricity gives naturality for free.
+In a total, relationally parametric language, the polymorphic type gives this naturality law for free. OCaml permits effects, divergence, and polymorphic comparison, so its type alone is not that guarantee. For this implementation of `head_opt`, inspect the two list cases to establish the law. For a counterexample to the blanket claim, `List.sort_uniq compare` has type `'a list -> 'a list`, but mapping a constant function after it can retain two equal elements whereas deduplicating after that map retains only one.
 
 #### More Examples
 
@@ -555,7 +554,7 @@ let concat_with_spaces xs =
 let () = assert (String.trim (concat_with_spaces ["hello"; "world"]) = "hello world")
 ```
 
-The free monad adjunction from Chapter 8 works the same way: a monad homomorphism from the free monad on effects $E$ to any monad $M$ is determined by an *interpreter* of each effect -- a function $E \to M$.
+A further example is the free-monad adjunction: a monad homomorphism from the free monad on effects $E$ to any monad $M$ is determined by an *interpreter* of each effect -- a natural transformation from the signature functor $E$ to the underlying functor of $M$.
 
 #### Galois Connections
 
@@ -563,27 +562,29 @@ When the categories involved are posets (at most one morphism between any two ob
 
 $$f(a) \leq b \iff a \leq g(b)$$
 
-Every Galois connection induces a **closure operator** $g \circ f : A \to A$, where the *closed elements* (fixed points of $g \circ f$) form a complete lattice.
+Every Galois connection induces a **closure operator** $g \circ f : A \to A$, whose fixed points are the *closed elements*. If $A$ is a complete lattice, these fixed points form a complete lattice too; arbitrary posets do not suffice.
 
 ```ocaml env=adj
 (* A simple Galois connection: *)
-(* floor and ceiling between reals and integers *)
-(* f = floor : float -> int (left adjoint) *)
+(* ceiling and embedding between reals and integers *)
+(* f = ceiling : float -> int (left adjoint) *)
 (* g = embed : int -> float (right adjoint) *)
-(* floor(x) <= n  iff  x <= float(n) *)
+(* ceiling(x) <= n  iff  x <= float(n) *)
+(* Use small finite inputs, with integer bounds represented exactly. *)
 
-let galois_floor (x : float) : int = int_of_float (Float.floor x)
+let galois_ceil (x : float) : int =
+  int_of_float (Float.ceil x)
 let galois_embed (n : int) : float = float_of_int n
 
-(* Verify the Galois connection property: *)
+(* Include the boundary that distinguishes ceiling from floor. *)
 let () =
-  let x = 3.7 and n = 4 in
-  assert ((galois_floor x <= n) = (x <= galois_embed n))
-
-let () =
-  let x = 4.0 and n = 3 in
-  assert ((galois_floor x <= n) = (x <= galois_embed n))
+  List.iter (fun x ->
+    List.iter (fun n ->
+      assert ((galois_ceil x <= n) = (x <= galois_embed n)))
+      [-4; -3; 0; 3; 4]) [-3.7; 0.; 3.7; 4.]
 ```
+
+Over the mathematical reals and integers, `ceiling` is left adjoint to embedding, and embedding is left adjoint to `floor`: $\lceil x\rceil\le n\iff x\le n$, and $n\le x\iff n\le\lfloor x\rfloor$. Machine floats and bounded integers only approximate those domains.
 
 #### Formal Concept Analysis
 
@@ -592,7 +593,7 @@ A deep application of Galois connections is **Formal Concept Analysis** (Wille, 
 - $f(S) = \{ b \in B \mid \forall a \in S,\ a\, R\, b \}$ (common attributes of a set of objects)
 - $g(T) = \{ a \in A \mid \forall b \in T,\ a\, R\, b \}$ (objects sharing all given attributes)
 
-The pair $(f, g)$ is a Galois connection. The closed pairs $(S, T)$ where $S = g(T)$ and $T = f(S)$ are called **formal concepts** and form a lattice.
+Both maps reverse inclusion. They form an antitone Galois connection, or equivalently the monotone adjunction above when the attribute powerset is ordered by reverse inclusion. The closed pairs $(S, T)$ where $S = g(T)$ and $T = f(S)$ are called **formal concepts** and form a lattice.
 
 ```ocaml env=adj
 (* Formal concept analysis: a small example *)
@@ -608,7 +609,7 @@ let relation = [|
   [| true;  false; false; true  |];  (* dog *)
   [| true;  false; false; true  |];  (* cat *)
   [| false; false; true;  false |];  (* salmon *)
-  [| false; true;  false; false |];  (* eagle *)
+  [| true;  true;  false; false |];  (* eagle *)
 |]
 
 let n_obj = Array.length animals
@@ -635,7 +636,7 @@ let () = assert (common_attributes [0; 1] = [0; 3])
 let () = assert (closure [2] = [2])
 ```
 
-**Connection to abstract interpretation.** The Cousot--Cousot framework (1977) for static analysis is built on Galois connections between concrete and abstract domains. The *soundness* of a static analysis means that the abstraction and concretization functions form a Galois connection. This retrospectively frames Chapter 3's reduction semantics: the relationship between concrete execution and abstract semantic domains is itself a Galois connection.
+**Connection to abstract interpretation.** Galois connections are one way to relate concrete and abstract domains. Soundness also requires the abstract operations to overapproximate the concrete ones. For example, if $c$ is a concrete transfer and $c^\sharp$ its abstract counterpart, a standard condition is $\alpha(c(x))\le c^\sharp(\alpha(x))$. Having an adjunction between domains alone does not make an analyzer sound.
 
 ### 12.7 Lenses, Zippers, and the Derivative Connection
 
@@ -643,11 +644,11 @@ This section weaves together three threads from the book: the type derivative (C
 
 #### Recall: Type Derivatives and Zippers
 
-In Chapter 2, we showed that differentiating an algebraic data type yields the type of *one-hole contexts*. For a binary tree `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree`, the derivative is the type of "a tree with one subtree removed":
+In Chapter 2, differentiation with respect to the element type gave a context with one **element** missing. For `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree`, write $T=1+aT^2$. Differentiating gives:
 
-$$\frac{\partial}{\partial a}\text{tree}(a) = \text{list of (direction × sibling × value)}$$
+$$T'=T^2+2aTT' \quad\cong\quad T^2\times\operatorname{List}(2aT).$$
 
-In Chapter 10, the *zipper* made this operational: a zipper is a pair (subtree, context) that allows efficient navigation and local update. The zipper *inhabits* the derivative type.
+The list records the path to the hole: each ancestor contributes a direction, its other subtree, and its value. The factor $T^2$ records the two children of the node whose element is missing. A **subtree** context instead consists just of that path, $C=\operatorname{List}(2aT)$. Chapter 10's zipper pairs a focused subtree with its context, so its type is $T\times C$, not $T'$. An element-focused zipper has type $a\times T'$.
 
 #### Lenses: The Abstract Interface
 
@@ -723,10 +724,10 @@ let () = assert (acme'.ceo.name = "Bob")
 
 Zippers work for *polynomial* types -- types built from sums and products, where the algebraic derivative is well-defined. But what about types involving *exponentials* (function types)?
 
-Consider a stream `{ head : 'a; tail : unit -> 'a stream }` from Chapter 7. Its derivative is not a simple algebraic expression -- you cannot "take the derivative" of a function type the way you can a product type. Yet a lens can still focus on the head:
+Consider a stream `{ head : 'a; tail : unit -> 'a stream }` from Chapter 7. The finite polynomial calculation does not apply directly to this potentially infinite, effectful representation. A stream zipper can nevertheless store a finite prefix and a remaining stream. A lens offers a different interface: here it focuses directly on the head.
 
 ```ocaml skip
-(* A stream has no algebraic derivative / concrete zipper, *)
+(* This lens needs no chosen zipper representation. *)
 (* but we can still define lenses on it. *)
 type 'a stream = { head : 'a; tail : unit -> 'a stream }
 
@@ -785,7 +786,7 @@ In Haskell, a VL lens is a single rank-2 polymorphic definition:
 (* Instantiating f = Identity gives "set"; f = Const gives "get".   *)
 ```
 
-OCaml lacks higher-rank polymorphism, so a single definition cannot quantify over the functor `f`. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
+OCaml supports higher-rank polymorphism through explicitly polymorphic record fields and object methods. What this encoding needs additionally is quantification over a type constructor `f`, which ordinary OCaml type variables cannot express directly. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
 
 ```ocaml env=lens
 module type VL_FUNCTOR = sig
@@ -830,27 +831,27 @@ $$\text{Nat}(\text{Hom}(A, -), F) \cong F(A)$$
 
 For any functor $F$ and object $A$, the natural transformations from the representable functor $\text{Hom}(A, -)$ to $F$ are in one-to-one correspondence with elements of $F(A)$.
 
-In programming terms: a polymorphic function `forall b. (a -> b) -> f b` is the same as a value of type `f a`. You can always convert between the two:
+For total, parametric functions, this gives `forall b. (a -> b) -> f b` the same information as `f a`. Naturality is essential to the reverse round trip. We can express the universal quantifier for the list example using a polymorphic record field:
 
 ```ocaml env=yoneda
 (* The Yoneda lemma in OCaml: *)
 (* A value of type 'a F.t is equivalent to *)
 (* a polymorphic function (forall 'b. ('a -> 'b) -> 'b F.t) *)
 
-(* Forward direction: given f a, produce the natural transformation *)
-let yoneda_fwd (map : ('a -> 'b) -> 'a list -> 'b list)
-    (x : 'a list) : ('a -> 'b) -> 'b list =
-  fun f -> map f x
+type 'a yoneda_list = { run_list : 'b. ('a -> 'b) -> 'b list }
+
+(* Forward direction: given a list, produce the natural transformation. *)
+let yoneda_fwd x = { run_list = fun f -> List.map f x }
 
 (* Backward direction: given the nat trans, recover f a *)
-let yoneda_bwd (phi : ('a -> 'a) -> 'a list) : 'a list =
-  phi Fun.id    (* apply to the identity! *)
+let yoneda_bwd phi = phi.run_list Fun.id
 
 (* Round-trip: *)
 let original = [1; 2; 3]
-let phi = yoneda_fwd List.map original
+let phi = yoneda_fwd original
 let recovered = yoneda_bwd phi
 let () = assert (recovered = [1; 2; 3])
+let () = assert (phi.run_list string_of_int = ["1"; "2"; "3"])
 ```
 
 #### The CPS Transform
@@ -863,15 +864,16 @@ That is: a value of type `'a` is the same as a polymorphic function `forall 'b. 
 
 ```ocaml env=yoneda
 (* CPS: a value 'a ≅ (forall 'b. ('a -> 'b) -> 'b) *)
-let to_cps (x : 'a) : ('a -> 'b) -> 'b = fun k -> k x
-let from_cps (f : ('a -> 'a) -> 'a) : 'a = f Fun.id
+type 'a cps = { run_cps : 'b. ('a -> 'b) -> 'b }
+let to_cps x = { run_cps = fun k -> k x }
+let from_cps f = f.run_cps Fun.id
 
 let () = assert (from_cps (to_cps 42) = 42)
 ```
 
 #### Difference Lists
 
-Another Yoneda application: **difference lists**. A list `xs` can be represented as the function `fun ys -> xs @ ys` -- that is, as "the operation of prepending `xs`". This is the Yoneda embedding for the list monoid:
+Another Yoneda application: **difference lists**. A list `xs` can be represented as the function `fun ys -> xs @ ys` -- that is, as "the operation of prepending `xs`". This is the Cayley representation of the list monoid, related to the representable-functor viewpoint:
 
 ```ocaml env=yoneda
 (* Difference lists: represent a list as a function *)
@@ -893,7 +895,7 @@ let result =
 let () = assert (result = [1; 2; 3])
 ```
 
-Difference lists turn $O(n)$ append into $O(1)$ by delaying the actual construction. The Yoneda lemma guarantees no information is lost.
+Constructing a composed difference list costs $O(1)$; converting it to a list still performs the deferred work. The representation invariant is `f tail = prefix @ tail` for some fixed `prefix`, recoverable as `f []`. Not every function of type `'a list -> 'a list` satisfies that invariant. Long chains also require attention to stack usage.
 
 #### The Codensity Monad
 
@@ -927,40 +929,19 @@ let () = assert (pairs [1;2] ["a";"b"]
                = [(1,"a"); (1,"b"); (2,"a"); (2,"b")])
 ```
 
-The deep insight: every object in a category is completely determined by how other objects map *into* it. The representable functors $\text{Hom}(A, -)$ form a "coordinate system" for the category, and the Yoneda lemma says this coordinate system is faithful -- it loses no information.
+The deep insight: every object in a category is completely determined by how other objects map *into* it. Dually, the outgoing representable functors $\text{Hom}(A, -)$ form a "coordinate system" for the category, and the Yoneda lemma says this coordinate system is faithful -- it loses no information.
 
 ### 12.9 The Expression Problem, Categorically
 
-Let us revisit Chapter 11 with categorical vocabulary. The expression problem asks for a design where both data constructors and operations can be independently extended. The categorical formulation: we want a diagram
+Chapter 11 asks how to extend both data constructors and operations while preserving existing code and static checks. A useful law is **extension consistency**. If $i : E \to E^+$ embeds the base expressions in an extended language and both evaluators return values in $V$, require:
 
-$$\text{new constructors} \longrightarrow \text{extended type}$$
-$$\downarrow \qquad\qquad\qquad\quad \downarrow$$
-$$\text{new operations} \longrightarrow \text{extended semantics}$$
+$$\operatorname{eval}_{+} \circ i = \operatorname{eval}.$$
 
-that **commutes** -- the two paths through the square yield the same result. This is a *naturality condition*: extending the type and then adding operations must agree with adding operations and then extending the type.
+This is a commuting triangle of explicitly typed functions. Calling it a naturality law would require specifying categories, functors, and a family of such maps; row polymorphism alone does not supply that construction.
 
-#### Solutions as Categorical Constructions
+Ordinary inductive ADTs support folds over a fixed signature; extending that signature requires extending its handlers. Polymorphic variants can combine compatible rows and reuse handlers for existing tags. That union is not generally a disjoint coproduct: shared tags remain shared. Objects offer another way to reuse operations through methods and subtyping. These are useful connections to categorical ideas, but none is automatically a universal-property theorem about the whole OCaml feature.
 
-The solutions from Chapter 11 correspond to categorical constructions:
-
-**Ordinary ADTs (Section 11.2)** work by *initial algebra*: the type is the initial algebra of a functor, and operations are catamorphisms. Extending the type means changing the functor, which breaks existing catamorphisms -- the square does not commute because the initial algebra is defined relative to a fixed functor.
-
-**Polymorphic variants (Section 11.7)** correspond to a *colimit* construction. Each sub-language is a type, and combining them takes their coproduct (disjoint union). The polymorphic variant system in OCaml computes this coproduct using row polymorphism -- types like `` [> `Var of string | `Num of int] `` are *open* types that can be extended. The colimit exists when the row types are compatible.
-
-**Objects (Section 11.5)** use *subtyping*, which is a different categorical structure: morphisms in a category of types ordered by the subtype relation.
-
-#### Operations as Natural Transformations
-
-In the polymorphic variant approach, each operation (like `eval` or `string_of`) must be *polymorphic in the type index* -- it must work uniformly for any extension of the base type. This is exactly the requirement that the operation be a **natural transformation**:
-
-```ocaml skip
-(* Each eval function has a type like: *)
-(* val eval : [> `Var of string | `Num of int ] -> value *)
-(* The [> ...] means it works for any extension -- *)
-(* this is naturality in the row variable. *)
-```
-
-We can see the naturality square in action with polymorphic variants. Base operations are reused unchanged when the type is extended:
+Here is a small executable example of extension consistency:
 
 ```ocaml env=expr
 (* Base language with eval and show: *)
@@ -977,7 +958,7 @@ let show_ext = function
   | (`Num _ | `Neg _) as e -> show_base e    (* reuse *)
   | `Add (a, b) -> string_of_int a ^ "+" ^ string_of_int b
 
-(* The naturality square commutes: embedding a base expression *)
+(* Extension consistency: embedding a base expression          *)
 (* into the extended type and then evaluating gives the same   *)
 (* result as evaluating in the base language directly.         *)
 let e1 = `Num 5
@@ -988,7 +969,7 @@ let () = assert (show_ext e1 = show_base e1)
 let () = assert (show_ext e2 = show_base e2)
 ```
 
-The dynamic failure when no handler covers a constructor (e.g., in the extensible GADT approach from the OCaml discussion thread) is the *colimit not existing*: we tried to form a coproduct of partial natural transformations, but the components do not cover the whole type. A fully static GADT encoding would make this a compile-time error.
+An uncovered constructor in an extensible-variant evaluator is an incomplete dispatch definition. It is not evidence that a categorical colimit fails to exist. Exhaustive closed variants can turn that particular missing-case problem into a compiler warning; extensible designs need an explicit coverage policy.
 
 ### 12.10 Curry--Howard--Lambek: The Trinity
 
@@ -1007,7 +988,7 @@ The **Curry--Howard--Lambek correspondence** states that three seemingly differe
 | False ($\bot$) | Empty type `void` | Initial object $0$ |
 | Modus ponens | Function application | Evaluation morphism |
 | Hypothesis | Variable | Identity morphism |
-| Cut elimination | $\beta$-reduction | Composition |
+| Cut / substitution | Substitution of terms | Composition |
 
 #### What the Correspondence Means
 
@@ -1015,9 +996,9 @@ A **cartesian closed category** (CCC) -- a category with products, exponentials,
 
 1. A model of propositional logic (the internal logic of the category)
 2. A model of the simply-typed lambda calculus (types are objects, terms are morphisms)
-3. A category with enough structure to interpret all of functional programming
+3. A semantics for the pure, total product-and-function fragment; coproducts and an initial object add sums and the empty type
 
-The OCaml type system lives in this world. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
+The corresponding fragment of OCaml illustrates these constructions. General recursion, exceptions, mutation, and effects require additional semantic treatment. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
 
 - **Proving** the logical tautology $A \wedge B \Rightarrow B \wedge A$
 - **Programming** the swap function on pairs
@@ -1049,13 +1030,9 @@ let () = assert (trans f g 3 = compose g f 3)
 
 Classical logic allows double negation elimination: $\neg\neg A \Rightarrow A$. In the Curry--Howard reading, $\neg A$ is $A \to \bot$ (a function to the empty type). Under the CCC interpretation, $\neg A = \bot^A$ is the exponential.
 
-Double negation elimination is *not* valid in constructive logic (or in OCaml's pure fragment). But in the CPS transform from Section 12.8, we saw that `'a` is equivalent to `forall 'b. ('a -> 'b) -> 'b` -- which looks like double negation if we read `'b` as $\bot$. The connection:
+Double negation elimination is not valid in constructive logic or the total, pure lambda calculus. The CPS isomorphism in Section 12.8 does not prove it: there the continuation's answer type is universally quantified, and we recover the value by choosing that answer type to be `a`. A term of type `(a -> void) -> void` has a fixed answer type and does not permit that choice.
 
-- **Constructive logic** = direct-style functional programming
-- **Classical logic** = continuation-passing style (every program has access to its continuation)
-- **Linear logic** = resource-aware computation (each value used exactly once)
-
-These are not analogies -- they are *theorems*. The Curry--Howard--Lambek correspondence makes precise the sense in which logic, programming, and category theory are three views of one underlying structure.
+Precise correspondences connect classical logic with calculi of control operators, and linear logic with calculi that track resource use. Ordinary CPS code, or a one-shot continuation by itself, does not establish all of those correspondences. Each claim needs its particular typing rules and notion of program equality.
 
 #### The Recurring Motif
 
@@ -1066,7 +1043,7 @@ Throughout this chapter, we have asked: *what is stable under crossing levels?*
 - **Yoneda**: representable functors (the perfectly faithful reification)
 - **Curry--Howard--Lambek**: the trinity itself (truths that appear in all three worlds simultaneously)
 
-This also connects to **reification and reflection**: reification promotes a computational concept to a first-class value (right adjoint; conservative; loses nothing), while reflection executes it (left adjoint; may lose information). GADTs are OCaml's reification mechanism. The round-trip $\text{reflect} \circ \text{reify}$ is a closure operator -- you recover the *canonical form*, not necessarily the original.
+Reification and reflection offer another useful question: what laws connect a representation with its interpretation? They do not automatically form an adjunction, and their round trip is not automatically a closure operator. To make either claim, specify the domains, maps, and laws, then prove them for the chosen construction.
 
 ### 12.11 Exercises
 
