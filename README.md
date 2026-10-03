@@ -98,6 +98,19 @@ This book is intended for three audiences:
 - Advanced: programmers who are new to functional programming.
 
 
+## Reading and running
+
+The book assumes willingness to work through mathematical notation and small programs. Readers entirely new to programming should also practice using the OCaml toplevel, loading a file, and reading a compiler error before tackling the longer derivations. The later chapters build on functions, algebraic data types, pattern matching, and modules.
+
+Use OCaml 5.3 or later for the whole book: Chapter 9 uses the effect-pattern syntax introduced in 5.3. The source repository contains one current `chapterN/README.md` per chapter. Root `README.md` is generated from them; the `functional-lecture*.md` and `Lec*.ml` files are historical course material.
+
+The examples are checked with Dune and mdx. In a checkout with the dependencies from `curious.opam` installed, run `dune runtest`. To check selected chapters, for example, run `dune runtest chapter1 chapter2`. Run `dune build README.md @site/new_book` to regenerate the combined manuscript and HTML edition.
+
+Code blocks sharing an `env` label within a chapter share definitions and load that chapter's `prelude.ml`. Inspect that prelude when running excerpts independently. Blocks marked `skip` include exercises, pseudo-code, and deliberately non-running or expensive examples. Chapters 6 and 10 additionally require GUI/incremental libraries; their interactive demonstrations need a graphical environment.
+
+For a first reading, follow Chapters 1–3 and 5–6 before the larger applications in Chapters 7–11. Chapter 4 is an optional deeper study of lambda calculus; return to it when encodings and evaluation strategies become useful. Chapter 12 is a synthesis for readers already comfortable with the earlier constructions, rather than a prerequisite for using them.
+
+
 ## Chapter 1: Logic
 
 ![Chapter 1 illustration](Curious_OCaml-chapter_1.jpg){.chapter-image}
@@ -219,7 +232,7 @@ The power of induction lies in this: once we have the base case and the inductiv
 
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
+We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
 
 Under this correspondence:
 
@@ -239,7 +252,7 @@ The following table shows how each logical connective corresponds to a programmi
 | $\wedge$ | `*` | `(,)` | Conjunction corresponds to pairs: having both A and B |
 | $\vee$ | a variant type | `Left x` / `Right y` | Disjunction corresponds to sums: having either A or B |
 | $\rightarrow$ | `->` | `fun` | Implication corresponds to functions: given A, produce B |
-| induction | - | `let rec` | Inductive proofs correspond to recursive definitions |
+| induction | - | structurally decreasing recursion | Inductive proofs correspond to terminating recursive definitions |
 
 For example, the identity function corresponds to the tautology $a \rightarrow a$:
 
@@ -322,6 +335,8 @@ Let us now see the precise typing rules for each OCaml construct, presented in t
 
 - **Recursion (induction):** recursion is not a connective, but it matches the *shape* of induction: in a recursive definition you are allowed to assume the function being defined (the “induction hypothesis”) when defining its body.
 
+  General recursion alone is not an induction proof: `let rec loop x = loop x` never returns. The proof interpretation requires termination, for example by recursion on a strictly smaller substructure.
+
   In OCaml, recursion is introduced with `let rec` (there is no standalone `rec` expression).
 
 #### Definitions
@@ -376,7 +391,7 @@ These rules are slightly simplified. The full rules involve a concept called **p
 
 Understanding *scope*—where names are visible—is essential for reading and writing OCaml programs.
 
-- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session. You cannot define a type inside a function.
+- **Type definitions** we have seen above are *global*: they need to be at the top-level (not nested in expressions), and they extend from the point they occur till the end of the source file or interactive session. A bare `type` declaration cannot occur inside an expression, but a function can introduce a type through a local module; we will meet modules in Chapter 5.
 
 - **`let`-`in` definitions** for expressions: `let x = e1 in e2` are *local*—the name $x$ is only visible within $e_2$. Once you exit the `in` part, $x$ no longer exists. This is useful for temporary values that should not pollute the global namespace.
 
@@ -399,7 +414,7 @@ val ( +: ) : string -> string -> string = <fun>
 
 Notice the asymmetry here: when *defining* an operator, we wrap it in parentheses to tell OCaml "this is the name I am defining". When *using* the operator, we write it in the normal infix position between its arguments. This asymmetry exists because the definition syntax needs to distinguish between "the name `+:`" and "the expression `a +: b`".
 
-An important feature of OCaml is that operators are **not overloaded**. This means that a single operator cannot work for multiple types. Each type needs its own set of operators:
+OCaml's built-in arithmetic operators are **not overloaded** across numeric types: integer and floating-point arithmetic use different operators. This is distinct from parametric polymorphism, which allows operations such as equality to have polymorphic types:
 
 - `+`, `*`, `/` work for integers
 - `+.`, `*.`, `/.` work for floating point numbers
@@ -446,7 +461,7 @@ $$
 \begin{cases}
 f(0) = 0 \\
 f(1) = 1 \\
-f(n+1) = f(n) + f(n-1) & \text{for } n = 2, 3, \ldots
+f(n+1) = f(n) + f(n-1) & \text{for } n = 1, 2, \ldots
 \end{cases}
 $$
 
@@ -855,7 +870,7 @@ We also need translations for some special types:
 
 - Defined types translate according to their definitions (substituting variables as necessary).
 
-Give a name to the type being defined (representing a function of the introduced variables). Now interpret the result as an ordinary numeric polynomial! (Or a "rational function" if recursively defined.)
+Give a name to the type being defined (representing a function of the introduced variables). For finite, nonrecursive sum-and-product types, the result is a polynomial counting possible values. Recursive types instead give equations for formal power series counting finite structures. Lists yield a rational series; trees generally yield algebraic series that are not rational. Unrestricted subtraction, division, and identities involving infinite cardinalities are not automatically type isomorphisms: justify a proposed isomorphism with inverse functions.
 
 This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
 
@@ -1443,9 +1458,9 @@ Programs consist of **expressions**. Here is the grammar of expressions for a si
 
 **Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
 
-**Meta-syntax note.** In the grammar and rules below, we write constructors as if they were truly $n$-ary, e.g. $C^3(a_1,a_2,a_3)$. In actual OCaml syntax, constructors take exactly one argument; “multiple arguments” are represented by a tuple, e.g. `Node (v1, v2, v3)`. The $n$-ary presentation is a convenient mathematical shorthand.
+**Meta-syntax note.** OCaml constructors can have multiple arguments. As in Chapter 2, `C of int * string` declares two arguments, whereas `C of (int * string)` declares one tuple argument. Both are written `C (1, "one")` when constructing a value, but the distinction matters when passing an existing tuple. The rules below use an explicit arity, such as $C^3(a_1,a_2,a_3)$.
 
-**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. Real OCaml is *strict* (call-by-value) and evaluates subexpressions in a deterministic order (in current OCaml implementations this is often right-to-left); the details matter when you have effects (exceptions, printing, mutation), but are usually irrelevant for purely functional code.
+**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. OCaml is *strict* (call-by-value), but the language does not specify the relative evaluation order of a function expression and its arguments. Current implementations often evaluate arguments right-to-left. Use explicit `let` bindings when effects require a particular order; do not rely on that implementation behavior.
 
 #### The `fix` Primitive
 
@@ -1475,7 +1490,7 @@ Partially applied primitives like `(+) 3` are also values. The expression `(+) 3
 
 #### Substitution
 
-The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every occurrence of $x$ in $a$ is replaced by $v$.
+The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every free occurrence of $x$ in $a$ is replaced by $v$.
 
 For example, if $a$ is the expression `x + x * y` and we substitute 3 for `x`, we get `3 + 3 * y`. In our notation: `(x + x * y)[x := 3] = 3 + 3 * y`.
 
@@ -1568,7 +1583,7 @@ $$
 
 These rules describe *where* reduction can happen:
 
-- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml itself uses a fixed evaluation order.
+- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml is strict but leaves the relative order unspecified.
 - In a constructor application, any argument can be evaluated.
 - In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
 - In a match expression, the scrutinee (the expression being matched) must be evaluated before pattern matching can proceed.
@@ -1897,9 +1912,9 @@ let rec depth tree = match tree with
   | Node(_, left, right) -> 1 + max (depth left) (depth right)
 ```
 
-This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A simple accumulator will not work---we cannot proceed with one subtree until we know the result of the other.
+This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A single running depth does not record the branches still to visit. We can add an explicit worklist of subtrees and their depths, or represent the pending work with continuations.
 
-This seems like an impossible situation. How can we make a function tail recursive when it inherently needs to explore two branches? The answer involves a technique called *continuation passing style*, which we explore in the next section.
+The next section explores the continuation approach: it records what to do after each branch has been visited.
 
 #### Note on Lazy Languages
 
@@ -1943,7 +1958,7 @@ The magic is that *every recursive call is now a tail call*! Look carefully: `de
 
 Where does the "pending work" go? Instead of being stored on the call stack, it is captured in the continuation closures. These closures are allocated on the heap. We have traded stack space for heap space.
 
-**Important caveat:** This does not completely solve the stack overflow problem---we are just moving the problem from the stack to the heap. For very deep trees, the continuation closures can grow very large, potentially exhausting memory. True solutions for extreme cases involve techniques like *trampolining* (returning control to a loop) or using explicit data structures to represent the pending work. Nevertheless, CPS is often more space-efficient than direct recursion, and it is a fundamental technique that appears throughout functional programming.
+With OCaml's tail-call optimization, this CPS traversal uses constant call-stack space. Its pending continuations still occupy heap space proportional to tree height, so constant stack space does not mean constant total space. An explicit worklist is another representation of that pending work. Trampolining is useful in languages without reliable tail calls; it is not required for these OCaml tail calls.
 
 We will encounter CPS again when studying monads and advanced control flow, where it provides the foundation for powerful abstractions.
 
@@ -2019,6 +2034,8 @@ We begin with a review of computation by hand using our reduction semantics, the
 
 - "Introduction to Lambda Calculus" by Henk Barendregt and Erik Barendsen
 - "Lecture Notes on the Lambda Calculus" by Peter Selinger
+
+**Running the examples:** this chapter studies an untyped calculus. Its OCaml experiments use recursive types (`#rectypes;;` in the toplevel, or `-rectypes` when compiling), enabled by `chapter4/prelude.ml`. A few demonstrations also use `Obj.magic`; those casts bypass type safety and are not a general implementation technique. Blocks marked `skip` are derivations or intentionally non-running examples.
 
 ### 4.1 Review: Computation by Hand
 
@@ -2178,7 +2195,7 @@ Once we have booleans as selectors, logical operations become elegant. Logical c
 
 $$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
 
-The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and returns false immediately without even looking at `y`.
+The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and selects false. In OCaml, however, the argument expression supplying `y` has already been evaluated: this encoding does not provide short-circuit evaluation.
 
 ```ocaml env=ch4
 let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
@@ -2341,86 +2358,21 @@ The predecessor function is ingenious and worth studying carefully. The challeng
 
 #### Tracing `cn_prev cn3`
 
-The predecessor function is tricky enough that it is worth tracing through a complete example. Let us trace through `decode_cnat (cn_prev cn3)` to see how it computes 2 from 3:
+To keep the parentheses manageable, abbreviate `((+) 1)` as `f`, `fun g h -> h (g f)` as `s`, `fun _ -> 0` as `z`, and `fun x -> x` as `id`. Then:
 
-$$\rightsquigarrow^*$$
-
-```
-(cn_prev cn3) ((+) 1) 0
-```
-
-$$\rightsquigarrow^*$$
-
-```
-(fun f x ->
-    cn3
-      (fun g h -> h (g f))
-      (fun _z -> x)
-      (fun z -> z)) ((+) 1) 0
+```text
+(cn_prev cn3) f 0
+  = cn3 s z id
+  = s (s (s z)) id
+  = id ((s (s z)) f)
+  = (s (s z)) f
+  = f ((s z) f)
+  = f (f (z f))
+  = f (f 0)
+  = 2
 ```
 
-$$\rightsquigarrow^*$$
-
-```
-((fun f x -> f (f (f x)))
-      (fun g h -> h (g ((+) 1)))
-      (fun z -> 0)
-      (fun z -> z))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((fun g h -> h (g ((+) 1)))
-  ((fun g h -> h (g ((+) 1)))
-    ((fun g h -> h (g ((+) 1)))
-      (fun z -> 0))))
-  (fun z -> z))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((fun z -> z)
-  (((fun g h -> h (g ((+) 1)))
-    ((fun g h -> h (g ((+) 1)))
-      (fun z -> 0)))) ((+) 1)))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-(fun g h -> h (g ((+) 1)))
-  ((fun g h -> h (g ((+) 1)))
-    (fun z -> 0)) ((+) 1)
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) ((fun g h -> h (g ((+) 1)))
-          (fun z -> 0) ((+) 1))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) (((+) 1) ((fun z -> 0) ((+) 1)))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) (((+) 1) (0))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) 1
-```
-
-$\rightsquigarrow^*$ `2`
+The first application of the iterator builds `s z`; applying it later to `f` yields `f (z f) = f 0`. The outer call to `id` removes one application of `f`, leaving two increments for the input numeral three.
 
 ### 4.7 Recursion: Fixpoint Combinators
 
@@ -2510,7 +2462,7 @@ $$
 \end{aligned}
 $$
 
-The computation stops because we use the rule $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$ rather than $(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$. The expression inside the lambda is not evaluated until the function is applied.
+The computation stops because our weak evaluation strategy does not reduce underneath a lambda. Call-by-value additionally uses the rule $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$ rather than $(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$. The expression inside the lambda is not evaluated until the function is applied.
 
 Let us compute the function on some input:
 
@@ -2545,7 +2497,9 @@ $$
 \end{aligned}
 $$
 
-The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
+Under normal-order reduction, the last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
+
+In call-by-value OCaml, the conditional also needs delayed branches: an ordinary Church selector evaluates its recursive argument even in the base case. Section 4.9 supplies that extra guard.
 
 #### Exercise: Hand-Reduce `fact cn2`
 
@@ -2558,6 +2512,8 @@ What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate i
 
 
 ### 4.8 Encoding Lists and Trees
+
+The encodings in this section are **Scott encodings**: a value selects a case handler and supplies its immediate fields. Unlike Church encodings, they do not themselves fold recursively over those fields.
 
 Now that we have numbers and recursion, we can encode more complex data structures. The pattern we have seen with booleans and pairs extends naturally to algebraic data types like lists and trees.
 
@@ -2803,7 +2759,7 @@ In contrast, consider this example:
 val x : '_weak1 list ref = {contents = []}
 ```
 
-Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to purely functional programming.
+Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which can also affect pure expressions, as the partial-application examples below illustrate.
 
 More precisely: the *value restriction* prevents unsoundness that would otherwise arise from generalizing type variables in effectful (mutable) expressions. When you see `'_weak...`, treat it as “this will become one specific type later”.
 
@@ -3065,7 +3021,7 @@ Let us look at some concrete examples to make these abstract ideas tangible. An 
 
 **Specification $\text{nat}_p$ (bounded natural numbers):**
 
-This specification describes natural numbers that wrap around at some bound $p$ (like machine integers):
+For an integer bound $p \ge 2$, this specification describes natural numbers modulo $p$ (like unsigned machine integers). Range conditions below refer to the canonical representatives $0,\ldots,p-1$:
 
 | $\text{nat}_p$ |
 |----------------|
@@ -3079,14 +3035,14 @@ This specification describes natural numbers that wrap around at some bound $p$ 
 | $m + \text{succ}(n) = \text{succ}(m + n)$ |
 | $0 * n = 0$, $n * 0 = 0$ |
 | $m * \text{succ}(n) = m + (m * n)$ |
-| $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{\text{less than } p \text{ times}} \neq 0$ |
+| $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{k \text{ times},\ 1\le k<p} \neq 0$ |
 | $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{p \text{ times}} = 0$ |
 
-The axioms define how addition and multiplication work recursively, and the last two axioms capture the bounded nature: applying $\text{succ}$ less than $p$ times never gives zero, but exactly $p$ times wraps around to zero.
+The axioms define how addition and multiplication work recursively, and the last two axioms capture the bounded nature: applying $\text{succ}$ between one and $p-1$ times never gives zero, but exactly $p$ times wraps around to zero.
 
 **Specification $\text{string}_p$ (bounded strings):**
 
-This specification describes strings with a maximum length $p$:
+This specification describes strings of length strictly less than $p$. Here `error` denotes failure outside the successful result sort, and operations propagate failure. Thus these are partial-operation equations, not a plain total algebra over only the displayed sorts:
 
 | $\text{string}_p$ |
 |-------------------|
@@ -3103,6 +3059,8 @@ This specification describes strings with a maximum length $p$:
 | $(\text{``}c\text{''} \hat{\ } s)[0] = c$ |
 | $(\text{``}c\text{''} \hat{\ } s)[\text{succ}(n)] = s[n]$ |
 | `""`$[n] = \text{error}$ |
+
+Both indexing equations involving a prefixed character require the concatenation to succeed. The successor-index equation additionally requires $n < p-1$, so the index does not wrap to zero.
 
 The axioms specify that concatenation is associative, that the empty string is an identity for concatenation, that exceeding the length limit produces an error, and that indexing works by stripping characters from the front.
 
@@ -3140,6 +3098,7 @@ Here is an algebraic specification that captures the essential behavior of maps:
 | $\text{find} : \alpha \rightarrow (\alpha, \beta) \ \text{map} \rightarrow \beta$ |
 | Variables: $k, k_2 : \alpha$, $v, v_2 : \beta$, $m : (\alpha, \beta) \ \text{map}$ |
 | Axioms: |
+| $\text{member}(k, \text{empty}) = \text{false}$ |
 | $\text{member}(k, \text{add}(k, v, m)) = \text{true}$ |
 | $\text{member}(k, \text{remove}(k, m)) = \text{false}$ |
 | $\text{member}(k, \text{add}(k_2, v, m)) = \text{true} \wedge k \neq k_2 \Leftrightarrow \text{member}(k, m) = \text{true} \wedge k \neq k_2$ |
@@ -3262,7 +3221,7 @@ Can we do better than linear time? Yes, by using a smarter data structure. Binar
 
 For maps, we store key-value pairs as elements in binary search trees, and compare the elements by keys alone. The tree structure allows us to use "divide-and-conquer" to search for the value associated with a key.
 
-On average, binary search trees are fast -- $O(\log n)$ complexity for all operations. At each node, we can eliminate half the remaining elements from consideration. However, in the worst case (when keys are inserted in sorted order), the tree degenerates into a linked list and operations become $O(n)$.
+Operations cost $O(h)$, where $h$ is tree height. Random insertion order gives expected $O(\log n)$ height; a search discards one subtree at each step, but that subtree need not contain half the elements. However, in the worst case (when keys are inserted in sorted order), the tree degenerates into a linked list and operations become $O(n)$.
 
 A note on our design: the simple polymorphic signature for maps is only possible because OCaml provides polymorphic comparison (and equality) operators that work on elements of most types (but not on functions). These operators may not behave as you expect for all types! Our signature for polymorphic maps is not the standard approach because of this limitation; it is just to keep things simple for pedagogical purposes.
 
@@ -3289,7 +3248,7 @@ module BTreeMap : MAP = struct
   let rec split_rightmost m =       (* A helper function, it does not belong *)
     match m with                    (* to the "exported" signature. *)
     | Empty -> raise Not_found
-    | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
+    | T (m1, k, v, Empty) -> k, v, m1   (* Preserve the largest node's left child. *)
     | T (m1, k, v, m2) ->           (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
@@ -3317,6 +3276,17 @@ end
 The `member` and `find` functions use the "divide-and-conquer" strategy: compare the target key with the key at the current node, and recursively search in the appropriate subtree. The `add` function searches the tree in the same way but copies every node along the path to create the new tree (since we're using immutable data structures).
 
 The `remove` function is trickier. When removing a node with two children, we need to replace it with another value that maintains the ordering property. The `split_rightmost` helper function finds and removes the rightmost (largest) element from a subtree -- this element is guaranteed to be smaller than everything in the right subtree and larger than everything remaining in the left subtree, making it the perfect replacement.
+
+Removing a root must also preserve the left child of its predecessor:
+
+```ocaml env=ch5
+let () =
+  let m = List.fold_left (fun m k -> BTreeMap.add k (string_of_int k) m)
+    BTreeMap.empty [5; 3; 2; 7] in
+  let m = BTreeMap.remove 5 m in
+  assert (not (BTreeMap.member 5 m));
+  List.iter (fun k -> assert (BTreeMap.find k m = string_of_int k)) [2; 3; 7]
+```
 
 ### 5.10 Implementing Maps: Red-Black Trees
 
@@ -3491,7 +3461,6 @@ Design an algebraic specification and write a signature for sets. Provide two im
 (*) Implement maps (i.e. write a module for the map signature) based on AVL trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
 
 
-
 ## Chapter 6: Folding and Backtracking
 
 ![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
@@ -3634,8 +3603,12 @@ With `fold_left`, expressing our earlier functions becomes straightforward -- we
 let list_rev l =
   fold_left (fun t h -> h::t) [] l
 
-let average =
-  fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.)
+let average xs =
+  let sum, tot =
+    fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.) xs in
+  if tot = 0. then 0. else sum /. tot
+
+let () = assert (average [2.; 4.; 9.] = 5.)
 ```
 
 Note that the `average` example is slightly trickier than `list_rev` because we need to track two values (sum and count) rather than one.
@@ -3720,7 +3693,7 @@ Here are two examples showing how `bt_fold` can compute different properties of 
 
 ```ocaml env=ch6
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
-let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
+let depth t = bt_fold (fun _ l r -> 1 + max l r) 0 t
 ```
 
 The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
@@ -3982,7 +3955,7 @@ let rec subseqs l =
       List.map (fun px -> x::px) pxs @ pxs
 ```
 
-Tail-recursively:
+Using a tail-recursive mapping helper (the call to `subseqs` itself is still not in tail position):
 
 ```ocaml env=ch6
 let rec rmap_append f accu = function
@@ -4106,6 +4079,7 @@ let inverted_index documents =
     Str.split (Str.regexp "[ \t.,;]+") doc
     |> List.map (fun word -> word, addr) in
   concat_reduce mapf cons [] documents
+  |> List.map (fun (word, addresses) -> word, List.sort_uniq compare addresses)
 ```
 
 **Example 3: Simple search engine.** Once we have an inverted index, we can search for documents containing all of a given set of words. We need set intersection -- here implemented for sets represented as sorted lists:
@@ -4126,7 +4100,8 @@ Now we can build a simple search function that finds all documents containing ev
 
 ```ocaml env=ch6
 let search index words =
-  match List.map (flip List.assoc index) words with
+  match List.map (fun word ->
+    Option.value (List.assoc_opt word index) ~default:[]) words with
   | [] -> []
   | idx::idcs -> List.fold_left intersect idx idcs
 ```
@@ -4214,9 +4189,30 @@ let rec values = function
   | Val n -> [n]
   | App (_, l, r) -> values l @ values r
 
+let rec remove_one x = function
+  | [] -> None
+  | y::ys when x = y -> Some ys
+  | y::ys -> Option.map (fun rest -> y::rest) (remove_one x ys)
+
+let rec uses_available numbers available =
+  match numbers with
+  | [] -> true
+  | x::xs ->
+      match remove_one x available with
+      | None -> false
+      | Some rest -> uses_available xs rest
+
 let solution e ns n =
-  list_diff (values e) ns = [] && is_unique (values e) &&
-  eval e = Some n
+  uses_available (values e) ns && eval e = Some n
+```
+
+The source numbers form a multiset: equal numbers may be used as many times as they occur, but no more.
+
+```ocaml env=ch6
+let () =
+  let two = App (Add, Val 1, Val 1) in
+  assert (solution two [1; 1] 2);
+  assert (not (solution two [1] 2))
 ```
 
 #### Brute Force Solution
@@ -4278,25 +4274,27 @@ The brute force approach generates many invalid expressions (like `5 - 7` which 
 The key insight is to work with pairs `(e, eval e)` so that only valid subexpressions are ever generated:
 
 ```ocaml env=ch6
-let combine' (l, x) (r, y) =
+let combine' valid (l, x) (r, y) =
   [Add; Sub; Mul; Div]
   |> List.filter (fun o -> valid o x y)
   |> List.map (fun o -> App (o, l, r), apply o x y)
 
-let rec results = function
+let rec results valid = function
   | [] -> []
   | [n] -> if n > 0 then [Val n, n] else []
   | ns ->
     split ns |-> (fun (ls, rs) ->
-      results ls |-> (fun lx ->
-        results rs |-> (fun ry ->
-          combine' lx ry)))
+      results valid ls |-> (fun lx ->
+        results valid rs |-> (fun ry ->
+          combine' valid lx ry)))
 
-let solutions' ns n =
+let solutions_with valid ns n =
   choices ns |-> (fun ns' ->
-    results ns'
+    results valid ns'
     |> List.filter (fun (e, m) -> m = n)
     |> List.map fst)                        (* Discard memorized values *)
+
+let solutions' = solutions_with valid
 ```
 
 #### Eliminating Symmetric Cases
@@ -4310,9 +4308,18 @@ let valid op x y =
   | Sub -> x > y
   | Mul -> x <= y && x <> 1 && y <> 1
   | Div -> x mod y = 0 && y <> 1
+
+let solutions_optimized = solutions_with valid
 ```
 
-This eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
+Passing the new predicate explicitly matters: rebinding `valid` alone would not change functions already defined with the earlier binding. `solutions_optimized` eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
+
+```ocaml env=ch6
+let () =
+  let index = inverted_index [3, "cat cat dog"; 1, "dog cat"; 2, "dog"] in
+  assert (search index ["cat"; "dog"] = [1; 3]);
+  assert (search index ["missing"] = [])
+```
 
 ### 6.9 The Honey Islands Puzzle
 
@@ -4431,7 +4438,8 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
     Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" />\n"
       r g b in
   List.iter draw_shape curves;
-  Printf.fprintf f "</svg>%!"
+  Printf.fprintf f "</svg>%!";
+  close_out f
 ```
 
 **Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.
@@ -4732,7 +4740,7 @@ We will examine different evaluation strategies, implement streams and lazy list
 
 **Evaluation strategy** is the order in which expressions are computed -- primarily, when arguments are computed. Recall our problems with using *flow control* expressions like `if_then_else` in examples from the lambda-calculus lecture. There are many technical terms describing various evaluation strategies:
 
-**Strict evaluation**: Arguments are always evaluated completely before the function is applied.
+**Strict evaluation**: Arguments are evaluated to values before the function is applied. A value may itself contain a closure or a suspended lazy computation; those are not forced by this rule.
 
 **Non-strict evaluation**: Arguments are not evaluated unless they are actually used in the evaluation of the function body.
 
@@ -4742,9 +4750,9 @@ We will examine different evaluation strategies, implement streams and lazy list
 
 **Call-by-value**: The argument expression is evaluated, and the resulting value is bound to the corresponding variable in the function (frequently by copying the value into a new memory region).
 
-**Call-by-reference**: A function receives an implicit reference to a variable used as argument, rather than a copy of its value. In purely functional languages there is no difference between the two strategies, so they are typically described as call-by-value even though implementations use call-by-reference internally for efficiency. Call-by-value languages like C and OCaml support explicit references (objects that refer to other objects), and these can be used to simulate call-by-reference.
+**Call-by-reference**: A parameter aliases the caller's variable, so assigning to that parameter changes the variable. This differs from passing a pointer or an OCaml reference cell *by value*: the callee can mutate the shared cell, but cannot rebind the caller's variable. OCaml uses call-by-value, including for values represented internally by pointers.
 
-**Normal order**: Start computing function bodies before evaluating their arguments. Do not even wait for arguments if they are not needed.
+**Normal order**: Repeatedly reduce the leftmost outermost redex, including underneath lambdas when seeking a full normal form. Call-by-name is a weak strategy that stops at a lambda rather than reducing its body.
 
 **Call-by-name**: Arguments are substituted directly into the function body and then left to be evaluated whenever they appear in the function. This means an argument might be evaluated multiple times if it appears multiple times in the function body.
 
@@ -4779,6 +4787,7 @@ The key insight is that the tail is not a stream directly, but a *function* that
 
 ```ocaml env=ch7
 let rec stake n = function
+  | SCons (a, _) when n = 1 -> [a]
   | SCons (a, s) when n > 0 -> a :: (stake (n-1) (s ()))
   | _ -> []
 ```
@@ -4871,11 +4880,12 @@ The tail is of type `'a llist Lazy.t` -- a lazy value that will produce the rest
 
 ```ocaml env=ch7
 let rec ltake n = function
-  | LCons (a, lazy l) when n > 0 -> a :: (ltake (n-1) l)
+  | LCons (a, _) when n = 1 -> [a]
+  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
   | _ -> []
 ```
 
-Notice the `lazy l` pattern -- this forces evaluation of the lazy tail and binds the result to `l`. Lazy lists can easily be infinite, just like streams:
+We force the tail only when another element is requested. A `lazy l` pattern would force it while matching, even before a guard could reject the branch. Lazy lists can easily be infinite, just like streams:
 
 ```ocaml env=ch7
 let rec l_ones = LCons (1, lazy l_ones)
@@ -4972,7 +4982,7 @@ let rec lazy_foldr f l base =
       f a (lazy (lazy_foldr f (Lazy.force ll) base))
 ```
 
-Now we need a stopping condition in the Horner algorithm step. We stop when the coefficient becomes small enough that further terms are negligible:
+The following stopping condition is a heuristic: a small coefficient alone does not bound the remaining sum. Later coefficients may be large, and powers of `x` may amplify them. Use it only for examples whose tails are independently controlled; it is not a general power-series evaluator with an accuracy guarantee:
 
 ```ocaml env=ch7
 let lhorner x l =                    (* This is a bit of a hack: *)
@@ -4982,11 +4992,14 @@ let lhorner x l =                    (* This is a bit of a hack: *)
     else 0. in                       (* Stop when c is tiny but nonzero. *)
   lazy_foldr upd l 0.
 
-let inv_fact = lmap (fun n -> 1. /. float_of_int n) lfact
+let inv_fact =
+  let rec loop n coefficient =
+    LCons (coefficient, lazy (loop (n +. 1.) (coefficient /. (n +. 1.)))) in
+  loop 0. 1.
 let e = lhorner 1. inv_fact
 ```
 
-The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
+The recurrence avoids overflowing a machine-integer factorial, although its coefficients still have floating-point rounding and eventually underflow. The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
 
 #### Power Series / Polynomial Operations
 
@@ -5047,8 +5060,13 @@ let rec div xs ys =
 
 (* Integration: integral of a_0 + a_1*x + a_2*x^2 + ...
    is c + a_0*x + a_1*x^2/2 + a_2*x^3/3 + ... *)
+let rec map_coefficients f n = function
+  | LNil -> LNil
+  | LCons (x, xs) ->
+      LCons (f x n, lazy (map_coefficients f (n +. 1.) (Lazy.force xs)))
+
 let integrate c xs =
-  LCons (c, lazy (lmap (uncurry (/.)) (lzip (xs, posnums_f))))
+  LCons (c, lazy (map_coefficients (/.) 1. xs))
 
 let ltail = function
   | LNil -> invalid_arg "ltail"
@@ -5056,8 +5074,23 @@ let ltail = function
 
 (* Differentiation: derivative of a_0 + a_1*x + a_2*x^2 + ...
    is a_1 + 2*a_2*x + 3*a_3*x^2 + ... *)
-let differentiate xs =
-  lmap (uncurry ( *.)) (lzip (ltail xs, posnums_f))
+let differentiate = function
+  | LNil -> LNil
+  | LCons (_, xs) -> map_coefficients ( *. ) 1. (Lazy.force xs)
+```
+
+These operations also terminate on finite polynomials, including the zero polynomial represented by `LNil`:
+
+```ocaml env=ch7
+let () =
+  let xs = LCons (2., lazy (LCons (3., lazy LNil))) in
+  assert (ltake 10 (integrate 1. xs) = [1.; 2.; 1.5]);
+  assert (ltake 10 (differentiate xs) = [3.]);
+  assert (ltake 10 (differentiate LNil) = []);
+  let tail = lazy (failwith "unrequested tail") in
+  assert (ltake 0 (LCons (1, tail)) = []);
+  assert (ltake 1 (LCons (1, tail)) = [1]);
+  assert (stake 1 (SCons (1, fun () -> failwith "unrequested tail")) = [1])
 ```
 
 #### Differential Equations
@@ -5084,7 +5117,7 @@ The problem is that OCaml's `let rec` requires the right-hand side to be a "stat
 The solution is to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure. We provide the first coefficient explicitly:
 
 ```ocaml env=ch7
-let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums_f))
+let integ xs = map_coefficients (/.) 1. xs
 
 let rec sin = LCons (of_int 0, lazy (integ cos))
 and cos = LCons (of_int 1, lazy (integ (~-:sin)))
@@ -5094,7 +5127,7 @@ Now the `let rec` works because each right-hand side is just `LCons` applied to 
 
 The complete example would look much more elegant in Haskell, where all values are lazy by default -- we would not need the explicit `LCons` and `lazy` wrappers.
 
-Although this approach is not limited to linear equations, equations like Lotka-Volterra or Lorentz are not "solvable" this way -- the computed coefficients quickly grow instead of quickly falling, so the series does not converge well.
+Nonlinear analytic systems, including Lotka–Volterra and the Lorenz system, also admit local power-series methods. A series about one initial time need not converge over the whole interval of interest. A practical solver needs convergence/error control and may restart the expansion at successive times.
 
 Drawing functions work like in the previous lecture, but with open curves:
 
@@ -5102,7 +5135,7 @@ Drawing functions work like in the previous lecture, but with open curves:
 let plot_1D f ~w ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   Array.init w (fun i ->
-    let y = lhorner (dt *. of_int i) f in
+    let y = lhorner (t_beg +. dt *. of_int i) f in
     i, to_int (scale *. y))
 ```
 
@@ -5126,7 +5159,7 @@ let infhorner x l =
   lazy_foldr upd l (LCons (of_int 0, lazy LNil))
 ```
 
-The function `infhorner` returns a lazy list of partial sums. Each element is a better approximation than the previous one. Now we need to find where the series has converged to the precision we need:
+The function `infhorner` returns a lazy list of partial sums. These are successive approximations; they need not improve monotonically, and outside the convergence domain they need not converge. The next function detects repeated rounded values, not a proved error bound:
 
 ```ocaml env=ch7
 let rec exact f = function         (* We arbitrarily decide that convergence is *)
@@ -5136,7 +5169,7 @@ let rec exact f = function         (* We arbitrarily decide that convergence is 
   | LCons (_, lazy tl) -> exact f tl
 ```
 
-The function `exact` applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
+Despite its name, `exact` is a heuristic: for a sparse series such as $1+x^{100}$, several identical partial sums can precede a nonzero contribution. A certified answer needs a tail bound as well as control of arithmetic error. The function applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
 
 Draw the pixels of the graph at exact coordinates:
 
@@ -5304,11 +5337,11 @@ Again, we can specialize to input-only and output-only pipes:
 
 ```ocaml env=ch7
 type 'a ipipe = (unit, 'a) pipe
-type void
+type void = |
 type 'a opipe = ('a, void) pipe
 ```
 
-Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an abstract type with no values, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
+Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an empty variant with no constructors, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
 
 #### Pipe Composition
 
@@ -5733,7 +5766,6 @@ type 'a doc =
 (Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
 
 
-
 ## Chapter 8: Monads
 
 ![Chapter 8 illustration](Curious_OCaml-chapter_8.jpg){.chapter-image}
@@ -5886,7 +5918,7 @@ let return x = [x]                     (* inject a value into the monad *)
 let fail = []                          (* the empty computation *)
 ```
 
-The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator allows binding multiple values in parallel. With these operators, the expression generation code becomes:
+The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator combines independent bindings; this definition computes their Cartesian product. The syntax does not itself introduce concurrent execution. With these operators, the expression generation code becomes:
 
 ```
 let rec exprs = function
@@ -5997,7 +6029,7 @@ For reference, OCaml 5's binding operators translate as follows:
 | `let* x = exp in body` | `bind exp (fun x -> body)` |
 | `let+ x = exp in body` | `map (fun x -> body) exp` |
 | `let* () = exp in body` | `bind exp (fun () -> body)` |
-| `let* x = e1 and* y = e2 in body` | `bind (and* e1 e2) (fun (x, y) -> body)` |
+| `let* x = e1 and* y = e2 in body` | `bind (( and* ) e1 e2) (fun (x, y) -> body)` |
 
 The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
@@ -6491,8 +6523,8 @@ module Countdown (M : MONAD_PLUS_OPS) = struct
   let rec insert x = function  (* All choice-introducing operations *)
     | [] -> return [x]          (* need to happen in the monad *)
     | y::ys as xs ->
-        let* xys = insert x ys in
-        return (x::xs) ++ return (y::xys)
+        return (x::xs) ++
+        (let* xys = insert x ys in return (y::xys))
 
   let rec choices = function
     | [] -> return []
@@ -6582,7 +6614,14 @@ let t1, sol1 = time test1
 (* val sol1 : string list = ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; ...] *)
 ```
 
-Finding all 49 solutions takes about 2.3 seconds. What if we want only one solution? Laziness to the rescue!
+```ocaml env=ch8
+let () =
+  let module C = Countdown (ListM) in
+  assert (ListM.run (C.insert 0 [1; 2])
+    = [[0; 1; 2]; [1; 0; 2]; [1; 2; 0]])
+```
+
+The sample timing above illustrates the cost of enumerating every solution; measure it on your own machine. What if we want only one solution? Laziness to the rescue!
 
 Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but the head is strict:
 
@@ -6590,7 +6629,8 @@ Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but t
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
-  | LCons (a, lazy l) when n > 0 -> a::(ltake (n-1) l)
+  | LCons (a, _) when n = 1 -> [a]
+  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
   | _ -> []
 
 let rec lappend l1 l2 =
@@ -6640,9 +6680,11 @@ Our odd lazy list type is not lazy *enough*. Whenever we "make" a choice with `a
 type 'a lazy_list = 'a lazy_list_ Lazy.t
 and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
 
-let rec laztake n = function
-  | lazy (LazCons (a, l)) when n > 0 -> a::(laztake (n-1) l)
-  | _ -> []
+let rec laztake n l =
+  if n <= 0 then [] else
+  match Lazy.force l with
+  | LazCons (a, tail) -> a :: laztake (n-1) tail
+  | LazNil -> []
 
 let rec append_aux l1 l2 =
   match l1 with
@@ -6778,7 +6820,7 @@ let rec alpha_conv = function
 
 The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
 
-Note: This alpha-conversion does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
+This example assumes every generated name is absent from the input, including its free variables. Without that precondition it can capture a variable even on the first pass: try a binder `x` and a free `x0` with the initial counter zero. It also does not make a term safe for arbitrary later beta-reductions. Extend the name supply to track all names in use.
 
 ### 8.12 Monad Transformers
 
@@ -7006,12 +7048,27 @@ let normalize dist =                 (* Normalize a measure into a distribution 
   else List.map (fun (e,w) -> e, w /. tot) dist
 
 let roulette dist =                  (* Roulette wheel from a distribution/measure *)
+  if List.exists (fun (_, w) -> not (Float.is_finite w) || w < 0.) dist then
+    invalid_arg "roulette: weights must be finite and nonnegative";
+  let dist = List.filter (fun (_, w) -> w > 0.) dist in
   let tot = total dist in
+  if not (Float.is_finite tot) || tot <= 0. then
+    invalid_arg "roulette: total weight must be finite and positive";
   let rec aux r = function
     | [] -> assert false
-    | (e, w)::_ when w <= r -> e
+    | [e, _] -> e                    (* Absorb floating-point rounding at the end. *)
+    | (e, w)::_ when r < w -> e
     | (_, w)::tl -> aux (r -. w) tl in
   aux (Random.float tot) dist
+```
+
+A zero-weight outcome must never be selected; a distribution with one positive outcome must always return it:
+
+```ocaml env=ch8
+let () =
+  for _ = 1 to 100 do
+    assert (roulette ["impossible", 0.; "certain", 1.] = "certain")
+  done
 ```
 
 #### Exact Distribution Monad
@@ -7056,7 +7113,7 @@ module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   include M
   include MonadOps (M)
   let choose p a b () =
-    if Random.float 1. <= p then a () else b ()
+    if Random.float 1. < p then a () else b ()
   let pick dist = fun () -> roulette dist
   let uniform elems =
     let n = List.length elems in
@@ -7170,7 +7227,7 @@ module SamplingMP (S : sig val samples : int end) : COND_PROBAB = struct
   include MP
   include MonadPlusOps (MP)
   let choose p a b () =                (* Inside-monad operations don't change *)
-    if Random.float 1. <= p then a () else b ()
+    if Random.float 1. < p then a () else b ()
   let pick dist = fun () -> roulette dist
   let uniform elems =
     let n = List.length elems in
@@ -7934,19 +7991,18 @@ module Threads : THREADS = struct
 
   let rec run_thread : 'a. (unit -> 'a) -> 'a promise = fun f ->
     let p = ref (Pending []) in
-    let () = match f () with
-      | v -> fulfill p v; dequeue ()
+    enqueue (fun () -> match f () with
+      | v -> fulfill p v
       | effect (Async g), k ->
           let p' = run_thread g in
           Effect.Deep.continue k p'
       | effect (Await p'), k ->
           (match !p' with
            | Done v -> Effect.Deep.continue k v
-           | Pending ks -> p' := Pending (k :: ks); dequeue ())
+           | Pending ks -> p' := Pending (k :: ks))
       | effect TYield, k ->
-          enqueue (fun () -> Effect.Deep.continue k ());
-          dequeue ()
-    in p
+          enqueue (fun () -> Effect.Deep.continue k ()));
+    p
 
   let run f =
     Queue.clear run_queue;
@@ -7960,7 +8016,7 @@ end
 
 Let us understand how each effect is handled:
 
-**Async**: When a thread calls `async g`, we start a new thread running `g` by calling `run_thread g`. This returns a promise immediately, which we pass back to the parent thread by continuing its continuation.
+**Async**: When a thread calls `async g`, `run_thread g` enqueues the child and returns a promise immediately. We pass that promise back to the parent by continuing its continuation. Only the loop in `run` removes work from the queue.
 
 **Await**: When a thread calls `await p`, we check the promise. If it is already `Done`, we continue immediately with the value. If it is `Pending`, we add the current continuation to the list of waiters and run another thread from the queue.
 
@@ -8001,6 +8057,25 @@ Done!
 ```
 
 Compare this to the monadic version from the previous chapter. The code is more direct: we write `yield ()` instead of `let* () = suspend in`, and `Printf.printf` is just a regular function call. The complexity of managing thread state has moved from the user code into the handler.
+
+We can check scheduling without relying on printed output:
+
+```ocaml env=ch9
+let () =
+  let seen = ref [] in
+  let worker name () =
+    for i = 1 to 2 do
+      seen := (name, i) :: !seen;
+      Threads.yield ()
+    done in
+  Threads.run (fun () ->
+    let a = Threads.async (worker "A") in
+    let b = Threads.async (worker "B") in
+    Threads.await a; Threads.await b);
+  assert (List.rev !seen = ["A", 1; "B", 1; "A", 2; "B", 2])
+```
+
+This is a cooperative teaching scheduler. Uncaught child exceptions, cancellation, nested calls to `run`, and cleanup of blocked threads require a fuller design before using it as an application runtime.
 
 ### 9.4 State with Effects
 
@@ -8336,11 +8411,16 @@ The soft conditioning version is more efficient because every particle contribut
 
 For models where observations occur at multiple points during execution, we can do even better with *particle filtering*. The key idea is to run multiple particles in parallel, periodically *resampling* to focus computation on high-weight particles.
 
-The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a natural synchronization point.
+The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a synchronization point in this simplified algorithm, even when different control-flow paths reach different sampling sites.
+
+Replay assumes the model is deterministic except for the sampling effects handled here. External mutation, I/O, and unhandled randomness would be repeated and could invalidate the trace. On each replay, observations before the last recorded draw have already contributed to the particle weight; only the newly executed segment contributes again. Resampling preserves the active particles' total mass, including when other particles have already completed. Zero total mass remains zero.
+
+At a fresh sample we abort the suspended run with the private `Pause` exception rather than discard a live continuation. Models must not catch that control exception or depend on side effects during replay; cleanup may run once per replay. The examples assume finite nonnegative likelihoods, valid sampling distributions, a positive particle count, and terminating models. This is a teaching implementation, not a general-purpose inference engine.
 
 ```ocaml env=ch9
 module ParticleFilter = struct
   type trace = int list
+  exception Pause of trace * float
   exception HardFail
 
   (* Result of running one step *)
@@ -8376,11 +8456,12 @@ module ParticleFilter = struct
              (* Fresh sample: make choice and pause *)
              let choice = sample_index weights in
              recorded := choice :: !recorded;
-             Paused (List.rev !recorded, !weight))
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight)))
     | effect (Observe likelihood), k ->
-        weight := !weight *. likelihood;
+        if !remaining = [] then weight := !weight *. likelihood;
         Effect.Deep.continue k ()
     | effect Fail, k -> Effect.Deep.discontinue k HardFail
+    | exception Pause (trace, w) -> Paused (trace, w)
     | exception HardFail -> Failed
 
   (* Resample: select n indices according to weights *)
@@ -8441,14 +8522,16 @@ module ParticleFilter = struct
       if !n_active > 0 then begin
         let active_weights = Array.of_list (
           Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
-        if effective_sample_size active_weights < resample_threshold then begin
+        if Array.fold_left (+.) 0.0 active_weights > 0.0 &&
+            effective_sample_size active_weights < resample_threshold then begin
           let active_indices = Array.of_list (
             List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
           let active_n = Array.length active_indices in
           let indices = resample_indices active_n active_weights in
           let new_traces = Array.map (fun j ->
             traces.(active_indices.(j))) indices in
-          let new_weight = 1.0 /. float_of_int active_n in
+          let new_weight =
+            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
             weights.(active_indices.(j)) <- new_weight) indices
@@ -8669,6 +8752,7 @@ module GParticleFilter = struct
     | DGaussian of float  (* sampled value *)
 
   type trace = draw list
+  exception Pause of trace * float
 
   type 'a step =
     | Done of 'a * trace * float
@@ -8692,7 +8776,7 @@ module GParticleFilter = struct
              (* Fresh sample: choose index and pause *)
              let i = Random.int (List.length xs) in
              recorded := DChoose i :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              (* Trace mismatch *)
              Effect.Deep.discontinue k HardFail)
@@ -8707,13 +8791,14 @@ module GParticleFilter = struct
              (* Fresh Gaussian sample *)
              let x = GProb.sample_gaussian ~mu ~sigma in
              recorded := DGaussian x :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              Effect.Deep.discontinue k HardFail)
     | effect (GProb.GObserve w), k ->
-        weight := !weight *. w;
+        if !remaining = [] then weight := !weight *. w;
         Effect.Deep.continue k ()
     | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
+    | exception Pause (trace, w) -> Paused (trace, w)
     | exception HardFail -> Failed
 
   let resample_indices n weights =
@@ -8774,12 +8859,13 @@ module GParticleFilter = struct
         let active_n = Array.length active_indices in
         let active_weights =
           Array.init active_n (fun j -> weights.(active_indices.(j))) in
-        if active_n > 0 &&
+        if active_n > 0 && Array.fold_left (+.) 0.0 active_weights > 0.0 &&
             effective_sample_size active_weights < resample_threshold then begin
           let indices = resample_indices active_n active_weights in
           let new_traces =
             Array.map (fun j -> traces.(active_indices.(j))) indices in
-          let new_weight = 1.0 /. float_of_int active_n in
+          let new_weight =
+            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
             weights.(active_indices.(j)) <- new_weight) indices
@@ -8801,6 +8887,45 @@ end
 ```
 
 The trace type `draw list` is simple and type-safe: `DChoose of int` stores only the index, `DGaussian of float` stores the sampled value. During replay, we use the stored index to select from the list passed to `Choose`. No existential types, no `Obj.magic`.
+
+Replay must count each observation once and preserve the total weight of active particles when resampling. Otherwise a later sample can silently change a posterior. Here Bayes' rule gives $0.8/(0.8+0.2)=0.8$:
+
+```ocaml env=ch9
+let () =
+  let saved_random = Random.get_state () in
+  let check infer =
+    List.iter (fun threshold ->
+      Random.init 42;
+      let probability = List.assoc true (infer threshold) in
+      assert (abs_float (probability -. 0.8) < 0.03)) [0.; 1.] in
+  let model () =
+    let b = flip 0.5 in
+    observe (if b then 0.8 else 0.2);
+    ignore (flip 0.5);
+    b in
+  check (fun threshold ->
+    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold model);
+  let typed_model () =
+    let b = GProb.choose [true; false] in
+    GProb.observe (if b then 0.8 else 0.2);
+    ignore (GProb.choose [()]);
+    b in
+  check (fun threshold ->
+    GParticleFilter.infer ~n:10000 ~resample_threshold:threshold typed_model);
+  (* Some paths complete before the others resample. *)
+  let early_finish () =
+    let b = flip 0.5 in
+    observe (if b then 0.8 else 0.2);
+    if b then ignore (flip 0.5);
+    b in
+  check (fun threshold ->
+    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold early_finish);
+  assert (ParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
+    observe 0.; ignore (flip 0.5); true) = []);
+  assert (GParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
+    GProb.observe 0.; ignore (GProb.choose [()]); true) = []);
+  Random.set_state saved_random
+```
 
 #### Example: Sensor Fusion
 
@@ -8899,10 +9024,10 @@ Extend the `Threads` module to support timeouts. Add an effect `Timeout : float 
 
 #### Exercise 2: Effectful Generators
 
-Implement a simple generator/iterator pattern using effects. Define a `YieldGen : 'a -> unit Effect.t` and write:
+Implement a generator using a functor `Generator (A : sig type t end)`. Inside it, define `YieldGen : A.t -> unit Effect.t`; fixing the element type connects the effect payload to the resulting sequence. An unconstrained existential payload would not provide that connection.
 
 
-- A function `generate : (unit -> unit) -> 'a Seq.t` that converts a procedure using `YieldGen` into a sequence.
+- A function `generate : (unit -> unit) -> A.t Seq.t` that converts a procedure using `YieldGen` into a sequence. Specify single-use traversal, or memoize sequence nodes so repeated forcing never resumes a continuation twice.
 - Use it to implement a generator for Fibonacci numbers.
 
 #### Exercise 3: Polymorphic State Effect
@@ -8917,7 +9042,7 @@ Write a probabilistic program for the following scenario: You have two coins, a 
 
 #### Exercise 5: Likelihood Weighting
 
-Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
+The `Importance` handler already performs likelihood weighting: it samples from the prior and multiplies observation likelihoods. Compare it with rejection sampling on the burglary example. Then extend it to sample from a different proposal distribution and include the prior-to-proposal probability ratio in the weight. State the required support condition.
 
 
 #### Exercise 6: Selective Particle Pausing
@@ -8927,8 +9052,7 @@ The particle filter currently pauses at every `Sample`, which may cause excessiv
 
 #### Exercise 7: Continuation-Cached Particle Filter
 
-Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
-
+Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. Represent ownership explicitly, for example with a shared continuation option reference. Atomically take the continuation before resuming it; duplicated particles whose shared slot is empty must replay instead. Do not use a broad exception handler around `continue` to detect ownership, since it could also catch an exception from inside the model. Ensure every abandoned live continuation is discontinued. This avoids replay overhead for particles that weren't duplicated during resampling.
 
 
 ## Chapter 10: Functional Reactive Programming
@@ -9669,7 +9793,7 @@ let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
     let Cons (b, bs) = Lazy.force bs in
-    (* Rectangle rule: b is fb(t1), acc approximates integral up to t0 *)
+    (* Left rectangle rule: b is fb(t0), acc approximates integral up to t0 *)
     let acc = acc +. (t1 -. t0) *. b in
     Cons (acc, lazy (loop t1 acc uts bs)) in
   memo1 (fun uts -> lazy (
@@ -10027,13 +10151,15 @@ let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
     | Some v -> last := v; v)
 
 (* rising_edge: None most of the time, Some () exactly when b flips false->true *)
-let rising_edge (b : bool Lwd.t) : unit option Lwd.t =
+let rising_edge ~(tick : int Lwd.t) (b : bool Lwd.t) : unit option Lwd.t =
   let was_true = ref false in
-  Lwd.map b ~f:(fun now ->
+  Lwd.map2 b tick ~f:(fun now _ ->
     let fire = now && not !was_true in
     was_true := now;
     if fire then Some () else None)
 ```
+
+The caller must advance `tick` once per logical update and keep the observed node live. Without that clock dependency, Lwd can cache `Some ()` while `b` stays true, so sampling again would repeat the event. Repeated samples within one tick read the same event; consumers process it once per tick.
 
 These are not “pure” in the mathematical FRP sense, but they capture a key idea: **signals can have local memory**, and that memory is exactly what causality demands.
 
@@ -10210,7 +10336,7 @@ let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
 ```
 
-Because `ball` above uses internal mutable state, you should sample the root scene **exactly once per update step** (otherwise the physics will advance multiple times).
+Treat each update as a transaction: set the time and input cells, then sample the root scene. Repeated samples without invalidation may simply return Lwd's cached value; they do not inherently advance physics. Stateful nodes must nevertheless have explicit clock dependencies and remain observed so their updates have a defined cadence.
 
 Keep the sampled root (and anything you need for its computation) reachable. In `Lwd`, nodes not reachable from any root are considered dead and can be released.
 
@@ -10733,6 +10859,8 @@ The challenge is to combine these sub-languages and add new operations without b
 - [Extensible variant types](http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec246)
 - Graham Hutton's and Erik Meijer's [Monadic Parser Combinators](https://www.cs.nott.ac.uk/~gmh/monparsing.pdf)
 
+**Names in the evaluator examples:** the simple `gensym` implementations reserve names of the form `_1`, `_2`, and so on. Inputs and substitution environments must not already contain those names. Without that precondition the examples can capture a free variable. A general evaluator needs a supply fresh for every name in the expression and environment, or a representation such as de Bruijn indices.
+
 ### 11.2 Functional Programming Non-Solution: Ordinary Algebraic Datatypes
 
 Pattern matching makes **functional extensibility** easy in functional programming. When we want to add a new operation, we simply write a new function that pattern-matches on the existing datatype. However, ensuring **datatype extensibility** is complicated when using standard variant types, because adding a new variant requires modifying the type definition and all functions that pattern-match on it.
@@ -10920,6 +11048,7 @@ let map_expr f = function
 
 let eval_expr eval_rec subst e =
   match map_expr (eval_rec subst) e with
+  | Var _ as v -> eval_var subst v
   | Add (Num m, Num n) -> Num (m + n)
   | Mult (Num m, Num n) -> Num (m * n)
   | (Num _ | Add _ | Mult _) as e -> e
@@ -10936,6 +11065,7 @@ let rec freevars2 e = freevars_expr freevars2 e
 let test2 = Add (Mult (Num 3, Var "x"), Num 1)
 let e_test2 = eval2 [] test2
 let fv_test2 = freevars2 test2
+let () = assert (eval2 ["x", Num 2] test2 = Num 7)
 ```
 
 Merging the sub-languages:
@@ -11081,7 +11211,8 @@ object (self)
   val arg = arg
   method eval subst =  (* We use `apply` to differentiate between f=abs *)
     let arg' = arg#eval subst in  (* (beta-redexes) and f<>abs *)
-    f#apply arg' (fun () -> {< f = f#eval subst; arg = arg' >}) subst
+    let f' = f#eval subst in
+    f'#apply arg' (fun () -> {< f = f'; arg = arg' >}) subst
   method rename v1 v2 =  (* Cloning ensures result is subtype of 'lang *)
     {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}  (* not just 'lang app *)
 end
@@ -11180,6 +11311,12 @@ let test2 =
                             (new_num2 1)))
     (new_num2 2)
 let e_test2 = test2#eval []
+
+(* The function position can itself reduce to an abstraction. *)
+let () =
+  let identity = new_abs2 "x" (new_var2 "x") in
+  let nested = new_app2 (new_app2 identity identity) (new_num2 7) in
+  assert ((nested#eval [])#compute = Some 7)
 ```
 
 ### 11.6 OOP Non-Solution: The Visitor Pattern
@@ -11190,7 +11327,7 @@ The key idea is that each data variant has an `accept` method that takes a visit
 
 **Non-solution penalty points:**
 
-- Adding new functionality requires modifying old code (the abstract visitor class must declare new `visit` methods)
+- Adding new data constructors requires modifying old code (the abstract visitor class must declare new `visit` methods); new operations can be added as new visitors
 - Heavy code bloat compared to pattern matching
 - No deep pattern matching: we can only dispatch on the outermost constructor
 - Side-effects appear to be required for returning results (we store computation results in mutable fields because keeping the visitor polymorphic while having the result type depend on the visitor is difficult)
@@ -11282,8 +11419,10 @@ object (self)
   method visitVar var =
     result := var#v :: !result
   method visitAbs abs =
+    let outside = !result in
+    result := [];
     (abs#body)#accept self;
-    result := List.filter (fun v' -> v' <> abs#v) !result
+    result := List.filter (fun v' -> v' <> abs#v) !result @ outside
   method visitApp app =
     app#arg#accept self; app#f#accept self
 end
@@ -11308,6 +11447,14 @@ let fv_test = freevars1 test1
 ```
 
 Extending with arithmetic expressions follows a similar pattern, and the merged language visitor inherits from both `lambda_visit` and `expr_visit`.
+
+A binder removes occurrences only from its own body, not from a sibling expression:
+
+```ocaml env=sol4
+let () =
+  let e = new_app (new_abs "x" (new_var "x")) (new_var "x") in
+  assert (freevars1 e = ["x"])
+```
 
 ### 11.7 Polymorphic Variants
 
@@ -11731,7 +11878,7 @@ Adding a new constructor — say `type _ expr += Str : string -> string expr` in
     | App : ('a -> 'b) expr * 'a expr -> 'b expr
   ```
 
-  The problem is `Var`: a free variable could have any type, so `'a` is existentially unconstrained — the type checker cannot determine what `'a` is at runtime. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
+  The problem is `Var`: a free variable could have any type, so its result index can be instantiated at an arbitrary type without carrying evidence about a binding of that type. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
 
 **Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
 
@@ -12147,6 +12294,8 @@ Category theory is even woven into the name of the language. "Caml" stands for *
 
 The distinctive quality of this chapter is not "here is some category theory" but rather "here is the hidden structure of everything you have learned" -- a retrospective unification of the whole book through a categorical lens, with GADTs as the OCaml-specific mechanism that makes categorical structure *enforceable* at the type level.
 
+**Scope of the equations:** when interpreting types and functions as sets and maps, we reason about total, pure functions extensionally. General OCaml programs can diverge, raise exceptions, mutate state, or inspect values through polymorphic comparison. Their laws need the corresponding restrictions or a richer semantics.
+
 ### 12.1 What Is a Category?
 
 A **category** $\mathcal{C}$ consists of:
@@ -12250,7 +12399,7 @@ module type CATEGORY = sig
 end
 ```
 
-The type parameters `'a` and `'b` are phantom types -- they track the source and target of morphisms at the type level, ensuring only composable morphisms can be composed. OCaml functions form the most basic instance:
+The type parameters `'a` and `'b` track the source and target of morphisms, ensuring that composition has matching endpoints. They need not be phantom parameters: the function instance below uses them in its representation. The signature does not enforce identity or associativity laws; those require separate proofs or checks. OCaml functions form the most basic instance:
 
 ```ocaml env=cat
 module FunCat : CATEGORY with type ('a, 'b) hom = 'a -> 'b = struct
@@ -12271,16 +12420,13 @@ Before introducing new material, let us look back at what the previous chapters 
 | 2 | Type derivative (one-hole context) | Derivative of a functor |
 | 3 | Function composition `( -\| )` | Morphism composition in **Types** |
 | 4 | Church encodings | Initial algebra (catamorphism) |
-| 5 | `map` preserving structure | Functor action on morphisms |
-| 5 | Module functors `Map.Make` | Functors between module categories |
 | 6 | `List.map`, `Option.map` | Endofunctor on **Types** |
 | 6 | `List.fold_right` | Catamorphism (universal property of initial algebra) |
 | 7 | Lazy streams, exponential types | Objects in a category with exponentials |
 | 8 | `return`, `bind`, monad laws | Monad = endofunctor + unit + multiplication |
-| 8 | Free monads | Left adjoint to the forgetful functor |
 | 9 | GADTs (`'a expr`) | Reification; typed initial algebra |
-| 10 | Zippers | Concrete lens (derivative made operational) |
-| 11 | Expression problem | Commutativity of a naturality square |
+| 10 | Zippers | Focus paired with a one-hole context |
+| 11 | Expression problem | Extension consistency, discussed in Section 12.9 |
 
 **Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing a function `swap` that composes with itself to give the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
 
@@ -12416,7 +12562,7 @@ let rec show_ty : type a. a ty -> string = function
 let () = assert (show_ty (List (Pair (Int, Bool))) = "(int * bool) list")
 ```
 
-This reification is OCaml's version of the *Yoneda embedding* for types: each type is represented by a value that "remembers" what it is, enabling type-safe operations that depend on runtime type information.
+These witnesses reify a selected universe of types, enabling type-safe operations driven by runtime type information. This is not the Yoneda embedding: that construction represents an object by a functor of morphisms, rather than by a tag describing its syntax.
 
 ### 12.4 Functors in OCaml: Three Views
 
@@ -12575,7 +12721,7 @@ let () =
         = List.map f (option_to_list test_opt))
 ```
 
-This is remarkable: we did not *prove* that `head_opt` satisfies the naturality condition -- the type system *guarantees* it. Any function of type `'a list -> 'a option` is automatically natural. Parametricity gives naturality for free.
+In a total, relationally parametric language, the polymorphic type gives this naturality law for free. OCaml permits effects, divergence, and polymorphic comparison, so its type alone is not that guarantee. For this implementation of `head_opt`, inspect the two list cases to establish the law. For a counterexample to the blanket claim, `List.sort_uniq compare` has type `'a list -> 'a list`, but mapping a constant function after it can retain two equal elements whereas deduplicating after that map retains only one.
 
 #### More Examples
 
@@ -12684,7 +12830,7 @@ let concat_with_spaces xs =
 let () = assert (String.trim (concat_with_spaces ["hello"; "world"]) = "hello world")
 ```
 
-The free monad adjunction from Chapter 8 works the same way: a monad homomorphism from the free monad on effects $E$ to any monad $M$ is determined by an *interpreter* of each effect -- a function $E \to M$.
+A further example is the free-monad adjunction: a monad homomorphism from the free monad on effects $E$ to any monad $M$ is determined by an *interpreter* of each effect -- a natural transformation from the signature functor $E$ to the underlying functor of $M$.
 
 #### Galois Connections
 
@@ -12692,27 +12838,29 @@ When the categories involved are posets (at most one morphism between any two ob
 
 $$f(a) \leq b \iff a \leq g(b)$$
 
-Every Galois connection induces a **closure operator** $g \circ f : A \to A$, where the *closed elements* (fixed points of $g \circ f$) form a complete lattice.
+Every Galois connection induces a **closure operator** $g \circ f : A \to A$, whose fixed points are the *closed elements*. If $A$ is a complete lattice, these fixed points form a complete lattice too; arbitrary posets do not suffice.
 
 ```ocaml env=adj
 (* A simple Galois connection: *)
-(* floor and ceiling between reals and integers *)
-(* f = floor : float -> int (left adjoint) *)
+(* ceiling and embedding between reals and integers *)
+(* f = ceiling : float -> int (left adjoint) *)
 (* g = embed : int -> float (right adjoint) *)
-(* floor(x) <= n  iff  x <= float(n) *)
+(* ceiling(x) <= n  iff  x <= float(n) *)
+(* Use small finite inputs, with integer bounds represented exactly. *)
 
-let galois_floor (x : float) : int = int_of_float (Float.floor x)
+let galois_ceil (x : float) : int =
+  int_of_float (Float.ceil x)
 let galois_embed (n : int) : float = float_of_int n
 
-(* Verify the Galois connection property: *)
+(* Include the boundary that distinguishes ceiling from floor. *)
 let () =
-  let x = 3.7 and n = 4 in
-  assert ((galois_floor x <= n) = (x <= galois_embed n))
-
-let () =
-  let x = 4.0 and n = 3 in
-  assert ((galois_floor x <= n) = (x <= galois_embed n))
+  List.iter (fun x ->
+    List.iter (fun n ->
+      assert ((galois_ceil x <= n) = (x <= galois_embed n)))
+      [-4; -3; 0; 3; 4]) [-3.7; 0.; 3.7; 4.]
 ```
+
+Over the mathematical reals and integers, `ceiling` is left adjoint to embedding, and embedding is left adjoint to `floor`: $\lceil x\rceil\le n\iff x\le n$, and $n\le x\iff n\le\lfloor x\rfloor$. Machine floats and bounded integers only approximate those domains.
 
 #### Formal Concept Analysis
 
@@ -12721,7 +12869,7 @@ A deep application of Galois connections is **Formal Concept Analysis** (Wille, 
 - $f(S) = \{ b \in B \mid \forall a \in S,\ a\, R\, b \}$ (common attributes of a set of objects)
 - $g(T) = \{ a \in A \mid \forall b \in T,\ a\, R\, b \}$ (objects sharing all given attributes)
 
-The pair $(f, g)$ is a Galois connection. The closed pairs $(S, T)$ where $S = g(T)$ and $T = f(S)$ are called **formal concepts** and form a lattice.
+Both maps reverse inclusion. They form an antitone Galois connection, or equivalently the monotone adjunction above when the attribute powerset is ordered by reverse inclusion. The closed pairs $(S, T)$ where $S = g(T)$ and $T = f(S)$ are called **formal concepts** and form a lattice.
 
 ```ocaml env=adj
 (* Formal concept analysis: a small example *)
@@ -12737,7 +12885,7 @@ let relation = [|
   [| true;  false; false; true  |];  (* dog *)
   [| true;  false; false; true  |];  (* cat *)
   [| false; false; true;  false |];  (* salmon *)
-  [| false; true;  false; false |];  (* eagle *)
+  [| true;  true;  false; false |];  (* eagle *)
 |]
 
 let n_obj = Array.length animals
@@ -12764,7 +12912,7 @@ let () = assert (common_attributes [0; 1] = [0; 3])
 let () = assert (closure [2] = [2])
 ```
 
-**Connection to abstract interpretation.** The Cousot--Cousot framework (1977) for static analysis is built on Galois connections between concrete and abstract domains. The *soundness* of a static analysis means that the abstraction and concretization functions form a Galois connection. This retrospectively frames Chapter 3's reduction semantics: the relationship between concrete execution and abstract semantic domains is itself a Galois connection.
+**Connection to abstract interpretation.** Galois connections are one way to relate concrete and abstract domains. Soundness also requires the abstract operations to overapproximate the concrete ones. For example, if $c$ is a concrete transfer and $c^\sharp$ its abstract counterpart, a standard condition is $\alpha(c(x))\le c^\sharp(\alpha(x))$. Having an adjunction between domains alone does not make an analyzer sound.
 
 ### 12.7 Lenses, Zippers, and the Derivative Connection
 
@@ -12772,11 +12920,11 @@ This section weaves together three threads from the book: the type derivative (C
 
 #### Recall: Type Derivatives and Zippers
 
-In Chapter 2, we showed that differentiating an algebraic data type yields the type of *one-hole contexts*. For a binary tree `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree`, the derivative is the type of "a tree with one subtree removed":
+In Chapter 2, differentiation with respect to the element type gave a context with one **element** missing. For `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree`, write $T=1+aT^2$. Differentiating gives:
 
-$$\frac{\partial}{\partial a}\text{tree}(a) = \text{list of (direction × sibling × value)}$$
+$$T'=T^2+2aTT' \quad\cong\quad T^2\times\operatorname{List}(2aT).$$
 
-In Chapter 10, the *zipper* made this operational: a zipper is a pair (subtree, context) that allows efficient navigation and local update. The zipper *inhabits* the derivative type.
+The list records the path to the hole: each ancestor contributes a direction, its other subtree, and its value. The factor $T^2$ records the two children of the node whose element is missing. A **subtree** context instead consists just of that path, $C=\operatorname{List}(2aT)$. Chapter 10's zipper pairs a focused subtree with its context, so its type is $T\times C$, not $T'$. An element-focused zipper has type $a\times T'$.
 
 #### Lenses: The Abstract Interface
 
@@ -12852,10 +13000,10 @@ let () = assert (acme'.ceo.name = "Bob")
 
 Zippers work for *polynomial* types -- types built from sums and products, where the algebraic derivative is well-defined. But what about types involving *exponentials* (function types)?
 
-Consider a stream `{ head : 'a; tail : unit -> 'a stream }` from Chapter 7. Its derivative is not a simple algebraic expression -- you cannot "take the derivative" of a function type the way you can a product type. Yet a lens can still focus on the head:
+Consider a stream `{ head : 'a; tail : unit -> 'a stream }` from Chapter 7. The finite polynomial calculation does not apply directly to this potentially infinite, effectful representation. A stream zipper can nevertheless store a finite prefix and a remaining stream. A lens offers a different interface: here it focuses directly on the head.
 
 ```ocaml skip
-(* A stream has no algebraic derivative / concrete zipper, *)
+(* This lens needs no chosen zipper representation. *)
 (* but we can still define lenses on it. *)
 type 'a stream = { head : 'a; tail : unit -> 'a stream }
 
@@ -12914,7 +13062,7 @@ In Haskell, a VL lens is a single rank-2 polymorphic definition:
 (* Instantiating f = Identity gives "set"; f = Const gives "get".   *)
 ```
 
-OCaml lacks higher-rank polymorphism, so a single definition cannot quantify over the functor `f`. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
+OCaml supports higher-rank polymorphism through explicitly polymorphic record fields and object methods. What this encoding needs additionally is quantification over a type constructor `f`, which ordinary OCaml type variables cannot express directly. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
 
 ```ocaml env=lens
 module type VL_FUNCTOR = sig
@@ -12959,27 +13107,27 @@ $$\text{Nat}(\text{Hom}(A, -), F) \cong F(A)$$
 
 For any functor $F$ and object $A$, the natural transformations from the representable functor $\text{Hom}(A, -)$ to $F$ are in one-to-one correspondence with elements of $F(A)$.
 
-In programming terms: a polymorphic function `forall b. (a -> b) -> f b` is the same as a value of type `f a`. You can always convert between the two:
+For total, parametric functions, this gives `forall b. (a -> b) -> f b` the same information as `f a`. Naturality is essential to the reverse round trip. We can express the universal quantifier for the list example using a polymorphic record field:
 
 ```ocaml env=yoneda
 (* The Yoneda lemma in OCaml: *)
 (* A value of type 'a F.t is equivalent to *)
 (* a polymorphic function (forall 'b. ('a -> 'b) -> 'b F.t) *)
 
-(* Forward direction: given f a, produce the natural transformation *)
-let yoneda_fwd (map : ('a -> 'b) -> 'a list -> 'b list)
-    (x : 'a list) : ('a -> 'b) -> 'b list =
-  fun f -> map f x
+type 'a yoneda_list = { run_list : 'b. ('a -> 'b) -> 'b list }
+
+(* Forward direction: given a list, produce the natural transformation. *)
+let yoneda_fwd x = { run_list = fun f -> List.map f x }
 
 (* Backward direction: given the nat trans, recover f a *)
-let yoneda_bwd (phi : ('a -> 'a) -> 'a list) : 'a list =
-  phi Fun.id    (* apply to the identity! *)
+let yoneda_bwd phi = phi.run_list Fun.id
 
 (* Round-trip: *)
 let original = [1; 2; 3]
-let phi = yoneda_fwd List.map original
+let phi = yoneda_fwd original
 let recovered = yoneda_bwd phi
 let () = assert (recovered = [1; 2; 3])
+let () = assert (phi.run_list string_of_int = ["1"; "2"; "3"])
 ```
 
 #### The CPS Transform
@@ -12992,15 +13140,16 @@ That is: a value of type `'a` is the same as a polymorphic function `forall 'b. 
 
 ```ocaml env=yoneda
 (* CPS: a value 'a ≅ (forall 'b. ('a -> 'b) -> 'b) *)
-let to_cps (x : 'a) : ('a -> 'b) -> 'b = fun k -> k x
-let from_cps (f : ('a -> 'a) -> 'a) : 'a = f Fun.id
+type 'a cps = { run_cps : 'b. ('a -> 'b) -> 'b }
+let to_cps x = { run_cps = fun k -> k x }
+let from_cps f = f.run_cps Fun.id
 
 let () = assert (from_cps (to_cps 42) = 42)
 ```
 
 #### Difference Lists
 
-Another Yoneda application: **difference lists**. A list `xs` can be represented as the function `fun ys -> xs @ ys` -- that is, as "the operation of prepending `xs`". This is the Yoneda embedding for the list monoid:
+Another Yoneda application: **difference lists**. A list `xs` can be represented as the function `fun ys -> xs @ ys` -- that is, as "the operation of prepending `xs`". This is the Cayley representation of the list monoid, related to the representable-functor viewpoint:
 
 ```ocaml env=yoneda
 (* Difference lists: represent a list as a function *)
@@ -13022,7 +13171,7 @@ let result =
 let () = assert (result = [1; 2; 3])
 ```
 
-Difference lists turn $O(n)$ append into $O(1)$ by delaying the actual construction. The Yoneda lemma guarantees no information is lost.
+Constructing a composed difference list costs $O(1)$; converting it to a list still performs the deferred work. The representation invariant is `f tail = prefix @ tail` for some fixed `prefix`, recoverable as `f []`. Not every function of type `'a list -> 'a list` satisfies that invariant. Long chains also require attention to stack usage.
 
 #### The Codensity Monad
 
@@ -13056,40 +13205,19 @@ let () = assert (pairs [1;2] ["a";"b"]
                = [(1,"a"); (1,"b"); (2,"a"); (2,"b")])
 ```
 
-The deep insight: every object in a category is completely determined by how other objects map *into* it. The representable functors $\text{Hom}(A, -)$ form a "coordinate system" for the category, and the Yoneda lemma says this coordinate system is faithful -- it loses no information.
+The deep insight: every object in a category is completely determined by how other objects map *into* it. Dually, the outgoing representable functors $\text{Hom}(A, -)$ form a "coordinate system" for the category, and the Yoneda lemma says this coordinate system is faithful -- it loses no information.
 
 ### 12.9 The Expression Problem, Categorically
 
-Let us revisit Chapter 11 with categorical vocabulary. The expression problem asks for a design where both data constructors and operations can be independently extended. The categorical formulation: we want a diagram
+Chapter 11 asks how to extend both data constructors and operations while preserving existing code and static checks. A useful law is **extension consistency**. If $i : E \to E^+$ embeds the base expressions in an extended language and both evaluators return values in $V$, require:
 
-$$\text{new constructors} \longrightarrow \text{extended type}$$
-$$\downarrow \qquad\qquad\qquad\quad \downarrow$$
-$$\text{new operations} \longrightarrow \text{extended semantics}$$
+$$\operatorname{eval}_{+} \circ i = \operatorname{eval}.$$
 
-that **commutes** -- the two paths through the square yield the same result. This is a *naturality condition*: extending the type and then adding operations must agree with adding operations and then extending the type.
+This is a commuting triangle of explicitly typed functions. Calling it a naturality law would require specifying categories, functors, and a family of such maps; row polymorphism alone does not supply that construction.
 
-#### Solutions as Categorical Constructions
+Ordinary inductive ADTs support folds over a fixed signature; extending that signature requires extending its handlers. Polymorphic variants can combine compatible rows and reuse handlers for existing tags. That union is not generally a disjoint coproduct: shared tags remain shared. Objects offer another way to reuse operations through methods and subtyping. These are useful connections to categorical ideas, but none is automatically a universal-property theorem about the whole OCaml feature.
 
-The solutions from Chapter 11 correspond to categorical constructions:
-
-**Ordinary ADTs (Section 11.2)** work by *initial algebra*: the type is the initial algebra of a functor, and operations are catamorphisms. Extending the type means changing the functor, which breaks existing catamorphisms -- the square does not commute because the initial algebra is defined relative to a fixed functor.
-
-**Polymorphic variants (Section 11.7)** correspond to a *colimit* construction. Each sub-language is a type, and combining them takes their coproduct (disjoint union). The polymorphic variant system in OCaml computes this coproduct using row polymorphism -- types like `` [> `Var of string | `Num of int] `` are *open* types that can be extended. The colimit exists when the row types are compatible.
-
-**Objects (Section 11.5)** use *subtyping*, which is a different categorical structure: morphisms in a category of types ordered by the subtype relation.
-
-#### Operations as Natural Transformations
-
-In the polymorphic variant approach, each operation (like `eval` or `string_of`) must be *polymorphic in the type index* -- it must work uniformly for any extension of the base type. This is exactly the requirement that the operation be a **natural transformation**:
-
-```ocaml skip
-(* Each eval function has a type like: *)
-(* val eval : [> `Var of string | `Num of int ] -> value *)
-(* The [> ...] means it works for any extension -- *)
-(* this is naturality in the row variable. *)
-```
-
-We can see the naturality square in action with polymorphic variants. Base operations are reused unchanged when the type is extended:
+Here is a small executable example of extension consistency:
 
 ```ocaml env=expr
 (* Base language with eval and show: *)
@@ -13106,7 +13234,7 @@ let show_ext = function
   | (`Num _ | `Neg _) as e -> show_base e    (* reuse *)
   | `Add (a, b) -> string_of_int a ^ "+" ^ string_of_int b
 
-(* The naturality square commutes: embedding a base expression *)
+(* Extension consistency: embedding a base expression          *)
 (* into the extended type and then evaluating gives the same   *)
 (* result as evaluating in the base language directly.         *)
 let e1 = `Num 5
@@ -13117,7 +13245,7 @@ let () = assert (show_ext e1 = show_base e1)
 let () = assert (show_ext e2 = show_base e2)
 ```
 
-The dynamic failure when no handler covers a constructor (e.g., in the extensible GADT approach from the OCaml discussion thread) is the *colimit not existing*: we tried to form a coproduct of partial natural transformations, but the components do not cover the whole type. A fully static GADT encoding would make this a compile-time error.
+An uncovered constructor in an extensible-variant evaluator is an incomplete dispatch definition. It is not evidence that a categorical colimit fails to exist. Exhaustive closed variants can turn that particular missing-case problem into a compiler warning; extensible designs need an explicit coverage policy.
 
 ### 12.10 Curry--Howard--Lambek: The Trinity
 
@@ -13136,7 +13264,7 @@ The **Curry--Howard--Lambek correspondence** states that three seemingly differe
 | False ($\bot$) | Empty type `void` | Initial object $0$ |
 | Modus ponens | Function application | Evaluation morphism |
 | Hypothesis | Variable | Identity morphism |
-| Cut elimination | $\beta$-reduction | Composition |
+| Cut / substitution | Substitution of terms | Composition |
 
 #### What the Correspondence Means
 
@@ -13144,9 +13272,9 @@ A **cartesian closed category** (CCC) -- a category with products, exponentials,
 
 1. A model of propositional logic (the internal logic of the category)
 2. A model of the simply-typed lambda calculus (types are objects, terms are morphisms)
-3. A category with enough structure to interpret all of functional programming
+3. A semantics for the pure, total product-and-function fragment; coproducts and an initial object add sums and the empty type
 
-The OCaml type system lives in this world. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
+The corresponding fragment of OCaml illustrates these constructions. General recursion, exceptions, mutation, and effects require additional semantic treatment. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
 
 - **Proving** the logical tautology $A \wedge B \Rightarrow B \wedge A$
 - **Programming** the swap function on pairs
@@ -13178,13 +13306,9 @@ let () = assert (trans f g 3 = compose g f 3)
 
 Classical logic allows double negation elimination: $\neg\neg A \Rightarrow A$. In the Curry--Howard reading, $\neg A$ is $A \to \bot$ (a function to the empty type). Under the CCC interpretation, $\neg A = \bot^A$ is the exponential.
 
-Double negation elimination is *not* valid in constructive logic (or in OCaml's pure fragment). But in the CPS transform from Section 12.8, we saw that `'a` is equivalent to `forall 'b. ('a -> 'b) -> 'b` -- which looks like double negation if we read `'b` as $\bot$. The connection:
+Double negation elimination is not valid in constructive logic or the total, pure lambda calculus. The CPS isomorphism in Section 12.8 does not prove it: there the continuation's answer type is universally quantified, and we recover the value by choosing that answer type to be `a`. A term of type `(a -> void) -> void` has a fixed answer type and does not permit that choice.
 
-- **Constructive logic** = direct-style functional programming
-- **Classical logic** = continuation-passing style (every program has access to its continuation)
-- **Linear logic** = resource-aware computation (each value used exactly once)
-
-These are not analogies -- they are *theorems*. The Curry--Howard--Lambek correspondence makes precise the sense in which logic, programming, and category theory are three views of one underlying structure.
+Precise correspondences connect classical logic with calculi of control operators, and linear logic with calculi that track resource use. Ordinary CPS code, or a one-shot continuation by itself, does not establish all of those correspondences. Each claim needs its particular typing rules and notion of program equality.
 
 #### The Recurring Motif
 
@@ -13195,7 +13319,7 @@ Throughout this chapter, we have asked: *what is stable under crossing levels?*
 - **Yoneda**: representable functors (the perfectly faithful reification)
 - **Curry--Howard--Lambek**: the trinity itself (truths that appear in all three worlds simultaneously)
 
-This also connects to **reification and reflection**: reification promotes a computational concept to a first-class value (right adjoint; conservative; loses nothing), while reflection executes it (left adjoint; may lose information). GADTs are OCaml's reification mechanism. The round-trip $\text{reflect} \circ \text{reify}$ is a closure operator -- you recover the *canonical form*, not necessarily the original.
+Reification and reflection offer another useful question: what laws connect a representation with its interpretation? They do not automatically form an adjunction, and their round trip is not automatically a closure operator. To make either claim, specify the domains, maps, and laws, then prove them for the chosen construction.
 
 ### 12.11 Exercises
 
