@@ -49,6 +49,8 @@ The challenge is to combine these sub-languages and add new operations without b
 - [Extensible variant types](http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec246)
 - Graham Hutton's and Erik Meijer's [Monadic Parser Combinators](https://www.cs.nott.ac.uk/~gmh/monparsing.pdf)
 
+**Names in the evaluator examples:** the simple `gensym` implementations reserve names of the form `_1`, `_2`, and so on. Inputs and substitution environments must not already contain those names. Without that precondition the examples can capture a free variable. A general evaluator needs a supply fresh for every name in the expression and environment, or a representation such as de Bruijn indices.
+
 ### 11.2 Functional Programming Non-Solution: Ordinary Algebraic Datatypes
 
 Pattern matching makes **functional extensibility** easy in functional programming. When we want to add a new operation, we simply write a new function that pattern-matches on the existing datatype. However, ensuring **datatype extensibility** is complicated when using standard variant types, because adding a new variant requires modifying the type definition and all functions that pattern-match on it.
@@ -236,6 +238,7 @@ let map_expr f = function
 
 let eval_expr eval_rec subst e =
   match map_expr (eval_rec subst) e with
+  | Var _ as v -> eval_var subst v
   | Add (Num m, Num n) -> Num (m + n)
   | Mult (Num m, Num n) -> Num (m * n)
   | (Num _ | Add _ | Mult _) as e -> e
@@ -252,6 +255,7 @@ let rec freevars2 e = freevars_expr freevars2 e
 let test2 = Add (Mult (Num 3, Var "x"), Num 1)
 let e_test2 = eval2 [] test2
 let fv_test2 = freevars2 test2
+let () = assert (eval2 ["x", Num 2] test2 = Num 7)
 ```
 
 Merging the sub-languages:
@@ -397,7 +401,8 @@ object (self)
   val arg = arg
   method eval subst =  (* We use `apply` to differentiate between f=abs *)
     let arg' = arg#eval subst in  (* (beta-redexes) and f<>abs *)
-    f#apply arg' (fun () -> {< f = f#eval subst; arg = arg' >}) subst
+    let f' = f#eval subst in
+    f'#apply arg' (fun () -> {< f = f'; arg = arg' >}) subst
   method rename v1 v2 =  (* Cloning ensures result is subtype of 'lang *)
     {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}  (* not just 'lang app *)
 end
@@ -496,6 +501,12 @@ let test2 =
                             (new_num2 1)))
     (new_num2 2)
 let e_test2 = test2#eval []
+
+(* The function position can itself reduce to an abstraction. *)
+let () =
+  let identity = new_abs2 "x" (new_var2 "x") in
+  let nested = new_app2 (new_app2 identity identity) (new_num2 7) in
+  assert ((nested#eval [])#compute = Some 7)
 ```
 
 ### 11.6 OOP Non-Solution: The Visitor Pattern
@@ -506,7 +517,7 @@ The key idea is that each data variant has an `accept` method that takes a visit
 
 **Non-solution penalty points:**
 
-- Adding new functionality requires modifying old code (the abstract visitor class must declare new `visit` methods)
+- Adding new data constructors requires modifying old code (the abstract visitor class must declare new `visit` methods); new operations can be added as new visitors
 - Heavy code bloat compared to pattern matching
 - No deep pattern matching: we can only dispatch on the outermost constructor
 - Side-effects appear to be required for returning results (we store computation results in mutable fields because keeping the visitor polymorphic while having the result type depend on the visitor is difficult)
@@ -598,8 +609,10 @@ object (self)
   method visitVar var =
     result := var#v :: !result
   method visitAbs abs =
+    let outside = !result in
+    result := [];
     (abs#body)#accept self;
-    result := List.filter (fun v' -> v' <> abs#v) !result
+    result := List.filter (fun v' -> v' <> abs#v) !result @ outside
   method visitApp app =
     app#arg#accept self; app#f#accept self
 end
@@ -624,6 +637,14 @@ let fv_test = freevars1 test1
 ```
 
 Extending with arithmetic expressions follows a similar pattern, and the merged language visitor inherits from both `lambda_visit` and `expr_visit`.
+
+A binder removes occurrences only from its own body, not from a sibling expression:
+
+```ocaml env=sol4
+let () =
+  let e = new_app (new_abs "x" (new_var "x")) (new_var "x") in
+  assert (freevars1 e = ["x"])
+```
 
 ### 11.7 Polymorphic Variants
 
@@ -1047,7 +1068,7 @@ Adding a new constructor — say `type _ expr += Str : string -> string expr` in
     | App : ('a -> 'b) expr * 'a expr -> 'b expr
   ```
 
-  The problem is `Var`: a free variable could have any type, so `'a` is existentially unconstrained — the type checker cannot determine what `'a` is at runtime. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
+  The problem is `Var`: a free variable could have any type, so its result index can be instantiated at an arbitrary type without carrying evidence about a binding of that type. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
 
 **Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
 
@@ -1080,7 +1101,7 @@ Parsers implemented directly in a functional programming paradigm are functions 
 - **MZero**: `val fail : 'a parser`
   - `fail` fails to parse anything, symbolically $S = \varnothing = \{ \}$
 - **MPlus**: `val (<|>) : 'a parser -> 'a parser -> 'a parser`
-  - `p <|> q` tries `p`, and if `p` succeeds, its result is returned, otherwise the parser `q` is used
+  - `p <|> q` combines alternatives. The lazy-list implementation below enumerates results from `p` and then `q`, even if `p` succeeds; it does not commit to the first successful branch.
 
 The only non-monad-plus operation that has to be built into the monad is some way to consume a single character from the input stream, for example:
 

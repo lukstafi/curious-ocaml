@@ -80,6 +80,7 @@ module GParticleFilter = struct
     | DGaussian of float  (* sampled value *)
 
   type trace = draw list
+  exception Pause of trace * float
 
   type 'a step =
     | Done of 'a * trace * float
@@ -101,7 +102,7 @@ module GParticleFilter = struct
          | [] ->
              let i = Random.int (List.length xs) in
              recorded := DChoose i :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              Effect.Deep.discontinue k HardFail)
     | effect (GProb.Gaussian (mu, sigma)), k ->
@@ -113,13 +114,14 @@ module GParticleFilter = struct
          | [] ->
              let x = GProb.sample_gaussian ~mu ~sigma in
              recorded := DGaussian x :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              Effect.Deep.discontinue k HardFail)
     | effect (GProb.GObserve w), k ->
-        weight := !weight *. w;
+        if !remaining = [] then weight := !weight *. w;
         Effect.Deep.continue k ()
     | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
+    | exception Pause (trace, w) -> Paused (trace, w)
     | exception HardFail -> Failed
 
   let resample_indices n weights =
@@ -180,10 +182,12 @@ module GParticleFilter = struct
         let active_n = Array.length active_indices in
         let active_weights =
           Array.init active_n (fun j -> weights.(active_indices.(j))) in
-        if active_n > 0 && effective_sample_size active_weights < resample_threshold then begin
+        if active_n > 0 && Array.fold_left (+.) 0.0 active_weights > 0.0 &&
+            effective_sample_size active_weights < resample_threshold then begin
           let indices = resample_indices active_n active_weights in
           let new_traces = Array.map (fun j -> traces.(active_indices.(j))) indices in
-          let new_weight = 1.0 /. float_of_int active_n in
+          let new_weight =
+            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
             weights.(active_indices.(j)) <- new_weight) indices

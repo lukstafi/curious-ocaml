@@ -37,7 +37,7 @@ In contrast, consider this example:
 val x : '_weak1 list ref = {contents = []}
 ```
 
-Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which are not relevant to purely functional programming.
+Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which can also affect pure expressions, as the partial-application examples below illustrate.
 
 More precisely: the *value restriction* prevents unsoundness that would otherwise arise from generalizing type variables in effectful (mutable) expressions. When you see `'_weak...`, treat it as “this will become one specific type later”.
 
@@ -299,7 +299,7 @@ Let us look at some concrete examples to make these abstract ideas tangible. An 
 
 **Specification $\text{nat}_p$ (bounded natural numbers):**
 
-This specification describes natural numbers that wrap around at some bound $p$ (like machine integers):
+For an integer bound $p \ge 2$, this specification describes natural numbers modulo $p$ (like unsigned machine integers). Range conditions below refer to the canonical representatives $0,\ldots,p-1$:
 
 | $\text{nat}_p$ |
 |----------------|
@@ -313,14 +313,14 @@ This specification describes natural numbers that wrap around at some bound $p$ 
 | $m + \text{succ}(n) = \text{succ}(m + n)$ |
 | $0 * n = 0$, $n * 0 = 0$ |
 | $m * \text{succ}(n) = m + (m * n)$ |
-| $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{\text{less than } p \text{ times}} \neq 0$ |
+| $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{k \text{ times},\ 1\le k<p} \neq 0$ |
 | $\underbrace{\text{succ}(\ldots\text{succ}(0))}_{p \text{ times}} = 0$ |
 
-The axioms define how addition and multiplication work recursively, and the last two axioms capture the bounded nature: applying $\text{succ}$ less than $p$ times never gives zero, but exactly $p$ times wraps around to zero.
+The axioms define how addition and multiplication work recursively, and the last two axioms capture the bounded nature: applying $\text{succ}$ between one and $p-1$ times never gives zero, but exactly $p$ times wraps around to zero.
 
 **Specification $\text{string}_p$ (bounded strings):**
 
-This specification describes strings with a maximum length $p$:
+This specification describes strings of length strictly less than $p$. Here `error` denotes failure outside the successful result sort, and operations propagate failure. Thus these are partial-operation equations, not a plain total algebra over only the displayed sorts:
 
 | $\text{string}_p$ |
 |-------------------|
@@ -337,6 +337,8 @@ This specification describes strings with a maximum length $p$:
 | $(\text{``}c\text{''} \hat{\ } s)[0] = c$ |
 | $(\text{``}c\text{''} \hat{\ } s)[\text{succ}(n)] = s[n]$ |
 | `""`$[n] = \text{error}$ |
+
+Both indexing equations involving a prefixed character require the concatenation to succeed. The successor-index equation additionally requires $n < p-1$, so the index does not wrap to zero.
 
 The axioms specify that concatenation is associative, that the empty string is an identity for concatenation, that exceeding the length limit produces an error, and that indexing works by stripping characters from the front.
 
@@ -374,6 +376,7 @@ Here is an algebraic specification that captures the essential behavior of maps:
 | $\text{find} : \alpha \rightarrow (\alpha, \beta) \ \text{map} \rightarrow \beta$ |
 | Variables: $k, k_2 : \alpha$, $v, v_2 : \beta$, $m : (\alpha, \beta) \ \text{map}$ |
 | Axioms: |
+| $\text{member}(k, \text{empty}) = \text{false}$ |
 | $\text{member}(k, \text{add}(k, v, m)) = \text{true}$ |
 | $\text{member}(k, \text{remove}(k, m)) = \text{false}$ |
 | $\text{member}(k, \text{add}(k_2, v, m)) = \text{true} \wedge k \neq k_2 \Leftrightarrow \text{member}(k, m) = \text{true} \wedge k \neq k_2$ |
@@ -496,7 +499,7 @@ Can we do better than linear time? Yes, by using a smarter data structure. Binar
 
 For maps, we store key-value pairs as elements in binary search trees, and compare the elements by keys alone. The tree structure allows us to use "divide-and-conquer" to search for the value associated with a key.
 
-On average, binary search trees are fast -- $O(\log n)$ complexity for all operations. At each node, we can eliminate half the remaining elements from consideration. However, in the worst case (when keys are inserted in sorted order), the tree degenerates into a linked list and operations become $O(n)$.
+Operations cost $O(h)$, where $h$ is tree height. Random insertion order gives expected $O(\log n)$ height; a search discards one subtree at each step, but that subtree need not contain half the elements. However, in the worst case (when keys are inserted in sorted order), the tree degenerates into a linked list and operations become $O(n)$.
 
 A note on our design: the simple polymorphic signature for maps is only possible because OCaml provides polymorphic comparison (and equality) operators that work on elements of most types (but not on functions). These operators may not behave as you expect for all types! Our signature for polymorphic maps is not the standard approach because of this limitation; it is just to keep things simple for pedagogical purposes.
 
@@ -523,7 +526,7 @@ module BTreeMap : MAP = struct
   let rec split_rightmost m =       (* A helper function, it does not belong *)
     match m with                    (* to the "exported" signature. *)
     | Empty -> raise Not_found
-    | T (Empty, k, v, Empty) -> k, v, Empty   (* We remove one element, *)
+    | T (m1, k, v, Empty) -> k, v, m1   (* Preserve the largest node's left child. *)
     | T (m1, k, v, m2) ->           (* the one that is on the bottom right. *)
         let rk, rv, rm = split_rightmost m2 in
         rk, rv, T (m1, k, v, rm)
@@ -551,6 +554,17 @@ end
 The `member` and `find` functions use the "divide-and-conquer" strategy: compare the target key with the key at the current node, and recursively search in the appropriate subtree. The `add` function searches the tree in the same way but copies every node along the path to create the new tree (since we're using immutable data structures).
 
 The `remove` function is trickier. When removing a node with two children, we need to replace it with another value that maintains the ordering property. The `split_rightmost` helper function finds and removes the rightmost (largest) element from a subtree -- this element is guaranteed to be smaller than everything in the right subtree and larger than everything remaining in the left subtree, making it the perfect replacement.
+
+Removing a root must also preserve the left child of its predecessor:
+
+```ocaml env=ch5
+let () =
+  let m = List.fold_left (fun m k -> BTreeMap.add k (string_of_int k) m)
+    BTreeMap.empty [5; 3; 2; 7] in
+  let m = BTreeMap.remove 5 m in
+  assert (not (BTreeMap.member 5 m));
+  List.iter (fun k -> assert (BTreeMap.find k m = string_of_int k)) [2; 3; 7]
+```
 
 ### 5.10 Implementing Maps: Red-Black Trees
 
@@ -723,4 +737,3 @@ Design an algebraic specification and write a signature for sets. Provide two im
 #### Exercise 8: AVL Map Implementation
 
 (*) Implement maps (i.e. write a module for the map signature) based on AVL trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
-

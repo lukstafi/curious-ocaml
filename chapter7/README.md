@@ -19,7 +19,7 @@ We will examine different evaluation strategies, implement streams and lazy list
 
 **Evaluation strategy** is the order in which expressions are computed -- primarily, when arguments are computed. Recall our problems with using *flow control* expressions like `if_then_else` in examples from the lambda-calculus lecture. There are many technical terms describing various evaluation strategies:
 
-**Strict evaluation**: Arguments are always evaluated completely before the function is applied.
+**Strict evaluation**: Arguments are evaluated to values before the function is applied. A value may itself contain a closure or a suspended lazy computation; those are not forced by this rule.
 
 **Non-strict evaluation**: Arguments are not evaluated unless they are actually used in the evaluation of the function body.
 
@@ -29,9 +29,9 @@ We will examine different evaluation strategies, implement streams and lazy list
 
 **Call-by-value**: The argument expression is evaluated, and the resulting value is bound to the corresponding variable in the function (frequently by copying the value into a new memory region).
 
-**Call-by-reference**: A function receives an implicit reference to a variable used as argument, rather than a copy of its value. In purely functional languages there is no difference between the two strategies, so they are typically described as call-by-value even though implementations use call-by-reference internally for efficiency. Call-by-value languages like C and OCaml support explicit references (objects that refer to other objects), and these can be used to simulate call-by-reference.
+**Call-by-reference**: A parameter aliases the caller's variable, so assigning to that parameter changes the variable. This differs from passing a pointer or an OCaml reference cell *by value*: the callee can mutate the shared cell, but cannot rebind the caller's variable. OCaml uses call-by-value, including for values represented internally by pointers.
 
-**Normal order**: Start computing function bodies before evaluating their arguments. Do not even wait for arguments if they are not needed.
+**Normal order**: Repeatedly reduce the leftmost outermost redex, including underneath lambdas when seeking a full normal form. Call-by-name is a weak strategy that stops at a lambda rather than reducing its body.
 
 **Call-by-name**: Arguments are substituted directly into the function body and then left to be evaluated whenever they appear in the function. This means an argument might be evaluated multiple times if it appears multiple times in the function body.
 
@@ -66,6 +66,7 @@ The key insight is that the tail is not a stream directly, but a *function* that
 
 ```ocaml env=ch7
 let rec stake n = function
+  | SCons (a, _) when n = 1 -> [a]
   | SCons (a, s) when n > 0 -> a :: (stake (n-1) (s ()))
   | _ -> []
 ```
@@ -79,7 +80,7 @@ let rec s_from n =
   SCons (n, fun () -> s_from (n+1))
 ```
 
-The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. These definitions would cause infinite loops in a strict language, but with streams, we only compute as much as we request.
+The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. The thunks delay the recursive calls, so a dynamically generated stream computes only the requested prefix. OCaml also permits some static cyclic strict values, such as `let rec ones = 1 :: ones`; a finite cyclic value is different from computing an unbounded sequence of new nodes eagerly.
 
 #### Stream Operations
 
@@ -158,11 +159,12 @@ The tail is of type `'a llist Lazy.t` -- a lazy value that will produce the rest
 
 ```ocaml env=ch7
 let rec ltake n = function
-  | LCons (a, lazy l) when n > 0 -> a :: (ltake (n-1) l)
+  | LCons (a, _) when n = 1 -> [a]
+  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
   | _ -> []
 ```
 
-Notice the `lazy l` pattern -- this forces evaluation of the lazy tail and binds the result to `l`. Lazy lists can easily be infinite, just like streams:
+We force the tail only when another element is requested. A `lazy l` pattern would force it while matching, even before a guard could reject the branch. Lazy lists can easily be infinite, just like streams:
 
 ```ocaml env=ch7
 let rec l_ones = LCons (1, lazy l_ones)
@@ -259,7 +261,7 @@ let rec lazy_foldr f l base =
       f a (lazy (lazy_foldr f (Lazy.force ll) base))
 ```
 
-Now we need a stopping condition in the Horner algorithm step. We stop when the coefficient becomes small enough that further terms are negligible:
+The following stopping condition is a heuristic: a small coefficient alone does not bound the remaining sum. Later coefficients may be large, and powers of `x` may amplify them. Use it only for examples whose tails are independently controlled; it is not a general power-series evaluator with an accuracy guarantee:
 
 ```ocaml env=ch7
 let lhorner x l =                    (* This is a bit of a hack: *)
@@ -269,11 +271,14 @@ let lhorner x l =                    (* This is a bit of a hack: *)
     else 0. in                       (* Stop when c is tiny but nonzero. *)
   lazy_foldr upd l 0.
 
-let inv_fact = lmap (fun n -> 1. /. float_of_int n) lfact
+let inv_fact =
+  let rec loop n coefficient =
+    LCons (coefficient, lazy (loop (n +. 1.) (coefficient /. (n +. 1.)))) in
+  loop 0. 1.
 let e = lhorner 1. inv_fact
 ```
 
-The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
+The recurrence avoids overflowing a machine-integer factorial, although its coefficients still have floating-point rounding and eventually underflow. The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
 
 #### Power Series / Polynomial Operations
 
@@ -334,8 +339,13 @@ let rec div xs ys =
 
 (* Integration: integral of a_0 + a_1*x + a_2*x^2 + ...
    is c + a_0*x + a_1*x^2/2 + a_2*x^3/3 + ... *)
+let rec map_coefficients f n = function
+  | LNil -> LNil
+  | LCons (x, xs) ->
+      LCons (f x n, lazy (map_coefficients f (n +. 1.) (Lazy.force xs)))
+
 let integrate c xs =
-  LCons (c, lazy (lmap (uncurry (/.)) (lzip (xs, posnums_f))))
+  LCons (c, lazy (map_coefficients (/.) 1. xs))
 
 let ltail = function
   | LNil -> invalid_arg "ltail"
@@ -343,8 +353,23 @@ let ltail = function
 
 (* Differentiation: derivative of a_0 + a_1*x + a_2*x^2 + ...
    is a_1 + 2*a_2*x + 3*a_3*x^2 + ... *)
-let differentiate xs =
-  lmap (uncurry ( *.)) (lzip (ltail xs, posnums_f))
+let differentiate = function
+  | LNil -> LNil
+  | LCons (_, xs) -> map_coefficients ( *. ) 1. (Lazy.force xs)
+```
+
+These operations also terminate on finite polynomials, including the zero polynomial represented by `LNil`:
+
+```ocaml env=ch7
+let () =
+  let xs = LCons (2., lazy (LCons (3., lazy LNil))) in
+  assert (ltake 10 (integrate 1. xs) = [1.; 2.; 1.5]);
+  assert (ltake 10 (differentiate xs) = [3.]);
+  assert (ltake 10 (differentiate LNil) = []);
+  let tail = lazy (failwith "unrequested tail") in
+  assert (ltake 0 (LCons (1, tail)) = []);
+  assert (ltake 1 (LCons (1, tail)) = [1]);
+  assert (stake 1 (SCons (1, fun () -> failwith "unrequested tail")) = [1])
 ```
 
 #### Differential Equations
@@ -371,7 +396,7 @@ The problem is that OCaml's `let rec` requires the right-hand side to be a "stat
 The solution is to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure. We provide the first coefficient explicitly:
 
 ```ocaml env=ch7
-let integ xs = lmap (uncurry (/.)) (lzip (xs, posnums_f))
+let integ xs = map_coefficients (/.) 1. xs
 
 let rec sin = LCons (of_int 0, lazy (integ cos))
 and cos = LCons (of_int 1, lazy (integ (~-:sin)))
@@ -381,7 +406,7 @@ Now the `let rec` works because each right-hand side is just `LCons` applied to 
 
 The complete example would look much more elegant in Haskell, where all values are lazy by default -- we would not need the explicit `LCons` and `lazy` wrappers.
 
-Although this approach is not limited to linear equations, equations like Lotka-Volterra or Lorentz are not "solvable" this way -- the computed coefficients quickly grow instead of quickly falling, so the series does not converge well.
+Nonlinear analytic systems, including Lotka–Volterra and the Lorenz system, also admit local power-series methods. A series about one initial time need not converge over the whole interval of interest. A practical solver needs convergence/error control and may restart the expansion at successive times.
 
 Drawing functions work like in the previous lecture, but with open curves:
 
@@ -389,7 +414,7 @@ Drawing functions work like in the previous lecture, but with open curves:
 let plot_1D f ~w ~scale ~t_beg ~t_end =
   let dt = (t_end -. t_beg) /. of_int w in
   Array.init w (fun i ->
-    let y = lhorner (dt *. of_int i) f in
+    let y = lhorner (t_beg +. dt *. of_int i) f in
     i, to_int (scale *. y))
 ```
 
@@ -413,7 +438,7 @@ let infhorner x l =
   lazy_foldr upd l (LCons (of_int 0, lazy LNil))
 ```
 
-The function `infhorner` returns a lazy list of partial sums. Each element is a better approximation than the previous one. Now we need to find where the series has converged to the precision we need:
+The function `infhorner` returns a lazy list of partial sums. These are successive approximations; they need not improve monotonically, and outside the convergence domain they need not converge. The next function detects repeated rounded values, not a proved error bound:
 
 ```ocaml env=ch7
 let rec exact f = function         (* We arbitrarily decide that convergence is *)
@@ -423,7 +448,7 @@ let rec exact f = function         (* We arbitrarily decide that convergence is 
   | LCons (_, lazy tl) -> exact f tl
 ```
 
-The function `exact` applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
+Despite its name, `exact` is a heuristic: for a sparse series such as $1+x^{100}$, several identical partial sums can precede a nonzero contribution. A certified answer needs a tail bound as well as control of arithmetic error. The function applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
 
 Draw the pixels of the graph at exact coordinates:
 
@@ -591,11 +616,11 @@ Again, we can specialize to input-only and output-only pipes:
 
 ```ocaml env=ch7
 type 'a ipipe = (unit, 'a) pipe
-type void
+type void = |
 type 'a opipe = ('a, void) pipe
 ```
 
-Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an abstract type with no values, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
+Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an empty variant with no constructors, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
 
 #### Pipe Composition
 
@@ -1018,4 +1043,3 @@ type 'a doc =
 #### Exercise 9: Memoizing Pipe Fan-Out
 
 (Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
-

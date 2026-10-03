@@ -20,6 +20,8 @@ We begin with a review of computation by hand using our reduction semantics, the
 - "Introduction to Lambda Calculus" by Henk Barendregt and Erik Barendsen
 - "Lecture Notes on the Lambda Calculus" by Peter Selinger
 
+**Running the examples:** this chapter studies an untyped calculus. Its OCaml experiments use recursive types (`#rectypes;;` in the toplevel, or `-rectypes` when compiling), enabled by `chapter4/prelude.ml`. A few demonstrations also use `Obj.magic`; those casts bypass type safety and are not a general implementation technique. Blocks marked `skip` are derivations or intentionally non-running examples.
+
 ### 4.1 Review: Computation by Hand
 
 Before diving into the lambda-calculus, let us work through a complete example of evaluation using the reduction rules from Chapter 3. Computing a larger, recursive program by hand will solidify our understanding of how computation proceeds step by step and prepare us for the more abstract setting of lambda-calculus.
@@ -178,7 +180,7 @@ Once we have booleans as selectors, logical operations become elegant. Logical c
 
 $$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
 
-The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and returns false immediately without even looking at `y`.
+The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and selects false. In OCaml, however, the argument expression supplying `y` has already been evaluated: this encoding does not provide short-circuit evaluation.
 
 ```ocaml env=ch4
 let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
@@ -341,86 +343,21 @@ The predecessor function is ingenious and worth studying carefully. The challeng
 
 #### Tracing `cn_prev cn3`
 
-The predecessor function is tricky enough that it is worth tracing through a complete example. Let us trace through `decode_cnat (cn_prev cn3)` to see how it computes 2 from 3:
+To keep the parentheses manageable, abbreviate `((+) 1)` as `f`, `fun g h -> h (g f)` as `s`, `fun _ -> 0` as `z`, and `fun x -> x` as `id`. Then:
 
-$$\rightsquigarrow^*$$
-
-```
-(cn_prev cn3) ((+) 1) 0
-```
-
-$$\rightsquigarrow^*$$
-
-```
-(fun f x ->
-    cn3
-      (fun g h -> h (g f))
-      (fun _z -> x)
-      (fun z -> z)) ((+) 1) 0
+```text
+(cn_prev cn3) f 0
+  = cn3 s z id
+  = s (s (s z)) id
+  = id ((s (s z)) f)
+  = (s (s z)) f
+  = f ((s z) f)
+  = f (f (z f))
+  = f (f 0)
+  = 2
 ```
 
-$$\rightsquigarrow^*$$
-
-```
-((fun f x -> f (f (f x)))
-      (fun g h -> h (g ((+) 1)))
-      (fun z -> 0)
-      (fun z -> z))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((fun g h -> h (g ((+) 1)))
-  ((fun g h -> h (g ((+) 1)))
-    ((fun g h -> h (g ((+) 1)))
-      (fun z -> 0))))
-  (fun z -> z))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((fun z -> z)
-  (((fun g h -> h (g ((+) 1)))
-    ((fun g h -> h (g ((+) 1)))
-      (fun z -> 0)))) ((+) 1)))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-(fun g h -> h (g ((+) 1)))
-  ((fun g h -> h (g ((+) 1)))
-    (fun z -> 0)) ((+) 1)
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) ((fun g h -> h (g ((+) 1)))
-          (fun z -> 0) ((+) 1))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) (((+) 1) ((fun z -> 0) ((+) 1)))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) (((+) 1) (0))
-```
-
-$$\rightsquigarrow^*$$
-
-```
-((+) 1) 1
-```
-
-$\rightsquigarrow^*$ `2`
+The first application of the iterator builds `s z`; applying it later to `f` yields `f (z f) = f 0`. The outer call to `id` removes one application of `f`, leaving two increments for the input numeral three.
 
 ### 4.7 Recursion: Fixpoint Combinators
 
@@ -510,7 +447,7 @@ $$
 \end{aligned}
 $$
 
-The computation stops because we use the rule $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$ rather than $(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$. The expression inside the lambda is not evaluated until the function is applied.
+The computation stops because our weak evaluation strategy does not reduce underneath a lambda. Call-by-value additionally uses the rule $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$ rather than $(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$. The expression inside the lambda is not evaluated until the function is applied.
 
 Let us compute the function on some input:
 
@@ -545,7 +482,9 @@ $$
 \end{aligned}
 $$
 
-The last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
+Under normal-order reduction, the last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
+
+In call-by-value OCaml, the conditional also needs delayed branches: an ordinary Church selector evaluates its recursive argument even in the base case. Section 4.9 supplies that extra guard.
 
 #### Exercise: Hand-Reduce `fact cn2`
 
@@ -558,6 +497,8 @@ What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate i
 
 
 ### 4.8 Encoding Lists and Trees
+
+The encodings in this section are **Scott encodings**: a value selects a case handler and supplies its immediate fields. Unlike Church encodings, they do not themselves fold recursively over those fields.
 
 Now that we have numbers and recursion, we can encode more complex data structures. The pattern we have seen with booleans and pairs extends naturally to algebraic data types like lists and trees.
 

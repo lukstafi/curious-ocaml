@@ -351,19 +351,18 @@ module Threads : THREADS = struct
 
   let rec run_thread : 'a. (unit -> 'a) -> 'a promise = fun f ->
     let p = ref (Pending []) in
-    let () = match f () with
-      | v -> fulfill p v; dequeue ()
+    enqueue (fun () -> match f () with
+      | v -> fulfill p v
       | effect (Async g), k ->
           let p' = run_thread g in
           Effect.Deep.continue k p'
       | effect (Await p'), k ->
           (match !p' with
            | Done v -> Effect.Deep.continue k v
-           | Pending ks -> p' := Pending (k :: ks); dequeue ())
+           | Pending ks -> p' := Pending (k :: ks))
       | effect TYield, k ->
-          enqueue (fun () -> Effect.Deep.continue k ());
-          dequeue ()
-    in p
+          enqueue (fun () -> Effect.Deep.continue k ()));
+    p
 
   let run f =
     Queue.clear run_queue;
@@ -377,7 +376,7 @@ end
 
 Let us understand how each effect is handled:
 
-**Async**: When a thread calls `async g`, we start a new thread running `g` by calling `run_thread g`. This returns a promise immediately, which we pass back to the parent thread by continuing its continuation.
+**Async**: When a thread calls `async g`, `run_thread g` enqueues the child and returns a promise immediately. We pass that promise back to the parent by continuing its continuation. Only the loop in `run` removes work from the queue.
 
 **Await**: When a thread calls `await p`, we check the promise. If it is already `Done`, we continue immediately with the value. If it is `Pending`, we add the current continuation to the list of waiters and run another thread from the queue.
 
@@ -418,6 +417,25 @@ Done!
 ```
 
 Compare this to the monadic version from the previous chapter. The code is more direct: we write `yield ()` instead of `let* () = suspend in`, and `Printf.printf` is just a regular function call. The complexity of managing thread state has moved from the user code into the handler.
+
+We can check scheduling without relying on printed output:
+
+```ocaml env=ch9
+let () =
+  let seen = ref [] in
+  let worker name () =
+    for i = 1 to 2 do
+      seen := (name, i) :: !seen;
+      Threads.yield ()
+    done in
+  Threads.run (fun () ->
+    let a = Threads.async (worker "A") in
+    let b = Threads.async (worker "B") in
+    Threads.await a; Threads.await b);
+  assert (List.rev !seen = ["A", 1; "B", 1; "A", 2; "B", 2])
+```
+
+This is a cooperative teaching scheduler. Uncaught child exceptions, cancellation, nested calls to `run`, and cleanup of blocked threads require a fuller design before using it as an application runtime.
 
 ### 9.4 State with Effects
 
@@ -753,11 +771,16 @@ The soft conditioning version is more efficient because every particle contribut
 
 For models where observations occur at multiple points during execution, we can do even better with *particle filtering*. The key idea is to run multiple particles in parallel, periodically *resampling* to focus computation on high-weight particles.
 
-The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a natural synchronization point.
+The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a synchronization point in this simplified algorithm, even when different control-flow paths reach different sampling sites.
+
+Replay assumes the model is deterministic except for the sampling effects handled here. External mutation, I/O, and unhandled randomness would be repeated and could invalidate the trace. On each replay, observations before the last recorded draw have already contributed to the particle weight; only the newly executed segment contributes again. Resampling preserves the active particles' total mass, including when other particles have already completed. Zero total mass remains zero.
+
+At a fresh sample we abort the suspended run with the private `Pause` exception rather than discard a live continuation. Models must not catch that control exception or depend on side effects during replay; cleanup may run once per replay. The examples assume finite nonnegative likelihoods, valid sampling distributions, a positive particle count, and terminating models. This is a teaching implementation, not a general-purpose inference engine.
 
 ```ocaml env=ch9
 module ParticleFilter = struct
   type trace = int list
+  exception Pause of trace * float
   exception HardFail
 
   (* Result of running one step *)
@@ -793,11 +816,12 @@ module ParticleFilter = struct
              (* Fresh sample: make choice and pause *)
              let choice = sample_index weights in
              recorded := choice :: !recorded;
-             Paused (List.rev !recorded, !weight))
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight)))
     | effect (Observe likelihood), k ->
-        weight := !weight *. likelihood;
+        if !remaining = [] then weight := !weight *. likelihood;
         Effect.Deep.continue k ()
     | effect Fail, k -> Effect.Deep.discontinue k HardFail
+    | exception Pause (trace, w) -> Paused (trace, w)
     | exception HardFail -> Failed
 
   (* Resample: select n indices according to weights *)
@@ -858,14 +882,16 @@ module ParticleFilter = struct
       if !n_active > 0 then begin
         let active_weights = Array.of_list (
           Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
-        if effective_sample_size active_weights < resample_threshold then begin
+        if Array.fold_left (+.) 0.0 active_weights > 0.0 &&
+            effective_sample_size active_weights < resample_threshold then begin
           let active_indices = Array.of_list (
             List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
           let active_n = Array.length active_indices in
           let indices = resample_indices active_n active_weights in
           let new_traces = Array.map (fun j ->
             traces.(active_indices.(j))) indices in
-          let new_weight = 1.0 /. float_of_int active_n in
+          let new_weight =
+            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
             weights.(active_indices.(j)) <- new_weight) indices
@@ -1086,6 +1112,7 @@ module GParticleFilter = struct
     | DGaussian of float  (* sampled value *)
 
   type trace = draw list
+  exception Pause of trace * float
 
   type 'a step =
     | Done of 'a * trace * float
@@ -1109,7 +1136,7 @@ module GParticleFilter = struct
              (* Fresh sample: choose index and pause *)
              let i = Random.int (List.length xs) in
              recorded := DChoose i :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              (* Trace mismatch *)
              Effect.Deep.discontinue k HardFail)
@@ -1124,13 +1151,14 @@ module GParticleFilter = struct
              (* Fresh Gaussian sample *)
              let x = GProb.sample_gaussian ~mu ~sigma in
              recorded := DGaussian x :: !recorded;
-             Paused (List.rev !recorded, !weight)
+             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
          | _ :: _ ->
              Effect.Deep.discontinue k HardFail)
     | effect (GProb.GObserve w), k ->
-        weight := !weight *. w;
+        if !remaining = [] then weight := !weight *. w;
         Effect.Deep.continue k ()
     | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
+    | exception Pause (trace, w) -> Paused (trace, w)
     | exception HardFail -> Failed
 
   let resample_indices n weights =
@@ -1191,12 +1219,13 @@ module GParticleFilter = struct
         let active_n = Array.length active_indices in
         let active_weights =
           Array.init active_n (fun j -> weights.(active_indices.(j))) in
-        if active_n > 0 &&
+        if active_n > 0 && Array.fold_left (+.) 0.0 active_weights > 0.0 &&
             effective_sample_size active_weights < resample_threshold then begin
           let indices = resample_indices active_n active_weights in
           let new_traces =
             Array.map (fun j -> traces.(active_indices.(j))) indices in
-          let new_weight = 1.0 /. float_of_int active_n in
+          let new_weight =
+            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
           Array.iteri (fun j _ ->
             traces.(active_indices.(j)) <- new_traces.(j);
             weights.(active_indices.(j)) <- new_weight) indices
@@ -1218,6 +1247,45 @@ end
 ```
 
 The trace type `draw list` is simple and type-safe: `DChoose of int` stores only the index, `DGaussian of float` stores the sampled value. During replay, we use the stored index to select from the list passed to `Choose`. No existential types, no `Obj.magic`.
+
+Replay must count each observation once and preserve the total weight of active particles when resampling. Otherwise a later sample can silently change a posterior. Here Bayes' rule gives $0.8/(0.8+0.2)=0.8$:
+
+```ocaml env=ch9
+let () =
+  let saved_random = Random.get_state () in
+  let check infer =
+    List.iter (fun threshold ->
+      Random.init 42;
+      let probability = List.assoc true (infer threshold) in
+      assert (abs_float (probability -. 0.8) < 0.03)) [0.; 1.] in
+  let model () =
+    let b = flip 0.5 in
+    observe (if b then 0.8 else 0.2);
+    ignore (flip 0.5);
+    b in
+  check (fun threshold ->
+    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold model);
+  let typed_model () =
+    let b = GProb.choose [true; false] in
+    GProb.observe (if b then 0.8 else 0.2);
+    ignore (GProb.choose [()]);
+    b in
+  check (fun threshold ->
+    GParticleFilter.infer ~n:10000 ~resample_threshold:threshold typed_model);
+  (* Some paths complete before the others resample. *)
+  let early_finish () =
+    let b = flip 0.5 in
+    observe (if b then 0.8 else 0.2);
+    if b then ignore (flip 0.5);
+    b in
+  check (fun threshold ->
+    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold early_finish);
+  assert (ParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
+    observe 0.; ignore (flip 0.5); true) = []);
+  assert (GParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
+    GProb.observe 0.; ignore (GProb.choose [()]); true) = []);
+  Random.set_state saved_random
+```
 
 #### Example: Sensor Fusion
 
@@ -1316,10 +1384,10 @@ Extend the `Threads` module to support timeouts. Add an effect `Timeout : float 
 
 #### Exercise 2: Effectful Generators
 
-Implement a simple generator/iterator pattern using effects. Define a `YieldGen : 'a -> unit Effect.t` and write:
+Implement a generator using a functor `Generator (A : sig type t end)`. Inside it, define `YieldGen : A.t -> unit Effect.t`; fixing the element type connects the effect payload to the resulting sequence. An unconstrained existential payload would not provide that connection.
 
 
-- A function `generate : (unit -> unit) -> 'a Seq.t` that converts a procedure using `YieldGen` into a sequence.
+- A function `generate : (unit -> unit) -> A.t Seq.t` that converts a procedure using `YieldGen` into a sequence. Specify single-use traversal, or memoize sequence nodes so repeated forcing never resumes a continuation twice.
 - Use it to implement a generator for Fibonacci numbers.
 
 #### Exercise 3: Polymorphic State Effect
@@ -1334,7 +1402,7 @@ Write a probabilistic program for the following scenario: You have two coins, a 
 
 #### Exercise 5: Likelihood Weighting
 
-Implement a *likelihood weighting* version of inference that is between rejection sampling and full importance sampling. In likelihood weighting, we sample from the prior for `Sample` effects but weight by the likelihood for `Observe` effects. Compare with rejection sampling on the burglary example.
+The `Importance` handler already performs likelihood weighting: it samples from the prior and multiplies observation likelihoods. Compare it with rejection sampling on the burglary example. Then extend it to sample from a different proposal distribution and include the prior-to-proposal probability ratio in the weight. State the required support condition.
 
 
 #### Exercise 6: Selective Particle Pausing
@@ -1344,5 +1412,4 @@ The particle filter currently pauses at every `Sample`, which may cause excessiv
 
 #### Exercise 7: Continuation-Cached Particle Filter
 
-Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. When advancing a particle, first try to resume the stored continuation directly. If resampling duplicated the particle (i.e., another particle already consumed the continuation), the resume will raise `Effect.Continuation_already_resumed` -- catch this and fall back to replay. This avoids replay overhead for particles that weren't duplicated during resampling.
-
+Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. Represent ownership explicitly, for example with a shared continuation option reference. Atomically take the continuation before resuming it; duplicated particles whose shared slot is empty must replay instead. Do not use a broad exception handler around `continue` to detect ownership, since it could also catch an exception from inside the model. Ensure every abandoned live continuation is discontinued. This avoids replay overhead for particles that weren't duplicated during resampling.

@@ -314,7 +314,7 @@ type calendar_date =
   { year : int; month : month; day : int; weekday : weekday }
 
 let day =
-  { year = 2012; month = Feb; day = 14; weekday = Wed }
+  { year = 2012; month = Feb; day = 14; weekday = Tue }
 
 let day_kind =
   match day with
@@ -371,7 +371,7 @@ We also need translations for some special types:
 
 - Defined types translate according to their definitions (substituting variables as necessary).
 
-Give a name to the type being defined (representing a function of the introduced variables). Now interpret the result as an ordinary numeric polynomial! (Or a "rational function" if recursively defined.)
+Give a name to the type being defined (representing a function of the introduced variables). For finite, nonrecursive sum-and-product types, the result is a polynomial counting possible values. Recursive types instead give equations for formal power series counting finite structures. Lists yield a rational series; trees generally yield algebraic series that are not rational. Unrestricted subtraction, division, and identities involving infinite cardinalities are not automatically type isomorphisms: justify a proposed isomorphism with inverse functions.
 
 This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
 
@@ -714,7 +714,7 @@ let () =  (* A nicer way to mark computations that return unit. *)
   print_string (g ~pos ~len)
 ```
 
-When some function arguments are optional, the function must take non-optional arguments after the last optional argument. Optional parameters with default values:
+When some function arguments are optional, a following positional argument lets OCaml determine when omitted optional arguments should be filled in. A required labeled argument alone does not provide that boundary. Optional parameters with default values:
 
 ```ocaml env=ch2
 let h ?(len=1) pos = g ~pos ~len

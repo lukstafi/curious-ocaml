@@ -736,7 +736,7 @@ let integral fb =
   let rec loop t0 acc uts bs =
     let Cons ((_, t1), uts) = Lazy.force uts in
     let Cons (b, bs) = Lazy.force bs in
-    (* Rectangle rule: b is fb(t1), acc approximates integral up to t0 *)
+    (* Left rectangle rule: b is fb(t0), acc approximates integral up to t0 *)
     let acc = acc +. (t1 -. t0) *. b in
     Cons (acc, lazy (loop t1 acc uts bs)) in
   memo1 (fun uts -> lazy (
@@ -1094,13 +1094,15 @@ let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
     | Some v -> last := v; v)
 
 (* rising_edge: None most of the time, Some () exactly when b flips false->true *)
-let rising_edge (b : bool Lwd.t) : unit option Lwd.t =
+let rising_edge ~(tick : int Lwd.t) (b : bool Lwd.t) : unit option Lwd.t =
   let was_true = ref false in
-  Lwd.map b ~f:(fun now ->
+  Lwd.map2 b tick ~f:(fun now _ ->
     let fire = now && not !was_true in
     was_true := now;
     if fire then Some () else None)
 ```
+
+The caller must advance `tick` once per logical update and keep the observed node live. Without that clock dependency, Lwd can cache `Some ()` while `b` stays true, so sampling again would repeat the event. Repeated samples within one tick read the same event; consumers process it once per tick.
 
 These are not “pure” in the mathematical FRP sense, but they capture a key idea: **signals can have local memory**, and that memory is exactly what causality demands.
 
@@ -1277,7 +1279,7 @@ let game : scene Lwd.t =
   Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
 ```
 
-Because `ball` above uses internal mutable state, you should sample the root scene **exactly once per update step** (otherwise the physics will advance multiple times).
+Treat each update as a transaction: set the time and input cells, then sample the root scene. Repeated samples without invalidation may simply return Lwd's cached value; they do not inherently advance physics. Stateful nodes must nevertheless have explicit clock dependencies and remain observed so their updates have a defined cadence.
 
 Keep the sampled root (and anything you need for its computation) reachable. In `Lwd`, nodes not reachable from any root are considered dead and can be released.
 

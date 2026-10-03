@@ -140,8 +140,12 @@ With `fold_left`, expressing our earlier functions becomes straightforward -- we
 let list_rev l =
   fold_left (fun t h -> h::t) [] l
 
-let average =
-  fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.)
+let average xs =
+  let sum, tot =
+    fold_left (fun (sum, tot) e -> sum +. e, 1. +. tot) (0., 0.) xs in
+  if tot = 0. then 0. else sum /. tot
+
+let () = assert (average [2.; 4.; 9.] = 5.)
 ```
 
 Note that the `average` example is slightly trickier than `list_rev` because we need to track two values (sum and count) rather than one.
@@ -226,7 +230,7 @@ Here are two examples showing how `bt_fold` can compute different properties of 
 
 ```ocaml env=ch6
 let sum_els = bt_fold (fun i l r -> i + l + r) 0
-let depth t = bt_fold (fun _ l r -> 1 + max l r) 1 t
+let depth t = bt_fold (fun _ l r -> 1 + max l r) 0 t
 ```
 
 The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
@@ -301,7 +305,7 @@ let make_fold op base = {
 }
 ```
 
-The actual `map` and `fold` functions:
+The actual functions follow. Unlike list `map`, this `expr_map` is a bottom-up rewriter: its handlers can replace whole subtrees and change the shape. It is a specialized fold returning expressions, rather than a functor map that must preserve the constructors.
 
 ```ocaml env=ch6
 let rec expr_map emap = function
@@ -488,7 +492,7 @@ let rec subseqs l =
       List.map (fun px -> x::px) pxs @ pxs
 ```
 
-Tail-recursively:
+Using a tail-recursive mapping helper (the call to `subseqs` itself is still not in tail position):
 
 ```ocaml env=ch6
 let rec rmap_append f accu = function
@@ -612,6 +616,7 @@ let inverted_index documents =
     Str.split (Str.regexp "[ \t.,;]+") doc
     |> List.map (fun word -> word, addr) in
   concat_reduce mapf cons [] documents
+  |> List.map (fun (word, addresses) -> word, List.sort_uniq compare addresses)
 ```
 
 **Example 3: Simple search engine.** Once we have an inverted index, we can search for documents containing all of a given set of words. We need set intersection -- here implemented for sets represented as sorted lists:
@@ -632,7 +637,8 @@ Now we can build a simple search function that finds all documents containing ev
 
 ```ocaml env=ch6
 let search index words =
-  match List.map (flip List.assoc index) words with
+  match List.map (fun word ->
+    Option.value (List.assoc_opt word index) ~default:[]) words with
   | [] -> []
   | idx::idcs -> List.fold_left intersect idx idcs
 ```
@@ -720,9 +726,30 @@ let rec values = function
   | Val n -> [n]
   | App (_, l, r) -> values l @ values r
 
+let rec remove_one x = function
+  | [] -> None
+  | y::ys when x = y -> Some ys
+  | y::ys -> Option.map (fun rest -> y::rest) (remove_one x ys)
+
+let rec uses_available numbers available =
+  match numbers with
+  | [] -> true
+  | x::xs ->
+      match remove_one x available with
+      | None -> false
+      | Some rest -> uses_available xs rest
+
 let solution e ns n =
-  list_diff (values e) ns = [] && is_unique (values e) &&
-  eval e = Some n
+  uses_available (values e) ns && eval e = Some n
+```
+
+The source numbers form a multiset: equal numbers may be used as many times as they occur, but no more.
+
+```ocaml env=ch6
+let () =
+  let two = App (Add, Val 1, Val 1) in
+  assert (solution two [1; 1] 2);
+  assert (not (solution two [1] 2))
 ```
 
 #### Brute Force Solution
@@ -784,25 +811,27 @@ The brute force approach generates many invalid expressions (like `5 - 7` which 
 The key insight is to work with pairs `(e, eval e)` so that only valid subexpressions are ever generated:
 
 ```ocaml env=ch6
-let combine' (l, x) (r, y) =
+let combine' valid (l, x) (r, y) =
   [Add; Sub; Mul; Div]
   |> List.filter (fun o -> valid o x y)
   |> List.map (fun o -> App (o, l, r), apply o x y)
 
-let rec results = function
+let rec results valid = function
   | [] -> []
   | [n] -> if n > 0 then [Val n, n] else []
   | ns ->
     split ns |-> (fun (ls, rs) ->
-      results ls |-> (fun lx ->
-        results rs |-> (fun ry ->
-          combine' lx ry)))
+      results valid ls |-> (fun lx ->
+        results valid rs |-> (fun ry ->
+          combine' valid lx ry)))
 
-let solutions' ns n =
+let solutions_with valid ns n =
   choices ns |-> (fun ns' ->
-    results ns'
+    results valid ns'
     |> List.filter (fun (e, m) -> m = n)
     |> List.map fst)                        (* Discard memorized values *)
+
+let solutions' = solutions_with valid
 ```
 
 #### Eliminating Symmetric Cases
@@ -816,9 +845,18 @@ let valid op x y =
   | Sub -> x > y
   | Mul -> x <= y && x <> 1 && y <> 1
   | Div -> x mod y = 0 && y <> 1
+
+let solutions_optimized = solutions_with valid
 ```
 
-This eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
+Passing the new predicate explicitly matters: rebinding `valid` alone would not change functions already defined with the earlier binding. `solutions_optimized` eliminates symmetrical solutions on the *semantic* level (based on values) rather than the *syntactic* level (based on expression structure). This approach is both easier to implement and more effective at pruning the search space.
+
+```ocaml env=ch6
+let () =
+  let index = inverted_index [3, "cat cat dog"; 1, "dog cat"; 2, "dog"] in
+  assert (search index ["cat"; "dog"] = [1; 3]);
+  assert (search index ["missing"] = [])
+```
 
 ### 6.9 The Honey Islands Puzzle
 
@@ -937,7 +975,8 @@ let draw_to_svg file ~w ~h ?title ?desc curves =
     Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" />\n"
       r g b in
   List.iter draw_shape curves;
-  Printf.fprintf f "</svg>%!"
+  Printf.fprintf f "</svg>%!";
+  close_out f
 ```
 
 **Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.

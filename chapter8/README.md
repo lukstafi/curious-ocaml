@@ -150,7 +150,7 @@ let return x = [x]                     (* inject a value into the monad *)
 let fail = []                          (* the empty computation *)
 ```
 
-The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator allows binding multiple values in parallel. With these operators, the expression generation code becomes:
+The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator combines independent bindings; this definition computes their Cartesian product. The syntax does not itself introduce concurrent execution. With these operators, the expression generation code becomes:
 
 ```
 let rec exprs = function
@@ -261,7 +261,7 @@ For reference, OCaml 5's binding operators translate as follows:
 | `let* x = exp in body` | `bind exp (fun x -> body)` |
 | `let+ x = exp in body` | `map (fun x -> body) exp` |
 | `let* () = exp in body` | `bind exp (fun () -> body)` |
-| `let* x = e1 and* y = e2 in body` | `bind (and* e1 e2) (fun (x, y) -> body)` |
+| `let* x = e1 and* y = e2 in body` | `bind (( and* ) e1 e2) (fun (x, y) -> body)` |
 
 The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
 
@@ -283,7 +283,7 @@ Let us understand what these laws mean:
 
 - **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
 - **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
-- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (when `x` does not appear free in `b`).
+- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (after renaming binders so `y` does not occur free in `c`).
 
 You should verify that these laws hold for our list monad:
 
@@ -755,8 +755,8 @@ module Countdown (M : MONAD_PLUS_OPS) = struct
   let rec insert x = function  (* All choice-introducing operations *)
     | [] -> return [x]          (* need to happen in the monad *)
     | y::ys as xs ->
-        let* xys = insert x ys in
-        return (x::xs) ++ return (y::xys)
+        return (x::xs) ++
+        (let* xys = insert x ys in return (y::xys))
 
   let rec choices = function
     | [] -> return []
@@ -846,7 +846,14 @@ let t1, sol1 = time test1
 (* val sol1 : string list = ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; ...] *)
 ```
 
-Finding all 49 solutions takes about 2.3 seconds. What if we want only one solution? Laziness to the rescue!
+```ocaml env=ch8
+let () =
+  let module C = Countdown (ListM) in
+  assert (ListM.run (C.insert 0 [1; 2])
+    = [[0; 1; 2]; [1; 0; 2]; [1; 2; 0]])
+```
+
+The sample timing above illustrates the cost of enumerating every solution; measure it on your own machine. What if we want only one solution? Laziness to the rescue!
 
 Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but the head is strict:
 
@@ -854,7 +861,8 @@ Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but t
 type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
 
 let rec ltake n = function
-  | LCons (a, lazy l) when n > 0 -> a::(ltake (n-1) l)
+  | LCons (a, _) when n = 1 -> [a]
+  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
   | _ -> []
 
 let rec lappend l1 l2 =
@@ -904,9 +912,11 @@ Our odd lazy list type is not lazy *enough*. Whenever we "make" a choice with `a
 type 'a lazy_list = 'a lazy_list_ Lazy.t
 and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
 
-let rec laztake n = function
-  | lazy (LazCons (a, l)) when n > 0 -> a::(laztake (n-1) l)
-  | _ -> []
+let rec laztake n l =
+  if n <= 0 then [] else
+  match Lazy.force l with
+  | LazCons (a, tail) -> a :: laztake (n-1) tail
+  | LazNil -> []
 
 let rec append_aux l1 l2 =
   match l1 with
@@ -1042,7 +1052,7 @@ let rec alpha_conv = function
 
 The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
 
-Note: This alpha-conversion does not make a lambda-term safe for multiple steps of beta-reduction. Can you find a counter-example?
+This example assumes every generated name is absent from the input, including its free variables. Without that precondition it can capture a variable even on the first pass: try a binder `x` and a free `x0` with the initial counter zero. It also does not make a term safe for arbitrary later beta-reductions. Extend the name supply to track all names in use.
 
 ### 8.12 Monad Transformers
 
@@ -1270,12 +1280,27 @@ let normalize dist =                 (* Normalize a measure into a distribution 
   else List.map (fun (e,w) -> e, w /. tot) dist
 
 let roulette dist =                  (* Roulette wheel from a distribution/measure *)
+  if List.exists (fun (_, w) -> not (Float.is_finite w) || w < 0.) dist then
+    invalid_arg "roulette: weights must be finite and nonnegative";
+  let dist = List.filter (fun (_, w) -> w > 0.) dist in
   let tot = total dist in
+  if not (Float.is_finite tot) || tot <= 0. then
+    invalid_arg "roulette: total weight must be finite and positive";
   let rec aux r = function
     | [] -> assert false
-    | (e, w)::_ when w <= r -> e
+    | [e, _] -> e                    (* Absorb floating-point rounding at the end. *)
+    | (e, w)::_ when r < w -> e
     | (_, w)::tl -> aux (r -. w) tl in
   aux (Random.float tot) dist
+```
+
+A zero-weight outcome must never be selected; a distribution with one positive outcome must always return it:
+
+```ocaml env=ch8
+let () =
+  for _ = 1 to 100 do
+    assert (roulette ["impossible", 0.; "certain", 1.] = "certain")
+  done
 ```
 
 #### Exact Distribution Monad
@@ -1320,7 +1345,7 @@ module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
   include M
   include MonadOps (M)
   let choose p a b () =
-    if Random.float 1. <= p then a () else b ()
+    if Random.float 1. < p then a () else b ()
   let pick dist = fun () -> roulette dist
   let uniform elems =
     let n = List.length elems in
@@ -1434,7 +1459,7 @@ module SamplingMP (S : sig val samples : int end) : COND_PROBAB = struct
   include MP
   include MonadPlusOps (MP)
   let choose p a b () =                (* Inside-monad operations don't change *)
-    if Random.float 1. <= p then a () else b ()
+    if Random.float 1. < p then a () else b ()
   let pick dist = fun () -> roulette dist
   let uniform elems =
     let n = List.length elems in
