@@ -142,7 +142,7 @@ Before introducing new material, let us look back at what the previous chapters 
 | 1 | Propositions and types | Objects in a category; Curry--Howard |
 | 2 | Type isomorphisms (`'a * 'b ≅ 'b * 'a`) | Isomorphisms in the category of types |
 | 2 | Type derivative (one-hole context) | Derivative of a functor |
-| 3 | Function composition `( -\| )` | Morphism composition in **Types** |
+| 3 | Backward function composition | Morphism composition in **Types** |
 | 4 | Church encodings | Initial algebra (catamorphism) |
 | 6 | `List.map`, `Option.map` | Endofunctor on **Types** |
 | 6 | `List.fold_right` | Catamorphism (universal property of initial algebra) |

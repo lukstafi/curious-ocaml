@@ -3249,7 +3249,7 @@ programming languages:</p>
 </tr>
 <tr>
 <td>OCaml</td>
-<td><code>let (-\|) f g x = f (g x)</code></td>
+<td><code>let compose f g x = f (g x)</code></td>
 </tr>
 <tr>
 <td>F#</td>
@@ -3261,10 +3261,12 @@ programming languages:</p>
 </tr>
 </tbody>
 </table>
-<p>This backward composition looks like function application but needs
-fewer parentheses. Do you recall the functions <code>iso1</code> and
-<code>iso2</code> from the previous chapter on type isomorphisms? Using
-backward composition, we could write:</p>
+<p>In OCaml we also use the infix form
+<code>let (-|) f g x = f (g x)</code>. This backward composition looks
+like function application but needs fewer parentheses. Do you recall the
+functions <code>iso1</code> and <code>iso2</code> from the previous
+chapter on type isomorphisms? Using backward composition, we could
+write:</p>
 <div class="sourceCode" id="cb51"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> iso2 = step1l -| step2l -| step3l</span></code></pre></div>
 <p>While backward composition matches traditional mathematical notation,
@@ -3282,7 +3284,7 @@ code in most programming languages:</p>
 <tbody>
 <tr>
 <td>OCaml</td>
-<td><code>let (\|-) f g x = g (f x)</code></td>
+<td><code>let compose_forward f g x = g (f x)</code></td>
 </tr>
 <tr>
 <td>F#</td>
@@ -3299,9 +3301,7 @@ result goes to <code>step2r</code>, and finally to <code>step3r</code>.
 This “pipeline” style of programming is particularly popular in
 languages like F# and has influenced the design of many modern
 programming languages.</p>
-<p>In the table above, the operator is written as <code>\|-</code>
-because Markdown tables use <code>|</code> to separate columns. In
-actual OCaml code, the operator name is <code>(|-)</code>.</p>
+<p>The infix form in OCaml is <code>let (|-) f g x = g (f x)</code>.</p>
 <div class="sourceCode" id="cb53"><pre
 class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> (|-) f g x = g (f x)</span></code></pre></div>
 <p>Two related (but distinct) tools are also worth knowing:</p>
@@ -16477,7 +16477,7 @@ previous chapters taught us – now with categorical vocabulary.</p>
 </tr>
 <tr>
 <td>3</td>
-<td>Function composition <code>( -\| )</code></td>
+<td>Backward function composition</td>
 <td>Morphism composition in <strong>Types</strong></td>
 </tr>
 <tr>

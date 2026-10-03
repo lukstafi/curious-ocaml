@@ -1316,11 +1316,11 @@ This means that when we write $f \circ g$, we first apply $g$ and then apply $f$
 | Language | Definition |
 |----------|-----------|
 | Math | $(f \circ g)(x) = f(g(x))$ |
-| OCaml | `let (-\|) f g x = f (g x)` |
+| OCaml | `let compose f g x = f (g x)` |
 | F# | `let (<<) f g x = f (g x)` |
 | Haskell | `(.) f g = \x -> f (g x)` |
 
-This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
+In OCaml we also use the infix form `let (-|) f g x = f (g x)`. This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
 
 ```ocaml skip
 let iso2 = step1l -| step2l -| step3l
@@ -1330,7 +1330,7 @@ While backward composition matches traditional mathematical notation, many progr
 
 | Language | Definition |
 |----------|-----------|
-| OCaml | `let (\|-) f g x = g (f x)` |
+| OCaml | `let compose_forward f g x = g (f x)` |
 | F# | `let (>>) f g x = g (f x)` |
 
 With forward composition, you can read a pipeline of transformations in the natural order:
@@ -1341,7 +1341,7 @@ let iso1 = step1r |- step2r |- step3r
 
 Here, the data first passes through `step1r`, then the result goes to `step2r`, and finally to `step3r`. This "pipeline" style of programming is particularly popular in languages like F# and has influenced the design of many modern programming languages.
 
-In the table above, the operator is written as `\|-` because Markdown tables use `|` to separate columns. In actual OCaml code, the operator name is `(|-)`.
+The infix form in OCaml is `let (|-) f g x = g (f x)`.
 
 ```ocaml env=ch3
 let (|-) f g x = g (f x)
@@ -12418,7 +12418,7 @@ Before introducing new material, let us look back at what the previous chapters 
 | 1 | Propositions and types | Objects in a category; Curry--Howard |
 | 2 | Type isomorphisms (`'a * 'b ≅ 'b * 'a`) | Isomorphisms in the category of types |
 | 2 | Type derivative (one-hole context) | Derivative of a functor |
-| 3 | Function composition `( -\| )` | Morphism composition in **Types** |
+| 3 | Backward function composition | Morphism composition in **Types** |
 | 4 | Church encodings | Initial algebra (catamorphism) |
 | 6 | `List.map`, `Option.map` | Endofunctor on **Types** |
 | 6 | `List.fold_right` | Catamorphism (universal property of initial algebra) |
