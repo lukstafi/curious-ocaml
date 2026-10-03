@@ -570,13 +570,13 @@ Every Galois connection induces a **closure operator** $g \circ f : A \to A$, wh
 (* f = ceiling : float -> int (left adjoint) *)
 (* g = embed : int -> float (right adjoint) *)
 (* ceiling(x) <= n  iff  x <= float(n) *)
-(* Use small finite inputs, with integer bounds represented exactly. *)
+(* Small finite inputs; integer bounds are represented exactly. *)
 
 let galois_ceil (x : float) : int =
   int_of_float (Float.ceil x)
 let galois_embed (n : int) : float = float_of_int n
 
-(* Include the boundary that distinguishes ceiling from floor. *)
+(* Include a boundary that distinguishes ceiling from floor. *)
 let () =
   List.iter (fun x ->
     List.iter (fun n ->

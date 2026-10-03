@@ -16982,13 +16982,13 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb490-1"><a hr
 <span id="cb490-3"><a href="#cb490-3" aria-hidden="true" tabindex="-1"></a><span class="co">(* f = ceiling : float -&gt; int (left adjoint) *)</span></span>
 <span id="cb490-4"><a href="#cb490-4" aria-hidden="true" tabindex="-1"></a><span class="co">(* g = embed : int -&gt; float (right adjoint) *)</span></span>
 <span id="cb490-5"><a href="#cb490-5" aria-hidden="true" tabindex="-1"></a><span class="co">(* ceiling(x) &lt;= n  iff  x &lt;= float(n) *)</span></span>
-<span id="cb490-6"><a href="#cb490-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Use small finite inputs, with integer bounds represented exactly. *)</span></span>
+<span id="cb490-6"><a href="#cb490-6" aria-hidden="true" tabindex="-1"></a><span class="co">(* Small finite inputs; integer bounds are represented exactly. *)</span></span>
 <span id="cb490-7"><a href="#cb490-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb490-8"><a href="#cb490-8" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_ceil (x : <span class="dt">float</span>) : <span class="dt">int</span> =</span>
 <span id="cb490-9"><a href="#cb490-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">int_of_float</span> (Float.<span class="dt">ceil</span> x)</span>
 <span id="cb490-10"><a href="#cb490-10" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> galois_embed (n : <span class="dt">int</span>) : <span class="dt">float</span> = <span class="dt">float_of_int</span> n</span>
 <span id="cb490-11"><a href="#cb490-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb490-12"><a href="#cb490-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* Include the boundary that distinguishes ceiling from floor. *)</span></span>
+<span id="cb490-12"><a href="#cb490-12" aria-hidden="true" tabindex="-1"></a><span class="co">(* Include a boundary that distinguishes ceiling from floor. *)</span></span>
 <span id="cb490-13"><a href="#cb490-13" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> () =</span>
 <span id="cb490-14"><a href="#cb490-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">List</span>.iter (<span class="kw">fun</span> x -&gt;</span>
 <span id="cb490-15"><a href="#cb490-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">List</span>.iter (<span class="kw">fun</span> n -&gt;</span>
