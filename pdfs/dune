@@ -100,7 +100,7 @@
  (alias new_book)
  (mode promote)
  (target new_book.pdf)
- (deps README.md template.latex
+ (deps README.md template.latex Curious_OCaml-cover.jpg
        Curious_OCaml-chapter_1.jpg
        Curious_OCaml-chapter_2.jpg
        Curious_OCaml-chapter_3.jpg
@@ -122,7 +122,7 @@
        how-froc-works-e.png
        sin_cos_1.png)
  (action
-  (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --top-level-division=chapter --shift-heading-level-by=-1 --pdf-engine=lualatex -o %{target}")))
+  (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --metadata subtitle='Third Edition: Representations, Interpreters, and Laws' --top-level-division=part --pdf-engine=lualatex -o %{target}")))
 
 ; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
 ; (rule
