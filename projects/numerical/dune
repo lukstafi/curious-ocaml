@@ -1,0 +1,2 @@
+(library (name polynomial) (modules polynomial))
+(test (name laws) (modules laws) (libraries polynomial))

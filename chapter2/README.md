@@ -13,6 +13,10 @@ In this chapter, we will deepen our understanding of OCaml's type system by work
 - Interpret types as polynomials (and learn what this analogy buys you)
 - Differentiate types to compute “one-hole contexts” (derivatives of data structures)
 
+**Prerequisites:** functions, scope and pairs from Chapter 1.
+**Route:** Part I. This chapter's contexts return as machine frames in Chapter 3
+and as mathematical constructions in Chapter 12.
+
 ### 2.1 A Glimpse at Type Inference
 
 For a refresher, let us apply the type inference rules introduced in Chapter 1 to some simple examples. We will start with the identity function `fun x -> x`---perhaps the simplest possible function, yet one that reveals important aspects of polymorphism. In the derivations below, $[?]$ means “unknown (to be inferred)”.
@@ -328,7 +332,7 @@ The pattern `Sat | Sun` matches either `Sat` or `Sun`. This is much cleaner than
 
 Sometimes we want to both destructure a value *and* keep a reference to the whole thing (or some intermediate part). We use `(pattern as v)` to name a nested pattern, binding the matched value to `v`:
 
-```
+```text
 match day with
   | {weekday = (Mon | Tue | Wed | Thu | Fri as wday); _}
       when not (day.month = Dec && day.day = 24) ->
@@ -343,11 +347,24 @@ This example demonstrates several features working together:
 - A `when` guard checks that it is not Christmas Eve
 - The bound variable `wday` is then used in the expression `get_plan wday`
 
-This combination of features makes OCaml's pattern matching remarkably expressive.
+The pattern gives names only to the data used by the branch.
 
 ### 2.5 Interpreting Algebraic Data Types as Polynomials
 
-Now we come to one of the most delightful aspects of algebraic data types: they really are *algebraic* in a precise mathematical sense. Let us explore a curious analogy between types and polynomials that turns out to be surprisingly deep.
+Three interpretations must be kept separate:
+
+| Interpretation | What it tells us | What it does not establish |
+|---|---|---|
+| Finite cardinality | A sum has $a+b$ inhabitants and a product has $ab$ | A particular conversion algorithm |
+| Formal power series | The coefficient of $z^n$ counts shapes of size $n$ | Numerical convergence at a chosen real $z$ |
+| Type isomorphism | Two functions are inverse on all inputs | Equality merely because a symbolic equation looks plausible |
+
+For lists with one mark per element, $L(z)=1+zL(z)$ gives
+$L(z)=\sum_{n\geq0}z^n$. For binary trees marked at nodes,
+$T(z)=1+zT(z)^2$ gives coefficients $1,1,2,5,\ldots$; the root splits the
+remaining nodes between two ordered subtrees. These are formal coefficient
+identities. Interpreting a parameter as the cardinality of a set is a different
+operation from evaluating a series at a real number.
 
 The translation from types to mathematical expressions works as follows:
 
@@ -373,7 +390,7 @@ We also need translations for some special types:
 
 Give a name to the type being defined (representing a function of the introduced variables). For finite, nonrecursive sum-and-product types, the result is a polynomial counting possible values. Recursive types instead give equations for formal power series counting finite structures. Lists yield a rational series; trees generally yield algebraic series that are not rational. Unrestricted subtraction, division, and identities involving infinite cardinalities are not automatically type isomorphisms: justify a proposed isomorphism with inverse functions.
 
-This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
+We will use the equations to propose representations, then write conversions to check them.
 
 #### Example: Date Type
 
@@ -391,7 +408,7 @@ The cube makes sense: this record is essentially a triple of integers.
 
 The built-in option type is defined as:
 
-```
+```text
 type 'a option = None | Some of 'a
 ```
 
@@ -399,10 +416,14 @@ Translating (using $x$ for the type parameter `'a`):
 
 $$O = 1 + x$$
 
-This reads as: an option is either nothing (1) or something of type $x$. The polynomial $1 + x$ is beautifully simple!
+This reads as: an option is either nothing (1) or something of type $x$. The two summands record the two constructor cases.
 
 #### Example: List Type
 
+This skipped declaration recalls the list representation solely for the series
+calculation; it is not a second live definition in this environment.
+
+<!-- book-skip: recalled list declaration; executable list examples appear earlier -->
 ```ocaml skip
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
@@ -454,7 +475,7 @@ Reading the polynomial $1 + x \cdot (1 + x \cdot T^2 \cdot (1 + T))$ from outsid
 
 The challenge is to find isomorphism functions with signatures:
 
-```
+```text
 val iso1 : btree -> repr
 val iso2 : repr -> btree
 ```
@@ -465,7 +486,7 @@ These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for 
 
 Here is my first attempt, trying to guess the pattern directly:
 
-```
+```text
 # let iso1 (t : btree) : repr =
   match t with
     | Tip -> None
@@ -608,7 +629,7 @@ The example above takes the date February 14, 2012, produces three contexts (one
 
 Now let us tackle the more challenging case of binary trees (using the same `btree` type as above):
 
-```
+```text
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -663,15 +684,72 @@ When we reach `Here`, we create a node with the new value `n` and the two subtre
 
 </details>
 
+#### Element holes and subtree holes are different
+
+The derivative above removes one **element**, leaving the node's two children.
+A **subtree** hole removes an entire tree, which may even be `Tip`. Its context
+is a path back to the root, remembering the sibling and parent label at each step:
+
+```ocaml env=ch2
+type frame =
+  | From_left of int * btree
+  | From_right of int * btree
+
+type subtree_context = frame list
+
+let rec plug subtree = function
+  | [] -> subtree
+  | From_left (x, right) :: rest -> plug (Node (x, subtree, right)) rest
+  | From_right (x, left) :: rest -> plug (Node (x, left, subtree)) rest
+
+let () =
+  let t = Node (1, Node (2, Tip, Tip), Tip) in
+  let context = [From_left (1, Tip)] in
+  assert (plug (Node (2, Tip, Tip)) context = t);
+  assert (btree_integr 1 (Here (Node (2, Tip, Tip), Tip)) = t);
+  assert (plug Tip [] = Tip)
+```
+
+For $T=1+aT^2$, a path step has shape $2aT$: a direction, an element, and a
+sibling. A subtree context is a list of these steps. An element context consists
+of the two children of the removed element together with such a path. Thus the
+formal derivative is $T'=T^2/(1-2aT)$. The base $T^2$ is essential: confusing
+these two holes loses the removed element's children.
+
+**Proof exercise.** Write `focus_left` returning a subtree and context, and prove
+that plugging the pair reconstructs the original node. State what happens at
+`Tip`. **Hint:** first prove the single-frame equation, then induct on the path.
+
+#### A small isomorphism with both inverse laws
+
+```ocaml env=isomorphism
+type ('a, 'b) sum = A of 'a | B of 'b
+let distribute (x, choice) =
+  match choice with A y -> A (x, y) | B z -> B (x, z)
+let factor = function
+  | A (x, y) -> (x, A y)
+  | B (x, z) -> (x, B z)
+let () =
+  List.iter (fun x -> assert (factor (distribute x) = x))
+    [true, A 2; false, B "b"];
+  List.iter (fun y -> assert (distribute (factor y) = y))
+    [A (true, 2); B (false, "b")]
+```
+
+These checks illustrate both directions. A proof covers each constructor with
+arbitrary fields, so it establishes the laws for every finite value of the
+represented sum/product types. Function equality in the exponent exercises is
+extensional equality; OCaml's polymorphic `=` cannot compare functions.
+
 ### 2.7 Exercises
 
-#### Exercise 1: Designing Valid Data Structures
+#### Practice 1: Designing Valid Data Structures
 
 *Due to Yaron Minsky.*
 
 This exercise practices the principle of "making invalid states unrepresentable." Consider a datatype to store internet connection information. The time `when_initiated` marks the start of connecting and is not needed after the connection is established (it is only used to decide whether to give up trying to connect). The ping information is available for established connections but not straight away.
 
-```
+```text
 type connectionstate = Connecting | Connected | Disconnected
 
 type connectioninfo = {
@@ -691,7 +769,7 @@ The problem with this design is that it allows many nonsensical combinations: a 
 
 Rewrite the type definitions so that the datatype will contain only reasonable combinations of information. Use separate record types for each connection state, with only the fields that make sense for that state.
 
-#### Exercise 2: Labeled and Optional Arguments
+#### Practice / project 2: Labeled and Optional Arguments
 
 In OCaml, functions can have labeled arguments and optional arguments (parameters with default values that can be omitted). This exercise explores these features.
 
@@ -751,7 +829,7 @@ let test_foo () =
 
 3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it. This tests your understanding of how optional arguments work at the type level.
 
-#### Exercise 3: Type Inference Practice
+#### Practice 3: Type Inference Practice
 
 *From a past exam.*
 
@@ -765,7 +843,7 @@ These exercises help you internalize how type inference works. Try to work them 
    1. `(int -> int) -> bool`
    2. `'a option -> 'a list`
 
-#### Exercise 4: Types as Exponents
+#### Proof 4: Types as Exponents
 
 We have seen that algebraic data types can be related to analytic functions (the subset definable from polynomials via recursion)---by literally interpreting sum types (variant types) as sums and product types (tuple and record types) as products. We can extend this interpretation to function types by interpreting $a \rightarrow b$ as $b^a$ (i.e., $b$ to the power of $a$). Note that the $b^a$ notation is actually used to denote functions in set theory.
 
@@ -773,11 +851,15 @@ This interpretation makes sense: a function from a set with $a$ elements to a se
 
 1. Translate $a^{b + cd}$ and $a^b \cdot (a^c)^d$ into OCaml types, using any distinct types for $a, b, c, d$, and using `type ('a,'b) choice = Left of 'a | Right of 'b` for $+$. Write the bijection functions in both directions. Verify algebraically that $a^{b + cd} = a^b \cdot (a^c)^d$ using the laws of exponents.
 
-2. Come up with a type `'t exp` that shares with the exponential function the following property: $\frac{\partial \exp(t)}{\partial t} = \exp(t)$, where we translate a derivative of a type as a context (i.e., the type with a "hole"), as in this chapter. In other words, the derivative of the type should be isomorphic to the type itself! Explain why your answer is correct. *Hint:* in computer science, our logarithms are mostly base 2.
+2. **Experiment.** Explain why differentiating the list series gives two lists
+   (the prefix and suffix around an element hole), whereas marking a gap gives
+   one more possible position than marking an element. Count both for lengths
+   zero, one and two. Do not infer that every analytic function denotes an
+   ordinary algebraic datatype: denominators such as $n!$ in an exponential
+   series require a different counting convention, involving labeled structures.
 
-*Further reading:* [Algebraic Type Systems - Combinatorial Species](http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html)
 
-#### Exercise 5 (Homework): Finding Contexts
+#### Practice 5: Finding Contexts
 
 Write a function `btree_deriv_at` that takes a predicate over integers (i.e., a function `f: int -> bool`) and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position for which the predicate returns true. It should return a `btree_deriv option`, with `None` if the predicate does not hold for any node.
 

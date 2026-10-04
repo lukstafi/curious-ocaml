@@ -1,0 +1,2 @@
+(library (name teaching_effects) (wrapped false) (modules Runtime Script))
+(test (name laws) (modules laws) (libraries teaching_effects))

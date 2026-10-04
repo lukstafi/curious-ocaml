@@ -1,3 +1,4 @@
 (mdx
  (files README.md)
- (preludes prelude.ml))
+ (preludes prelude.ml)
+ (libraries expressions))

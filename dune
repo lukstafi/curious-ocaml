@@ -8,36 +8,38 @@
   chapter1/README.md
   chapter2/README.md
   chapter3/README.md
-  chapter4/README.md
   chapter5/README.md
+  chapter4/README.md
   chapter6/README.md
+  chapter11/README.md
   chapter7/README.md
   chapter8/README.md
   chapter9/README.md
   chapter10/README.md
-  chapter11/README.md
   chapter12/README.md)
  (action
-  (with-stdout-to
-   README.md
+  (with-stdout-to README.md
    (progn
     (cat MD_metadata.md)
-    (echo
-     "<!-- Do NOT modify this file, it is automatically generated -->\n")
+    (echo "<!-- Do NOT modify this file, it is automatically generated -->\n")
     (cat intro.md)
-    (echo "\n\n")
+    (echo "\n\n# Part I: Reasoning about programs\n\n")
     (cat chapter1/README.md)
     (echo "\n\n")
     (cat chapter2/README.md)
     (echo "\n\n")
     (cat chapter3/README.md)
     (echo "\n\n")
-    (cat chapter4/README.md)
-    (echo "\n\n")
     (cat chapter5/README.md)
     (echo "\n\n")
+    (cat chapter4/README.md)
+    (echo "\n\n")
+    (echo "\n\n# Part II: Representations and interpreters\n\n")
     (cat chapter6/README.md)
     (echo "\n\n")
+    (cat chapter11/README.md)
+    (echo "\n\n")
+    (echo "\n\n# Part III: Computation over time and choices\n\n")
     (cat chapter7/README.md)
     (echo "\n\n")
     (cat chapter8/README.md)
@@ -46,8 +48,7 @@
     (echo "\n\n")
     (cat chapter10/README.md)
     (echo "\n\n")
-    (cat chapter11/README.md)
-    (echo "\n\n")
+    (echo "\n\n# Part IV: Mathematical synthesis\n\n")
     (cat chapter12/README.md)))))
 
 (rule

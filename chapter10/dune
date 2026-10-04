@@ -1,9 +1,9 @@
-(mdx
- (files README.md README.claude.md README.codex.md)
- (preludes prelude.ml))
+(mdx (files README.md) (libraries game))
 
+; Historical GUI laboratory: explicitly opt in after installing its dependencies.
 (executable
  (name chapter10)
  (public_name chapter10)
  (modules chapter10)
+ (enabled_if (= %{profile} gui))
  (libraries bogue lwd incremental))

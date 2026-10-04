@@ -1,6 +1,7 @@
 (mdx
  (files README.md)
- (preludes prelude.ml))
+ (preludes prelude.ml)
+ (libraries expressions))
 
 (library
  (name chapter11_examples)

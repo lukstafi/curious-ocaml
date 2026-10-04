@@ -1,7 +1,9 @@
 (mdx
- (files README.md README.claude.md README.codex.md)
- (preludes prelude.ml))
+ (files README.md)
+ (preludes prelude.ml)
+ (libraries teaching_effects probability))
 
 (executable
  (name sensor_fusion)
- (public_name sensor_fusion))
+ (public_name sensor_fusion)
+ (libraries probability teaching_effects))
