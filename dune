@@ -2,7 +2,7 @@
  (target README.md)
  (mode promote)
  (deps
-  MD_metadata.md
+  MD_metadata_third_edition.md
   intro.md
   Curious_OCaml-cover.jpg
   chapter1/README.md
@@ -20,7 +20,7 @@
  (action
   (with-stdout-to README.md
    (progn
-    (cat MD_metadata.md)
+    (cat MD_metadata_third_edition.md)
     (echo "<!-- Do NOT modify this file, it is automatically generated -->\n")
     (cat intro.md)
     (echo "\n\n# Part I: Reasoning about programs\n\n")
