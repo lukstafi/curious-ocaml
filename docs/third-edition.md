@@ -5,6 +5,25 @@ The editable manuscript remains in `intro.md` and `chapterN/README.md`.
 The second-edition sources remain available at Git revision `69d7c71`;
 historical lecture files are not third-edition examples.
 
+## Attribution
+
+The third-edition rewrite is credited to GPT-6 Astra. First-edition authors are
+Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2; second-edition model credits await
+confirmation. The retained illustrations are credited separately to Gemini 3
+Nano Banana. The introduction carries this edition history.
+
+`MD_metadata_third_edition.md` supplies the current book's author metadata;
+`MD_metadata.md` remains the historical lecture compilation's metadata. Changing
+the current edition's credits must not relabel historical publications.
+
+## Editorial tone
+
+The book should convey curiosity, delight and the appeal of a construction through
+its examples and discoveries. Invite readers to notice a connection, make a
+prediction or encounter a surprising counterexample; avoid prescribing their
+reaction with repeated assurances that the material is beautiful or elegant.
+This is not a ban on expressive language or playful illustrations.
+
 ## Reading architecture
 
 | Part | Reading order | Thread |

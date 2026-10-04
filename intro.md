@@ -17,6 +17,16 @@ and extension. We compare search and probability interpreters with finite
 reference models. We make ownership and cleanup part of the meaning of an effects
 program, and return to these concrete examples in the mathematical synthesis.
 
+### Edition credits
+
+Each edition builds on the preceding work. The credits distinguish the original
+book from its later rewrites:
+
+- **First edition:** Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2.
+- **Second edition:** additional model credits to be confirmed.
+- **Third-edition rewrite:** GPT-6 Astra.
+- **Illustrations:** Gemini 3 Nano Banana; retained from the earlier editions.
+
 ### Choose a route
 
 The chapter numbers remain stable, but the four parts give the reading order:
