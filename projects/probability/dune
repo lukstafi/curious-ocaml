@@ -1,0 +1,2 @@
+(library (name probability) (modules probability))
+(test (name laws) (modules laws) (libraries probability))

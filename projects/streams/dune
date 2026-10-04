@@ -1,0 +1,2 @@
+(library (name scoped) (modules scoped))
+(test (name laws) (modules laws) (libraries scoped))

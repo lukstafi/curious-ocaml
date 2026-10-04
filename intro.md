@@ -4,25 +4,68 @@
 *Illustrated by: Gemini 3 Nano Banana*
 :::
 
-# Curious OCaml
+## About the third edition
 
-*Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
+A pair can be a proof of a conjunction. A tree with a hole can describe an editing
+position. An evaluator can become a machine by turning its continuations into
+data. This book follows such constructions in OCaml, asking what each
+representation preserves and how we can check that claim.
 
-This book is intended for three audiences:
+The third edition is organized around **representations, interpreters, and laws**.
+We use one small expression language across evaluation, folds, binding, parsing
+and extension. We compare search and probability interpreters with finite
+reference models. We make ownership and cleanup part of the meaning of an effects
+program, and return to these concrete examples in the mathematical synthesis.
 
-- New to programming: ambitious students in areas with formal rigor -- math, computer science, philosophy, linguistics, etc.
-- Intermediate: OCaml programmers.
-- Advanced: programmers who are new to functional programming.
+### Choose a route
 
+The chapter numbers remain stable, but the four parts give the reading order:
 
-## Reading and running
+| Part | Chapters | Question |
+|---|---|---|
+| I. Reasoning about programs | 1, 2, 3, 5; optional 4 | What does a program mean, and which laws does it satisfy? |
+| II. Representations and interpreters | 6, 11 | What changes when the same language gets a new representation? |
+| III. Computation over time and choices | 7, 8, 9, 10 | Who chooses, when does work happen, and who owns suspended work? |
+| IV. Mathematical synthesis | 12 | Which constructions have universal properties, under which hypotheses? |
 
-The book assumes willingness to work through mathematical notation and small programs. Readers entirely new to programming should also practice using the OCaml toplevel, loading a file, and reading a compiler error before tackling the longer derivations. The later chapters build on functions, algebraic data types, pattern matching, and modules.
+- **Mathematically mature novice:** start with the first session in Chapter 1.
+  Follow Part I in order; do the practice exercises before the proofs. Loading a
+  file, reading a type error and inspecting a value are part of the course.
+- **Experienced programmer new to OCaml:** read Chapter 1's execution and scope
+  conventions, Chapter 2's variants and patterns, then Chapters 3 and 5. Return to
+  the logical rules and type derivatives after writing a few small programs.
+- **OCaml programmer:** use Chapters 2–3 to establish the common examples, then
+  follow Parts II–IV. Chapter 4 supplies the optional lambda-calculus route.
 
-Use OCaml 5.3 or later for the whole book: Chapter 9 uses the effect-pattern syntax introduced in 5.3. The source repository contains one current `chapterN/README.md` per chapter. Root `README.md` is generated from them; the `functional-lecture*.md` and `Lec*.ml` files are historical course material.
+Each chapter states its prerequisites. Exercises are labeled **practice** (write
+or trace a small program), **proof** (state hypotheses and justify a claim),
+**experiment** (measure or find a counterexample), or **project** (combine several
+ideas with acceptance criteria). Selected answers accompany the relevant
+construction. A passing test is evidence about its inputs, not a universal proof.
 
-The examples are checked with Dune and mdx. In a checkout with the dependencies from `curious.opam` installed, run `dune runtest`. To check selected chapters, for example, run `dune runtest chapter1 chapter2`. Run `dune build README.md @site/new_book` to regenerate the combined manuscript and HTML edition.
+### Reading and running
 
-Code blocks sharing an `env` label within a chapter share definitions and load that chapter's `prelude.ml`. Inspect that prelude when running excerpts independently. Blocks marked `skip` include exercises, pseudo-code, and deliberately non-running or expensive examples. Chapters 6 and 10 additionally require GUI/incremental libraries; their interactive demonstrations need a graphical environment.
+Install the core test dependencies with `opam install . --deps-only --with-test`.
+The optional GUI laboratory has separate dependencies listed in its project guide.
+Use OCaml 5.3 or later; the effects chapters use its effect-pattern syntax.
+From a checkout, run `dune runtest` for the maintained examples. Use
+`dune runtest chapter3 projects/expressions` for the evaluator alone. The project
+sources under `projects/` are ordinary compiled modules, with tests of laws,
+failures and resource behavior. Chapter snippets synchronized with those modules
+have MDX file references, so editing one without the other fails the checks.
 
-For a first reading, follow Chapters 1–3 and 5–6 before the larger applications in Chapters 7–11. Chapter 4 is an optional deeper study of lambda calculus; return to it when encodings and evaluation strategies become useful. Chapter 12 is a synthesis for readers already comfortable with the earlier constructions, rather than a prerequisite for using them.
+A code block beginning with `#` is a toplevel transcript: type the text after the
+prompt and finish it with `;;`. Other OCaml blocks contain source-file definitions;
+do not copy the output of a transcript into a source file. Blocks with an `env`
+label share a testing environment within their chapter. Some use the chapter's
+`prelude.ml`; the surrounding text identifies additional module dependencies.
+A block marked `skip` is not checked by execution and must state its reason.
+
+Edit `intro.md` and `chapterN/README.md`, not the generated root `README.md`.
+Build the combined manuscript and web edition with
+`dune build README.md @site/new_book`, and the PDF with
+`dune build @pdfs/new_book` (Pandoc and LuaLaTeX required).
+The original `functional-lecture*.md`, `Lec*.ml`, and alternate chapter drafts
+are historical sources, not part of the maintained reading route.
+
+The implementation and publication record is in `docs/third-edition.md`.

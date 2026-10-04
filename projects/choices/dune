@@ -1,0 +1,2 @@
+(library (name search) (modules search))
+(test (name laws) (modules laws) (libraries search))

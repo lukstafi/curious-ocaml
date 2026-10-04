@@ -1,0 +1,15 @@
+(library
+ (name expressions)
+ (modules Expr Lambda Sexp Parser))
+
+(test
+ (name laws)
+ (modules laws)
+ (libraries expressions))
+
+(test
+ (name lambda_laws)
+ (modules lambda_laws)
+ (libraries expressions))
+
+(test (name parser_laws) (modules parser_laws) (libraries expressions))

@@ -2,6 +2,10 @@
 
 ![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
 
+**Prerequisites:** Chapter 3's expression language; Chapter 5's module interfaces.
+**Route:** Part II begins here. Continue to Chapter 11 for binding and extension,
+or Chapter 7 for streams.
+
 **In this chapter, you will:**
 
 - Identify common recursion patterns and refactor them into `map`/`fold` abstractions
@@ -21,7 +25,7 @@ Functional programming emphasizes identifying common patterns and abstracting th
 
 How do we print a comma-separated list of integers? The `String` module provides a function that joins strings with a separator:
 
-```
+```text
 val concat : string -> string list -> string
 ```
 
@@ -161,7 +165,7 @@ Note that the `average` example is slightly trickier than `list_rev` because we 
 This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
 ::: {.figure}
-```
+```text
     Input list              Result computation
 
         ::                         f
@@ -181,7 +185,7 @@ This reversal of structure is why `fold_left` naturally reverses lists when the 
 
 #### Useful Derived Functions
 
-Many common list operations can be expressed elegantly using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
+Many common list operations can be expressed using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
 
 ```ocaml env=ch6
 let list_filter p l =
@@ -235,127 +239,96 @@ let depth t = bt_fold (fun _ l r -> 1 + max l r) 0 t
 
 The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
 
-#### More Complex Structures: Expressions
+#### The same expression language as Chapter 3
 
-Real-world data types often have more than two cases. To demonstrate map and fold for more complex structures, let us recall the expression type from Chapter 3:
+A shape-preserving map changes the labels at existing positions, preserving
+constructors. A fold may produce a number, a function, or a differently shaped
+tree. Calling all these operations “map” hides the distinction.
 
-```ocaml env=ch6
-type expression =
-    Const of float
-  | Var of string
-  | Sum of expression * expression    (* e1 + e2 *)
-  | Diff of expression * expression   (* e1 - e2 *)
-  | Prod of expression * expression   (* e1 * e2 *)
-  | Quot of expression * expression   (* e1 / e2 *)
-```
+Here is the fold for `Expressions.Expr.t`. The algebra has one field per
+constructor. The two recursive positions of `Let` are its value and body; the
+binding name itself is a label. This traversal handles syntax, not lexical scope.
 
-The multitude of cases makes this datatype harder to work with than binary trees. Fortunately, OCaml's *or-patterns* help us handle multiple similar cases together:
-
-```ocaml env=ch6
-let rec vars = function
-  | Const _ -> []
-  | Var x -> [x]
-  | Sum (a,b) | Diff (a,b) | Prod (a,b) | Quot (a,b) ->
-    vars a @ vars b
-```
-
-For a generic `map` and `fold` over expressions, we need to specify behavior for each case. Since there are many cases, we pack all the behaviors into records. This way, we can define default behaviors and then override just the cases we care about:
-
-```ocaml env=ch6
-type expression_map = {
-  map_const : float -> expression;
-  map_var : string -> expression;
-  map_sum : expression -> expression -> expression;
-  map_diff : expression -> expression -> expression;
-  map_prod : expression -> expression -> expression;
-  map_quot : expression -> expression -> expression;
+<!-- $MDX file=../projects/expressions/expr.ml,part=fold -->
+```ocaml
+type 'a algebra = {
+  number : float -> 'a;
+  variable : string -> 'a;
+  binary : op -> 'a -> 'a -> 'a;
+  binding : string -> 'a -> 'a -> 'a;
 }
 
-(*
-   Note: In expression_fold, we use 'a instead of expression because
-   fold produces values of arbitrary type, not necessarily expressions.
-*)
-type 'a expression_fold = {
-  fold_const : float -> 'a;
-  fold_var : string -> 'a;
-  fold_sum : 'a -> 'a -> 'a;
-  fold_diff : 'a -> 'a -> 'a;
-  fold_prod : 'a -> 'a -> 'a;
-  fold_quot : 'a -> 'a -> 'a;
-}
-```
+let rec fold alg = function
+  | Number n -> alg.number n
+  | Variable x -> alg.variable x
+  | Binary (op, a, b) ->
+    let a' = fold alg a in
+    let b' = fold alg b in
+    alg.binary op a' b'
+  | Let (x, value, body) ->
+    let value' = fold alg value in
+    let body' = fold alg body in
+    alg.binding x value' body'
 
-Now we define standard "default" behaviors. The `identity_map` reconstructs the same expression (useful as a starting point when we only want to change one case), and `make_fold` creates a fold where all binary operators behave the same:
-
-```ocaml env=ch6
-let identity_map = {
-  map_const = (fun c -> Const c);
-  map_var = (fun x -> Var x);
-  map_sum = (fun a b -> Sum (a, b));
-  map_diff = (fun a b -> Diff (a, b));
-  map_prod = (fun a b -> Prod (a, b));
-  map_quot = (fun a b -> Quot (a, b));
+let rebuild = {
+  number = (fun n -> Number n);
+  variable = (fun x -> Variable x);
+  binary = (fun op a b -> Binary (op, a, b));
+  binding = (fun x value body -> Let (x, value, body));
 }
 
-let make_fold op base = {
-  fold_const = (fun _ -> base);
-  fold_var = (fun _ -> base);
-  fold_sum = op; fold_diff = op;
-  fold_prod = op; fold_quot = op;
+let size = fold {
+  number = (fun _ -> 1); variable = (fun _ -> 1);
+  binary = (fun _ a b -> 1 + a + b);
+  binding = (fun _ value body -> 1 + value + body);
+}
+
+let eval_fold = fold {
+  number = (fun n _env -> n);
+  variable = (fun x env -> lookup env x);
+  binary = (fun op a b env ->
+    let x = a env in let y = b env in apply op x y);
+  binding = (fun x value body env ->
+    let v = value env in body ((x, v) :: env));
 }
 ```
 
-The actual functions follow. Unlike list `map`, this `expr_map` is a bottom-up rewriter: its handlers can replace whole subtrees and change the shape. It is a specialized fold returning expressions, rather than a functor map that must preserve the constructors.
+The last algebra is the subtle one. A fold cannot evaluate a `Let` body to a
+number before it knows the binding's value. Instead its carrier is
+`environment -> float`: each subtree becomes a function waiting for an
+environment. The `binding` handler then passes an extended environment to the
+body function. The explicit `let`s preserve the left-to-right order of Chapter 3.
 
-```ocaml env=ch6
-let rec expr_map emap = function
-  | Const c -> emap.map_const c
-  | Var x -> emap.map_var x
-  | Sum (a,b) -> emap.map_sum (expr_map emap a) (expr_map emap b)
-  | Diff (a,b) -> emap.map_diff (expr_map emap a) (expr_map emap b)
-  | Prod (a,b) -> emap.map_prod (expr_map emap a) (expr_map emap b)
-  | Quot (a,b) -> emap.map_quot (expr_map emap a) (expr_map emap b)
-
-let rec expr_fold efold = function
-  | Const c -> efold.fold_const c
-  | Var x -> efold.fold_var x
-  | Sum (a,b) -> efold.fold_sum (expr_fold efold a) (expr_fold efold b)
-  | Diff (a,b) -> efold.fold_diff (expr_fold efold a) (expr_fold efold b)
-  | Prod (a,b) -> efold.fold_prod (expr_fold efold a) (expr_fold efold b)
-  | Quot (a,b) -> efold.fold_quot (expr_fold efold a) (expr_fold efold b)
+```ocaml env=expression_folds
+open Expressions.Expr
+let example = Let ("x", Number 3.,
+  Binary (Add, Variable "x", Number 4.))
+let () =
+  assert (size example = 5);
+  assert (fold rebuild example = example);
+  assert (eval_fold example [] = eval [] example)
 ```
 
-Now here is the payoff. Using OCaml's `{record with field = value}` syntax, we can easily customize behaviors for specific uses by starting from the defaults and overriding just what we need:
+A bottom-up rewrite is a fold with carrier `t`. For example `simplify` in the
+shared module folds *literal* binary operations using the same float operation
+as evaluation. It does not erase a variable lookup or reassociate arithmetic.
+It takes one traversal: children are already simplified when the parent is
+processed. A general rewrite system may need iteration, but this one does not.
 
-```ocaml env=ch6
-let prime_vars = expr_map
-  {identity_map with map_var = fun x -> Var (x ^ "'")}
-
-let subst s =
-  let apply x = try List.assoc x s with Not_found -> Var x in
-  expr_map {identity_map with map_var = apply}
-
-let vars =
-  expr_fold {(make_fold (@) []) with fold_var = fun x -> [x]}
-
-let size = expr_fold (make_fold (fun a b -> 1 + a + b) 1)
-
-let eval env = expr_fold {
-  fold_const = id;
-  fold_var = (fun x -> List.assoc x env);
-  fold_sum = (+.); fold_diff = (-.);
-  fold_prod = ( *.); fold_quot = (/.);
-}
+```ocaml env=expression_folds
+let () =
+  let e = Binary (Add, Binary (Mul, Number 2., Number 3.), Variable "x") in
+  assert (simplify e = Binary (Add, Number 6., Variable "x"));
+  assert (eval ["x", 1.] (simplify e) = eval ["x", 1.] e)
 ```
+
+The identity algebra `rebuild` gives a useful law: `fold rebuild e = e` for finite
+syntax. Prove it by induction, using one case per constructor. Chapter 12 will
+identify the equations that make this fold unique.
 
 ### 6.4 Point-Free Programming
 
-In 1977/78, John Backus -- the designer of FORTRAN and BNF notation -- introduced **FP**, the first *function-level programming* language. This was a radical departure from the prevailing style: rather than manipulating variables and values, programs were built entirely by combining functions. Over the next decade, FP evolved into the **FL** language.
-
-The philosophy behind function-level programming is captured in this quote:
-
-> "Clarity is achieved when programs are written at the function level -- that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs."
-> -- *The FL Project: The Design of a Functional Language*
+We can compose functions without naming each intermediate value.
 
 This style is sometimes called **point-free** or **tacit** programming, because we never mention the "points" (values) that functions operate on -- we only talk about the functions themselves and how they combine.
 
@@ -392,7 +365,7 @@ let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
 
-Here `***` applies two functions in parallel to the components of a pair, `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
+Here `***` applies one function to each component of a pair (this does not start parallel execution), `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
 
 **Why the name "currying"?** Converting a C/Pascal-style function (that takes all arguments as a tuple) into one that takes arguments one at a time is called *currying*, after the logician Haskell Brooks Curry. Since OCaml functions naturally take arguments one at a time, we often need `uncurry` to interface with tuple-based operations, and `curry` to convert back.
 
@@ -689,7 +662,7 @@ Now we turn to solving puzzles, which will showcase the power of backtracking wi
 - Target: 765
 - One possible solution: (25-10) * (50+1) = 15 * 51 = 765
 
-This example has 780 different solutions! Changing the target to 831 gives an example with no solutions at all.
+We will compare solvers on small inputs before attempting this larger search.
 
 Let us develop a solver step by step, starting with the data types.
 
@@ -775,7 +748,7 @@ We introduce a convenient operator for working with multiple data sources. The "
 let ( |-> ) x f = concat_map f x
 ```
 
-Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
+Now we can generate all expressions from a list of numbers. The structure records each branch of the backtracking search:
 
 ```ocaml env=ch6
 let combine l r =                  (* Combine two expressions using each operator *)
@@ -858,399 +831,66 @@ let () =
   assert (search index ["missing"] = [])
 ```
 
-### 6.9 The Honey Islands Puzzle
+### 6.9 A search contract before a speed claim
 
-Now let us tackle a different kind of puzzle that requires more sophisticated backtracking.
+For Countdown, **soundness** says every returned expression uses an allowed
+submultiset, has positive integer intermediate results, and reaches its target.
+**Completeness** of the reference enumerator says every legal expression over
+an allowed ordering appears. Induct on its syntax: a leaf comes from a singleton
+choice; an internal node splits its leaf sequence into two nonempty parts and
+chooses one of the four operators. Enumerating subsequences and permutations
+supplies every allowed ordered leaf sequence. Duplicate source values can produce
+duplicate syntax; they do not permit an extra use of an input occurrence.
 
-**Be a bee!** Imagine a honeycomb where you need to eat honey from certain cells to prevent the remaining honey from going sour. Sourness spreads through contact, so you want to divide the honey into isolated "islands" -- each small enough that it will be consumed before spoiling.
-
-More precisely: given a honeycomb with some cells initially marked black (empty), mark additional cells as empty so that the remaining (unmarked) cells form exactly `num_islands` disconnected components, each with exactly `island_size` cells.
-
-| Task: 3 islands × 3 cells | Solution |
-|:-------------------------:|:--------:|
-| ![Task](honey0.png){width=45%} | ![Solution](honey1.png){width=45%} |
-
-In the solution, yellow cells contain honey, black cells were initially empty, and purple cells are the newly "eaten" cells that separate the honey into 3 islands of 3 cells each.
-
-#### Representing the Honeycomb
-
-We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
-
-```ocaml env=ch6
-type cell = int * int          (* Cartesian coordinates *)
-
-module CellSet =               (* Store cells in sets for efficient membership tests *)
-  Set.Make (struct type t = cell let compare = compare end)
-
-type task = {                  (* For board size N, coordinates *)
-  board_size : int;            (* range from (-2N, -N) to (2N, N) *)
-  num_islands : int;           (* Required number of islands *)
-  island_size : int;           (* Required cells per island *)
-  empty_cells : CellSet.t;     (* Initially empty cells *)
-}
-
-let cellset_of_list l =           (* Convert list to set (inverse of CellSet.elements) *)
-  List.fold_right CellSet.add l CellSet.empty
-```
-
-**Neighborhood:** In a honeycomb, each cell has up to 6 neighbors. We filter out neighbors that are outside the board or already eaten:
+Fusing generation with evaluation preserves all valid syntax. The stronger
+predicate deliberately drops some syntax, so its claim is only preservation of
+**reachable target values**, when using any nonempty submultiset. Sorting the
+operands of a commutative operation preserves its value. Multiplication or division
+by one can be removed by using fewer inputs. That reasoning would fail for a rule
+requiring *every* input to be used. Integer overflow is outside the positive
+mathematical-integer argument; use small inputs for these checks, or add checked
+arithmetic before using this as a general solver.
 
 ```ocaml env=ch6
-let even x = x mod 2 = 0
-
-let inside_board n eaten (x, y) =
-  even x = even y && abs y <= n &&
-  abs x + abs y <= 2*n &&
-  not (CellSet.mem (x, y) eaten)
-
-let neighbors n eaten (x, y) =
-  List.filter
-    (inside_board n eaten)
-    [x-1,y-1; x+1,y-1; x+2,y;
-     x+1,y+1; x-1,y+1; x-2,y]
+let () =
+  let reachable xs =
+    choices xs |> List.concat_map exprs |> List.filter_map eval
+    |> List.sort_uniq compare in
+  let fused xs =
+    choices xs |> List.concat_map (results valid) |> List.map snd
+    |> List.sort_uniq compare in
+  List.iter (fun xs ->
+    let expected = reachable xs in
+    assert (fused xs = expected);
+    List.iter (fun target ->
+      assert (List.for_all (fun e -> solution e xs target)
+        (solutions_optimized xs target));
+      let syntax xs = List.sort_uniq compare xs in
+      assert (syntax (solutions xs target) = syntax (solutions' xs target)))
+      expected)
+    [[1]; [1;1]; [1;2]; [2;3]; [1;2;3]; [2;2;3]]
 ```
 
-**Building the honeycomb:** We generate all valid honey cells by iterating over the coordinate range and filtering:
-
-```ocaml env=ch6
-let honey_cells n eaten =
-  fromto (-2*n) (2*n) |-> (fun x ->
-    fromto (-n) n |-> (fun y ->
-     pred_guard (inside_board n eaten)
-        (x, y)))
-```
-
-#### Drawing Honeycombs
-
-To visualize the honeycomb, we generate colored polygons. Each cell is drawn as a hexagon
-by placing 6 points evenly spaced on a circumcircle:
-
-```ocaml env=ch6
-let draw_honeycomb ~w ~h task eaten =
-  let i2f = float_of_int in
-  let nx = i2f (4 * task.board_size + 2) in
-  let ny = i2f (2 * task.board_size + 2) in
-  let radius = min (i2f w /. nx) (i2f h /. ny) in
-  let x0 = w / 2 in
-  let y0 = h / 2 in
-  let dx = (sqrt 3. /. 2.) *. radius +. 1. in  (* Distance between *)
-  let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)
-  let draw_cell (x, y) =
-    Array.init 7                               (* Draw a closed polygon *)
-      (fun i ->                            (* with 6 points evenly spaced *)
-        let phi = float_of_int i *. Float.pi /. 3. in   (* on circumcircle *)
-        x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),
-        y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in
-  let honey =
-    honey_cells task.board_size (CellSet.union task.empty_cells
-                                   (cellset_of_list eaten))
-    |> List.map (fun p -> draw_cell p, (255, 255, 0)) in   (* Yellow cells *)
-  let eaten = List.map
-    (fun p -> draw_cell p, (50, 0, 50)) eaten in           (* Purple: eaten *)
-  let old_empty = List.map
-    (fun p -> draw_cell p, (0, 0, 0))                      (* Black: empty *)
-    (CellSet.elements task.empty_cells) in
-  honey @ eaten @ old_empty
-```
-
-**Drawing to SVG:** We can render the polygons to an SVG image file:
-
-```ocaml env=ch6
-let draw_to_svg file ~w ~h ?title ?desc curves =
-  let f = open_out file in
-  Printf.fprintf f "<?xml version=\"1.0\" standalone=\"no\"?>
-<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"
-  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
-<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"
-    xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">
-" w h w h;
-  (match title with None -> ()
-  | Some title -> Printf.fprintf f "  <title>%s</title>\n" title);
-  (match desc with None -> ()
-  | Some desc -> Printf.fprintf f "  <desc>%s</desc>\n" desc);
-  let draw_shape (points, (r, g, b)) =
-    uncurry (Printf.fprintf f "  <path d=\"M %d %d") points.(0);
-    Array.iteri (fun i (x, y) ->
-      if i > 0 then Printf.fprintf f " L %d %d" x y) points;
-    Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" />\n"
-      r g b in
-  List.iter draw_shape curves;
-  Printf.fprintf f "</svg>%!";
-  close_out f
-```
-
-**Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.
-
-```ocaml env=ch6
-let draw_to_screen ~w ~h curves =
-  let open Bogue in
-  let area_widget = Widget.sdl_area ~w ~h () in
-  let area = Widget.get_sdl_area area_widget in
-  (* Queue drawing commands for when the area is rendered *)
-  Sdl_area.add area (fun _renderer ->
-    (* Draw brown background *)
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "saddlebrown"))
-      ~w ~h (0, 0);
-    (* Draw each hexagon as connected line segments *)
-    List.iter (fun (points, (r, g, b)) ->
-      let color = Draw.opaque (r, g, b) in
-      let n = Array.length points in
-      for i = 0 to n - 2 do
-        let (x0, y0) = points.(i) in
-        let (x1, y1) = points.(i + 1) in
-        (* Flip y-coordinate: Bogue uses top-left origin *)
-        Sdl_area.draw_line area ~color ~thick:3 (x0, h - y0) (x1, h - y1)
-      done) curves);
-  let layout = Layout.resident area_widget in
-  let board = Main.of_layout layout in
-  Main.run board
-```
-
-#### Testing Correctness
-
-Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
-
-```ocaml env=ch6
-let check_correct n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec check_board been_islands unvisited visited =
-    match unvisited with
-    | [] -> been_islands = num_islands
-    | cell::remaining when CellSet.mem cell visited ->
-        check_board been_islands remaining visited    (* Keep looking *)
-    | cell::remaining (* when not visited *) ->
-        let (been_size, unvisited, visited) =
-          check_island cell                           (* Visit another island *)
-            (1, remaining, CellSet.add cell visited) in
-        been_size = island_size
-        && check_board (been_islands+1) unvisited visited
-
-  and check_island current state =
-    neighbors n empty_cells current
-    |> List.fold_left                                 (* Walk into each direction *)
-      (fun (been_size, unvisited, visited as state)
-        neighbor ->
-        if CellSet.mem neighbor visited then state
-        else
-          let unvisited = remove neighbor unvisited in
-          let visited = CellSet.add neighbor visited in
-          let been_size = been_size + 1 in
-          check_island neighbor
-            (been_size, unvisited, visited))
-      state in                                        (* Initial been_size is 1 *)
-
-  check_board 0 honey empty_cells
-```
-
-#### Multiple Results per Step: concat_fold
-
-When processing lists, sometimes each step can produce multiple results (not just one as in `fold_left`, or many independent ones as in `concat_map`). We need a hybrid: process elements sequentially like `fold_left`, but allow multiple results at each step, collecting all the final states.
-
-This is `concat_fold`:
-
-```ocaml env=ch6
-let rec concat_fold f a = function
-  | [] -> [a]
-  | x::xs ->
-    f x a |-> (fun a' -> concat_fold f a' xs)
-```
-
-#### Generating Solutions
-
-The key insight is that we can transform the *testing* code into *generation* code by:
-
-1. Passing around the current partial solution (the `eaten` list)
-2. Returning results in a list (empty list means no solutions from this path)
-3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
-
-```ocaml env=ch6
-let find_to_eat n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec find_board been_islands unvisited visited eaten =
-    match unvisited with
-    | [] ->
-      if been_islands = num_islands then [eaten] else []
-    | cell::remaining when CellSet.mem cell visited ->
-      find_board been_islands remaining visited eaten
-    | cell::remaining (* when not visited *) ->
-      find_island cell
-        (1, remaining, CellSet.add cell visited, eaten)
-      |->                                             (* Concatenate solutions *)
-      (fun (been_size, unvisited, visited, eaten) ->
-        if been_size = island_size
-        then find_board (been_islands+1)
-               unvisited visited eaten
-        else [])
-
-  and find_island current state =
-    neighbors n empty_cells current
-    |> concat_fold                                    (* Multiple results *)
-        (fun neighbor
-          (been_size, unvisited, visited, eaten as state) ->
-          if CellSet.mem neighbor visited then [state]
-          else
-            let unvisited = remove neighbor unvisited in
-            let visited = CellSet.add neighbor visited in
-            (been_size, unvisited, visited,
-             neighbor::eaten)::
-              (* solutions where neighbor is honey *)
-            find_island neighbor
-              (been_size+1, unvisited, visited, eaten))
-        state in
-
-  find_board 0 honey empty_cells []
-```
-
-#### Optimizations
-
-The brute-force generation explores far too many possibilities. The key optimization principle is: **fail (drop solution candidates) as early as possible**.
-
-Instead of blindly exploring all choices, we add guards to prune branches that cannot lead to solutions:
-
-- Do not try to eat more cells if we have already eaten enough
-- Do not add more cells to an island that is already full
-- Track exactly how many cells still need to be eaten
-
-```ocaml env=ch6
-type state = {
-  been_size: int;                           (* Honey cells in current island *)
-  been_islands: int;                        (* Islands visited so far *)
-  unvisited: cell list;                     (* Cells to visit *)
-  visited: CellSet.t;                       (* Already visited *)
-  eaten: cell list;                         (* Current solution candidate *)
-  more_to_eat: int;                         (* Remaining cells to eat *)
-}
-
-let rec visit_cell s =
-  match s.unvisited with
-  | [] -> None
-  | c::remaining when CellSet.mem c s.visited ->
-    visit_cell {s with unvisited=remaining}
-  | c::remaining (* when c not visited *) ->
-    Some (c, {s with
-      unvisited=remaining;
-      visited = CellSet.add c s.visited})
-
-let eat_cell c s =
-  {s with eaten = c::s.eaten;
-    visited = CellSet.add c s.visited;
-    more_to_eat = s.more_to_eat - 1}
-
-let keep_cell c s =                         (* c is actually unused *)
-  {s with been_size = s.been_size + 1;
-    visited = CellSet.add c s.visited}
-
-let fresh_island s =                 (* Increment been_size at start of find_island *)
-  {s with been_size = 0;
-    been_islands = s.been_islands + 1}
-
-let init_state unvisited more_to_eat = {
-  been_size = 0; been_islands = 0;
-  unvisited; visited = CellSet.empty;
-  eaten = []; more_to_eat;
-}
-```
-
-The optimized island loop only tries actions that make sense:
-
-```
-  and find_island current s =
-    let s = keep_cell current s in
-    neighbors n empty_cells current
-    |> concat_fold
-        (fun neighbor s ->
-          if CellSet.mem neighbor s.visited then [s]
-          else
-            let choose_eat =                (* Guard against failed actions *)
-              if s.more_to_eat = 0 then []
-              else [eat_cell neighbor s]
-            and choose_keep =
-              if s.been_size >= island_size then []
-              else find_island neighbor s in
-            choose_eat @ choose_keep)
-        s in
-  (* Finally, compute the required eaten cells and start searching *)
-  let cells_to_eat =
-    List.length honey - island_size * num_islands in
-  find_board (init_state honey cells_to_eat)
-```
-
-### 6.10 Constraint-Based Puzzles
-
-Many puzzles can be understood in terms of **constraint satisfaction**:
-
-1. The puzzle defines the *general form* of solutions (what variables need values)
-2. The puzzle specifies *constraints* that valid solutions must satisfy
-
-For example, in Sudoku, the variables are the 81 cells, each with domain {1,...,9}, and the constraints require each row, column, and 3x3 box to contain all digits exactly once.
-
-In the Honey Islands puzzle, we could view each cell as a variable with domain {Honey, Empty}. The constraints specify which cells must be empty initially, and the requirement of forming a specific number and size of connected components.
-
-#### Finite Domain Constraint Programming
-
-**Constraint propagation** is a powerful technique for solving such puzzles efficiently. The key idea is to track *sets of possible values* for each variable and systematically eliminate impossibilities:
-
-1. **Initialize:** For each variable, start with the full set of possible values (its domain). The current "partial solution" is this collection of sets.
-
-2. **Propagate and split:** Repeat until all variables have exactly one value:
-   - (a) **Propagate constraints:** If some value for a variable is inconsistent with *all* possible values of related variables, remove it
-   - (b) **Prune failures:** If any variable has an empty set of possible values, this partial solution has no completions -- abandon it
-   - (c) **Split:** Select a variable with multiple possible values. Create new partial solutions by partitioning its possibilities (simplest: try each value separately, or split into "this value" vs "all others")
-
-3. **Extract solutions:** When all variables have single values, we have found a solution.
-
-The efficiency comes from *early pruning*: constraint propagation often eliminates many possibilities without explicitly trying them, dramatically reducing the search space compared to brute-force enumeration.
-
-### 6.11 Exercises
-
-#### Exercise 1: Combinatorial Generation
-
-Recall how we generated all subsequences of a list. Find (generate) all:
-
-- permutations of a list
-- ways of choosing without repetition from a list
-- combinations of K distinct objects chosen from N elements of a list
-
-#### Exercise 2: Polynomial Degree via Fold
-
-Using folding for the `expression` data type, compute the degree of the corresponding polynomial.
-
-#### Exercise 3: Simplification via Map
-
-Implement simplification of expressions using mapping for the `expression` data type.
-
-#### Exercise 4: Rewriting with Folds
-
-Express in terms of `fold_left` or `fold_right`:
-
-- `indexed : 'a list -> (int * 'a) list`, which pairs elements with their indices
-- `concat_fold` as used in Honey Islands
-- Run-length encoding of a list: `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
-
-#### Exercise 5: Efficient List Utilities
-
-Write more efficient variants:
-
-- `list_diff` computing difference of sets represented as sorted lists
-- `is_unique` in constant stack space
-
-#### Exercise 6: Function List Composition
-
-Write functions `compose` and `perform` that take a list of functions and return their composition:
-
-- `compose [f1; ...; fn] = x -> f1 (... (fn x)...)`
-- `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`
-
-#### Exercise 7: Tents Puzzle Solver
-
-Write a solver for the *Tents Puzzle*.
-
-#### Exercise 8: Robot Squad (Harder)
-
-Given a map with walls and lidar readings (8 directions: E, NE, N, NW, W, SW, S, SE) for multiple robots, determine possible robot positions.
-
-#### Exercise 9: Plinx Puzzle Solver
-
-Write a solver for the *Plinx Puzzle* (does not need to solve all levels, but should handle initial ones).
+The **Honey Islands project**, in `projects/honey/README.md`, compares direct,
+pruned, monadic and state-transformer solvers against exhaustive subsets. It
+includes a counterexample to the old “always keep the first seed” traversal.
+That puzzle and its drawing infrastructure are optional; Countdown is the main
+search case study here.
+
+### 6.10 Exercises
+
+1. **Practice.** Generate permutations of `[1;2;3]`, then of `[1;1;2]`.
+   Distinguish positions from values. State whether duplicates are retained.
+2. **Proof.** Prove the reconstruction law for the expression fold. Include `Let`;
+   its binding name is unchanged even though both subexpressions are folded.
+3. **Experiment.** Compare subtraction with `fold_left` and `fold_right` on
+   `[1;2;3]` starting from zero. Explain why tail recursion alone does not justify
+   replacing one fold with the other. Selected answer: the results are `-6` and `2`.
+4. **Practice.** Use a fold to count syntactic variable occurrences, including
+   bound occurrences. Then compute free variables: at `Let (x, value, body)`,
+   remove `x` only from the body's set, not from the value's set.
+5. **Proof.** Identify the induction hypotheses in the Countdown completeness
+   argument. Explain why pruning `Mul 1 e` would be invalid if all inputs had
+   to be used exactly once.
+6. **Project.** Complete the Honey Islands project's extension and measurements.
+   Its acceptance criteria require reference equivalence before performance data.

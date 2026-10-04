@@ -24,28 +24,14 @@
  (name curious)
  (synopsis "A curious book about OCaml")
  (description
-  "A curious book about OCaml: logic (types), algebra (values), computation (rewrite semantics), functions (lambda calculus), constraints, monads, expression.")
+  "A curious book about OCaml: representations, interpreters, executable laws, and OCaml 5 effects.")
  (allow_empty)
  (depends
-  ocaml
+  (ocaml (>= 5.3))
   dune
-  base
-  core
   mdx
-  bogue
-  lwd
-  incremental
-  printbox
-  printbox-text
-  printbox-html
-  stdio
-  ppxlib
-  ppx_jane
-  ppx_expect
-  ppx_minidebug
-  conf-texlive
-  ; conf-texlive-latex-recommended
-  conf-pandoc)
+  (conf-texlive :with-doc)
+  (conf-pandoc :with-doc))
  (tags
   (ocaml textbook)))
 

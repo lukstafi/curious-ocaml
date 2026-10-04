@@ -1,0 +1,15 @@
+(library (name plugin_api) (modules plugin_api) (libraries expressions))
+(library
+ (name negate_plugin)
+ (wrapped false)
+ (modules negate_plugin)
+ (libraries plugin_api))
+(executable
+ (name host)
+ (modules host)
+ (libraries plugin_api dynlink)
+ (link_flags -linkall))
+(rule
+ (alias runtest)
+ (deps host.exe negate_plugin.cmxs)
+ (action (run ./host.exe %{dep:negate_plugin.cmxs})))

@@ -1,0 +1,3 @@
+(library (name honey) (modules honey))
+(test (name laws) (modules laws) (libraries honey))
+(executable (name draw) (modules draw) (libraries honey))

@@ -32,7 +32,9 @@
 % We use newunicodechar to map them to a fallback font (Menlo on macOS).
 % If Menlo is unavailable, substitute another Unicode-rich font.
 \usepackage{newunicodechar}
-\newfontfamily\UnicodeFallbackMono{Menlo}[Scale=MatchLowercase]
+\IfFontExistsTF{Menlo}
+  {\newfontfamily\UnicodeFallbackMono{Menlo}[Scale=MatchLowercase]}
+  {\newfontfamily\UnicodeFallbackMono{DejaVu Sans Mono}[Scale=MatchLowercase]}
 \newunicodechar{∘}{{\UnicodeFallbackMono ∘}}% U+2218 RING OPERATOR
 \newunicodechar{≅}{{\UnicodeFallbackMono ≅}}% U+2245 APPROXIMATELY EQUAL TO
 \newunicodechar{⊃}{{\UnicodeFallbackMono ⊃}}% U+2283 SUPERSET OF
@@ -111,6 +113,13 @@ $endif$
 % ============================================
 \usepackage{titlesec}
 
+% Part titles already include their Roman numeral.
+\titleformat{\part}[display]
+  {\normalfont\Huge\bfseries\centering}
+  {}
+  {0pt}
+  {}
+
 % Chapter styling: large bold title with extra space
 % No automatic label -- headings already contain "Chapter N:" in the text
 \titleformat{\chapter}[display]
@@ -147,15 +156,6 @@ $endif$
 \let\oldchapter\chapter
 \renewcommand{\chapter}{\clearpage\oldchapter}
 
-% Also handle # headers (mapped to sections by pandoc with --top-level-division=chapter)
-% For book class, chapters already get page breaks; for article we need this:
-$if(book)$
-$else$
-% In article mode, sections are top-level, so add page breaks before them
-\let\oldsection\section
-\renewcommand{\section}{\clearpage\oldsection}
-$endif$
-
 % Avoid single-line end-of-section pages
 \widowpenalty=10000
 \clubpenalty=10000
@@ -163,7 +163,7 @@ $endif$
 % ============================================
 % CODE BLOCK STYLING - Prevent page breaks within
 % ============================================
-\usepackage{fancyvrb}
+\usepackage{fvextra}
 \usepackage{framed}
 
 % Redefine verbatim/code environments to discourage page breaks
@@ -180,6 +180,7 @@ $endif$
 $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
+\RecustomVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},breaklines=true,breakanywhere=true}
 
 % Redefine Shaded to discourage page breaks but allow them for large blocks
 % needspace=4\baselineskip means: try to keep at least 4 lines together before breaking
@@ -242,14 +243,18 @@ $endif$
 % Cover page with illustration (replaces default \maketitle)
 \begin{titlepage}
 \begin{center}
-\vspace*{1cm}
+\vspace*{0.2cm}
 \IfFileExists{Curious_OCaml-cover.jpg}{%
-  \includegraphics[width=\textwidth,height=0.7\textheight,keepaspectratio]{Curious_OCaml-cover.jpg}%
-  \par\vspace{1.5cm}
+  \includegraphics[width=\textwidth,height=0.55\textheight,keepaspectratio]{Curious_OCaml-cover.jpg}%
+  \par\vspace{0.6cm}
 }{%
   \vspace*{4cm}
 }
 {\huge\bfseries $title$\par}
+$if(subtitle)$
+\vspace{0.4cm}
+{\large $subtitle$\par}
+$endif$
 \vspace{0.8cm}
 $if(author)$
 {\Large $for(author)$$author$$sep$ \\ $endfor$\par}

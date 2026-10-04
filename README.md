@@ -87,35 +87,83 @@ toc-depth: 3
 *Illustrated by: Gemini 3 Nano Banana*
 :::
 
-# Curious OCaml
+## About the third edition
 
-*Curious OCaml* invites you to explore programming through the lens of types, logic, and algebra. OCaml is a language that rewards curiosity—its type system catches errors before your code runs, its functional style encourages clear thinking about data transformations, and its mathematical foundations reveal deep connections between programming and logic. Whether you're new to programming, experienced with OCaml, or a seasoned developer discovering functional programming for the first time, this book aims to spark that "aha!" moment when abstract concepts click into place.
+A pair can be a proof of a conjunction. A tree with a hole can describe an editing
+position. An evaluator can become a machine by turning its continuations into
+data. This book follows such constructions in OCaml, asking what each
+representation preserves and how we can check that claim.
 
-This book is intended for three audiences:
+The third edition is organized around **representations, interpreters, and laws**.
+We use one small expression language across evaluation, folds, binding, parsing
+and extension. We compare search and probability interpreters with finite
+reference models. We make ownership and cleanup part of the meaning of an effects
+program, and return to these concrete examples in the mathematical synthesis.
 
-- New to programming: ambitious students in areas with formal rigor -- math, computer science, philosophy, linguistics, etc.
-- Intermediate: OCaml programmers.
-- Advanced: programmers who are new to functional programming.
+### Choose a route
+
+The chapter numbers remain stable, but the four parts give the reading order:
+
+| Part | Chapters | Question |
+|---|---|---|
+| I. Reasoning about programs | 1, 2, 3, 5; optional 4 | What does a program mean, and which laws does it satisfy? |
+| II. Representations and interpreters | 6, 11 | What changes when the same language gets a new representation? |
+| III. Computation over time and choices | 7, 8, 9, 10 | Who chooses, when does work happen, and who owns suspended work? |
+| IV. Mathematical synthesis | 12 | Which constructions have universal properties, under which hypotheses? |
+
+- **Mathematically mature novice:** start with the first session in Chapter 1.
+  Follow Part I in order; do the practice exercises before the proofs. Loading a
+  file, reading a type error and inspecting a value are part of the course.
+- **Experienced programmer new to OCaml:** read Chapter 1's execution and scope
+  conventions, Chapter 2's variants and patterns, then Chapters 3 and 5. Return to
+  the logical rules and type derivatives after writing a few small programs.
+- **OCaml programmer:** use Chapters 2–3 to establish the common examples, then
+  follow Parts II–IV. Chapter 4 supplies the optional lambda-calculus route.
+
+Each chapter states its prerequisites. Exercises are labeled **practice** (write
+or trace a small program), **proof** (state hypotheses and justify a claim),
+**experiment** (measure or find a counterexample), or **project** (combine several
+ideas with acceptance criteria). Selected answers accompany the relevant
+construction. A passing test is evidence about its inputs, not a universal proof.
+
+### Reading and running
+
+Install the core test dependencies with `opam install . --deps-only --with-test`.
+The optional GUI laboratory has separate dependencies listed in its project guide.
+Use OCaml 5.3 or later; the effects chapters use its effect-pattern syntax.
+From a checkout, run `dune runtest` for the maintained examples. Use
+`dune runtest chapter3 projects/expressions` for the evaluator alone. The project
+sources under `projects/` are ordinary compiled modules, with tests of laws,
+failures and resource behavior. Chapter snippets synchronized with those modules
+have MDX file references, so editing one without the other fails the checks.
+
+A code block beginning with `#` is a toplevel transcript: type the text after the
+prompt and finish it with `;;`. Other OCaml blocks contain source-file definitions;
+do not copy the output of a transcript into a source file. Blocks with an `env`
+label share a testing environment within their chapter. Some use the chapter's
+`prelude.ml`; the surrounding text identifies additional module dependencies.
+A block marked `skip` is not checked by execution and must state its reason.
+
+Edit `intro.md` and `chapterN/README.md`, not the generated root `README.md`.
+Build the combined manuscript and web edition with
+`dune build README.md @site/new_book`, and the PDF with
+`dune build @pdfs/new_book` (Pandoc and LuaLaTeX required).
+The original `functional-lecture*.md`, `Lec*.ml`, and alternate chapter drafts
+are historical sources, not part of the maintained reading route.
+
+The implementation and publication record is in `docs/third-edition.md`.
 
 
-## Reading and running
-
-The book assumes willingness to work through mathematical notation and small programs. Readers entirely new to programming should also practice using the OCaml toplevel, loading a file, and reading a compiler error before tackling the longer derivations. The later chapters build on functions, algebraic data types, pattern matching, and modules.
-
-Use OCaml 5.3 or later for the whole book: Chapter 9 uses the effect-pattern syntax introduced in 5.3. The source repository contains one current `chapterN/README.md` per chapter. Root `README.md` is generated from them; the `functional-lecture*.md` and `Lec*.ml` files are historical course material.
-
-The examples are checked with Dune and mdx. In a checkout with the dependencies from `curious.opam` installed, run `dune runtest`. To check selected chapters, for example, run `dune runtest chapter1 chapter2`. Run `dune build README.md @site/new_book` to regenerate the combined manuscript and HTML edition.
-
-Code blocks sharing an `env` label within a chapter share definitions and load that chapter's `prelude.ml`. Inspect that prelude when running excerpts independently. Blocks marked `skip` include exercises, pseudo-code, and deliberately non-running or expensive examples. Chapters 6 and 10 additionally require GUI/incremental libraries; their interactive demonstrations need a graphical environment.
-
-For a first reading, follow Chapters 1–3 and 5–6 before the larger applications in Chapters 7–11. Chapter 4 is an optional deeper study of lambda calculus; return to it when encodings and evaluation strategies become useful. Chapter 12 is a synthesis for readers already comfortable with the earlier constructions, rather than a prerequisite for using them.
-
+# Part I: Reasoning about programs
 
 ## Chapter 1: Logic
 
 ![Chapter 1 illustration](Curious_OCaml-chapter_1.jpg){.chapter-image}
 
 *From logic rules to programming constructs*
+
+**Prerequisites:** no OCaml; familiarity with “and”, “or” and “if”.
+**Route:** Part I starts here. Continue to Chapter 2 for data representations.
 
 **In this chapter, you will:**
 
@@ -127,6 +175,39 @@ For a first reading, follow Chapters 1–3 and 5–6 before the larger applicati
 **Conventions.** OCaml code blocks are intended to be runnable unless marked with `ocaml skip` (used for illustrative or partial snippets).
 
 Throughout this chapter we use *natural deduction* in the style of intuitionistic (constructive) logic. This choice is not accidental: it is exactly the fragment of logic that lines up with the “pure” core of functional programming via the Curry–Howard correspondence.
+
+### 1.0 A first session
+
+Start the command `ocaml` in a terminal. Its `#` is a prompt, not part of the
+expression. Type `let double x = x + x;;`, then `double 3;;`. The toplevel reports
+a function type and then the integer `6`. Save these definitions in `first.ml`:
+
+```ocaml env=first
+let double x = x + x
+let answer = double 3
+let () = assert (answer = 6)
+```
+
+Load the file from the same directory by typing `#use "first.ml";;` at the
+OCaml prompt (this `#use` is a directive, including its `#`). In a terminal,
+`ocaml first.ml` instead runs the file and exits; the assertion succeeds silently.
+This file uses only the standard library. To change its result, edit the file
+and reload it. Existing bindings are shadowed by the new definitions.
+
+The expression `double "three"` produces a type error: `double` needs an integer,
+but `"three"` is a string. Read the expected and actual types before changing the
+program. Parentheses group expressions; `;;` finishes a toplevel phrase, and is
+usually unnecessary between definitions in a file.
+
+```ocaml env=first
+let outer = 10
+let inner = let outer = 3 in double outer
+let () = assert (inner = 6 && outer = 10)
+```
+
+The local `outer` is visible only after its `in`. This is *scope*. Below, a
+hypothetical assumption has a scope in exactly the same way that a function
+parameter or a local binding has a scope.
 
 ### 1.1 In the Beginning there was Logos
 
@@ -170,28 +251,48 @@ In the table below, text in parentheses provides informal commentary. Letters li
 | $\vee$ | $\frac{a}{a \vee b}$ (put first) &nbsp; $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \hyp{[a]^x}{c} \quad \hyp{[b]^y}{c}}{c}$ using $x, y$ |
 | $\rightarrow$ | $\frac{\hyp{[a]^x}{b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$ |
 
+#### Each rule as a small program
+
+Read this code beside the table. Values introduce logical structure; patterns
+and application eliminate it. The empty match is well typed precisely because
+there is no constructor to consider.
+
+```ocaml env=proof_rules
+type void = |
+type ('a, 'b) either = Left of 'a | Right of 'b
+let truth = ()
+let absurd (x : void) = match x with _ -> .
+let both a b = (a, b)
+let first (a, _) = a
+let second (_, b) = b
+let left a = Left a
+let right b = Right b
+let cases f g = function Left a -> f a | Right b -> g b
+let identity a = a
+let apply f a = f a
+let () =
+  assert (first (both 3 true) = 3);
+  assert (second (both 3 true));
+  assert (cases ((+) 1) String.length (left 3) = 4);
+  assert (cases ((+) 1) String.length (right "four") = 4);
+  assert (apply identity 7 = 7)
+```
+
+`cases` is disjunction elimination: both branches must produce the same result
+type. `identity` introduces the implication $a \rightarrow a$; `apply` eliminates
+an implication by providing its argument. There is no executable call to `absurd`
+using a terminating value, because such a value of `void` cannot be constructed.
+
 #### Notation for Hypothetical Derivations
 
 The notation $\hyp{[a]^x}{b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted. The square brackets around $a$ indicate that this is a *hypothetical* assumption, not something we have actually established. The superscript $x$ is a label that helps us track which assumption gets "discharged" when we complete the derivation.
 
-This is the key to proving implications: to prove "if A then B", we temporarily assume A and show we can derive B. For example, we can derive "sunny $\rightarrow$ happy" by showing that *assuming* it is sunny, we can derive happiness:
-
-$$
-\frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
-$$
-
-Notice how the assumption "sunny" (marked with $x$) appears at the top of the derivation tree. We use this assumption to derive "go outdoor", then "playing", and finally "happy". Once we complete the derivation, the assumption is *discharged*: we no longer need to assume it is sunny because we have established the conditional "sunny $\rightarrow$ happy".
-
-A crucial point: such assumptions can only be used within the matched subtree! However, they can be used *multiple times* within that subtree. For example, if someone's mood is more difficult to influence and requires multiple sunny conditions:
-
-$$
-\frac{\frac{
-  \frac{\frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{playing}} \quad
-  \frac{\frac{\,}{\text{sunny}}^x \quad \frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{nice view}}
-}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
-$$
-
-In this more complex derivation, the assumption "sunny" (labeled $x$) is used three times: once to derive "go outdoor", and twice more in deriving "nice view". All three uses are valid because they occur within the same hypothetical subtree.
+To prove an implication, assume its input proposition and construct the output.
+The assumption can be used more than once, just as `fun x -> (x, x)` uses its
+parameter twice. It is available only inside the hypothetical derivation, just
+as `x` is available only inside the function body. Discharging the assumption
+means that the resulting implication no longer requires that input to be present
+until it is applied.
 
 #### Reasoning by Cases
 
@@ -199,17 +300,9 @@ The elimination rule for disjunction deserves special attention because it repre
 
 Suppose we know "A or B" is true, but we do not know which one. How can we still derive a conclusion C? We must show that C follows *regardless* of which alternative holds. In other words, we need to prove: (1) assuming A, we can derive C, and (2) assuming B, we can derive C. Since one of A or B must be true, and both lead to C, we can conclude C.
 
-Here is a concrete example: How can we use the fact that it is sunny $\vee$ cloudy (but not rainy)?
-
-$$
-\frac{
-  \frac{\,}{\text{sunny} \vee \text{cloudy}}^{\text{forecast}} \quad
-  \frac{\frac{\,}{\text{sunny}}^x}{\text{no-umbrella}} \quad
-  \frac{\frac{\,}{\text{cloudy}}^y}{\text{no-umbrella}}
-}{\text{no-umbrella}} \text{ using } x, y
-$$
-
-We know that it will be sunny or cloudy (by watching the weather forecast). Now we reason by cases: *If* it will be sunny, we will not need an umbrella. *If* it will be cloudy, we will not need an umbrella. Since one of these must be the case, and both lead to the same conclusion, we can confidently say: we will not need an umbrella.
+In `cases` above, knowing `Left a` or `Right b` is enough to choose a branch.
+The common result type enforces that either branch establishes the same conclusion.
+We do not need to know which branch will be chosen when we define the function.
 
 #### Reasoning by Induction
 
@@ -230,9 +323,25 @@ Here $x$ is a unique variable representing an arbitrary natural number. We canno
 
 The power of induction lies in this: once we have the base case and the inductive step, we have implicitly covered *all* natural numbers. Starting from $p(0)$, we can derive $p(1)$, then $p(2)$, then $p(3)$, and so on, reaching any natural number $n$ we wish.
 
+A structural recursion makes the decreasing argument visible:
+
+```ocaml env=proof_rules
+type nat = Zero | Succ of nat
+let rec count = function Zero -> 0 | Succ n -> 1 + count n
+let () = assert (count (Succ (Succ Zero)) = 2)
+```
+
+Each recursive call receives a smaller finite `nat`. This supplies a termination
+argument. OCaml also permits general recursion, including a function that calls
+itself on the same argument forever. The type checker does not certify
+termination. The proof/program correspondence below applies to the terminating,
+pure fragment, not to arbitrary OCaml programs that may loop or raise exceptions.
+The integer result of `count` has machine bounds; a mathematical induction about
+unbounded natural numbers is a separate claim.
+
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
+The **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
 
 Under this correspondence:
 
@@ -375,7 +484,7 @@ $$
 \frac{e_1 : a \quad \hyp{[x : a]}{e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
 $$
 
-This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry–Howard correspondence.
+This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This is the introduction rule for a function followed by its elimination rule.
 
 For recursive definitions, we need an additional rule:
 
@@ -427,7 +536,7 @@ This design choice makes type inference simpler and more predictable. When you s
 
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
-#### Exercise 1: Type and Value Predictions
+#### Practice 1: Type and Value Predictions
 
 Assume that we execute the following assignment statements:
 
@@ -445,7 +554,7 @@ For each of the following expressions, write the value of the expression and the
 4. `1 + 2 * 5`
 5. `delimiter * 5`
 
-#### Exercise 2: REPL Calculator Drills
+#### Practice 2: REPL Calculator Drills
 
 Practice using the OCaml interpreter as a calculator:
 
@@ -453,7 +562,7 @@ Practice using the OCaml interpreter as a calculator:
 2. Suppose the cover price of a book is \$24.95, but bookstores get a 40% discount. Shipping costs \$3 for the first copy and 75 cents for each additional copy. What is the total wholesale cost for 60 copies?
 3. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace again, what time do I get home for breakfast?
 
-#### Exercise 3: Recursive Fibonacci
+#### Practice 3: Recursive Fibonacci
 
 You've probably heard of the Fibonacci numbers before, but in case you haven't, they're defined by the following recursive relationship:
 
@@ -465,9 +574,11 @@ f(n+1) = f(n) + f(n-1) & \text{for } n = 1, 2, \ldots
 \end{cases}
 $$
 
-Write a recursive function to calculate these numbers.
+Write a recursive function on nonnegative integers to calculate these numbers.
+Reject negative inputs. Check `f 0 = 0`, `f 1 = 1`, and `f 10 = 55`; explain why
+the argument decreases. Machine integer overflow limits the numerical contract.
 
-#### Exercise 4: Recursive Palindromes
+#### Practice 4: Recursive Palindromes
 
 A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
 
@@ -486,15 +597,34 @@ let middle word =
 1. Enter these functions into the toplevel and test them out. What happens if you call `middle` with a string with two letters? One letter? What about the empty string `""`?
 2. Write a function called `is_palindrome` that takes a string argument and returns `true` if it is a palindrome and `false` otherwise.
 
-#### Exercise 5: Euclid's GCD
+#### Practice 5: Euclid's GCD
 
 The greatest common divisor (GCD) of $a$ and $b$ is the largest number that divides both of them with no remainder.
 
 One way to find the GCD of two numbers is Euclid's algorithm, which is based on the observation that if $r$ is the remainder when $a$ is divided by $b$, then $\gcd(a, b) = \gcd(b, r)$. As a base case, we can consider $\gcd(a, 0) = a$.
 
-Write a function called `gcd` that takes parameters `a` and `b` and returns their greatest common divisor.
+Write `gcd` on nonnegative integers `a` and `b`, taking `gcd 0 0 = 0` by convention.
+Check `(0, 7)`, `(7, 0)` and `(54, 24)`. **Proof:** show that the second argument
+strictly decreases whenever it is positive.
 
 If you need help, see [http://en.wikipedia.org/wiki/Euclidean_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).
+
+#### Selected answer: safe palindrome base cases
+
+For byte strings, lengths zero and one are palindromes. Check this before calling
+`first_char`, `last_char`, or `middle`, whose contracts exclude those lengths.
+This is a byte-level exercise, not a Unicode grapheme algorithm.
+
+```ocaml env=ch1
+let rec is_palindrome word =
+  String.length word < 2 ||
+  (first_char word = last_char word && is_palindrome (middle word))
+let () =
+  assert (is_palindrome "");
+  assert (is_palindrome "a");
+  assert (is_palindrome "noon");
+  assert (not (is_palindrome "not"))
+```
 
 
 ## Chapter 2: Algebra
@@ -511,6 +641,10 @@ In this chapter, we will deepen our understanding of OCaml's type system by work
 - Define and manipulate algebraic data types (variants, records, recursion, parameters)
 - Interpret types as polynomials (and learn what this analogy buys you)
 - Differentiate types to compute “one-hole contexts” (derivatives of data structures)
+
+**Prerequisites:** functions, scope and pairs from Chapter 1.
+**Route:** Part I. This chapter's contexts return as machine frames in Chapter 3
+and as mathematical constructions in Chapter 12.
 
 ### 2.1 A Glimpse at Type Inference
 
@@ -827,7 +961,7 @@ The pattern `Sat | Sun` matches either `Sat` or `Sun`. This is much cleaner than
 
 Sometimes we want to both destructure a value *and* keep a reference to the whole thing (or some intermediate part). We use `(pattern as v)` to name a nested pattern, binding the matched value to `v`:
 
-```
+```text
 match day with
   | {weekday = (Mon | Tue | Wed | Thu | Fri as wday); _}
       when not (day.month = Dec && day.day = 24) ->
@@ -842,11 +976,24 @@ This example demonstrates several features working together:
 - A `when` guard checks that it is not Christmas Eve
 - The bound variable `wday` is then used in the expression `get_plan wday`
 
-This combination of features makes OCaml's pattern matching remarkably expressive.
+The pattern gives names only to the data used by the branch.
 
 ### 2.5 Interpreting Algebraic Data Types as Polynomials
 
-Now we come to one of the most delightful aspects of algebraic data types: they really are *algebraic* in a precise mathematical sense. Let us explore a curious analogy between types and polynomials that turns out to be surprisingly deep.
+Three interpretations must be kept separate:
+
+| Interpretation | What it tells us | What it does not establish |
+|---|---|---|
+| Finite cardinality | A sum has $a+b$ inhabitants and a product has $ab$ | A particular conversion algorithm |
+| Formal power series | The coefficient of $z^n$ counts shapes of size $n$ | Numerical convergence at a chosen real $z$ |
+| Type isomorphism | Two functions are inverse on all inputs | Equality merely because a symbolic equation looks plausible |
+
+For lists with one mark per element, $L(z)=1+zL(z)$ gives
+$L(z)=\sum_{n\geq0}z^n$. For binary trees marked at nodes,
+$T(z)=1+zT(z)^2$ gives coefficients $1,1,2,5,\ldots$; the root splits the
+remaining nodes between two ordered subtrees. These are formal coefficient
+identities. Interpreting a parameter as the cardinality of a set is a different
+operation from evaluating a series at a real number.
 
 The translation from types to mathematical expressions works as follows:
 
@@ -872,7 +1019,7 @@ We also need translations for some special types:
 
 Give a name to the type being defined (representing a function of the introduced variables). For finite, nonrecursive sum-and-product types, the result is a polynomial counting possible values. Recursive types instead give equations for formal power series counting finite structures. Lists yield a rational series; trees generally yield algebraic series that are not rational. Unrestricted subtraction, division, and identities involving infinite cardinalities are not automatically type isomorphisms: justify a proposed isomorphism with inverse functions.
 
-This might seem like a mere curiosity, but it leads to real insights. Let us have some fun with it!
+We will use the equations to propose representations, then write conversions to check them.
 
 #### Example: Date Type
 
@@ -890,7 +1037,7 @@ The cube makes sense: this record is essentially a triple of integers.
 
 The built-in option type is defined as:
 
-```
+```text
 type 'a option = None | Some of 'a
 ```
 
@@ -898,10 +1045,14 @@ Translating (using $x$ for the type parameter `'a`):
 
 $$O = 1 + x$$
 
-This reads as: an option is either nothing (1) or something of type $x$. The polynomial $1 + x$ is beautifully simple!
+This reads as: an option is either nothing (1) or something of type $x$. The two summands record the two constructor cases.
 
 #### Example: List Type
 
+This skipped declaration recalls the list representation solely for the series
+calculation; it is not a second live definition in this environment.
+
+<!-- book-skip: recalled list declaration; executable list examples appear earlier -->
 ```ocaml skip
 type 'a my_list = Empty | Cons of 'a * 'a my_list
 ```
@@ -953,7 +1104,7 @@ Reading the polynomial $1 + x \cdot (1 + x \cdot T^2 \cdot (1 + T))$ from outsid
 
 The challenge is to find isomorphism functions with signatures:
 
-```
+```text
 val iso1 : btree -> repr
 val iso2 : repr -> btree
 ```
@@ -964,7 +1115,7 @@ These functions should satisfy: for all trees `t`, `iso2 (iso1 t) = t`, and for 
 
 Here is my first attempt, trying to guess the pattern directly:
 
-```
+```text
 # let iso1 (t : btree) : repr =
   match t with
     | Tip -> None
@@ -1107,7 +1258,7 @@ The example above takes the date February 14, 2012, produces three contexts (one
 
 Now let us tackle the more challenging case of binary trees (using the same `btree` type as above):
 
-```
+```text
 type btree = Tip | Node of int * btree * btree
 ```
 
@@ -1162,15 +1313,72 @@ When we reach `Here`, we create a node with the new value `n` and the two subtre
 
 </details>
 
+#### Element holes and subtree holes are different
+
+The derivative above removes one **element**, leaving the node's two children.
+A **subtree** hole removes an entire tree, which may even be `Tip`. Its context
+is a path back to the root, remembering the sibling and parent label at each step:
+
+```ocaml env=ch2
+type frame =
+  | From_left of int * btree
+  | From_right of int * btree
+
+type subtree_context = frame list
+
+let rec plug subtree = function
+  | [] -> subtree
+  | From_left (x, right) :: rest -> plug (Node (x, subtree, right)) rest
+  | From_right (x, left) :: rest -> plug (Node (x, left, subtree)) rest
+
+let () =
+  let t = Node (1, Node (2, Tip, Tip), Tip) in
+  let context = [From_left (1, Tip)] in
+  assert (plug (Node (2, Tip, Tip)) context = t);
+  assert (btree_integr 1 (Here (Node (2, Tip, Tip), Tip)) = t);
+  assert (plug Tip [] = Tip)
+```
+
+For $T=1+aT^2$, a path step has shape $2aT$: a direction, an element, and a
+sibling. A subtree context is a list of these steps. An element context consists
+of the two children of the removed element together with such a path. Thus the
+formal derivative is $T'=T^2/(1-2aT)$. The base $T^2$ is essential: confusing
+these two holes loses the removed element's children.
+
+**Proof exercise.** Write `focus_left` returning a subtree and context, and prove
+that plugging the pair reconstructs the original node. State what happens at
+`Tip`. **Hint:** first prove the single-frame equation, then induct on the path.
+
+#### A small isomorphism with both inverse laws
+
+```ocaml env=isomorphism
+type ('a, 'b) sum = A of 'a | B of 'b
+let distribute (x, choice) =
+  match choice with A y -> A (x, y) | B z -> B (x, z)
+let factor = function
+  | A (x, y) -> (x, A y)
+  | B (x, z) -> (x, B z)
+let () =
+  List.iter (fun x -> assert (factor (distribute x) = x))
+    [true, A 2; false, B "b"];
+  List.iter (fun y -> assert (distribute (factor y) = y))
+    [A (true, 2); B (false, "b")]
+```
+
+These checks illustrate both directions. A proof covers each constructor with
+arbitrary fields, so it establishes the laws for every finite value of the
+represented sum/product types. Function equality in the exponent exercises is
+extensional equality; OCaml's polymorphic `=` cannot compare functions.
+
 ### 2.7 Exercises
 
-#### Exercise 1: Designing Valid Data Structures
+#### Practice 1: Designing Valid Data Structures
 
 *Due to Yaron Minsky.*
 
 This exercise practices the principle of "making invalid states unrepresentable." Consider a datatype to store internet connection information. The time `when_initiated` marks the start of connecting and is not needed after the connection is established (it is only used to decide whether to give up trying to connect). The ping information is available for established connections but not straight away.
 
-```
+```text
 type connectionstate = Connecting | Connected | Disconnected
 
 type connectioninfo = {
@@ -1190,7 +1398,7 @@ The problem with this design is that it allows many nonsensical combinations: a 
 
 Rewrite the type definitions so that the datatype will contain only reasonable combinations of information. Use separate record types for each connection state, with only the fields that make sense for that state.
 
-#### Exercise 2: Labeled and Optional Arguments
+#### Practice / project 2: Labeled and Optional Arguments
 
 In OCaml, functions can have labeled arguments and optional arguments (parameters with default values that can be omitted). This exercise explores these features.
 
@@ -1250,7 +1458,7 @@ let test_foo () =
 
 3. Write a function that takes an optional argument of arbitrary type and a function argument, and passes the optional argument to the function without inspecting it. This tests your understanding of how optional arguments work at the type level.
 
-#### Exercise 3: Type Inference Practice
+#### Practice 3: Type Inference Practice
 
 *From a past exam.*
 
@@ -1264,7 +1472,7 @@ These exercises help you internalize how type inference works. Try to work them 
    1. `(int -> int) -> bool`
    2. `'a option -> 'a list`
 
-#### Exercise 4: Types as Exponents
+#### Proof 4: Types as Exponents
 
 We have seen that algebraic data types can be related to analytic functions (the subset definable from polynomials via recursion)---by literally interpreting sum types (variant types) as sums and product types (tuple and record types) as products. We can extend this interpretation to function types by interpreting $a \rightarrow b$ as $b^a$ (i.e., $b$ to the power of $a$). Note that the $b^a$ notation is actually used to denote functions in set theory.
 
@@ -1272,1732 +1480,355 @@ This interpretation makes sense: a function from a set with $a$ elements to a se
 
 1. Translate $a^{b + cd}$ and $a^b \cdot (a^c)^d$ into OCaml types, using any distinct types for $a, b, c, d$, and using `type ('a,'b) choice = Left of 'a | Right of 'b` for $+$. Write the bijection functions in both directions. Verify algebraically that $a^{b + cd} = a^b \cdot (a^c)^d$ using the laws of exponents.
 
-2. Come up with a type `'t exp` that shares with the exponential function the following property: $\frac{\partial \exp(t)}{\partial t} = \exp(t)$, where we translate a derivative of a type as a context (i.e., the type with a "hole"), as in this chapter. In other words, the derivative of the type should be isomorphic to the type itself! Explain why your answer is correct. *Hint:* in computer science, our logarithms are mostly base 2.
+2. **Experiment.** Explain why differentiating the list series gives two lists
+   (the prefix and suffix around an element hole), whereas marking a gap gives
+   one more possible position than marking an element. Count both for lengths
+   zero, one and two. Do not infer that every analytic function denotes an
+   ordinary algebraic datatype: denominators such as $n!$ in an exponential
+   series require a different counting convention, involving labeled structures.
 
-*Further reading:* [Algebraic Type Systems - Combinatorial Species](http://bababadalgharaghtakamminarronnkonnbro.blogspot.com/2012/10/algebraic-type-systems-combinatorial.html)
 
-#### Exercise 5 (Homework): Finding Contexts
+#### Practice 5: Finding Contexts
 
 Write a function `btree_deriv_at` that takes a predicate over integers (i.e., a function `f: int -> bool`) and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position for which the predicate returns true. It should return a `btree_deriv option`, with `None` if the predicate does not hold for any node.
 
 This function lets you "search" a tree and get back a context pointing to the found element. Think about what order you want to search in (pre-order, in-order, or post-order) and what "first" means in that context.
 
 
-## Chapter 3: Computation
+## Chapter 3: Evaluation, recursion, and machines
 
 ![Chapter 3 illustration](Curious_OCaml-chapter_3.jpg){.chapter-image}
 
-*Reduction semantics and operational reasoning*
+**Prerequisites:** functions, variants and pattern matching from Chapters 1–2.
+**Route:** read this before Chapter 5. Chapter 4 is an optional detour; Chapter 6
+will express the evaluator below as a fold, and Chapter 11 will parse and extend it.
 
-**In this chapter, you will:**
+A program's result is only one part of its behavior. Which expression runs first?
+What remains to be done when a recursive call returns? Where is that work stored?
+We will answer these questions for one expression language, changing its
+representation of pending work without changing its arithmetic operations.
 
-- Use function composition to build reusable “pipelines”
-- Learn reduction semantics to reason about evaluation step by step
-- Recognize and write tail-recursive programs (and understand what TCO buys you)
-- Get a first working intuition for continuation-passing style (CPS)
+### 3.1 Composition and scope
 
-**References:**
+Composition builds a function; a pipeline applies one:
 
-- "Using, Understanding and Unraveling the OCaml Language" by Didier Remy, Chapter 1
-- "The OCaml system" manual, the tutorial part, Chapter 1
-
-In this chapter, we explore how functional programs actually execute. We will learn how to reason about computation step by step using *reduction semantics*, and discover important optimization techniques like *tail call optimization* that make functional programming practical. Along the way, we will encounter our first taste of *continuation passing style*, a powerful programming technique that will reappear throughout this book.
-
-### 3.1 Function Composition
-
-Function composition is one of the most fundamental operations in functional programming. It allows us to build complex transformations by combining simpler functions. The usual way function composition is defined in mathematics is "backward"---the notation follows the convention of mathematical function application:
-
-$$
-(f \circ g)(x) = f(g(x))
-$$
-
-This means that when we write $f \circ g$, we first apply $g$ and then apply $f$ to the result. The function written on the left is applied last---hence the term "backward" composition. Here is how this is expressed in different functional programming languages:
-
-| Language | Definition |
-|----------|-----------|
-| Math | $(f \circ g)(x) = f(g(x))$ |
-| OCaml | `let compose f g x = f (g x)` |
-| F# | `let (<<) f g x = f (g x)` |
-| Haskell | `(.) f g = \x -> f (g x)` |
-
-In OCaml we also use the infix form `let (-|) f g x = f (g x)`. This backward composition looks like function application but needs fewer parentheses. Do you recall the functions `iso1` and `iso2` from the previous chapter on type isomorphisms? Using backward composition, we could write:
-
-```ocaml skip
-let iso2 = step1l -| step2l -| step3l
+```ocaml env=composition
+let compose f g x = f (g x)
+let twice f x = f (f x)
+let () =
+  assert (compose string_of_int ((+) 1) 3 = "4");
+  assert ((3 |> ((+) 1) |> string_of_int) = "4");
+  assert (twice ((+) 1) 3 = 5)
 ```
 
-While backward composition matches traditional mathematical notation, many programmers find a "forward" composition more intuitive. Forward composition follows the order in which computation actually proceeds---data flows from left to right, matching how we typically read code in most programming languages:
+In `compose f g`, `g` runs first. In `x |> g |> f`, the same order is written
+left to right. Partial application supplies fewer arguments than a function
+expects: `((+) 1)` waits for its second integer. None of these operations changes
+OCaml's evaluation strategy.
 
-| Language | Definition |
-|----------|-----------|
-| OCaml | `let compose_forward f g x = g (f x)` |
-| F# | `let (>>) f g x = g (f x)` |
+To evaluate `let x = e in body`, evaluate `e`, then evaluate `body` with the name
+`x` bound to that value. A later binding shadows an earlier one only within its
+scope. Substitution is another account of this process, but it must avoid
+capturing free variables (Chapter 11).
 
-With forward composition, you can read a pipeline of transformations in the natural order:
+### 3.2 One language, with a specified order
 
-```ocaml skip
-let iso1 = step1r |- step2r |- step3r
+Our language has numbers, named variables, four binary operations and local
+bindings. Here is its entire syntax and the meaning of its primitive operations:
+
+<!-- $MDX file=../projects/expressions/expr.ml,part=syntax -->
+```ocaml
+type op = Add | Sub | Mul | Div
+
+type t =
+  | Number of float
+  | Variable of string
+  | Binary of op * t * t
+  | Let of string * t * t
+
+exception Unbound of string
+
+let apply op x y =
+  match op with
+  | Add -> x +. y | Sub -> x -. y
+  | Mul -> x *. y | Div -> x /. y
+
+let lookup env x =
+  match List.assoc_opt x env with
+  | Some v -> v
+  | None -> raise (Unbound x)
 ```
 
-Here, the data first passes through `step1r`, then the result goes to `step2r`, and finally to `step3r`. This "pipeline" style of programming is particularly popular in languages like F# and has influenced the design of many modern programming languages.
+The source is `projects/expressions/expr.ml`. Every displayed excerpt marked with
+an MDX file reference is checked against that source. Its tests run with
+`dune runtest projects/expressions`; the book's later chapters use this same type.
 
-The infix form in OCaml is `let (|-) f g x = g (f x)`.
+A value environment is a list of `(name, value)` pairs. Lookup takes the first
+matching pair, so adding a binding at the front implements lexical shadowing.
+An unbound variable raises `Unbound`; floating-point division by zero follows
+OCaml's floating-point operations rather than raising integer `Division_by_zero`.
 
-```ocaml env=ch3
-let (|-) f g x = g (f x)
+<!-- $MDX file=../projects/expressions/expr.ml,part=direct -->
+```ocaml
+let rec eval env = function
+  | Number n -> n
+  | Variable x -> lookup env x
+  | Binary (op, a, b) ->
+    let x = eval env a in
+    let y = eval env b in
+    apply op x y
+  | Let (x, value, body) ->
+    let v = eval env value in
+    eval ((x, v) :: env) body
 ```
 
-Two related (but distinct) tools are also worth knowing:
+The two `let` bindings in the binary case make the language **left to right**.
+OCaml does not specify the order of evaluating arguments to a function. Writing
+`apply op (eval env a) (eval env b)` would leave our interpreter's order dependent
+on its implementation. Order becomes observable if both branches fail.
 
-- The standard library provides backward composition as `Fun.compose`, where `Fun.compose f g x = f (g x)`.
-- OCaml also provides the forward *application* operator `(|>)` (a pipeline): `x |> f |> g` means `g (f x)`. Unlike `(|-)`, this is not composition of functions but immediate application to a value.
+```ocaml env=expressions
+open Expressions.Expr
 
-#### Partial Application
-
-Both composition examples above rely on **partial application**, a technique we introduced in the previous chapter. Recall that `((+) 1)` is a function that adds 1 to its argument---we have provided only one of the two arguments that `(+)` requires. Partial application occurs whenever we supply fewer arguments than a function expects; the result is a new function that waits for the remaining arguments.
-
-Consider the composition `step1r |- step2r |- step3r`. How exactly does partial application come into play here? The composition operator `(|-)` is defined as `let (|-) f g x = g (f x)`, which means it takes *three* arguments: two functions `f` and `g`, and a value `x`. When we write `step1r |- step2r`, we are partially applying `(|-)` with just two arguments. The result is a function that still needs the final argument `x`.
-
-*Exercise:* Think about the types involved. If `step1r` has type `'a -> 'b` and `step2r` has type `'b -> 'c`, what is the type of `step1r |- step2r`?
-
-*Check:* `step1r |- step2r` has type `'a -> 'c`. (Composition “cancels” the middle type `'b`.)
-
-#### Power Function
-
-Now we define iterated function composition---applying a function to itself repeatedly. This is written mathematically as:
-
-$$
-f^n(x) := \underbrace{(f \circ \cdots \circ f)}_{n \text{ times}}(x)
-$$
-
-In other words, $f^0$ is the identity function, $f^1 = f$, $f^2 = f \circ f$, and so on. In OCaml, we first define the backward composition operator, then use it to implement `power`:
-
-```ocaml env=ch3
-let (-|) f g x = f (g x)
-
-let rec power f n =
-  if n <= 0 then (fun x -> x) else f -| power f (n-1)
+let program = Let ("x", Number 3.,
+  Binary (Add, Binary (Mul, Variable "x", Number 4.), Number 2.))
+let () = assert (eval [] program = 14.)
 ```
 
-When `n <= 0`, we return the identity function `fun x -> x`. Otherwise, we compose `f` with `power f (n-1)`, which gives us one more application of `f`. Notice how elegantly this definition expresses the mathematical concept---we are literally composing `f` with itself `n` times.
-
-This `power` function is surprisingly versatile. For example, we can use it to define addition in terms of the successor function:
-
-```ocaml env=ch3
-let add n = power ((+) 1) n
-```
-
-Here `add 5 7` would compute $7 + 1 + 1 + 1 + 1 + 1 = 12$. We could even define multiplication:
-
-```ocaml env=ch3
-let mult k n = power ((+) k) n 0
-```
-
-This computes $0 + k + k + \ldots + k$ (adding $k$ a total of $n$ times), giving us $k \times n$. While not the most efficient implementation, these examples show how higher-order functions like `power` can express fundamental mathematical operations.
-
-#### Numerical Derivative
-
-A beautiful application of `power` is computing higher-order derivatives. First, let us define a numerical approximation of the derivative using the standard finite difference formula:
-
-```ocaml env=ch3
-let derivative dx f = fun x -> (f (x +. dx) -. f x) /. dx
-```
-
-This definition computes $\frac{f(x + dx) - f(x)}{dx}$, which approximates $f'(x)$ when `dx` is small. Notice the explicit `fun x -> ...` syntax, which emphasizes that `derivative dx f` is itself a function---we are transforming a function `f` into its derivative function.
-
-We can write the same definition more concisely using OCaml's curried function syntax:
-
-```ocaml env=ch3
-let derivative dx f x = (f (x +. dx) -. f x) /. dx
-```
-
-Both definitions are equivalent, but the first makes the "function returning a function" structure more explicit, while the second is more compact.
-
-**A note on OCaml's numeric operators:** OCaml uses different operators for floating-point arithmetic than for integers. The type of `(+)` is `int -> int -> int`, so we cannot use `+` with `float` values. Instead, operators followed by a dot work on `float` numbers: `+.`, `-.`, `*.`, and `/.`. This might seem inconvenient at first, but it catches type errors at compile time and avoids the implicit conversions that cause subtle bugs in other languages.
-
-#### Computing Higher-Order Derivatives
-
-Now comes the payoff. With `power` and `derivative`, we can elegantly compute higher-order derivatives:
-
-```ocaml env=ch3
-let pi = 4.0 *. atan 1.0
-let sin''' = (power (derivative 1e-5) 3) sin
-let _approx = sin''' pi
-```
-
-Here `sin'''` is the third derivative of sine. The expression `(power (derivative 1e-5) 3)` creates a function that applies the derivative operation three times---exactly what we need for the third derivative.
-
-Mathematically, the third derivative of $\sin(x)$ is $-\cos(x)$, so `sin''' pi` should give us $-\cos(\pi) = 1$. The actual result will be close to 1, with some numerical error due to the finite difference approximation (the error compounds with each derivative we take).
-
-This example demonstrates the power of treating functions as first-class values. We have built a general-purpose derivative operator and combined it with our `power` function to create an $n$th-derivative calculator---all in just a few lines of code.
-
-### 3.2 Evaluation Rules (Reduction Semantics)
-
-So far, we have written OCaml programs and observed their results, but we have not precisely described *how* those results are computed. To understand how OCaml programs execute, we need to formalize the evaluation process. This section presents **reduction semantics** (also called *operational semantics*), which describes computation as a series of rewriting steps that transform expressions until we reach a final value.
-
-Understanding reduction semantics is valuable for several reasons. It helps us predict what our programs will do, reason about their efficiency, and understand subtle behaviors like infinite loops and non-termination. The ideas here also form the foundation for understanding more advanced topics like type systems and program verification.
-
-#### Expressions
-
-Programs consist of **expressions**. Here is the grammar of expressions for a simplified version of OCaml (we omit some features for clarity):
-
-| | | |
-|:--|:--|:--|
-| $a \; ::=$ | $x$ | variables |
-| $\quad \mid$ | `fun` $x$ `->` $a$ | (defined) functions |
-| $\quad \mid$ | $a \; a$ | applications |
-| $\quad \mid$ | $C^0$ | value constructors of arity 0 |
-| $\quad \mid$ | $C^n(a, \ldots, a)$ | value constructors of arity $n$ |
-| $\quad \mid$ | $f^n$ | built-in values (primitives) of arity $n$ |
-| $\quad \mid$ | `let` $x$ `=` $a$ `in` $a$ | name bindings (local definitions) |
-| $\quad \mid$ | `match` $a$ `with` $p$ `->` $a$ $\mid \cdots \mid$ $p$ `->` $a$ | pattern matching |
-| $p \; ::=$ | $x$ | pattern variables |
-| $\quad \mid$ | $(p, \ldots, p)$ | tuple patterns |
-| $\quad \mid$ | $C^0$ | variant patterns of arity 0 |
-| $\quad \mid$ | $C^n(p, \ldots, p)$ | variant patterns of arity $n$ |
-
-**Arity** means how many arguments something requires. For constructors, arity tells us how many components the constructor holds; for functions (primitives), it tells us how many arguments they need before they can compute a result. For tuple patterns, arity is simply the length of the tuple.
-
-**Meta-syntax note.** OCaml constructors can have multiple arguments. As in Chapter 2, `C of int * string` declares two arguments, whereas `C of (int * string)` declares one tuple argument. Both are written `C (1, "one")` when constructing a value, but the distinction matters when passing an existing tuple. The rules below use an explicit arity, such as $C^3(a_1,a_2,a_3)$.
-
-**Evaluation-order note.** The small-step rules below are intentionally simplified. In particular, the “context” rules allow reducing subexpressions in more than one place. OCaml is *strict* (call-by-value), but the language does not specify the relative evaluation order of a function expression and its arguments. Current implementations often evaluate arguments right-to-left. Use explicit `let` bindings when effects require a particular order; do not rely on that implementation behavior.
-
-#### The `fix` Primitive
-
-Our grammar above includes functions defined with `fun`, but what about recursive functions defined with `let rec`? To keep our semantics simple, we introduce a primitive `fix` that captures the essence of recursion:
-
-$$
-\texttt{let rec } f \; x = e_1 \texttt{ in } e_2 \equiv \texttt{let } f = \texttt{fix (fun } f \; x \texttt{ -> } e_1 \texttt{) in } e_2
-$$
-
-The `fix` primitive is a *fixpoint combinator*. It takes a function that expects to receive "itself" as its first argument and produces a function that, when called, behaves as if it has access to itself for recursive calls. This might seem mysterious now, but we will see exactly how it works when we examine its reduction rule below.
-
-#### Values
-
-Expressions evaluate (i.e., compute) to **values**. Values are expressions that cannot be reduced further---they are the "final answers" of computation:
-
-$$
-\begin{array}{lcll}
-v & := & \texttt{fun } x \texttt{ -> } a & \text{(defined) functions} \\
-  & |  & C^n(v_1, \ldots, v_n) & \text{constructed values} \\
-  & |  & f^n \; v_1 \; \cdots \; v_k & k < n \text{ (partially applied primitives)}
-\end{array}
-$$
-
-Note that functions are values: `fun x -> x + 1` is already fully evaluated---there is nothing more to compute until the function is applied to an argument. Similarly, constructed values like `Some 42` or `(1, 2, 3)` are values when all their components are values.
-
-Partially applied primitives like `(+) 3` are also values. The expression `(+) 3` has received one argument but needs another before it can compute a sum. Until that second argument arrives, there is nothing more to do, so `(+) 3` is a value.
-
-#### Substitution
-
-The heart of evaluation is **substitution**. To substitute a value $v$ for a variable $x$ in expression $a$, we write $a[x := v]$. This notation means that every free occurrence of $x$ in $a$ is replaced by $v$.
-
-For example, if $a$ is the expression `x + x * y` and we substitute 3 for `x`, we get `3 + 3 * y`. In our notation: `(x + x * y)[x := 3] = 3 + 3 * y`.
-
-In the presence of binders like `fun x -> ...` (and pattern-bound variables), substitution must be **capture-avoiding**: we are allowed to rename bound variables so we do not accidentally change which occurrence refers to which binder.
-
-**Implementation note:** Although we describe substitution as "replacing" variables with values, the actual implementation in OCaml does not duplicate the value $v$ in memory each time it appears. Instead, OCaml uses closures and sharing to ensure that values are stored once and referenced wherever needed. This is both more efficient and essential for handling recursive data structures.
-
-#### Reduction Rules (Redexes)
-
-Now we can describe how computation actually proceeds. Reduction works by finding reducible expressions called **redexes** (short for "reducible expressions") and applying reduction rules that rewrite them into simpler forms. We write $e_1 \rightsquigarrow e_2$ to mean "expression $e_1$ reduces to expression $e_2$ in one step."
-
-Here are the fundamental reduction rules:
-
-**Function application (beta reduction):**
-$$
-(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]
-$$
-
-This is the most important rule. When we apply a function `fun x -> a` to a value $v$, we substitute $v$ for the parameter $x$ throughout the function body $a$. This rule is traditionally called "beta reduction" in the lambda calculus literature.
-
-For example: `(fun x -> x + 1) 5` $\rightsquigarrow$ `5 + 1` $\rightsquigarrow$ `6`.
-
-**Let binding:**
-$$
-\texttt{let } x = v \texttt{ in } a \rightsquigarrow a[x := v]
-$$
-
-A let binding works similarly: once the bound expression has been evaluated to a value $v$, we substitute it into the body. Notice that `let x = e in a` is essentially equivalent to `(fun x -> a) e`---both bind $x$ to the result of evaluating $e$ within the expression $a$.
-
-**Primitive application:**
-$$
-f^n \; v_1 \; \cdots \; v_n \rightsquigarrow f(v_1, \ldots, v_n)
-$$
-
-When a primitive (like `+` or `*`) receives all the arguments it needs (determined by its arity $n$), it computes the result. Here $f(v_1, \ldots, v_n)$ denotes the actual result of the primitive operation---for example, `(+) 2 3` $\rightsquigarrow$ `5`.
-
-**Pattern matching with a variable pattern:**
-$$
-\texttt{match } v \texttt{ with } x \texttt{ -> } a \texttt{ | } \cdots \rightsquigarrow a[x := v]
-$$
-
-A variable pattern always matches, binding the entire value to the variable.
-
-**Pattern matching with a non-matching constructor:**
-$$
-\frac{C_1 \neq C_2}{\begin{array}{c}\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_2^k(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \\ \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm\end{array}}
-$$
-
-If the constructor in the value ($C_1$) does not match the constructor in the pattern ($C_2$), we skip this branch and try the remaining patterns ($pm$). This is how OCaml searches through pattern match cases from top to bottom.
-
-**Pattern matching with a matching constructor:**
-$$
-\texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } C_1^n(x_1, \ldots, x_n) \texttt{ -> } a \texttt{ | } \cdots \rightsquigarrow a[x_1 := v_1; \ldots; x_n := v_n]
-$$
-
-If the constructor matches, we substitute all the values from inside the constructor for the corresponding pattern variables. For example, `match Some 42 with Some x -> x + 1 | None -> 0` reduces to `42 + 1` because `Some` matches `Some` and we substitute 42 for `x`.
-
-If $n = 0$, then $C_1^n(v_1, \ldots, v_n)$ stands for simply $C_1^0$, a constructor with no arguments (like `None` or `[]`). We omit the more complex cases of nested pattern matching for brevity.
-
-#### Rule Variables
-
-In these rules, we use *metavariables*---placeholders that can be replaced with actual expressions. Understanding them is key to applying the rules:
-
-- $x$ matches any variable name (like `foo`, `n`, or `result`)
-- $a, a_1, \ldots, a_n$ match any expression (not necessarily a value)
-- $v, v_1, \ldots, v_n$ match any *value* (expressions that are fully evaluated)
-
-To apply a rule, find substitutions for these metavariables that make the left-hand side of the rule match your expression. Then the right-hand side (with the same substitutions applied) gives you the reduced expression.
-
-For example, to apply the beta reduction rule to `(fun n -> n * 2) 5`:
-1. Match `fun x -> a` with `fun n -> n * 2`, giving us $x = \texttt{n}$ and $a = \texttt{n * 2}$
-2. Match $v$ with `5`
-3. The right-hand side $a[x := v]$ becomes `(n * 2)[n := 5]` which equals `5 * 2`
-
-#### Evaluation Context Rules
-
-The reduction rules above only apply when the arguments are already values. But what if we have `(fun x -> x + 1) (2 + 3)`? The argument `2 + 3` is not a value, so we cannot directly apply beta reduction. We need rules that tell us evaluation can proceed inside subexpressions.
-
-If $a_i \rightsquigarrow a_i'$ (meaning $a_i$ can take a reduction step), then:
-
-$$
-\begin{array}{lcl}
-a_1 \; a_2 & \rightsquigarrow & a_1' \; a_2 \\
-a_1 \; a_2 & \rightsquigarrow & a_1 \; a_2' \\
-C^n(a_1, \ldots, a_i, \ldots, a_n) & \rightsquigarrow & C^n(a_1, \ldots, a_i', \ldots, a_n) \\
-\texttt{let } x = a_1 \texttt{ in } a_2 & \rightsquigarrow & \texttt{let } x = a_1' \texttt{ in } a_2 \\
-\texttt{match } a_1 \texttt{ with } pm & \rightsquigarrow & \texttt{match } a_1' \texttt{ with } pm
-\end{array}
-$$
-
-These rules describe *where* reduction can happen:
-
-- In a function application $a_1 \; a_2$, the rules allow reducing either the function ($a_1$) or the argument ($a_2$). This is a common simplification in textbook semantics; OCaml is strict but leaves the relative order unspecified.
-- In a constructor application, any argument can be evaluated.
-- In a let binding `let x = a1 in a2`, the bound expression $a_1$ must be evaluated to a value before we can proceed. Notice there is no rule for evaluating $a_2$ directly---the body is only evaluated after the substitution happens.
-- In a match expression, the scrutinee (the expression being matched) must be evaluated before pattern matching can proceed.
-
-#### The `fix` Rule
-
-Finally, the rule for the `fix` primitive, which enables recursion:
-
-$$
-\texttt{fix}^2 \; v_1 \; v_2 \rightsquigarrow v_1 \; (\texttt{fix}^2 \; v_1) \; v_2
-$$
-
-This rule is subtle but powerful. Let us unpack it:
-
-1. `fix` is a binary primitive (arity 2), meaning it needs two arguments before it computes.
-2. When we apply `fix` to two values $v_1$ and $v_2$, it "unrolls" one level of recursion by calling $v_1$ with two arguments: `(fix v1)` (which represents "the recursive function itself") and $v_2$ (the actual argument to the recursive call).
-3. Because `fix` has arity 2, the expression `(fix v1)` is a *partially applied primitive*---and partially applied primitives are values! This is crucial: it means `(fix v1)` will not be evaluated further until it is applied to another argument inside $v_1$.
-
-This delayed evaluation is what prevents infinite loops. If `(fix v1)` were evaluated immediately, we would get an infinite chain of expansions. Instead, evaluation only continues when the recursive function actually makes a recursive call.
-
-`fix` is not an OCaml primitive; it is a pedagogical device. If you *did* want to define it directly in OCaml, you could (ironically) do so using `let rec`:
-
-```ocaml env=ch3
-let fix f =
-  let rec self x = f self x in
-  self
-```
-
-#### Practice
-
-The best way to understand reduction semantics is to work through examples by hand. Trace the evaluation of these expressions step by step:
-
-#### Exercise 1
-
-Evaluate `let double x = x + x in double 3`
-
-
-#### Exercise 2
-
-Evaluate `(fun f -> fun x -> f (f x)) (fun y -> y + 1) 0`
-
-
-#### Exercise 3
-
-Define the factorial function using `fix` and trace the evaluation of `factorial 3`
-
-
-### 3.3 Symbolic Derivation Example
-
-Let us see the reduction rules in action with a more substantial example. We will build a small computer algebra system that can represent mathematical expressions symbolically, evaluate them, and even compute their derivatives symbolically.
-
-Consider the symbolic expression type from `Lec3.ml`:
-
-```ocaml env=ch3
-type expression =
-  | Const of float
-  | Var of string
-  | Sum of expression * expression    (* e1 + e2 *)
-  | Diff of expression * expression   (* e1 - e2 *)
-  | Prod of expression * expression   (* e1 * e2 *)
-  | Quot of expression * expression   (* e1 / e2 *)
-
-exception Unbound_variable of string
-
-let rec eval env exp =
-  match exp with
-  | Const c -> c
-  | Var v ->
-    (try List.assoc v env with Not_found -> raise (Unbound_variable v))
-  | Sum(f, g) -> eval env f +. eval env g
-  | Diff(f, g) -> eval env f -. eval env g
-  | Prod(f, g) -> eval env f *. eval env g
-  | Quot(f, g) -> eval env f /. eval env g
-```
-
-The `expression` type represents mathematical expressions as a tree structure. Each constructor corresponds to a different kind of expression: constants, variables, and the four basic arithmetic operations. The `eval` function takes an environment `env` (a list of variable-value pairs) and recursively evaluates an expression to a floating-point number.
-
-We can also define *symbolic differentiation*---computing the derivative of an expression without evaluating it numerically:
-
-```ocaml env=ch3
-let rec deriv exp dv =
-  match exp with
-  | Const _ -> Const 0.0
-  | Var v -> if v = dv then Const 1.0 else Const 0.0
-  | Sum(f, g) -> Sum(deriv f dv, deriv g dv)
-  | Diff(f, g) -> Diff(deriv f dv, deriv g dv)
-  | Prod(f, g) -> Sum(Prod(f, deriv g dv), Prod(deriv f dv, g))
-  | Quot(f, g) -> Quot(Diff(Prod(deriv f dv, g), Prod(f, deriv g dv)),
-                       Prod(g, g))
-```
-
-The `deriv` function implements the standard rules of calculus:
-
-- The derivative of a constant is 0.
-- The derivative of the variable we are differentiating with respect to is 1; any other variable is treated as a constant (derivative 0).
-- The sum and difference rules: $(f + g)' = f' + g'$ and $(f - g)' = f' - g'$.
-- The product rule: $(f \cdot g)' = f \cdot g' + f' \cdot g$.
-- The quotient rule: $(f / g)' = (f' \cdot g - f \cdot g') / g^2$.
-
-For convenience, let us define some operators and variables so we can write expressions more naturally:
-
-```ocaml env=ch3
-let x = Var "x"
-let y = Var "y"
-let z = Var "z"
-let (+:) f g = Sum (f, g)
-let (-:) f g = Diff (f, g)
-let ( *: ) f g = Prod (f, g)
-let (/:) f g = Quot (f, g)
-let (!:) i = Const i
-```
-
-These custom operators (ending in `:`) let us write symbolic expressions that look almost like regular mathematical notation.
-
-Now let us evaluate the expression $3x + 2y + x^2 y$ at $x = 1, y = 2$:
-
-```ocaml env=ch3
-let example = !:3.0 *: x +: !:2.0 *: y +: x *: x *: y
-let env = ["x", 1.0; "y", 2.0]
-```
-
-For nicer output, it is helpful to define a pretty-printer that displays expressions in infix notation (this is adapted from `Lec3.ml`):
-
-```ocaml env=ch3
-let print_expr ppf exp =
-  let open_paren prec op_prec =
-    if prec > op_prec then Format.fprintf ppf "(@["
-    else Format.fprintf ppf "@[" in
-  let close_paren prec op_prec =
-    if prec > op_prec then Format.fprintf ppf "@])"
-    else Format.fprintf ppf "@]" in
-  let rec print prec exp =
-    match exp with
-    | Const c -> Format.fprintf ppf "%.2f" c
-    | Var v -> Format.fprintf ppf "%s" v
-    | Sum(f, g) ->
-      open_paren prec 0;
-      print 0 f; Format.fprintf ppf "@ +@ "; print 0 g;
-      close_paren prec 0
-    | Diff(f, g) ->
-      open_paren prec 0;
-      print 0 f; Format.fprintf ppf "@ -@ "; print 1 g;
-      close_paren prec 0
-    | Prod(f, g) ->
-      open_paren prec 2;
-      print 2 f; Format.fprintf ppf "@ *@ "; print 2 g;
-      close_paren prec 2
-    | Quot(f, g) ->
-      open_paren prec 2;
-      print 2 f; Format.fprintf ppf "@ /@ "; print 3 g;
-      close_paren prec 2
-  in
-  print 0 exp
-```
-
-And for tracing, we define a specialized evaluator `eval_1_2` with the environment baked in (so the trace focuses on the expression structure):
-
-```ocaml env=ch3
-let rec eval_1_2 exp =
-  match exp with
-  | Const c -> c
-  | Var v ->
-    (try List.assoc v env with Not_found -> raise (Unbound_variable v))
-  | Sum(f, g) -> eval_1_2 f +. eval_1_2 g
-  | Diff(f, g) -> eval_1_2 f -. eval_1_2 g
-  | Prod(f, g) -> eval_1_2 f *. eval_1_2 g
-  | Quot(f, g) -> eval_1_2 f /. eval_1_2 g
-```
-
-In the toplevel, you can now install the printer and trace the evaluation:
-
-```ocaml skip
-# #install_printer print_expr;;
-# #trace eval_1_2;;
-# eval_1_2 example;;
-```
-
-The trace output makes the recursive structure of the computation very concrete:
-
-```
-eval_1_2 <-- 3.00 * x + 2.00 * y + x * x * y
-  eval_1_2 <-- x * x * y
-    eval_1_2 <-- y
-    eval_1_2 --> 2.
-    eval_1_2 <-- x * x
-      eval_1_2 <-- x
-      eval_1_2 --> 1.
-      eval_1_2 <-- x
-      eval_1_2 --> 1.
-    eval_1_2 --> 1.
-  eval_1_2 --> 2.
-  eval_1_2 <-- 3.00 * x + 2.00 * y
-    eval_1_2 <-- 2.00 * y
-      eval_1_2 <-- y
-      eval_1_2 --> 2.
-      eval_1_2 <-- 2.00
-      eval_1_2 --> 2.
-    eval_1_2 --> 4.
-    eval_1_2 <-- 3.00 * x
-      eval_1_2 <-- x
-      eval_1_2 --> 1.
-      eval_1_2 <-- 3.00
-      eval_1_2 --> 3.
-    eval_1_2 --> 3.
-  eval_1_2 --> 7.
-eval_1_2 --> 9.
-- : float = 9.
-```
-
-The arrows `<--` and `-->` show function calls and returns, respectively. Each level of indentation represents a nested function call. These indentation levels correspond to **stack frames**---the runtime structures that store the state of each function call. Each time `eval_1_2` is called recursively, a new stack frame is created to remember where to return and what computation remains.
-
-The final result is $3 \cdot 1 + 2 \cdot 2 + 1 \cdot 1 \cdot 2 = 3 + 4 + 2 = 9$, as expected.
-
-This trace visualization brings us to an important question: what happens when we have very deep recursion? This leads us to our next topic.
-
-### 3.4 Tail Calls and Tail Recursion
-
-The call stack is finite, and each recursive call typically adds a new frame to it. This means that deeply recursive functions can exhaust the stack and crash---a notorious problem known as "stack overflow." Fortunately, functional language implementations have a trick to avoid this problem in many cases.
-
-Excuse me for not formally defining what a *function call* is... Computers normally evaluate programs by creating **stack frames** on the call stack for each function call. A stack frame stores the local variables, the return address (where to continue after the function returns), and other bookkeeping information. The trace in the previous section illustrates this: each level of indentation represents a new stack frame.
-
-#### What is a Tail Call?
-
-The key insight is that not all function calls require a new stack frame. A **tail call** is a function call that is performed as the very last action when computing a function---there is nothing more to do after the call returns except to return that value. For example:
-
-```ocaml skip
-let f x = g (x + 1)
-```
-
-The call to `g` is a tail call. Once `g` returns some value, `f` simply returns that same value---no further computation is needed.
-
-In contrast:
-
-```ocaml skip
-let f x = 1 + g x
-```
-
-The call to `g` is *not* a tail call. After `g` returns, we still need to add 1 to the result before `f` can return. This means we need to remember to do the addition, which requires keeping the stack frame around.
-
-#### Tail Call Optimization
-
-Functional language compilers (including OCaml's) recognize tail calls and optimize them by performing **tail call optimization** (TCO). Instead of creating a new stack frame, the compiler generates code that reuses the current frame by performing a "jump" to the called function. This means tail calls use constant stack space, no matter how deep the call chain goes.
-
-This optimization is not just a nice-to-have; it is *essential* for functional programming. Without TCO, many natural recursive algorithms would be impractical because they would overflow the stack on moderately large inputs.
-
-#### Tail Recursive Functions
-
-A function is **tail recursive** if all of its recursive calls (including calls to mutually recursive functions it depends on) are tail calls.
-
-Writing tail recursive functions requires a shift in thinking. Instead of building up the result as recursive calls return, we build it up as we *make* the calls. This typically requires an extra **accumulator** argument that carries the partial result through the recursion.
-
-The key insight is that with an accumulator, results are computed in "reverse order"---we do the work while climbing *into* the recursion (making calls) rather than while climbing *out* (returning from calls).
-
-#### Example: Counting
-
-Let us see this in action with a simple counting function. Compare these two versions:
-
-```ocaml env=ch3
-let rec count n =
-  if n <= 0 then 0 else 1 + (count (n-1))
-```
-
-This version is *not* tail recursive. Look at the recursive case: after `count (n-1)` returns, we still need to add 1 to the result. Each recursive call must remember to do this addition, consuming a stack frame.
-
-Now compare with the tail recursive version:
-
-```ocaml env=ch3
-let rec count_tcall acc n =
-  if n <= 0 then acc else count_tcall (acc+1) (n-1)
-```
-
-Here, the recursive call `count_tcall (acc+1) (n-1)` is the very last thing the function does---its result becomes our result directly. The accumulator `acc` carries the running count: we add 1 to it *before* the recursive call rather than *after* it returns. To count to 1000000, we call `count_tcall 0 1000000`.
-
-#### Example: Building Lists
-
-The counting example does not really show the practical impact because the numbers are so small. Let us see a more dramatic example with lists:
-
-```ocaml env=ch3
-let rec unfold n = if n <= 0 then [] else n :: unfold (n-1)
-```
-
-This function builds a list counting down from `n` to 1. It is not tail recursive because after the recursive call `unfold (n-1)` returns, we must cons `n` onto the front of the result.
-
-```ocaml skip
-# unfold 100000;;
-- : int list = [100000; 99999; 99998; 99997; ...]
-
-# unfold 1000000;;
-Stack overflow during evaluation (looping recursion?).
-```
-
-With 100,000 elements, it works. But with a million elements, we run out of stack space and the program crashes! This is a serious problem for practical programming.
-
-Now consider the tail-recursive version:
-
-```ocaml env=ch3
-let rec unfold_tcall acc n =
-  if n <= 0 then acc else unfold_tcall (n::acc) (n-1)
-```
-
-The accumulator `acc` collects the list as we go. We cons each element onto the accumulator *before* the recursive call. However, there is a catch: because we are building the list as we descend into the recursion (rather than as we return), the list comes out in reverse order:
-
-```ocaml skip
-# unfold_tcall [] 100000;;
-- : int list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; ...]
-
-# unfold_tcall [] 1000000;;
-- : int list = [1; 2; 3; 4; 5; 6; 7; 8; 9; 10; 11; 12; ...]
-```
-
-The tail-recursive version handles a million elements effortlessly. The trade-off is that we get `[1; 2; 3; ...]` instead of `[1000000; 999999; ...]`. If we need the original order, we could reverse the result at the end (which is an O(n) operation but uses only constant stack space).
-
-#### A Challenge: Tree Depth
-
-Not all recursive functions can be easily converted to tail recursive form. Consider this problem: can we find the depth of a binary tree using a tail-recursive function?
-
-```ocaml env=ch3
-type btree = Tip | Node of int * btree * btree
-```
-
-Here is the natural recursive approach:
-
-```ocaml env=ch3
-let rec depth tree = match tree with
-  | Tip -> 0
-  | Node(_, left, right) -> 1 + max (depth left) (depth right)
-```
-
-This is not tail recursive: after both recursive calls return, we still need to compute `1 + max ...`. The fundamental challenge is that we have *two* recursive calls that we need to make. A single running depth does not record the branches still to visit. We can add an explicit worklist of subtrees and their depths, or represent the pending work with continuations.
-
-The next section explores the continuation approach: it records what to do after each branch has been visited.
-
-#### Note on Lazy Languages
-
-The issue of tail recursion is more nuanced for **lazy** programming languages like Haskell. In a lazy language, expressions are only evaluated when their values are actually needed. The cons operation `(:)` does not immediately evaluate its arguments---it just builds a "promise" to compute them later.
-
-This means that building a list with `n : unfold (n-1)` does not consume stack space in the same way as in OCaml. The `unfold (n-1)` is not evaluated immediately; it is just stored as an unevaluated expression (called a "thunk"). Stack space is only consumed later, when you actually traverse the list. This gives lazy languages different performance characteristics and trade-offs.
-
-### 3.5 First Encounter of Continuation Passing Style
-
-We can solve the tree depth problem using **Continuation Passing Style (CPS)**. This is a powerful technique that transforms programs in a surprising way: instead of returning values, functions receive an extra argument---a *continuation*---that tells them what to do with their result.
-
-The key idea is to postpone doing actual work until the very last moment by passing around a continuation---a function that represents "what to do next with this result."
-
-```ocaml env=ch3
-let rec depth_cps tree k = match tree with
-  | Tip -> k 0
-  | Node(_, left, right) ->
-    depth_cps left (fun dleft ->
-      depth_cps right (fun dright ->
-        k (1 + (max dleft dright))))
-
-let depth tree = depth_cps tree (fun d -> d)
-```
-
-Let us understand how this works step by step:
-
-1. **The continuation parameter:** The function takes an extra parameter `k`, called the **continuation**. Instead of returning a value directly, `depth_cps` will call `k` with its result. You can think of `k` as meaning "and then do this with the answer."
-
-2. **The base case (`Tip`):** When we reach a leaf, the depth is 0. Instead of returning 0, we call `k 0`---"give 0 to whoever is waiting for our answer."
-
-3. **The recursive case (`Node`):** This is where CPS shines. We need to compute depths of both subtrees and combine them. Here is how we do it:
-   - First, recursively compute the depth of the left subtree. But instead of waiting for the result, we pass a continuation: `fun dleft -> ...`
-   - This continuation says "when you have the left depth (call it `dleft`), then..."
-   - ...compute the depth of the right subtree, passing another continuation: `fun dright -> ...`
-   - This inner continuation says "when you have the right depth (call it `dright`), then..."
-   - ...finally call the original continuation `k` with the combined result `1 + max dleft dright`
-
-4. **The wrapper function:** To use `depth_cps`, we need to provide an initial continuation. We pass the identity function `fun d -> d`, which just returns whatever it receives. This is the "final consumer" of the result.
-
-The magic is that *every recursive call is now a tail call*! Look carefully: `depth_cps left (...)` is the last thing the function does in that branch---everything else is inside the continuation, which will be called later.
-
-Where does the "pending work" go? Instead of being stored on the call stack, it is captured in the continuation closures. These closures are allocated on the heap. We have traded stack space for heap space.
-
-With OCaml's tail-call optimization, this CPS traversal uses constant call-stack space. Its pending continuations still occupy heap space proportional to tree height, so constant stack space does not mean constant total space. An explicit worklist is another representation of that pending work. Trampolining is useful in languages without reliable tail calls; it is not required for these OCaml tail calls.
-
-We will encounter CPS again when studying monads and advanced control flow, where it provides the foundation for powerful abstractions.
-
-### 3.6 Exercises
-
-These exercises will help you practice the concepts from this chapter: function composition, reduction semantics, tail recursion, and continuation passing style.
-
-#### Exercise 1: Tree Traversals
-
-By "traverse a tree" below we mean: write a function that takes a tree and returns a list of values in the nodes of the tree. Use the `btree` type defined earlier.
-
-1. Write a function (of type `btree -> int list`) that traverses a binary tree in **prefix order** (also called *preorder*)---first the value stored in a node, then values in all nodes to the left, then values in all nodes to the right.
-
-2. Write a traversal in **infix order** (also called *inorder*)---first values in all nodes to the left, then the value stored in the node, then values in all nodes to the right. For a binary search tree, this would give you the elements in sorted order.
-
-3. Write a traversal in **breadth-first order** (also called *level order*)---visit all nodes at depth 0, then all nodes at depth 1, and so on. Hint: you will need an auxiliary data structure (a queue) to keep track of nodes to visit.
-
-#### Exercise 2: CPS Transformation
-
-Turn the function from Exercise 1 (prefix or infix traversal) into continuation passing style. Compare the structure of your CPS version to the original. What are the trade-offs?
-
-#### Exercise 3: Tree Derivatives Revisited
-
-Do the homework from the end of Chapter 2: write `btree_deriv_at` that takes a predicate over integers and a `btree`, and builds a `btree_deriv` whose "hole" is in the first position (using your chosen traversal order) for which the predicate returns true.
-
-#### Exercise 4: Expression Simplification
-
-Write a function `simplify: expression -> expression` that simplifies symbolic expressions, so that for example the result of `simplify (deriv exp dv)` looks more like what a human would get computing the derivative of `exp` with respect to `dv`.
-
-Some simplifications to consider:
-
-- $0 + x = x$ and $x + 0 = x$
-- $0 \cdot x = 0$ and $x \cdot 0 = 0$
-- $1 \cdot x = x$ and $x \cdot 1 = x$
-- $x - 0 = x$
-- $x / 1 = x$
-
-Approach this in two steps:
-1. Write a `simplify_once` function that performs a single "pass" of simplification over the expression tree.
-2. Wrap it using a general `fixpoint` function that performs an operation until a **fixed point** is reached: given $f$ and $x$, it computes $f^n(x)$ such that $f^n(x) = f^{n+1}(x)$ (i.e., applying $f$ one more time does not change the result).
-
-Why do we need iteration to a fixed point rather than a single pass?
-
-#### Exercise 5: Sorting Algorithms
-
-Write two sorting algorithms working on lists: merge sort and quicksort.
-
-1. **Merge sort** splits the list roughly in half, sorts the parts recursively, and merges the sorted parts into the sorted result. You will need a helper function to merge two sorted lists.
-
-2. **Quicksort** splits the list into elements smaller than and greater-than-or-equal-to the first element (the "pivot"), sorts the parts recursively, and concatenates them.
-
-Which of these algorithms can be implemented in a tail-recursive manner? What about the helper functions (merge, partition)?
-
-
-## Chapter 4: Functions
-
-![Chapter 4 illustration](Curious_OCaml-chapter_4.jpg){.chapter-image}
-
-*Programming in untyped lambda-calculus*
-
-**In this chapter, you will:**
-
-- Rehearse reduction-by-hand on a non-trivial recursive program
-- Learn the syntax and $\beta$-reduction rules of the untyped lambda-calculus
-- Encode booleans, pairs, naturals, lists, and trees using functions alone
-- Understand recursion via fixpoint combinators (and how evaluation order matters)
-
-This chapter explores the theoretical foundations of functional programming through the untyped lambda-calculus. We embark on a fascinating journey that reveals a surprising truth: every computation can be expressed using nothing but functions. No numbers, no booleans, no data structures---just functions all the way down.
-
-We begin with a review of computation by hand using our reduction semantics, then introduce the lambda-calculus notation and show how to encode fundamental data types---booleans, pairs, and natural numbers---using only functions. The chapter concludes with an examination of recursion through fixpoint combinators and practical considerations for avoiding infinite loops in eager evaluation.
-
-**References:**
-
-- "Introduction to Lambda Calculus" by Henk Barendregt and Erik Barendsen
-- "Lecture Notes on the Lambda Calculus" by Peter Selinger
-
-**Running the examples:** this chapter studies an untyped calculus. Its OCaml experiments use recursive types (`#rectypes;;` in the toplevel, or `-rectypes` when compiling), enabled by `chapter4/prelude.ml`. A few demonstrations also use `Obj.magic`; those casts bypass type safety and are not a general implementation technique. Blocks marked `skip` are derivations or intentionally non-running examples.
-
-### 4.1 Review: Computation by Hand
-
-Before diving into the lambda-calculus, let us work through a complete example of evaluation using the reduction rules from Chapter 3. Computing a larger, recursive program by hand will solidify our understanding of how computation proceeds step by step and prepare us for the more abstract setting of lambda-calculus.
-
-Recall that we use `fix` instead of `let rec` to simplify our rules for recursion. Also remember our syntactic conventions: `fun x y -> e` stands for `fun x -> (fun y -> e)`, and so forth.
-
-Consider the following recursive `length` function applied to a two-element list:
-
-```ocaml skip
-let rec fix f x = f (fix f) x
-
-type int_list = Nil | Cons of int * int_list
-
-let length =
-  fix (fun f l ->
-    match l with
-    | Nil -> 0
-    | Cons (_x, xs) -> 1 + f xs)
-in
-length (Cons (1, (Cons (2, Nil))))
-```
-
-Let us trace through this computation step by step. First, we eliminate the `let ... in ...` binding for `length`:
-
-$$\texttt{let } x = v \texttt{ in } a \rightsquigarrow a[x := v]$$
-
-This gives us:
-
-```
-fix (fun f l ->
-    match l with
-      | Nil -> 0
-      | Cons (x, xs) -> 1 + f xs) (Cons (1, (Cons (2, Nil))))
-```
-
-Next, we apply the `fix` rule:
-
-$$\texttt{fix}^2 \; v_1 \; v_2 \rightsquigarrow v_1 \; (\texttt{fix}^2 \; v_1) \; v_2$$
-
-This unfolds to:
-
-```
-(fun f l ->
-    match l with
-      | Nil -> 0
-      | Cons (x, xs) -> 1 + f xs)
-    (fix (fun f l ->
-      match l with
-        | Nil -> 0
-        | Cons (x, xs) -> 1 + f xs))
-    (Cons (1, (Cons (2, Nil))))
-```
-
-Function application reduces according to:
-
-$$(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$$
-
-After substituting both `f` and `l`, we get:
-
-```
-(match Cons (1, (Cons (2, Nil))) with
-    | Nil -> 0
-    | Cons (x, xs) -> 1 + (fix (fun f l ->
-      match l with
-        | Nil -> 0
-        | Cons (x, xs) -> 1 + f xs)) xs)
-```
-
-Pattern matching against a non-matching constructor moves to the next branch:
-
-$$
-\begin{aligned}
-& \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with} \\
-& C_2^n(p_1, \ldots, p_k) \texttt{ -> } a \texttt{ | } pm \rightsquigarrow \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with } pm
-\end{aligned}
-$$
-
-Pattern matching against a matching constructor performs substitution:
-
-$$
-\begin{aligned}
-& \texttt{match } C_1^n(v_1, \ldots, v_n) \texttt{ with} \\
-& C_1^n(x_1, \ldots, x_n) \texttt{ -> } a \texttt{ | } \ldots \rightsquigarrow a[x_1 := v_1; \ldots; x_n := v_n]
-\end{aligned}
-$$
-
-After matching and substitution:
-
-```
-1 + (fix (fun f l ->
-      match l with
-        | Nil -> 0
-        | Cons (x, xs) -> 1 + f xs)) (Cons (2, Nil))
-```
-
-Continuing the evaluation, we apply `fix` again and work through the pattern match for `Cons (2, Nil)`, eventually reaching:
-
-```
-1 + (1 + (fix (fun f l ->
-             match l with
-               | Nil -> 0
-               | Cons (x, xs) -> 1 + f xs)) Nil)
-```
-
-One more unfolding and pattern match against `Nil` gives:
-
-```
-1 + (1 + 0)
-```
-
-Finally, applying the built-in addition:
-
-$$f^n \; v_1 \; \ldots \; v_n \rightsquigarrow f(v_1, \ldots, v_n)$$
-
-We obtain the result: `2`.
-
-### 4.2 Language and Rules of the Untyped Lambda-Calculus
-
-The lambda-calculus, introduced by Alonzo Church in the 1930s, is a minimal formal system for expressing computation. It may seem surprising that such a stripped-down language can be computationally complete, but that is precisely what we will demonstrate in this chapter. To work with lambda-calculus, we first simplify our language in several ways:
-
-1. **Forget about types.** In pure lambda-calculus, there is no type system constraining which terms can be combined. Any function can be applied to any argument---including itself!
-
-2. **Introduce notation.** We write $\lambda x.a$ for `fun x -> a`, and $\lambda xy.a$ for `fun x y -> a`, and so forth. This notation is more compact and traditional in the literature.
-
-3. **Reduce to essentials.** We keep only functions (lambda abstractions) and variables---no constructors, no built-in primitives. Everything else will be *encoded* using functions.
-
-The core reduction rule of lambda-calculus is called **$\beta$-reduction**:
-
-$$(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$$
-
-Note that this rule is more general than the one we use for OCaml evaluation. In our OCaml semantics, we require the argument to be a value: $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$. The general $\beta$-reduction rule allows substituting any expression, not just values.
-
-Lambda-calculus also uses **$\alpha$-conversion** (bound variable renaming), or equivalent techniques, to avoid **variable capture**---the unintended binding of free variables during substitution. We will explore the implications of $\beta$-reduction more deeply in the chapter on laziness.
-
-Why is $\beta$-reduction more general than our evaluation rule? Consider the expression $(\lambda x. x) \; ((\lambda y. y) \; z)$. With $\beta$-reduction, we could reduce the outer application first, obtaining $((\lambda y. y) \; z)$. Our evaluation rule would require first reducing the argument to a value---but here `z` is a free variable, not a value, so we would be stuck!
-
-This example is intentionally an *open term* (it has a free variable `z`): in lambda-calculus we often reason about open terms up to $\beta$-equivalence, while programming-language evaluation is usually defined for *closed* programs.
-
-### 4.3 Booleans
-
-Alonzo Church originally introduced lambda-calculus as a foundation for logic, seeking to encode logical reasoning in a purely computational form. There are multiple ways to encode various sorts of data in lambda-calculus, though not all of them work well in a typed setting---the straightforward encode/decode functions may not type-check for some encodings.
-
-The key insight behind the **Church encoding** of booleans is to represent truth values as *selector functions*. Think about what a boolean fundamentally does: it chooses between two alternatives. So we define:
-
-- **True** selects the first argument: `c_true` $= \lambda xy.x$
-- **False** selects the second argument: `c_false` $= \lambda xy.y$
-
-In OCaml syntax:
-
-```ocaml env=ch4
-let c_true = fun x y -> x   (* "True" is projection on the first argument *)
-let c_false = fun x y -> y  (* And "false" on the second argument *)
-```
-
-Once we have booleans as selectors, logical operations become elegant. Logical conjunction can be defined as:
-
-$$\texttt{c\_and} = \lambda xy. x \; y \; \texttt{c\_false}$$
-
-The logic behind this definition is beautifully simple: we apply `x` (which is a selector) to two arguments. If `x` is true, it selects its first argument, which is `y`---so the result is true only if both `x` and `y` are true. If `x` is false, it selects its second argument, `c_false`, and selects false. In OCaml, however, the argument expression supplying `y` has already been evaluated: this encoding does not provide short-circuit evaluation.
-
-```ocaml env=ch4
-let c_and = fun x y -> x y c_false  (* If one is false, then return false *)
-```
-
-Let us verify this works. For `c_and c_true c_true`:
-
-$$(\lambda xy. x \; y \; \texttt{c\_false}) \; (\lambda xy.x) \; (\lambda xy.x)$$
-
-reduces to:
-
-$$(\lambda xy.x) \; (\lambda xy.x) \; \texttt{c\_false}$$
-
-which gives us $\lambda xy.x$ = `c_true`. You can verify that for any other combination involving `c_false`, the result is `c_false`.
-
-To verify our encodings in OCaml, we need encode and decode functions. The decoder works by applying our Church boolean to the actual OCaml values `true` and `false`:
-
-```ocaml env=ch4
-let encode_bool b = if b then c_true else c_false
-let decode_bool c = (Obj.magic c) true false  (* Don't enforce type on c *)
-```
-
-#### Exercise: Church Boolean Combinators
-
-Define `c_or` and `c_not` yourself! Hint: think about what `c_or` should return when the first argument is true, and when it is false. For `c_not`, consider that a boolean is a function that selects between two arguments.
-
-
-### 4.4 If-then-else and Pairs
-
-From now on, we will use OCaml syntax for our lambda-calculus programs. This makes it easier to experiment with our encodings in the toplevel.
-
-An important observation is that our encoded booleans already implement conditional selection:
-
-```ocaml env=ch4
-let if_then_else b t e = b t e  (* Booleans select the branch! *)
-```
-
-Wait---is `if_then_else` “just” the identity function? Up to $\eta$-equivalence, yes: `fun b -> b` and `fun b t e -> b t e` are the same function. Since `c_true` returns its first argument and `c_false` returns its second, `if_then_else b t e` simply applies `b` to the two branches. The boolean *is* the conditional.
-
-Remember to play with these functions in the toplevel to build intuition. Try expressions like `if_then_else c_true "yes" "no"` and see what happens.
-
-#### Pairs
-
-Pairs (ordered tuples of two elements) can be encoded using a similar idea. The key insight is that a pair needs to "remember" two values and provide them when asked. We can achieve this by creating a function that holds onto both values and waits for a selector to choose between them:
-
-```ocaml env=ch4
-let c_pair m n = fun x -> x m n  (* We couple things *)
-let c_first = fun p -> p c_true  (* by passing them together *)
-let c_second = fun p -> p c_false  (* Check that it works! *)
-```
-
-A pair is a function that, when given a selector, applies that selector to both components. To extract the first component, we pass `c_true` (which selects the first argument); to extract the second, we pass `c_false`. Verify for yourself that `c_first (c_pair a b)` reduces to `a`!
-
-For verification:
-
-```ocaml env=ch4
-let encode_pair enc_fst enc_snd (a, b) =
-  c_pair (enc_fst a) (enc_snd b)
-let decode_pair de_fst de_snd c = c (fun x y -> de_fst x, de_snd y)
-let decode_bool_pair c = decode_pair decode_bool decode_bool c
-```
-
-We can define larger tuples in the same manner: `let c_triple l m n = fun x -> x l m n`
-
-### 4.5 Pair-Encoded Natural Numbers
-
-Now we come to encoding numbers---a crucial test of whether functions alone can represent all data. Our first encoding of natural numbers uses nested pairs. The representation is based on the depth of nested pairs whose rightmost leaf is the identity function $\lambda x.x$ and whose left elements are `c_false`.
-
-```ocaml env=ch4
-let pn0 = fun x -> x           (* Start with the identity function *)
-let pn_succ n = c_pair c_false n  (* Stack another pair *)
-
-let pn_pred = fun x -> x c_false  (* Extract the nested number *)
-let pn_is_zero = fun x -> x c_true  (* Check if it's the base case *)
-```
-
-The number 0 is represented as the identity function. The number 1 is `c_pair c_false pn0`, the number 2 is `c_pair c_false (c_pair c_false pn0)`, and so on. Think of it as a stack of pairs, where the height of the stack represents the number.
-
-How do `pn_pred` and `pn_is_zero` work? Let us think through this carefully:
-
-- The identity function `pn0`, when applied to any argument, returns that argument.
-- A successor `c_pair c_false n` is a function waiting for a selector; applying it to `c_false` selects the second component (the predecessor), while applying it to `c_true` selects the first component (`c_false`).
-
-So `pn_is_zero` applies the number to `c_true`:
-
-- For `pn0`, we get `c_true` back (since `pn0` is the identity)---the number is zero!
-- For any successor, we get `c_false` back (the first component of the pair)---the number is not zero!
-
-We program in untyped lambda-calculus as an exercise, and we need encoding/decoding to verify our work. Since these encodings do not type-check cleanly in OCaml, using `Obj.magic` to bypass the type system for encoding/decoding is "fair game":
-
-```ocaml env=ch4
-let rec encode_pnat n =                (* We use Obj.magic to forget types *)
-  if n <= 0 then Obj.magic pn0
-  else pn_succ (Obj.magic (encode_pnat (n-1)))  (* Disregarding types, *)
-let rec decode_pnat pn =               (* these functions are straightforward! *)
-  if decode_bool (pn_is_zero pn) then 0
-  else 1 + decode_pnat (pn_pred (Obj.magic pn))
-```
-
-Needless to say, `Obj.magic` is unsafe and should not be used in real code; here it is only a convenient bridge from untyped lambda-terms to OCaml so we can test our encodings.
-
-### 4.6 Church Numerals
-
-Do you remember our function `power f n` from Chapter 3 that composed a function with itself `n` times? We will use a similar idea for a different, and historically important, representation of numbers.
-
-**Church numerals** represent a natural number $n$ as a function that applies its first argument $n$ times to its second argument:
-
-```ocaml env=ch4
-let cn0 = fun f x -> x        (* The same as c_false *)
-let cn1 = fun f x -> f x      (* Behaves like identity when f = id *)
-let cn2 = fun f x -> f (f x)
-let cn3 = fun f x -> f (f (f x))
-```
-
-This is the original Alonzo Church encoding, and it is remarkably elegant. The number $n$ is represented as $\lambda fx. f^n(x)$, where $f^n$ denotes $n$-fold composition. A number literally *is* the act of doing something $n$ times!
-
-Notice that `cn0` is the same as `c_false`---zero applications of `f` just returns `x`.
-
-The successor function adds one more application of `f`:
-
-```ocaml env=ch4
-let cn_succ = fun n f x -> f (n f x)
-```
-
-#### Exercise: Church Numeral Arithmetic
-
-Define addition, multiplication, and comparing to zero for Church numerals. Also try to define the predecessor function "-1".
-
-
-It turns out even Alonzo Church could not define predecessor right away! The story goes that his student Stephen Kleene figured it out while at the dentist. Try to make some progress on addition and multiplication first (they are not too hard), and then attempt predecessor before looking at the solution below.
-
-```ocaml env=ch4
-let (-|) f g x = f (g x)  (* Backward composition operator *)
-
-let rec encode_cnat n f =
-  if n <= 0 then (fun x -> x) else f -| encode_cnat (n-1) f
-let decode_cnat n = n ((+) 1) 0
-let cn7 f x = encode_cnat 7 f x   (* We need to eta-expand these definitions *)
-let cn13 f x = encode_cnat 13 f x  (* for type-system reasons *)
-                                   (* (because OCaml allows side-effects) *)
-let cn_add = fun n m f x -> n f (m f x)  (* Put n of f in front *)
-let cn_mult = fun n m f -> n (m f)       (* Repeat n times *)
-                                          (* putting m of f in front *)
-let cn_prev n =
-  fun f x ->
-    (* A Church numeral is an n-step iterator. Predecessor is tricky because
-       we cannot “subtract an iteration”; instead we build a small state
-       transformer that delays the use of [f] and then skips the first step. *)
-    n
-      (fun g h -> h (g f))
-      (fun _z -> x)
-      (fun z -> z)
-```
-
-Addition is intuitive: to add $n$ and $m$, we first apply `f` $m$ times (giving us `m f x`), then apply `f` $n$ more times. Multiplication is even more clever: we apply the operation "apply `f` $m$ times" $n$ times, which computes $m \times n$ applications of `f`.
-
-The predecessor function is ingenious and worth studying carefully. The challenge is that Church numerals only know how to apply `f` more times, not fewer. Kleene's insight was to build up a chain of functions that, when "started" with the identity, yields $n-1$ applications of `f`. The key is to delay the actual application of `f` and skip the first one.
-
-`cn_is_zero` is left as an exercise. Hint: what happens when you apply zero to a function that always returns `c_false` and start with `c_true`?
-
-#### Tracing `cn_prev cn3`
-
-To keep the parentheses manageable, abbreviate `((+) 1)` as `f`, `fun g h -> h (g f)` as `s`, `fun _ -> 0` as `z`, and `fun x -> x` as `id`. Then:
+The big-step rule for addition says: evaluate the left operand to `x`, evaluate
+the right operand to `y`, then return `x +. y`. A small-step account records the
+intermediate configurations instead. For example:
 
 ```text
-(cn_prev cn3) f 0
-  = cn3 s z id
-  = s (s (s z)) id
-  = id ((s (s z)) f)
-  = (s (s z)) f
-  = f ((s z) f)
-  = f (f (z f))
-  = f (f 0)
-  = 2
+let x = 3 in x * 4 + 2
+  -> 3 * 4 + 2
+  -> 12 + 2
+  -> 14
 ```
 
-The first application of the iterator builds `s z`; applying it later to `f` yields `f (z f) = f 0`. The outer call to `id` removes one application of `f`, leaving two increments for the input numeral three.
+This trace uses exact small integers representable as floats. It does not license
+arbitrary real-algebra identities on machine numbers. For example, `0. *. nan`
+is NaN; replacing an expression `0 * e` by `0` can also suppress an unbound-variable
+error. Reassociation may change rounding. We distinguish a mathematical real
+semantics, with its domain assumptions, from this executable float semantics.
 
-### 4.7 Recursion: Fixpoint Combinators
+### 3.3 Tail recursion records unfinished work
 
-We have seen how to encode data in lambda-calculus, but how do we encode *computation*, especially recursive computation? In lambda-calculus, there is no `let rec` or any built-in notion of a function referring to itself. Instead, recursion is achieved through **fixpoint combinators**---remarkable lambda terms that compute fixed points of functions.
+A call is in tail position when its result is returned without further work by
+the caller. In `1 + f x`, addition remains; in `f (x + 1)`, it does not. An
+accumulator can move that remaining work into an argument:
 
-#### Turing's Fixpoint Combinator
-
-$$\Theta = (\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y))$$
-
-Let us verify it computes fixed points. Define $N = \Theta F$:
-
-$$
-\begin{aligned}
-N &= \Theta F \\
-&= (\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y)) \; F \\
-&=_{\rightarrow\rightarrow} F \; ((\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y)) \; F) \\
-&= F \; (\Theta F) = F \; N
-\end{aligned}
-$$
-
-So $N = F \; N$, meaning $N$ is a fixed point of $F$.
-
-#### Curry's Fixpoint Combinator (Y Combinator)
-
-$$\mathbf{Y} = \lambda f. (\lambda x. f \; (x \; x)) \; (\lambda x. f \; (x \; x))$$
-
-$$
-\begin{aligned}
-N &= \mathbf{Y} F \\
-&= (\lambda f. (\lambda x. f \; (x \; x)) \; (\lambda x. f \; (x \; x))) \; F \\
-&=_{\rightarrow} (\lambda x. F \; (x \; x)) \; (\lambda x. F \; (x \; x)) \\
-&=_{\rightarrow} F \; ((\lambda x. F \; (x \; x)) \; (\lambda x. F \; (x \; x))) \\
-&=_{\leftarrow} F \; ((\lambda f. (\lambda x. f \; (x \; x)) \; (\lambda x. f \; (x \; x))) \; F) \\
-&= F \; (\mathbf{Y} F) = F \; N
-\end{aligned}
-$$
-
-#### Call-by-Value Fixpoint Combinator
-
-$$\texttt{fix} = \lambda f'. (\lambda fx. f' \; (f \; f) \; x) \; (\lambda fx. f' \; (f \; f) \; x)$$
-
-$$
-\begin{aligned}
-N &= \texttt{fix} \; F \\
-&= (\lambda f'. (\lambda fx. f' \; (f \; f) \; x) \; (\lambda fx. f' \; (f \; f) \; x)) \; F \\
-&=_{\rightarrow} (\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x) \\
-&=_{\rightarrow} \lambda x. F \; ((\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x)) \; x \\
-&=_{\leftarrow} \lambda x. F \; ((\lambda f'. (\lambda fx. f' \; (f \; f) \; x) \; (\lambda fx. f' \; (f \; f) \; x)) \; F) \; x \\
-&= \lambda x. F \; (\texttt{fix} \; F) \; x = \lambda x. F \; N \; x \\
-&=_{\eta} F \; N
-\end{aligned}
-$$
-
-The lambda-terms we have seen above are **fixpoint combinators**---the means within lambda-calculus to perform recursion without any special recursive binding constructs.
-
-#### The Problem with the First Two Combinators
-
-What is the problem with Turing's and Curry's combinators in a practical programming language? Consider what happens when we try to evaluate $\Theta F$:
-
-$$
-\begin{aligned}
-\Theta F &\rightsquigarrow\rightsquigarrow F \; ((\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y)) \; F) \\
-&\rightsquigarrow\rightsquigarrow F \; (F \; ((\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y)) \; F)) \\
-&\rightsquigarrow\rightsquigarrow F \; (F \; (F \; ((\lambda xy. y \; (x \; x \; y)) \; (\lambda xy. y \; (x \; x \; y)) \; F))) \\
-&\rightsquigarrow\rightsquigarrow \ldots
-\end{aligned}
-$$
-
-Recall the distinction between *expressions* and *values* from Chapter 3 on Computation. The reduction rule for lambda-calculus is meant to determine which expressions are considered "equal"---it is highly *non-deterministic*, while on a computer, computation needs to go one way or another.
-
-Using the general reduction rule of lambda-calculus, for a recursive definition, it is always possible to find an infinite reduction sequence. Why? Because we can always choose to reduce the recursive call first, which generates another recursive call, and so on forever. This means a naive lambda-calculus compiler could legitimately generate infinite loops for all recursive definitions---which would not be very useful!
-
-Therefore, we need more specific rules. Most languages use **call-by-value** (also called **eager** evaluation):
-
-$$(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$$
-
-The program *eagerly* computes arguments before starting to compute the function body. This is exactly the rule we introduced in the Computation chapter.
-
-#### Call-by-Value Fixpoint Combinator in Action
-
-What happens with the call-by-value fixpoint combinator?
-
-$$
-\begin{aligned}
-\texttt{fix} \; F &\rightsquigarrow (\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x) \\
-&\rightsquigarrow \lambda x. F \; ((\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x)) \; x
-\end{aligned}
-$$
-
-The computation stops because our weak evaluation strategy does not reduce underneath a lambda. Call-by-value additionally uses the rule $(\texttt{fun } x \texttt{ -> } a) \; v \rightsquigarrow a[x := v]$ rather than $(\texttt{fun } x \texttt{ -> } a_1) \; a_2 \rightsquigarrow a_1[x := a_2]$. The expression inside the lambda is not evaluated until the function is applied.
-
-Let us compute the function on some input:
-
-$$
-\begin{aligned}
-\texttt{fix} \; F \; v &\rightsquigarrow (\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x) \; v \\
-&\rightsquigarrow (\lambda x. F \; ((\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x)) \; x) \; v \\
-&\rightsquigarrow F \; ((\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x)) \; v \\
-&\rightsquigarrow F \; (\lambda x. F \; ((\lambda fx. F \; (f \; f) \; x) \; (\lambda fx. F \; (f \; f) \; x)) \; x) \; v \\
-&\rightsquigarrow \text{depends on } F
-\end{aligned}
-$$
-
-#### Why "Fixpoint"?
-
-If you examine our derivations, you will see they establish $x = f(x)$. Such values $x$ are called **fixpoints** of $f$. An arithmetic function can have several fixpoints---for example, $f(x) = x^2$ has fixpoints 0 and 1 (since $0^2 = 0$ and $1^2 = 1$)---or no fixpoints, such as $f(x) = x + 1$ (since $x + 1 \neq x$ for all $x$).
-
-When you define a function (or another object) by recursion, it has a similar meaning: the name appears on both sides of the equality. For example, `fact n = if n = 0 then 1 else n * fact (n-1)` has `fact` on both sides. In lambda-calculus, functions like $\Theta$ and $\mathbf{Y}$ take *any* function as an argument and return its fixpoint.
-
-We turn a specification of a recursive object into a definition by solving it with respect to the recurring name: deriving $x = f(x)$ where $x$ is the recurring name. We then have $x = \texttt{fix}(f)$.
-
-#### Deriving Factorial
-
-Let us walk through this process step by step for the factorial function. This will show how to transform a recursive specification into a proper definition using `fix`. We omit the prefix `cn_` (could be `pn_` if using pair-encoded numbers) and shorten `if_then_else` to `if_t_e`:
-
-$$
-\begin{aligned}
-\texttt{fact} \; n &= \texttt{if\_t\_e} \; (\texttt{is\_zero} \; n) \; \texttt{cn1} \; (\texttt{mult} \; n \; (\texttt{fact} \; (\texttt{pred} \; n))) \\
-\texttt{fact} &= \lambda n. \texttt{if\_t\_e} \; (\texttt{is\_zero} \; n) \; \texttt{cn1} \; (\texttt{mult} \; n \; (\texttt{fact} \; (\texttt{pred} \; n))) \\
-\texttt{fact} &= (\lambda fn. \texttt{if\_t\_e} \; (\texttt{is\_zero} \; n) \; \texttt{cn1} \; (\texttt{mult} \; n \; (f \; (\texttt{pred} \; n)))) \; \texttt{fact} \\
-\texttt{fact} &= \texttt{fix} \; (\lambda fn. \texttt{if\_t\_e} \; (\texttt{is\_zero} \; n) \; \texttt{cn1} \; (\texttt{mult} \; n \; (f \; (\texttt{pred} \; n))))
-\end{aligned}
-$$
-
-Under normal-order reduction, the last line is a valid definition: we simply give a name to a *ground* (also called *closed*) expression---one with no free variables. We have already seen how `fix` works in the reduction semantics.
-
-In call-by-value OCaml, the conditional also needs delayed branches: an ordinary Church selector evaluates its recursive argument even in the base case. Section 4.9 supplies that extra guard.
-
-#### Exercise: Hand-Reduce `fact cn2`
-
-Compute `fact cn2` by hand, tracing through the reduction steps.
-
-
-#### Exercise: Fixed Point of Successor
-
-What does `fix (fun x -> cn_succ x)` mean? What happens if you try to evaluate it? Think about whether there is any value `x` such that `x = cn_succ x`.
-
-
-### 4.8 Encoding Lists and Trees
-
-The encodings in this section are **Scott encodings**: a value selects a case handler and supplies its immediate fields. Unlike Church encodings, they do not themselves fold recursively over those fields.
-
-Now that we have numbers and recursion, we can encode more complex data structures. The pattern we have seen with booleans and pairs extends naturally to algebraic data types like lists and trees.
-
-A **list** is either empty (often called `Empty` or `Nil`) or consists of an element followed by another list (the "tail"), called `Cons`. Since lists have two variants, we encode them with two-argument selector functions:
-
-- `nil` $= \lambda xy.y$ (select the second argument, like `c_false`)
-- `cons` $H \; T = \lambda xy. x \; H \; T$ (apply the first argument to head and tail)
-
-With these definitions, we can write a function to add all numbers stored inside a list:
-
-$$\texttt{addlist} \; l = l \; (\lambda h t. \texttt{cn\_add} \; h \; (\texttt{addlist} \; t)) \; \texttt{cn0}$$
-
-To make a proper definition, we apply $\texttt{fix}$ to the solution of the above equation:
-
-$$\texttt{addlist} = \texttt{fix} \; (\lambda f l. l \; (\lambda h t. \texttt{cn\_add} \; h \; (f \; t)) \; \texttt{cn0})$$
-
-For **trees**, let us use a different form of binary trees than we have seen before: instead of keeping elements in inner nodes, we will keep elements in leaves. This is sometimes called an "external" tree structure.
-
-Again, we have two variants, so we use two-argument selector functions:
-
-- `leaf` $n = \lambda xy. x \; n$ (apply first argument to the element)
-- `node` $L \; R = \lambda xy. y \; L \; R$ (apply second argument to left and right subtrees)
-
-To add numbers stored inside a tree:
-
-$$\texttt{addtree} \; t = t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (\texttt{addtree} \; l) \; (\texttt{addtree} \; r))$$
-
-And in solved form:
-
-$$\texttt{addtree} = \texttt{fix} \; (\lambda f t. t \; (\lambda n.n) \; (\lambda l r. \texttt{cn\_add} \; (f \; l) \; (f \; r)))$$
-
-```ocaml env=ch4
-let rec fix f x = f (fix f) x
-let nil = fun x y -> y
-let cons h t = fun x y -> x h t
-let addlist l =
-  fix (fun f l -> l (fun h t -> cn_add h (f t)) cn0) l
-;;
-decode_cnat
-  (addlist (cons cn1 (cons cn2 (cons cn7 nil))));;
-let leaf n = fun x y -> x n
-let node l r = fun x y -> y l r
-let addtree t =
-  fix (fun f t ->
-    t (fun n -> n) (fun l r -> cn_add (f l) (f r))
-  ) t
-;;
-decode_cnat
-  (addtree (node (node (leaf cn3) (leaf cn7))
-              (leaf cn1)));;
+```ocaml env=cost
+let rec length = function [] -> 0 | _ :: xs -> 1 + length xs
+let length_tail xs =
+  let rec loop n = function [] -> n | _ :: xs -> loop (n + 1) xs in
+  loop 0 xs
+let () = assert (length [1;2;3] = length_tail [1;2;3])
 ```
 
-#### The General Pattern
+The tail-recursive version needs constant call-stack space. This says nothing
+by itself about heap allocation or the size of its arguments. Nor is there always
+a single numerical accumulator. A tree traversal needs to remember unvisited
+branches:
 
-If you look back at our encodings, you will observe a consistent pattern: when we encode a variant type with $n$ variants, for each variant we define a function that takes $n$ arguments.
+```ocaml env=cost
+type tree = Tip | Node of tree * tree
+let rec depth = function
+  | Tip -> 0
+  | Node (a, b) -> 1 + max (depth a) (depth b)
 
-If the $k$th variant $C_k$ has $m_k$ parameters, then the function $c_k$ that encodes it has the form:
+let depth_worklist tree =
+  let rec visit best = function
+    | [] -> best
+    | (Tip, _) :: todo -> visit best todo
+    | (Node (a, b), d) :: todo ->
+      let d = d + 1 in
+      visit (max best d) ((a, d) :: (b, d) :: todo)
+  in visit 0 [tree, 0]
 
-$$C_k(v_1, \ldots, v_{m_k}) \sim c_k \; v_1 \; \ldots \; v_{m_k} = \lambda x_1 \ldots x_n. x_k \; v_1 \; \ldots \; v_{m_k}$$
-
-The encoded variants serve as shallow pattern matching with guaranteed exhaustiveness: the $k$th argument corresponds to the $k$th branch of pattern matching. This is exactly how `match` works in OCaml, but encoded purely with functions!
-
-### 4.9 Looping Recursion
-
-We have been coding in untyped lambda-calculus and verifying our code works in OCaml. But there is a subtle trap we must be aware of when combining lambda-calculus encodings with OCaml's eager evaluation.
-
-Let us return to pair-encoded numbers and define addition:
-
-```ocaml skip
-let pn_add m n =
-  fix (fun f m n ->
-    if_then_else (pn_is_zero m)
-      n (pn_succ (f (pn_pred m) n))
-  ) m n;;
-decode_pnat (pn_add pn3 pn3);;
+let () =
+  let t = Node (Node (Tip, Tip), Tip) in
+  assert (depth t = 2);
+  assert (depth_worklist t = depth t)
 ```
 
-Oops... OCaml says: `Stack overflow during evaluation (looping recursion?).`
+The worklist is a heap representation of pending visits. On a depth-first
+traversal its live length is bounded by tree height. Tail recursion removes the
+corresponding recursive call stack, not the need to remember those visits.
 
-What went wrong? Nothing as far as lambda-calculus is concerned---the definition is mathematically correct. But OCaml (and F#) always compute arguments before calling a function. This is the *eager* evaluation strategy we discussed earlier. By definition of `fix`, `f` corresponds to recursively calling `pn_add`. Therefore, `(pn_succ (f (pn_pred m) n))` will be evaluated regardless of what `(pn_is_zero m)` returns!
+### 3.4 From direct evaluation to CPS
 
-In other words, even when `m` is zero and we should return `n`, OCaml first tries to compute the "else" branch, which makes a recursive call, which computes its "else" branch, and so on forever.
+In continuation-passing style (CPS), the evaluator receives a function `k`
+meaning “what to do with the answer”. Each return becomes an application of `k`:
 
-Why do `addlist` and `addtree` work? Look at them carefully: their recursive calls are "guarded" by corresponding `fun`. The expression `(fun h t -> cn_add h (f t))` does not immediately call `f`---it creates a function that will call `f` only when that function is applied to arguments. What is inside of `fun` is not computed immediately---only when the function is applied to argument(s).
-
-To avoid looping recursion, you need to guard all recursive calls. Besides putting them inside `fun`, in OCaml or F# you can also put them in branches of a `match` clause, as long as one of the branches does not have unguarded recursive calls.
-
-The trick for functions like `if_then_else` is to guard their arguments with `fun x ->`, where `x` is not used, and apply the *result* of `if_then_else` to some dummy value. This delays the evaluation of both branches until the boolean has selected one of them:
-
-```ocaml env=ch4
-let id x = x
-let rec fix f x = f (fix f) x
-let pn1 x = pn_succ pn0 x
-let pn2 x = pn_succ pn1 x
-let pn3 x = pn_succ pn2 x
-let pn7 x = encode_pnat 7 x
-let pn_add m n =
-  fix (fun f m n ->
-    (if_then_else (pn_is_zero m)
-       (fun x -> n) (fun x -> pn_succ (f (pn_pred m) n)))
-      id
-  ) m n;;
-decode_pnat (pn_add pn3 pn3);;
-decode_pnat (pn_add pn3 pn7);;
+<!-- $MDX file=../projects/expressions/expr.ml,part=cps -->
+```ocaml
+let rec eval_cps env e k =
+  match e with
+  | Number n -> k n
+  | Variable x -> k (lookup env x)
+  | Binary (op, a, b) ->
+    eval_cps env a (fun x ->
+      eval_cps env b (fun y -> k (apply op x y)))
+  | Let (x, value, body) ->
+    eval_cps env value (fun v ->
+      eval_cps ((x, v) :: env) body k)
 ```
 
-Now the recursive call is wrapped in `fun x ->`, so it is not evaluated until `if_then_else` selects the second branch and applies it to `id`. When `m` is zero, the first branch `(fun x -> n)` is selected and applied to `id`, giving us `n` without ever touching the recursive call.
-
-In OCaml or F# we would typically guard by `fun () ->` and then apply to `()`, but we do not have datatypes like `unit` in pure lambda-calculus, so we use `id` as our dummy value.
-
-### 4.10 Exercises
-
-The following exercises will help solidify your understanding of lambda-calculus encodings. For each exercise involving lambda-calculus, test your implementation by encoding some inputs, applying your function, and decoding the result.
-
-#### Exercise 1: Core Lambda Encodings
-
-Define (implement) and test on a couple of examples functions corresponding to or computing:
-
-
-1. `c_or` and `c_not`;
-2. exponentiation for Church numerals;
-3. is-zero predicate for Church numerals;
-4. even-number predicate for Church numerals;
-5. multiplication for pair-encoded natural numbers;
-6. factorial $n!$ for pair-encoded natural numbers;
-7. the length of a list (in Church numerals);
-8. `cn_max` -- maximum of two Church numerals;
-9. the depth of a tree (in Church numerals).
-
-#### Exercise 2: Numeral-like Lambda Terms
-
-Construct lambda-terms $m_0, m_1, \ldots$ such that for all $n$ one has:
-
-
-$$
-\begin{aligned}
-m_0 &= x \\
-m_{n+1} &= m_{n+2} \; m_n
-\end{aligned}
-$$
-
-(where equality is after performing $\beta$-reductions).
-
-#### Exercise 3: State-Passing Imperative Constructs
-
-Representing side-effects as an explicitly "passed around" state value, write (higher-order) functions that represent the imperative constructs:
-
-
-1. `for`...`to`...
-2. `for`...`downto`...
-3. `while`...`do`...
-4. `do`...`while`...
-5. `repeat`...`until`...
-
-Rather than writing a lambda-term using the encodings that we have learnt, just implement the functions in OCaml / F#, using built-in `int` and `bool` types. You can use `let rec` instead of `fix`.
-
-- For example, in exercise (a), write a function `let rec for_to f beg_i end_i s = ...` where `f` takes arguments `i` ranging from `beg_i` to `end_i`, state `s` at given step, and returns state `s` at next step; the `for_to` function returns the state after the last step.
-- And in exercise (c), write a function `let rec while_do p f s = ...` where both `p` and `f` take state `s` at given step, and if `p s` returns true, then `f s` is computed to obtain state at next step; the `while_do` function returns the state after the last step.
-
-Do not use the imperative features of OCaml and F#! This exercise demonstrates that imperative control flow can be encoded purely functionally by threading state through function calls.
-
-Although we will not cover imperative features in this course, it is instructive to see the implementation using them, to better understand what is actually required of a solution to Exercise 3:
-
-```ocaml env=ch4
-(* (a) *)
-let for_to f beg_i end_i s =
-  let s = ref s in
-  for i = beg_i to end_i do
-    s := f i !s
-  done;
-  !s
-
-(* (b) *)
-let for_downto f beg_i end_i s =
-  let s = ref s in
-  for i = beg_i downto end_i do
-    s := f i !s
-  done;
-  !s
-
-(* (c) *)
-let while_do p f s =
-  let s = ref s in
-  while p !s do
-    s := f !s
-  done;
-  !s
-
-(* (d) *)
-let do_while p f s =
-  let s = ref (f s) in
-  while p !s do
-    s := f !s
-  done;
-  !s
-
-(* (e) *)
-let repeat_until p f s =
-  let s = ref (f s) in
-  while not (p !s) do
-    s := f !s
-  done;
-  !s
+```ocaml env=expressions
+let () = assert (eval_cps [] program Fun.id = eval [] program)
 ```
 
+There are three forms of pending work. After evaluating a left operand, evaluate
+the right operand in the saved environment. After evaluating that right operand,
+combine its result with the saved left value. After evaluating a binding's value,
+enter its body in an extended environment. These are the three closure shapes
+created by the code. `Fun.id` represents completion.
 
-## Chapter 5: Polymorphism and Abstract Data Types
+All recursive evaluator calls are tail calls. Continuation closures live on the
+heap; their live depth is proportional to the expression nesting. Saved lexical
+environments also retain reachable bindings. This transformation preserves
+control order but does not promise constant total memory.
+
+### 3.5 Defunctionalization: closures become data
+
+We know every continuation shape, so we can replace its code pointer and captured
+values by a constructor and fields. This is **defunctionalization**. `Right`
+records a pending right operand; `Combine` records a pending arithmetic operation;
+`Bind` records a pending binding body. A list of frames ends with `[]`, the identity
+continuation.
+
+<!-- $MDX file=../projects/expressions/expr.ml,part=machine -->
+```ocaml
+type frame =
+  | Right of op * t * (string * float) list
+  | Combine of op * float
+  | Bind of string * t * (string * float) list
+
+type state =
+  | Eval of t * (string * float) list * frame list
+  | Return of float * frame list
+
+let step = function
+  | Eval (Number n, _, stack) -> Return (n, stack)
+  | Eval (Variable x, env, stack) -> Return (lookup env x, stack)
+  | Eval (Binary (op, a, b), env, stack) ->
+    Eval (a, env, Right (op, b, env) :: stack)
+  | Eval (Let (x, value, body), env, stack) ->
+    Eval (value, env, Bind (x, body, env) :: stack)
+  | Return (x, Right (op, b, env) :: stack) ->
+    Eval (b, env, Combine (op, x) :: stack)
+  | Return (y, Combine (op, x) :: stack) ->
+    Return (apply op x y, stack)
+  | Return (v, Bind (x, body, env) :: stack) ->
+    Eval (body, (x, v) :: env, stack)
+  | Return (_, []) as final -> final
+
+let rec run = function
+  | Return (v, []) -> v
+  | state -> run (step state)
+
+let eval_machine env e = run (Eval (e, env, []))
+```
+
+The machine alternates between evaluating syntax and returning a value to its
+frames. Every call to `step` performs one transition. The `run` loop is tail
+recursive; it is now possible to pause the interpreter by retaining a `state`,
+inspect it, or count transitions without changing its language.
+
+For `Binary (Add, Number 2., Number 3.)` in an empty environment, the frame lists
+are `[]`, `[Right (Add, Number 3., [])]`, `[Combine (Add, 2.)]`, and `[]`. There
+are also `Return`/`Eval` changes between them. Writing out those intermediate
+states is a useful check that no operand is evaluated twice.
+
+Chapter 2's subtree context remembers how to reconstruct a tree. A machine frame
+remembers how to finish a computation. `Right` still carries a subtree, whereas
+`Combine` carries an already computed number: an evaluation context records the
+progress of computation, not just a missing piece of syntax.
+
+```ocaml env=expressions
+let () =
+  assert (eval_machine [] program = 14.);
+  let e = Binary (Add, Variable "first", Variable "second") in
+  let failure interpret =
+    try ignore (interpret e); None with Unbound x -> Some x in
+  assert (failure (eval []) = Some "first");
+  assert (failure (eval_machine []) = Some "first")
+```
+
+**Why the representations agree.** Interpret each frame list as its original
+nested continuation. `Right` maps to the first closure in `eval_cps`, `Combine`
+to the second, and `Bind` to the third. Every machine transition then performs one
+piece of the corresponding CPS calculation. Induction on the finite expression
+shows that direct evaluation and CPS agree; the frame interpretation transfers
+that result to the machine. Equality here means the same float result (including
+NaN classification) or the same first `Unbound` error, ignoring resource
+exhaustion. The tests also compare generated expressions and exercise a nesting
+depth of 100,000 for the CPS and machine versions; tests support, but do not replace,
+this argument.
+
+### 3.6 Exercises and a further project
+
+1. **Practice.** List every state of the machine for `program`. Check that `x` is
+   visible in the body but not in the value expression of its own `Let`.
+2. **Proof.** State a worklist invariant for `depth_worklist` and prove the result
+   equals `depth`. Hint: each queued depth is the depth just above its subtree;
+   `best` is the greatest node depth already visited.
+3. **Experiment.** Count machine transitions for a balanced tree of additions and
+   a left-nested tree with the same number of nodes. Explain equal work but
+   different maximum frame depth. Do not use wall-clock timings as an allocation
+   measurement.
+4. **Practice.** Add unary negation to all three evaluators and to the machine.
+   State the new continuation shape and add a regression containing an unbound
+   operand.
+5. **Project.** Continue with `projects/symbolic/README.md` for symbolic
+   differentiation, printing and carefully scoped algebraic simplification.
+
+**Selected answer (1).** At `Let`, the machine first pushes `Bind ("x", body, [])`.
+After returning `3.`, it evaluates `body` under `[("x", 3.)]`. The nested
+multiplication returns `12.`, the addition returns `14.`, and `Return (14., [])`
+is final. A `Let` binding is nonrecursive; `Let ("x", Variable "x", ...)` cannot
+supply its own initial value.
+
+
+## Chapter 5: Modules, invariants, and executable laws
 
 ![Chapter 5 illustration](Curious_OCaml-chapter_5.jpg){.chapter-image}
 
-**In this chapter, you will:**
+**Prerequisites:** Chapters 1–3; functions, lists, patterns and lexical scope.
+**Route:** complete Part I here, then follow Chapter 6. The longer type-inference
+and polymorphic-recursion lesson is now `projects/type-inference/README.md`.
 
-- Understand “unknowns vs parameters” in OCaml’s inferred types (and why the value restriction exists)
-- Connect type inference to solving constraint systems (unification intuition)
-- Use parametric types to design reusable, type-safe data structures
-- Specify ADTs algebraically and implement maps with increasing efficiency (lists → BSTs → red-black trees)
+A module signature states what can be called. It cannot by itself say whether
+`remove` really removes a key. We will specify maps, expose a counterexample,
+and check alternative representations through the same observations.
 
-This chapter explores how OCaml's type system supports generic programming through parametric polymorphism, and how abstract data types provide clean interfaces for data structures. We begin by examining how type inference actually works -- the process by which OCaml determines types for your code. Then we explore parametric types and show how they enable polymorphic functions to work with data of any shape. The second half of the chapter introduces algebraic specifications, the mathematical foundation for describing data structures, and applies these concepts to build progressively more sophisticated implementations of the map (dictionary) data structure, culminating in the elegant red-black tree.
+### 5.1 Enough polymorphism to read an interface
 
-*Reader feedback welcome: if you spot an error or unclear passage, please report it.*
-
-### 5.1 Type Inference
-
-We have seen the rules that govern the assignment of types to expressions, but how does OCaml actually guess what types to use? And how does it know when no correct types exist? The answer lies in a beautiful algorithm: OCaml solves equations. When you write code, the type checker generates a set of equations that must hold for the program to be well-typed, and then it solves those equations to discover the types.
-
-#### Variables: Unknowns and Parameters
-
-Variables in type inference play two distinct roles, and understanding this distinction is crucial for mastering OCaml's type system. A type variable can be either an *unknown* (standing for a specific but not-yet-determined type) or a *parameter* (standing for any type whatsoever).
-
-Consider this example:
+In `'a list -> 'a list`, `'a` is a type parameter. A polymorphic function may be
+used at several instances, but a single list still contains one element type:
 
 ```ocaml env=ch5
-# let f = List.hd;;
-val f : 'a list -> 'a = <fun>
+let twice f x = f (f x)
+let () =
+  assert (twice ((+) 1) 3 = 5);
+  assert (twice List.rev [true; false] = [true; false])
 ```
 
-Here `'a` is a *parameter*: it can become any type. When you use `f` with a list of integers, `'a` becomes `int`; when you use it with a list of strings, `'a` becomes `string`. Mathematically we write: $f : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha$ -- the quantified type is called a *type scheme*. The $\forall$ symbol indicates that this type works "for all" choices of $\alpha$.
-
-In contrast, consider this example:
-
-```ocaml skip
-# let x = ref [];;
-val x : '_weak1 list ref = {contents = []}
-```
-
-Here `'_a` (displayed as `'_weak1` in recent OCaml versions) is an *unknown*. Unlike a parameter, it stands for a *particular* type -- perhaps `float` or `int -> int` -- but OCaml simply doesn't know which type yet. The underscore prefix signals this distinction. OCaml reports unknowns like `'_a` in inferred types for reasons related to mutable state (the "value restriction"), which can also affect pure expressions, as the partial-application examples below illustrate.
-
-More precisely: the *value restriction* prevents unsoundness that would otherwise arise from generalizing type variables in effectful (mutable) expressions. When you see `'_weak...`, treat it as “this will become one specific type later”.
-
-When unknowns appear in inferred types against our expectations, *$\eta$-expansion* may help. This technique involves writing `let f x = expr x` instead of `let f = expr`, essentially adding an extra parameter that gets immediately applied. For example:
-
-```ocaml skip
-# let f = List.append [];;
-val f : '_weak2 list -> '_weak2 list = <fun>
-# let f l = List.append [] l;;
-val f : 'a list -> 'a list = <fun>
-```
-
-In the second definition, the eta-expanded form `let f l = List.append [] l` allows full generalization, giving us a truly polymorphic function that can work with lists of any type.
-
-#### Type Environments
-
-Before diving into the equation-solving process, we need to understand how the type checker keeps track of what names are available. A *type environment* specifies what names (corresponding to parameters and definitions) are available for an expression because they were introduced above it, and it specifies their types. Think of it as a dictionary that maps variable names to their types at any given point in your program.
-
-#### Solving Type Equations
-
-Type inference works by solving equations over unknowns. The central question the algorithm asks is: "What has to hold so that $e : \tau$ in type environment $\Gamma$?" The answer takes the form of equations that constrain the possible types.
-
-Let us walk through how the algorithm handles different expression forms:
-
-- If, for example, $f : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha \in \Gamma$, then for $f : \tau$ we introduce $\gamma \ \text{list} \rightarrow \gamma = \tau$ for some fresh unknown $\gamma$.
-
-- For function application $e_1 \ e_2 : \tau$, we introduce $\beta = \tau$ and ask for $e_1 : \gamma \rightarrow \beta$ and $e_2 : \gamma$, for some fresh unknowns $\beta, \gamma$.
-
-- For a function $\text{fun} \ x \rightarrow e : \tau$, we introduce $\beta \rightarrow \gamma = \tau$ and ask for $e : \gamma$ in environment $\{x : \beta\} \cup \Gamma$, for some fresh unknowns $\beta, \gamma$.
-
-- The case $\text{let} \ x = e_1 \ \text{in} \ e_2 : \tau$ is different. One approach is to *first* solve the equations that we get by asking for $e_1 : \beta$, for some fresh unknown $\beta$. Let us say a solution $\beta = \tau_\beta$ has been found, $\alpha_1 \ldots \alpha_n \beta_1 \ldots \beta_m$ are the remaining unknowns in $\tau_\beta$, and $\alpha_1 \ldots \alpha_n$ are all that do not appear in $\Gamma$. Then we ask for $e_2 : \tau$ in environment $\{x : \forall \alpha_1 \ldots \alpha_n . \tau_\beta\} \cup \Gamma$.
-
-- Remember that whenever we establish a solution $\beta = \tau_\beta$ to an unknown $\beta$, it takes effect everywhere! The substitution propagates through all the equations, potentially triggering further unifications.
-
-- To find a type for $e$ (in environment $\Gamma$), we pick a fresh unknown $\beta$ and ask for $e : \beta$ (in $\Gamma$). The algorithm then generates and solves equations until either a solution is found or a contradiction reveals a type error.
-
-#### Polymorphism
-
-The "top-level" definitions for which the system infers types with variables are called *polymorphic*, which informally means "working with different shapes of data." A polymorphic function like `List.hd` can operate on lists containing any type of element -- the function itself doesn't care what the elements are, only that it's working with a list.
-
-This kind of polymorphism is called *parametric polymorphism*, since the types have parameters. The term "parametric" emphasizes that the same code works uniformly for all type instantiations. A different kind of polymorphism is provided by object-oriented programming languages (sometimes called *subtype polymorphism* or *ad-hoc polymorphism*), where different code may execute depending on the runtime type of objects.
-
-### 5.2 Parametric Types
-
-Polymorphic functions truly shine when used with polymorphic data types. The combination of the two is what makes ML-family languages so expressive. Consider this definition of our own list type:
-
-```ocaml env=ch5
-type 'a my_list = Empty | Cons of 'a * 'a my_list
-```
-
-We define lists that can store elements of any type `'a`. The type parameter `'a` acts as a placeholder that gets filled in when we create actual lists. Now we can write functions that work on these lists:
-
-```ocaml env=ch5
-# let tail l =
-    match l with
-    | Empty -> invalid_arg "tail"
-    | Cons (_, tl) -> tl;;
-val tail : 'a my_list -> 'a my_list = <fun>
-```
-
-This is a polymorphic function: it works for lists with elements of any type. Whether we have a list of integers, strings, or even lists of lists, the same `tail` function handles them all.
-
-A crucial point to understand: a *parametric type* like `'a my_list` *is not* itself a data type but rather a *family* of data types. The types `bool my_list`, `int my_list`, etc. *are* different types -- you cannot mix elements of different types in a single list. We say that the type `int my_list` *instantiates* the parametric type `'a my_list`.
-
-#### Multiple Type Parameters
-
-Types can have multiple type parameters. In OCaml, the syntax might seem a bit unusual at first: type parameters precede the type name, enclosed in parentheses. For example:
-
-```ocaml env=ch5
-type ('a, 'b) choice = Left of 'a | Right of 'b
-```
-
-This type has two parameters and represents a value that is either something of type `'a` (wrapped in `Left`) or something of type `'b` (wrapped in `Right`). Mathematically we would write $\text{choice}(\alpha, \beta)$.
-
-Not all functions that use parametric types need to be polymorphic. A function may constrain the type parameters to specific types:
-
-```ocaml env=ch5
-# let get_int c =
-    match c with
-    | Left i -> i
-    | Right b -> if b then 1 else 0;;
-val get_int : (int, bool) choice -> int = <fun>
-```
-
-Here, the pattern matching on `Left i` and `Right b` with arithmetic operations constrains the type to `(int, bool) choice`.
-
-#### Syntax in Other Languages
-
-Different functional languages have different syntactic conventions for type parameters. In F#, we provide parameters (when more than one) after the type name, using angle brackets:
-
-```fsharp
-type choice<'a,'b> = Left of 'a | Right of 'b
-```
-
-In Haskell, the syntax is arguably the cleanest -- we provide type parameters similarly to function arguments, separated by spaces:
-
-```haskell
-data Choice a b = Left a | Right b
-```
-
-Despite the syntactic differences, the underlying concept of parametric polymorphism is the same across all these languages.
-
-### 5.3 Type Inference, Formally
-
-Now we present a more formal treatment of type inference. A statement that an expression has a type in an environment is called a *type judgement*. For environment $\Gamma = \{x : \forall \alpha_1 \ldots \alpha_n . \tau_x ; \ldots\}$, expression $e$ and type $\tau$ we write:
-
-$$\Gamma \vdash e : \tau$$
-
-This notation reads: "In environment $\Gamma$, expression $e$ has type $\tau$." The turnstile symbol $\vdash$ can be thought of as "entails" or "proves."
-
-We will derive all the constraint equations in one go using the notation $[\![ \cdot ]\!]$, to be solved later by unification. Besides equations we will need to manage introduced variables, using existential quantification to express that "there exists some type variable satisfying these constraints."
-
-For local definitions we require remembering what constraints should hold when the definition is used. Therefore we extend *type schemes* in the environment to: $\Gamma = \{x : \forall \beta_1 \ldots \beta_m [\exists \alpha_1 \ldots \alpha_n . D] . \tau_x ; \ldots\}$ where $D$ are equations -- keeping the variables $\alpha_1 \ldots \alpha_n$ introduced while deriving $D$ in front. A simpler form would be sufficient: $\Gamma = \{x : \forall \beta [\exists \alpha_1 \ldots \alpha_n . D] . \beta ; \ldots\}$
-
-The formal constraint generation rules are:
-
-$$[\![ \Gamma \vdash x : \tau ]\!] = \exists \overline{\beta'} \overline{\alpha'} . (D[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \wedge \tau_x[\overline{\beta} \overline{\alpha} := \overline{\beta'} \overline{\alpha'}] \doteq \tau)$$
-
-where $\Gamma(x) = \forall \overline{\beta} [\exists \overline{\alpha} . D] . \tau_x$, $\overline{\beta'} \overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
-
-$$[\![ \Gamma \vdash \mathbf{fun} \ x \texttt{->} e : \tau ]\!] = \exists \alpha_1 \alpha_2 . ([\![ \Gamma \{x : \alpha_1\} \vdash e : \alpha_2 ]\!] \wedge \alpha_1 \rightarrow \alpha_2 \doteq \tau)$$
-
-where $\alpha_1 \alpha_2 \# \text{FV}(\Gamma, \tau)$
-
-$$[\![ \Gamma \vdash e_1 \ e_2 : \tau ]\!] = \exists \alpha . ([\![ \Gamma \vdash e_1 : \alpha \rightarrow \tau ]\!] \wedge [\![ \Gamma \vdash e_2 : \alpha ]\!]), \alpha \# \text{FV}(\Gamma, \tau)$$
-
-$$[\![ \Gamma \vdash K \ e_1 \ldots e_n : \tau ]\!] = \exists \overline{\alpha'} . (\bigwedge_i [\![ \Gamma \vdash e_i : \tau_i[\overline{\alpha} := \overline{\alpha'}] ]\!] \wedge \varepsilon(\overline{\alpha'}) \doteq \tau)$$
-
-where $K : \forall \overline{\alpha} . \tau_1 \times \ldots \times \tau_n \rightarrow \varepsilon(\overline{\alpha})$, $\overline{\alpha'} \# \text{FV}(\Gamma, \tau)$
-
-For let-expressions:
-
-$$[\![ \Gamma \vdash \mathbf{let} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
-
-where $C = [\![ \Gamma \vdash e_1 : \beta ]\!]$
-
-For recursive let-expressions:
-
-$$[\![ \Gamma \vdash \mathbf{letrec} \ x = e_1 \ \mathbf{in} \ e_2 : \tau ]\!] = (\exists \beta . C) \wedge [\![ \Gamma \{x : \forall \beta [C] . \beta\} \vdash e_2 : \tau ]\!]$$
-
-where $C = [\![ \Gamma \{x : \beta\} \vdash e_1 : \beta ]\!]$
-
-For match expressions:
-
-$$[\![ \Gamma \vdash \mathbf{match} \ e_v \ \mathbf{with} \ \overline{c} : \tau ]\!] = \exists \alpha_v . [\![ \Gamma \vdash e_v : \alpha_v ]\!] \bigwedge_i [\![ \Gamma \vdash p_i . e_i : \alpha_v \rightarrow \tau ]\!]$$
-
-where $\overline{c} = p_1 . e_1 | \ldots | p_n . e_n$, $\alpha_v \# \text{FV}(\Gamma, \tau)$
-
-For pattern clauses:
-
-$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
-
-where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
-
-The notation $[\![ \Sigma \vdash p \downarrow \tau_1 ]\!]$ derives constraints on the type of the matched value, while $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$ derives the environment for pattern variables.
-
-By $\overline{\alpha}$ or $\overline{\alpha_i}$ we denote a sequence of some length: $\alpha_1 \ldots \alpha_n$. By $\bigwedge_i \varphi_i$ we denote a conjunction of $\overline{\varphi_i}$: $\varphi_1 \wedge \ldots \wedge \varphi_n$.
-
-#### Polymorphic Recursion
-
-There is an interesting limitation in standard type inference for recursive functions. Note the limited polymorphism of `let rec f = ...` -- we cannot use `f` polymorphically within its own definition. Why? Because when type-checking the body of a recursive definition, we don't yet know the final type of `f`, so we must treat it as having a single, unknown type.
-
-In modern OCaml we can bypass this limitation if we provide the type of `f` upfront:
-
-```
-let rec f : 'a. 'a -> 'a list = ...
-```
-
-where `'a. 'a -> 'a list` stands for $\forall \alpha . \alpha \rightarrow \alpha \ \text{list}$.
-
-Using the recursively defined function with different types in its definition is called *polymorphic recursion*. It is most useful together with *irregular recursive datatypes* -- data structures where the recursive use has different type arguments than the actual parameters. These "nested" or "non-uniform" datatypes enable some remarkably elegant data structures.
-
-##### Example: A List Alternating Between Two Types of Elements
-
-Here is a fascinating example: a list that alternates between two different types of elements. Notice how the recursive occurrence swaps the type parameters:
-
-```ocaml env=ch5
-type ('x, 'o) alternating =
-  | Stop
-  | One of 'x * ('o, 'x) alternating
-
-let rec to_list :
-    'x 'o 'a. ('x -> 'a) -> ('o -> 'a) ->
-              ('x, 'o) alternating -> 'a list =
-  fun x2a o2a ->
-    function
-    | Stop -> []
-    | One (x, rest) -> x2a x :: to_list o2a x2a rest
-
-let to_choice_list alt =
-  to_list (fun x -> Left x) (fun o -> Right o) alt
-
-let it = to_choice_list
-  (One (1, One ("o", One (2, One ("oo", Stop)))))
-```
-
-Notice how the recursive call to `to_list` swaps `o2a` and `x2a` -- this is necessary because the alternating structure swaps the type parameters at each level. The polymorphic recursion annotation `'x 'o 'a.` tells OCaml that we need to use `to_list` at different type instantiations within its own definition.
-
-##### Example: Data-Structural Bootstrapping
-
-Here is another powerful example of polymorphic recursion: a sequence data structure that stores elements in exponentially increasing chunks. This technique, known as *data-structural bootstrapping*, achieves logarithmic-time random access -- much faster than standard lists which require linear time.
-
-```ocaml env=ch5
-type 'a seq =
-  | Nil
-  | Zero of ('a * 'a) seq
-  | One of 'a * ('a * 'a) seq
-```
-
-The key insight is that this type is *non-uniform*: the recursive occurrences use `('a * 'a) seq` rather than `'a seq`. This means that as we go deeper into the structure, elements get paired together, effectively doubling the "width" at each level. We store a list of elements in exponentially increasing chunks:
-
-```ocaml env=ch5
-let example =
-  One (0, One ((1,2), Zero (One ((((3,4),(5,6)), ((7,8),(9,10))), Nil))))
-```
-
-The `cons` operation adds an element to the front. Remarkably, appending an element to this data structure works exactly like adding one to a binary number:
-
-```ocaml env=ch5
-let rec cons : 'a. 'a -> 'a seq -> 'a seq =
-  fun x -> function
-  | Nil -> One (x, Nil)                       (* 1+0=1 *)
-  | Zero ps -> One (x, ps)                    (* 1+...0=...1 *)
-  | One (y, ps) -> Zero (cons (x,y) ps)       (* 1+...1=[...+1]0 *)
-
-let rec lookup : 'a. int -> 'a seq -> 'a =
-  fun i s -> match i, s with
-  | _, Nil -> raise Not_found              (* Rather than returning None : 'a option *)
-  | 0, One (x, _) -> x                     (* we raise exception, for convenience. *)
-  | i, One (_, ps) -> lookup (i-1) (Zero ps)
-  | i, Zero ps ->                          (* Random-access lookup works *)
-      let x, y = lookup (i / 2) ps in      (* in logarithmic time -- much faster *)
-      if i mod 2 = 0 then x else y         (* than in standard lists. *)
-```
-
-The `Zero` and `One` constructors correspond to binary digits. A `Zero` means "no singleton element at this level," while `One` carries a singleton (or pair, or quad, etc.) before recursing. The `lookup` function exploits this structure: when looking up index `i` in a `Zero ps`, it divides by 2 and looks in the paired structure, then extracts the appropriate half of the pair.
-
-### 5.4 Algebraic Specification
+A weak type variable printed as `'_weak...` has a different meaning: it is one
+unknown type that must eventually be fixed. A mutable cell cannot safely be used
+as both an integer-list cell and a string-list cell. The value restriction limits
+generalization of such definitions. Type inference solves equations over unknowns;
+using a polymorphic binding creates fresh instances of its quantified parameters.
+The optional route derives these equations in detail.
+
+For the map examples below, keys use OCaml polymorphic equality and ordering.
+We restrict our executable laws to integer keys and string values. This avoids
+functions, NaN and other cases that need a more explicit equality contract.
+For reusable maps, `Map.Make` takes an ordered key module, making that contract
+part of the interface. “Polymorphic” alone does not guarantee valid comparison.
+
+### 5.2 Algebraic Specification
 
 Now we turn to a fundamental question in computer science: how do we formally describe what a data structure *is* and what it should *do*? The mathematical answer is *algebraic specification*.
 
@@ -3007,9 +1838,14 @@ Algebraic structures consist of a set (or several sets, for so-called *multisort
 
 A *signature* is a rough description of an algebraic structure: it provides *sorts* -- names for the sets (in the multisorted case) -- and names of the functions-operations together with their arity (and what sorts of arguments they take). A signature tells us what operations exist, but not how they behave.
 
-We select a class of algebraic structures by providing axioms that have to hold. We will call such classes *algebraic specifications*. In mathematics, a rusty name for some algebraic specifications is a *variety*; a more modern name is *algebraic category*.
+An algebraic specification adds equations to a signature. For total operations,
+a class defined by equations is called a variety. The partial operations and
+inequalities below require additional conventions; they are not automatically
+an instance of that narrower definition.
 
-Here is the key connection to programming: algebraic structures correspond to "implementations" and signatures to "interfaces" in programming languages. We will say that an algebraic structure *implements* an algebraic specification when all axioms of the specification hold in the structure. An important point: all algebraic specifications are implemented by multiple structures! This is precisely what we want -- it gives us the freedom to choose different implementations with different performance characteristics while maintaining the same interface.
+Here is the key connection to programming: algebraic structures correspond to "implementations" and signatures to "interfaces" in programming languages. We will say that an algebraic structure *implements* an algebraic specification when all axioms of the specification hold in the structure. A specification can admit several representations, a unique model up to
+isomorphism, or no model if its requirements conflict. For maps, we deliberately
+allow different representations with the same observable behavior.
 
 We say that an algebraic structure does not have *junk* when all its elements (i.e., elements in the sets corresponding to sorts) can be built using operations in its signature. Junk-free structures are "minimal" in some sense -- they contain only the values that can be constructed using the provided operations.
 
@@ -3017,7 +1853,10 @@ We allow parametric types as sorts. In that case, strictly speaking, we define a
 
 #### Algebraic Specifications: Examples
 
-Let us look at some concrete examples to make these abstract ideas tangible. An algebraic specification can also use an earlier specification, building up complexity layer by layer. In "impure" languages like OCaml and F# we allow that the result of any operation be an $\text{error}$. In Haskell we would use `Maybe` to explicitly model potential failure.
+Let us look at some concrete examples to make these abstract ideas tangible. An algebraic specification can also use an earlier specification, building up complexity layer by layer. We must specify failure explicitly. Here `error` denotes a distinguished failed
+result, propagated by dependent operations. OCaml can express this using `option`
+or `result`; an exception-based interface must instead name the exception and
+its triggering condition.
 
 **Specification $\text{nat}_p$ (bounded natural numbers):**
 
@@ -3064,7 +1903,7 @@ Both indexing equations involving a prefixed character require the concatenation
 
 The axioms specify that concatenation is associative, that the empty string is an identity for concatenation, that exceeding the length limit produces an error, and that indexing works by stripping characters from the front.
 
-### 5.5 Homomorphisms
+### 5.3 Homomorphisms
 
 When do two implementations of the same specification "behave the same"? The mathematical answer involves *homomorphisms* -- structure-preserving mappings between algebraic structures.
 
@@ -3082,7 +1921,7 @@ An algebraic specification whose all implementations without junk are isomorphic
 
 We usually only add axioms that really matter to us to the specification, so that the implementations have room for optimization. For this reason, the resulting specifications will often not be monomorphic in the above sense -- and that's intentional! A non-monomorphic specification allows for multiple genuinely different implementations, which may have different performance characteristics.
 
-### 5.6 Example: Maps
+### 5.4 Example: Maps
 
 Now let us look at a practical example that will guide the rest of this chapter. A *map* (also called dictionary or associative array) associates keys with values. This is one of the most fundamental data structures in programming -- think of Python's dictionaries, Java's `HashMap`, or OCaml's `Map` module.
 
@@ -3111,7 +1950,7 @@ Here is an algebraic specification that captures the essential behavior of maps:
 
 The axioms capture the intuitive behavior: adding a key-value pair makes that key findable, removing a key makes it unfindable, and operations on different keys don't interfere with each other. Notice how the specification says nothing about *how* the map is implemented -- only about *what* behavior it must exhibit.
 
-### 5.7 Modules and Interfaces (Signatures): Syntax
+### 5.5 Modules and Interfaces (Signatures): Syntax
 
 How do we express algebraic specifications in OCaml? The answer is the *module system*. In the ML family of languages, structures are given names by **module** bindings, and signatures are types of modules. From outside of a structure or signature, we refer to the values or types it provides with a dot notation: `Module.value`.
 
@@ -3129,7 +1968,7 @@ module type MAP = sig
   val find : 'a -> ('a, 'b) t -> 'b
 end
 
-module ListMap : MAP = struct
+module CounterexampleListMap : MAP = struct
   type ('a, 'b) t = ('a * 'b) list
   let empty = []
   let member = List.mem_assoc
@@ -3139,9 +1978,26 @@ module ListMap : MAP = struct
 end
 ```
 
-The `ListMap` module implements `MAP` using OCaml's built-in list functions for association lists. The type annotation `: MAP` after the module name tells OCaml to check that the implementation provides everything the signature requires, and hides any additional details.
+`CounterexampleListMap` **matches the signature but violates the laws**. Adding
+the same key twice creates two bindings; `List.remove_assoc` removes only the
+first, exposing the older one. This is a named counterexample, not our map
+implementation. The annotation `: MAP` checks types and hides representation;
+it does not prove behavioral equations.
 
-### 5.8 Implementing Maps: Association Lists
+```ocaml env=ch5
+let () =
+  let module M = CounterexampleListMap in
+  let m = M.add 1 "new" (M.add 1 "old" M.empty) in
+  assert (M.find 1 m = "new");
+  assert (M.member 1 (M.remove 1 m))  (* The required law would say false. *)
+```
+
+The successful `find` laws concern equality of returned values. A missing key
+must raise `Not_found`. Equality between maps means **observational equality**:
+all lookups return the same optional result, not equality of internal trees.
+The module system enforces abstraction; our law checks enforce selected behavior.
+
+### 5.6 Implementing Maps: Association Lists
 
 Let us now build an implementation of maps from the ground up, exploring different approaches and their trade-offs. The most straightforward implementation... might not be what you expected:
 
@@ -3215,7 +2071,7 @@ end
 
 This implementation maintains the invariant that each key appears at most once in the structure. The `add` function replaces an existing key's value rather than creating a duplicate, and `remove` actually removes the key-value pair. All operations are still $O(n)$ in the worst case, but the structure stays cleaner.
 
-### 5.9 Implementing Maps: Binary Search Trees
+### 5.7 Implementing Maps: Binary Search Trees
 
 Can we do better than linear time? Yes, by using a smarter data structure. Binary search trees are binary trees with elements stored at the interior nodes, such that elements to the left of a node are smaller than, and elements to the right bigger than, elements within a node. This ordering property is what makes them efficient.
 
@@ -3288,11 +2144,86 @@ let () =
   List.iter (fun k -> assert (BTreeMap.find k m = string_of_int k)) [2; 3; 7]
 ```
 
-### 5.10 Implementing Maps: Red-Black Trees
+### 5.8 One law suite for every map
+
+A functor is a module parameterized by another module. This one takes a map and
+checks it without knowing the representation. It interprets missing lookup as
+`None` solely for comparison, retaining `Not_found` as the public contract.
+
+```ocaml env=ch5
+module Map_laws (M : MAP) = struct
+  let find_opt k m = try Some (M.find k m) with Not_found -> None
+  let observe m = List.map (fun k -> find_opt k m) [0;1;2;3;4;5;6;7]
+  let check m =
+    List.iter (fun k ->
+      assert (M.member k m = Option.is_some (find_opt k m));
+      let added = M.add k "new" (M.add k "old" m) in
+      assert (find_opt k added = Some "new");
+      assert (not (M.member k (M.remove k added)));
+      assert (find_opt k (M.remove k added) = None);
+      List.iter (fun j -> if j <> k then begin
+        assert (find_opt j (M.add k "new" m) = find_opt j m);
+        assert (find_opt j (M.remove k m) = find_opt j m)
+      end) [0;1;2;3;4;5;6;7]) [0;1;2;3;4;5;6;7]
+  let run () =
+    assert (observe M.empty = List.init 8 (fun _ -> None));
+    let rec histories depth m =
+      check m;
+      if depth > 0 then
+        List.iter (fun k ->
+          histories (depth - 1) (M.add k (string_of_int k) m);
+          histories (depth - 1) (M.remove k m)) [1;2;3] in
+    histories 3 M.empty
+end
+
+module Log_laws = Map_laws (TrivialMap)
+module List_laws = Map_laws (MyListMap)
+module Tree_laws = Map_laws (BTreeMap)
+let () = Log_laws.run (); List_laws.run (); Tree_laws.run ()
+```
+
+The tests cover empty membership, overwrite, removal, failure and noninterference
+between keys across bounded operation histories. The earlier predecessor-removal
+regression checks a particular tree shape the general law suite might not reach.
+For a proof, establish each representation invariant and show it is preserved by
+`add` and `remove`; then prove lookup implements the abstract finite map.
+Bounded testing and invariant proofs have different roles.
+
+#### Partial operations as executable specifications
+
+For bounded strings, choose a small bound so that all inputs can be enumerated.
+Here concatenation and indexing return options; a failed inner concatenation
+propagates with `Option.bind`. This makes associativity a well-formed equation
+including its failure cases.
+
+```ocaml env=bounded_strings
+let bound = 4
+let concat a b =
+  if String.length a + String.length b < bound then Some (a ^ b) else None
+let index s i =
+  if i < 0 || i >= String.length s then None else Some s.[i]
+let rec strings n =
+  if n = 0 then [""] else
+  let shorter = strings (n - 1) in
+  "" :: List.concat_map (fun c -> List.map ((^) c) shorter) ["a"; "b"]
+let () =
+  let inputs = strings (bound - 1) in
+  List.iter (fun a ->
+    assert (concat "" a = Some a && concat a "" = Some a);
+    assert (index a (String.length a) = None);
+    List.iter (fun b -> List.iter (fun c ->
+      assert (Option.bind (concat a b) (fun ab -> concat ab c) =
+              Option.bind (concat b c) (fun bc -> concat a bc))) inputs) inputs)
+    inputs;
+  assert (concat "ab" "cd" = None);
+  assert (index "abc" 0 = Some 'a')
+```
+
+### 5.9 Optional: implementing Maps: Red-Black Trees
 
 The fatal weakness of ordinary binary search trees is that they can become unbalanced. If keys arrive in sorted order, each insertion adds a node at the bottom of a long chain, and we lose the logarithmic performance guarantee. How can we maintain balance automatically?
 
-This section is based on Wikipedia's [Red-black tree article](http://en.wikipedia.org/wiki/Red-black_tree), Chris Okasaki's "Purely Functional Data Structures" and Matt Might's excellent blog post on [red-black tree deletion](http://matt.might.net/articles/red-black-delete/).
+This section is based on Wikipedia's [Red-black tree article](http://en.wikipedia.org/wiki/Red-black_tree), Chris Okasaki's "Purely Functional Data Structures" and Matt Might's excellent blog post on [red-black tree deletion](https://matt.might.net/articles/red-black-delete/).
 
 Binary search trees are good when we encounter keys in random order, because the cost of operations is limited by the depth of the tree which is small relative to the number of nodes... unless the tree grows unbalanced achieving large depth (which means there are sibling subtrees of vastly different sizes on some path).
 
@@ -3317,7 +2248,7 @@ How can we have perfectly balanced trees without worrying about having exactly $
 
 To insert into a 2-3-4 tree, we descend toward the appropriate leaf position. But if we encounter a full node (4-node) along the way, we "split" it: move the middle element up to the parent and split the remaining two elements into separate 2-nodes. This maintains perfect balance at all times -- all leaves are at the same depth.
 
-The remarkable fact is that red-black trees are just a clever way to represent 2-3-4 trees as binary trees! To represent a 2-3-4 tree as a binary tree with one element per node, we color the "primary" element of each node black (the middle element of a 4-node, or the first element of a 2-/3-node) and make it the parent of its neighbor elements colored red. The red elements then become parents of the original subtrees. This correspondence provides the deep intuition behind red-black trees: the colors encode the structure of the underlying 2-3-4 tree.
+Red-black trees represent 2-3-4 nodes using binary nodes and colors. To represent a 2-3-4 tree as a binary tree with one element per node, we color the "primary" element of each node black (the middle element of a 4-node, or the first element of a 2-/3-node) and make it the parent of its neighbor elements colored red. The red elements then become parents of the original subtrees. This correspondence provides the deep intuition behind red-black trees: the colors encode the structure of the underlying 2-3-4 tree.
 
 #### Red-Black Trees, Without Deletion
 
@@ -3329,7 +2260,7 @@ Now let us implement red-black trees in OCaml. Red-black trees maintain two inva
 
 For simplicity, we first implement red-black tree based *sets* (not maps) without deletion. The implementation proceeds almost exactly like for unbalanced binary search trees; we only need to add code to restore the invariants after each insertion.
 
-The beautiful insight of Okasaki's approach is that by keeping balance at each step of constructing a node, it is enough to check *locally* (around the root of the subtree) whether a violation has occurred. We never need to examine the entire tree. For an understandable implementation of deletion, we need to introduce more colors -- see Matt Might's post for details.
+In Okasaki's approach, by keeping balance at each step of constructing a node, it is enough to check *locally* (around the root of the subtree) whether a violation has occurred. We never need to examine the entire tree. One implementation of deletion introduces more colors -- see Matt Might's post for details.
 
 ```ocaml env=ch5
 type color = R | B
@@ -3372,98 +2303,322 @@ The `balance` function is the heart of the algorithm. It handles four cases wher
 - A red right child with a red left grandchild
 - A red right child with a red right grandchild
 
-In each case, we perform a "rotation" that restructures the tree to eliminate the violation while maintaining the binary search tree property. Remarkably, all four cases produce the same balanced result: a red root with two black children, with the subtrees `a`, `b`, `c`, `d` properly distributed.
+In each case, we perform a "rotation" that restructures the tree to eliminate the violation while maintaining the binary search tree property. All four cases produce the same balanced result: a red root with two black children, with the subtrees `a`, `b`, `c`, `d` properly distributed.
 
 The `insert` function works like insertion into an ordinary binary search tree, but calls `balance` after each recursive step to fix any violations that may have been introduced. New nodes are always created red (which might create a red-red violation that `balance` will fix). At the very end, we color the root black -- this can never create a violation and ensures the root is always black.
 
-### Exercises
-
-#### Exercise 1: Type Equation Solving
-
-Derive the equations and solve them to find the type for:
-
+The insertion invariant can also be checked independently of lookup:
 
 ```ocaml env=ch5
-let cadr l = List.hd (List.tl l) in cadr (1::2::[]), cadr (true::false::[])
+let check_red_black tree =
+  let rec inspect lower upper = function
+    | E -> 0
+    | T (color, left, x, right) ->
+      assert (Option.fold ~none:true ~some:(fun lo -> lo < x) lower);
+      assert (Option.fold ~none:true ~some:(fun hi -> x < hi) upper);
+      let red = function T (R, _, _, _) -> true | _ -> false in
+      assert (color <> R || not (red left || red right));
+      let a = inspect lower (Some x) left in
+      let b = inspect (Some x) upper right in
+      assert (a = b);
+      a + if color = B then 1 else 0 in
+  (match tree with E | T (B, _, _, _) -> () | _ -> assert false);
+  ignore (inspect None None tree)
+let () =
+  let test xs = ignore (List.fold_left (fun tree x ->
+    let tree = insert x tree in check_red_black tree; tree) E xs) in
+  test (List.init 100 Fun.id);
+  test (List.init 100 (fun i -> 99 - i));
+  test [3;1;4;1;5;9;2;6;5]
 ```
 
-in environment $\Gamma = \{ \text{List.hd} : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha ; \text{List.tl} : \forall \alpha . \alpha \ \text{list} \rightarrow \alpha \ \text{list} \}$. You can take "shortcuts" if it is too many equations to write down.
+### 5.10 Exercises
 
-#### Exercise 2: Unification Practice
+1. **Practice.** Repair `CounterexampleListMap` by ensuring each key occurs once.
+   Instantiate `Map_laws` with the repair. State its invariant and operation costs.
+2. **Proof.** Show `remove` preserves the binary-search ordering invariant. In the
+   two-child case, explain why the predecessor's left child must be retained.
+3. **Experiment.** Add a deliberate bug to one map and record the smallest law
+   counterexample. Prefer the operation sequence to a dump of internal nodes.
+4. **Project.** Specify a FIFO queue with `take : 'a t -> ('a * 'a t) option`.
+   Implement one-list and two-list representations, compare operation traces,
+   and distinguish amortized cost from worst-case cost of a single operation.
+5. **Proof.** Prove bounded-string concatenation's partial associativity. Hint:
+   if the sum of the three lengths is below the bound, both intermediate sums
+   are too; otherwise both complete expressions fail.
+6. **Project.** Extend the map tests to a comparator-parameterized interface.
+   Give the comparator a total-order contract and test a non-integer key type.
 
-*Terms* $t_1, t_2, \ldots \in T(\Sigma, X)$ are built out of variables $x, y, \ldots \in X$ and function symbols $f, g, \ldots \in \Sigma$ the way you build values out of functions:
-
-
-- $X \subset T(\Sigma, X)$ -- variables are terms; usually an infinite set,
-- for terms $t_1, \ldots, t_n \in T(\Sigma, X)$ and a function symbol $f \in \Sigma_n$ of arity $n$, $f(t_1, \ldots, t_n) \in T(\Sigma, X)$ -- bigger terms arise from applying function symbols to smaller terms; $\Sigma = \dot{\cup}_n \Sigma_n$ is called a signature.
-
-In OCaml, we can define terms as: `type term = V of string | T of string * term list`, where for example `V("x")` is a variable $x$ and `T("f", [V("x"); V("y")])` is the term $f(x, y)$.
-
-By *substitutions* $\sigma, \rho, \ldots$ we mean finite sets of variable-term pairs which we can write as $\{x_1 \mapsto t_1, \ldots, x_k \mapsto t_k\}$ or $[x_1 := t_1; \ldots; x_k := t_k]$, but also functions from terms to terms $\sigma : T(\Sigma, X) \rightarrow T(\Sigma, X)$ related to the pairs as follows: if $\sigma = \{x_1 \mapsto t_1, \ldots, x_k \mapsto t_k\}$, then
-
-- $\sigma(x_i) = t_i$ for $x_i \in \{x_1, \ldots, x_k\}$,
-- $\sigma(x) = x$ for $x \in X \setminus \{x_1, \ldots, x_k\}$,
-- $\sigma(f(t_1, \ldots, t_n)) = f(\sigma(t_1), \ldots, \sigma(t_n))$.
-
-In OCaml, we can define substitutions $\sigma$ as: `type subst = (string * term) list`, together with a function `apply : subst -> term -> term` which computes $\sigma(\cdot)$.
-
-We say that a substitution $\sigma$ is *more general* than all substitutions $\rho \circ \sigma$, where $(\rho \circ \sigma)(x) = \rho(\sigma(x))$. In type inference, we are interested in most general solutions.
-
-A *unification problem* is a finite set of equations $S = \{s_1 =^? t_1, \ldots, s_n =^? t_n\}$. A solution, or *unifier* of $S$, is a substitution $\sigma$ such that $\sigma(s_i) = \sigma(t_i)$ for $i = 1, \ldots, n$. A *most general unifier*, or *MGU*, is a most general such substitution.
-
-1. Implement an algorithm that, given a set of equations represented as a list of pairs of terms, computes an idempotent most general unifier of the equations.
-
-2. (Ex. 4.22 in Franz Baader and Tobias Nipkow "Term Rewriting and All That", p. 82.) Modify the implementation of unification to achieve linear space complexity by working with what could be called iterated substitutions.
-
-#### Exercise 3: Algebraic Specs and Junk
-
-1. What does it mean that an implementation has junk (as an algebraic structure for a given signature)? Is it bad?
-2. Define a monomorphic algebraic specification (other than, but similar to, $\text{nat}_p$ or $\text{string}_p$, some useful data type).
-3. Discuss an example of a (monomorphic) algebraic specification where it would be useful to drop some axioms (giving up monomorphicity) to allow more efficient implementations.
-
-#### Exercise 4: Map Specification Audit
-
-1. Does the example `ListMap` meet the requirements of the algebraic specification for maps? Hint: here is the definition of `List.remove_assoc`; `compare a x` equals `0` if and only if `a = x`.
-
-   ```ocaml env=ch5
-   let rec remove_assoc x = function
-     | [] -> []
-     | (a, b as pair) :: l ->
-         if compare a x = 0 then l else pair :: remove_assoc x l
-   ```
-
-2. Trick question: what is the computational complexity of `ListMap` or `TrivialMap`?
-
-3. (*) The implementation `MyListMap` is inefficient: it performs a lot of copying and is not tail-recursive. Optimize it (without changing the type definition).
-
-4. Add (and specify) $\text{isEmpty} : (\alpha, \beta) \ \text{map} \rightarrow \text{bool}$ to the example algebraic specification of maps without increasing the burden on its implementations. Hint: equational reasoning might be not enough; consider an equivalence relation $\approx$ meaning "have the same keys".
-
-#### Exercise 5: Queue ADT Design
-
-Design an algebraic specification and write a signature for first-in-first-out queues. Provide two implementations: one straightforward using a list, and another one using two lists: one for freshly added elements providing efficient queueing of new elements, and "reversed" one for efficient popping of old elements.
+**Selected answer (1).** Replace an existing binding on insertion, or remove
+*all* matching bindings on removal. The former maintains a unique-key invariant;
+the latter allows duplicate history internally but still meets the lookup/removal
+laws. With observational equality those are legitimate different representations.
 
 
-#### Exercise 6: Set ADT Design
+## Chapter 4: Functions as a language (optional)
 
-Design an algebraic specification and write a signature for sets. Provide two implementations: one straightforward using a list, and another one using a map into the unit type.
+![Chapter 4 illustration](Curious_OCaml-chapter_4.jpg){.chapter-image}
+
+**Prerequisites:** Chapter 3's distinction between syntax and evaluation; functions
+and recursive datatypes. **Route:** this is an optional Part I detour. Continue
+to Chapter 5 without it if you want modules and useful data structures first.
+
+Can functions alone represent booleans, numbers and recursion? The untyped lambda
+calculus asks this question with three syntax forms: variables, functions and
+application. We will calculate with that syntax in a small OCaml interpreter.
+The interpreter is typed OCaml; its object language is untyped. No unsafe cast or
+recursive OCaml type is needed to represent a self-application.
+
+### 4.1 Equations and evaluation are different
+
+The notation $\lambda x.e$ binds `x` in `e`. Application associates to the left:
+`f x y` means `(f x) y`. A function body extends as far to the right as possible,
+so $\lambda x.f\,x$ means $\lambda x.(f\,x)$.
+
+Three familiar equations have different jobs:
+
+- **Alpha:** rename a bound variable consistently, avoiding capture.
+- **Beta:** $(\lambda x.e)\,v = e[x:=v]$, with capture-avoiding substitution.
+- **Eta:** $\lambda x.f\,x = f$ when `x` is not free in `f`, as an extensional
+  equation of the pure calculus. This is not unrestricted contextual equivalence
+  for effectful or diverging strict programs.
+
+Full beta reduction permits work inside a function body and in an argument before
+it is needed. **Normal order** chooses the leftmost outermost redex and continues
+under lambdas. **Weak call by value** first evaluates a function and its argument
+to values, and does not reduce inside an unapplied lambda. OCaml is a strict
+language, but our interpreter specifies a left-to-right operand order explicitly;
+we do not infer OCaml's argument order from this object-language rule.
+
+For example, let $I=\lambda x.x$ and
+$\Omega=(\lambda x.x\,x)(\lambda x.x\,x)$. Normal order reduces
+$(\lambda ignored.I)\,\Omega$ to $I$ without touching $\Omega$. Weak call by value
+tries to evaluate $\Omega$ and never reaches the body.
+
+### 4.2 Names without accidental capture
+
+Naively replacing `x` by `y` in $\lambda y.x$ produces $\lambda y.y$, which
+captures the free `y`. The correct result is $\lambda z.y$ for a fresh `z`.
+We can avoid bound-name choices entirely: **de Bruijn indices** count binders
+outward from each occurrence. `Bound 0` refers to the nearest enclosing lambda;
+`Bound 1` refers to the next one. Free variables keep their names.
+
+Thus $\lambda x.x$ is `Lam (Bound 0)` and $\lambda x.\lambda y.x$ is
+`Lam (Lam (Bound 1))`. Alpha-equivalent terms have the same representation.
+An index must be nonnegative and smaller than the number of enclosing binders;
+`well_scoped` in the source checks that precondition.
+
+<!-- $MDX file=../projects/expressions/lambda.ml,part=terms -->
+```ocaml
+type t = Bound of int | Free of string | Lam of t | App of t * t
+
+let rec shift amount cutoff = function
+  | Bound k -> Bound (if k >= cutoff then k + amount else k)
+  | Free _ as x -> x
+  | Lam body -> Lam (shift amount (cutoff + 1) body)
+  | App (f, x) -> App (shift amount cutoff f, shift amount cutoff x)
+
+let rec substitute index value = function
+  | Bound k as x -> if k = index then value else x
+  | Free _ as x -> x
+  | Lam body -> Lam (substitute (index + 1) (shift 1 0 value) body)
+  | App (f, x) -> App (substitute index value f, substitute index value x)
+
+let beta body argument =
+  shift (-1) 0 (substitute 0 (shift 1 0 argument) body)
+```
+
+`shift amount cutoff` adjusts indices that refer outside the binders we have
+already crossed. Entering a lambda increments the cutoff. Substitution under a
+lambda shifts its replacement up by one, because the replacement now occurs
+under one more binder. Beta reduction shifts the argument up before substitution,
+then shifts the result down when removing the applied lambda.
+
+These three shifts can seem bureaucratic. Trace `beta (Lam (Bound 1)) (Free "y")`:
+`Bound 1` under the inner lambda refers to the parameter being replaced; the
+answer is `Lam (Free "y")`, not `Lam (Bound 0)`. A free variable never becomes a
+bound index. The named substitution in Chapter 11 implements the same obligation
+by choosing fresh names instead.
+
+### 4.3 Two executable reduction strategies
+
+<!-- $MDX file=../projects/expressions/lambda.ml,part=strategies -->
+```ocaml
+let rec normal_step = function
+  | App (Lam body, argument) -> Some (beta body argument)
+  | App (f, x) ->
+    (match normal_step f with
+     | Some f' -> Some (App (f', x))
+     | None -> Option.map (fun x' -> App (f, x')) (normal_step x))
+  | Lam body -> Option.map (fun body -> Lam body) (normal_step body)
+  | Bound _ | Free _ -> None
+
+let rec value_step = function
+  | App (Lam body, (Lam _ as argument)) -> Some (beta body argument)
+  | App ((Lam _ as f), x) ->
+    Option.map (fun x -> App (f, x)) (value_step x)
+  | App (f, x) -> Option.map (fun f -> App (f, x)) (value_step f)
+  | Bound _ | Free _ | Lam _ -> None
+
+type result = Done of t | Limit of t
+let reduce ~fuel step term =
+  if fuel < 0 then invalid_arg "negative reduction fuel";
+  let rec loop fuel term =
+    match step term with
+    | None -> Done term
+    | Some _ when fuel = 0 -> Limit term
+    | Some term -> loop (fuel - 1) term in
+  loop fuel term
+```
+
+The interpreter lives in `projects/expressions/lambda.ml`. Its tests include
+capture, shadowing, reduction under lambdas, Church addition, and Scott
+predecessor. The `Done` result means no step is available under the selected
+strategy. For weak call by value on an *open* term that can mean stuck, rather
+than a value. Use closed, well-scoped terms when claiming a value result.
+`Limit` means only that we spent the chosen beta-step budget; it does not decide
+whether the term diverges. Searching for a redex still traverses syntax, so fuel
+is not a bound on allocation or total interpreter work.
+
+```ocaml env=lambda
+open Expressions.Lambda
+let identity = Lam (Bound 0)
+let self = Lam (App (Bound 0, Bound 0))
+let omega = App (self, self)
+let discarded = App (Lam identity, omega)
+let () =
+  assert (reduce ~fuel:20 normal_step discarded = Done identity);
+  assert (match reduce ~fuel:20 value_step discarded with
+    | Limit _ -> true | Done _ -> false);
+  assert (beta (Lam (Bound 1)) (Free "y") = Lam (Free "y"))
+```
+
+We deliberately store `omega` as finite syntax. Evaluating an equivalent
+self-applying OCaml function would instead run in the host language and could
+prevent the experiment from finishing.
+
+### 4.4 Booleans and products choose their consumers
+
+A Church boolean selects a branch:
+
+$$\mathit{true}=\lambda t.\lambda f.t,\qquad
+  \mathit{false}=\lambda t.\lambda f.f.$$
+
+An if-expression is `b t f`; conjunction can be `a b false`.
+A pair packages two values for a consumer:
+
+$$\mathit{pair}=\lambda a.\lambda b.\lambda k.k\,a\,b.$$
+
+Apply the pair to `true` to select its first component and to `false` to select
+its second. The representation exposes the elimination operation rather than
+constructors and pattern matching.
+
+```ocaml env=lambda
+let yes = Lam (Lam (Bound 1))
+let no = Lam (Lam (Bound 0))
+let select b t f = App (App (b, t), f)
+let () =
+  assert (reduce ~fuel:20 normal_step (select yes identity omega) = Done identity)
+```
+
+A strict evaluator would evaluate both supplied branches. To implement an
+if-like operation under call by value, wrap each branch in a lambda (a thunk),
+select a thunk, and apply it to a dummy value. The distinction is operational:
+writing a boolean encoding alone does not make its arguments lazy.
+
+### 4.5 Church iteration and Scott case analysis
+
+A **Church numeral** is an iterator:
+
+$$0=\lambda f.\lambda x.x,\quad
+  1=\lambda f.\lambda x.f\,x,\quad
+  2=\lambda f.\lambda x.f(f\,x).$$
+
+Addition composes iterations:
+$\mathit{add}=\lambda m.\lambda n.\lambda f.\lambda x.m\,f\,(n\,f\,x)$.
+The implementation below constructs the syntax, not a host-language numeral:
+
+```ocaml env=lambda
+let church n =
+  if n < 0 then invalid_arg "negative numeral";
+  let rec times n =
+    if n = 0 then Bound 0 else App (Bound 1, times (n - 1)) in
+  Lam (Lam (times n))
+let add = Lam (Lam (Lam (Lam
+  (App (App (Bound 3, Bound 1), App (App (Bound 2, Bound 1), Bound 0))))))
+let () =
+  assert (reduce ~fuel:100 normal_step (App (App (add, church 2), church 3))
+          = Done (church 5))
+```
+
+A **Scott numeral** selects between a zero case and a successor case, giving its
+predecessor directly to the latter:
+
+$$\mathit{zero}=\lambda z.\lambda s.z,\qquad
+  \mathit{succ}=\lambda n.\lambda z.\lambda s.s\,n.$$
+
+```ocaml env=lambda
+let scott_zero = Lam (Lam (Bound 1))
+let scott_succ = Lam (Lam (Lam (App (Bound 0, Bound 2))))
+let predecessor n = App (App (n, scott_zero), identity)
+let () =
+  assert (reduce ~fuel:30 normal_step
+    (predecessor (App (scott_succ, scott_zero))) = Done scott_zero)
+```
+
+Scott predecessor chooses a constructor case. Church predecessor instead needs
+to carry additional state through an iteration, for instance a pair of successive
+counts. Church lists similarly encode a fold, while Scott lists expose the head
+and tail to the nonempty case. Calling both encodings “Church” hides the distinction
+between iteration and one-step case analysis.
+
+### 4.6 Recursion and cost
+
+In the untyped calculus, the fixed-point combinator
+
+$$Y=\lambda f.(\lambda x.f(x\,x))(\lambda x.f(x\,x))$$
+
+satisfies $Yf\rightsquigarrow^* f(Yf)$. This equation provides a recursive call;
+it does not prove that any invocation terminates. Under weak call by value,
+this `Y` attempts self-application too early. A delayed variant can expose a
+lambda before recurring, but its operational argument must be checked separately.
+OCaml's `let rec` is the practical construct for recursive functions; encoding
+`Y` is an experiment about evaluation strategy, not a replacement for it.
+
+Counting beta reductions also omits the work of copying syntax during substitution.
+The arithmetic machine from Chapter 3 stores an environment instead of replacing
+every variable occurrence. An environment-and-closure lambda machine is a useful
+next project precisely because it changes this cost model.
+
+### 4.7 Exercises
+
+1. **Practice.** Encode $\lambda x.\lambda y.y\,x$ with indices. Selected answer:
+   `Lam (Lam (App (Bound 0, Bound 1)))`.
+2. **Proof.** Explain why shifting the replacement when entering a lambda is
+   necessary. Give a well-scoped term whose reduction would capture a variable
+   if that shift were omitted.
+3. **Experiment.** Evaluate the same term with `normal_step` and `value_step`.
+   Use one example that differs only under a lambda and one discarded divergent
+   argument. Report fuel exhaustion as inconclusive, not as a divergence proof.
+4. **Practice.** Implement Church multiplication and check `2 * 3 = 6` by comparing
+   normal forms with `church 6`. Write Scott numerals zero through three and check
+   predecessor at zero and three.
+5. **Project.** Build an environment-and-closure interpreter for closed terms.
+   Specify the strategy, compare terminating cases against `value_step`, and
+   measure syntax copying versus environment retention. Include a shadowing test.
 
 
-#### Exercise 7: Efficient Set Operations
 
-1. (Ex. 2.2 in Chris Okasaki "Purely Functional Data Structures") In the worst case, `member` performs approximately $2d$ comparisons, where $d$ is the depth of the tree. Rewrite `member` to take no more than $d + 1$ comparisons by keeping track of a candidate element that *might* be equal to the query element (say, the last element for which $<$ returned false) and checking for equality only when you hit the bottom of the tree.
 
-2. (Ex. 3.10 in Chris Okasaki "Purely Functional Data Structures") The `balance` function currently performs several unnecessary tests: when e.g. `ins` recurses on the left child, there are no violations on the right child.
-   - Split `balance` into `lbalance` and `rbalance` that test for violations of left resp. right child only. Replace calls to `balance` appropriately.
-   - One of the remaining tests on grandchildren is also unnecessary. Rewrite `ins` so that it never tests the color of nodes not on the search path.
-
-#### Exercise 8: AVL Map Implementation
-
-(*) Implement maps (i.e. write a module for the map signature) based on AVL trees. See `http://en.wikipedia.org/wiki/AVL_tree`.
-
+# Part II: Representations and interpreters
 
 ## Chapter 6: Folding and Backtracking
 
 ![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
+
+**Prerequisites:** Chapter 3's expression language; Chapter 5's module interfaces.
+**Route:** Part II begins here. Continue to Chapter 11 for binding and extension,
+or Chapter 7 for streams.
 
 **In this chapter, you will:**
 
@@ -3484,7 +2639,7 @@ Functional programming emphasizes identifying common patterns and abstracting th
 
 How do we print a comma-separated list of integers? The `String` module provides a function that joins strings with a separator:
 
-```
+```text
 val concat : string -> string list -> string
 ```
 
@@ -3624,7 +2779,7 @@ Note that the `average` example is slightly trickier than `list_rev` because we 
 This "backward" structure of `fold_left` can be visualized by comparing the shape of the input list with the shape of the computation tree. The input list has a right-leaning spine (because `::` associates to the right), while `fold_left` produces a computation tree with a left-leaning spine:
 
 ::: {.figure}
-```
+```text
     Input list              Result computation
 
         ::                         f
@@ -3644,7 +2799,7 @@ This reversal of structure is why `fold_left` naturally reverses lists when the 
 
 #### Useful Derived Functions
 
-Many common list operations can be expressed elegantly using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
+Many common list operations can be expressed using folds. List filtering selects elements satisfying a predicate -- naturally expressed using `fold_right` to preserve order:
 
 ```ocaml env=ch6
 let list_filter p l =
@@ -3698,127 +2853,96 @@ let depth t = bt_fold (fun _ l r -> 1 + max l r) 0 t
 
 The first computes the sum of all elements (the combining function adds the current element to the sums of both subtrees). The second computes the depth -- we ignore the element value and take the maximum depth of the subtrees, adding 1 for the current level.
 
-#### More Complex Structures: Expressions
+#### The same expression language as Chapter 3
 
-Real-world data types often have more than two cases. To demonstrate map and fold for more complex structures, let us recall the expression type from Chapter 3:
+A shape-preserving map changes the labels at existing positions, preserving
+constructors. A fold may produce a number, a function, or a differently shaped
+tree. Calling all these operations “map” hides the distinction.
 
-```ocaml env=ch6
-type expression =
-    Const of float
-  | Var of string
-  | Sum of expression * expression    (* e1 + e2 *)
-  | Diff of expression * expression   (* e1 - e2 *)
-  | Prod of expression * expression   (* e1 * e2 *)
-  | Quot of expression * expression   (* e1 / e2 *)
-```
+Here is the fold for `Expressions.Expr.t`. The algebra has one field per
+constructor. The two recursive positions of `Let` are its value and body; the
+binding name itself is a label. This traversal handles syntax, not lexical scope.
 
-The multitude of cases makes this datatype harder to work with than binary trees. Fortunately, OCaml's *or-patterns* help us handle multiple similar cases together:
-
-```ocaml env=ch6
-let rec vars = function
-  | Const _ -> []
-  | Var x -> [x]
-  | Sum (a,b) | Diff (a,b) | Prod (a,b) | Quot (a,b) ->
-    vars a @ vars b
-```
-
-For a generic `map` and `fold` over expressions, we need to specify behavior for each case. Since there are many cases, we pack all the behaviors into records. This way, we can define default behaviors and then override just the cases we care about:
-
-```ocaml env=ch6
-type expression_map = {
-  map_const : float -> expression;
-  map_var : string -> expression;
-  map_sum : expression -> expression -> expression;
-  map_diff : expression -> expression -> expression;
-  map_prod : expression -> expression -> expression;
-  map_quot : expression -> expression -> expression;
+<!-- $MDX file=../projects/expressions/expr.ml,part=fold -->
+```ocaml
+type 'a algebra = {
+  number : float -> 'a;
+  variable : string -> 'a;
+  binary : op -> 'a -> 'a -> 'a;
+  binding : string -> 'a -> 'a -> 'a;
 }
 
-(*
-   Note: In expression_fold, we use 'a instead of expression because
-   fold produces values of arbitrary type, not necessarily expressions.
-*)
-type 'a expression_fold = {
-  fold_const : float -> 'a;
-  fold_var : string -> 'a;
-  fold_sum : 'a -> 'a -> 'a;
-  fold_diff : 'a -> 'a -> 'a;
-  fold_prod : 'a -> 'a -> 'a;
-  fold_quot : 'a -> 'a -> 'a;
-}
-```
+let rec fold alg = function
+  | Number n -> alg.number n
+  | Variable x -> alg.variable x
+  | Binary (op, a, b) ->
+    let a' = fold alg a in
+    let b' = fold alg b in
+    alg.binary op a' b'
+  | Let (x, value, body) ->
+    let value' = fold alg value in
+    let body' = fold alg body in
+    alg.binding x value' body'
 
-Now we define standard "default" behaviors. The `identity_map` reconstructs the same expression (useful as a starting point when we only want to change one case), and `make_fold` creates a fold where all binary operators behave the same:
-
-```ocaml env=ch6
-let identity_map = {
-  map_const = (fun c -> Const c);
-  map_var = (fun x -> Var x);
-  map_sum = (fun a b -> Sum (a, b));
-  map_diff = (fun a b -> Diff (a, b));
-  map_prod = (fun a b -> Prod (a, b));
-  map_quot = (fun a b -> Quot (a, b));
+let rebuild = {
+  number = (fun n -> Number n);
+  variable = (fun x -> Variable x);
+  binary = (fun op a b -> Binary (op, a, b));
+  binding = (fun x value body -> Let (x, value, body));
 }
 
-let make_fold op base = {
-  fold_const = (fun _ -> base);
-  fold_var = (fun _ -> base);
-  fold_sum = op; fold_diff = op;
-  fold_prod = op; fold_quot = op;
+let size = fold {
+  number = (fun _ -> 1); variable = (fun _ -> 1);
+  binary = (fun _ a b -> 1 + a + b);
+  binding = (fun _ value body -> 1 + value + body);
+}
+
+let eval_fold = fold {
+  number = (fun n _env -> n);
+  variable = (fun x env -> lookup env x);
+  binary = (fun op a b env ->
+    let x = a env in let y = b env in apply op x y);
+  binding = (fun x value body env ->
+    let v = value env in body ((x, v) :: env));
 }
 ```
 
-The actual functions follow. Unlike list `map`, this `expr_map` is a bottom-up rewriter: its handlers can replace whole subtrees and change the shape. It is a specialized fold returning expressions, rather than a functor map that must preserve the constructors.
+The last algebra is the subtle one. A fold cannot evaluate a `Let` body to a
+number before it knows the binding's value. Instead its carrier is
+`environment -> float`: each subtree becomes a function waiting for an
+environment. The `binding` handler then passes an extended environment to the
+body function. The explicit `let`s preserve the left-to-right order of Chapter 3.
 
-```ocaml env=ch6
-let rec expr_map emap = function
-  | Const c -> emap.map_const c
-  | Var x -> emap.map_var x
-  | Sum (a,b) -> emap.map_sum (expr_map emap a) (expr_map emap b)
-  | Diff (a,b) -> emap.map_diff (expr_map emap a) (expr_map emap b)
-  | Prod (a,b) -> emap.map_prod (expr_map emap a) (expr_map emap b)
-  | Quot (a,b) -> emap.map_quot (expr_map emap a) (expr_map emap b)
-
-let rec expr_fold efold = function
-  | Const c -> efold.fold_const c
-  | Var x -> efold.fold_var x
-  | Sum (a,b) -> efold.fold_sum (expr_fold efold a) (expr_fold efold b)
-  | Diff (a,b) -> efold.fold_diff (expr_fold efold a) (expr_fold efold b)
-  | Prod (a,b) -> efold.fold_prod (expr_fold efold a) (expr_fold efold b)
-  | Quot (a,b) -> efold.fold_quot (expr_fold efold a) (expr_fold efold b)
+```ocaml env=expression_folds
+open Expressions.Expr
+let example = Let ("x", Number 3.,
+  Binary (Add, Variable "x", Number 4.))
+let () =
+  assert (size example = 5);
+  assert (fold rebuild example = example);
+  assert (eval_fold example [] = eval [] example)
 ```
 
-Now here is the payoff. Using OCaml's `{record with field = value}` syntax, we can easily customize behaviors for specific uses by starting from the defaults and overriding just what we need:
+A bottom-up rewrite is a fold with carrier `t`. For example `simplify` in the
+shared module folds *literal* binary operations using the same float operation
+as evaluation. It does not erase a variable lookup or reassociate arithmetic.
+It takes one traversal: children are already simplified when the parent is
+processed. A general rewrite system may need iteration, but this one does not.
 
-```ocaml env=ch6
-let prime_vars = expr_map
-  {identity_map with map_var = fun x -> Var (x ^ "'")}
-
-let subst s =
-  let apply x = try List.assoc x s with Not_found -> Var x in
-  expr_map {identity_map with map_var = apply}
-
-let vars =
-  expr_fold {(make_fold (@) []) with fold_var = fun x -> [x]}
-
-let size = expr_fold (make_fold (fun a b -> 1 + a + b) 1)
-
-let eval env = expr_fold {
-  fold_const = id;
-  fold_var = (fun x -> List.assoc x env);
-  fold_sum = (+.); fold_diff = (-.);
-  fold_prod = ( *.); fold_quot = (/.);
-}
+```ocaml env=expression_folds
+let () =
+  let e = Binary (Add, Binary (Mul, Number 2., Number 3.), Variable "x") in
+  assert (simplify e = Binary (Add, Number 6., Variable "x"));
+  assert (eval ["x", 1.] (simplify e) = eval ["x", 1.] e)
 ```
+
+The identity algebra `rebuild` gives a useful law: `fold rebuild e = e` for finite
+syntax. Prove it by induction, using one case per constructor. Chapter 12 will
+identify the equations that make this fold unique.
 
 ### 6.4 Point-Free Programming
 
-In 1977/78, John Backus -- the designer of FORTRAN and BNF notation -- introduced **FP**, the first *function-level programming* language. This was a radical departure from the prevailing style: rather than manipulating variables and values, programs were built entirely by combining functions. Over the next decade, FP evolved into the **FL** language.
-
-The philosophy behind function-level programming is captured in this quote:
-
-> "Clarity is achieved when programs are written at the function level -- that is, by putting together existing programs to form new ones, rather than by manipulating objects and then abstracting from those objects to produce programs."
-> -- *The FL Project: The Design of a Functional Language*
+We can compose functions without naming each intermediate value.
 
 This style is sometimes called **point-free** or **tacit** programming, because we never mention the "points" (values) that functions operate on -- we only talk about the functions themselves and how they combine.
 
@@ -3855,7 +2979,7 @@ let print2 = curry
   ((Char.escaped *** string_of_int) |- uncurry (^))
 ```
 
-Here `***` applies two functions in parallel to the components of a pair, `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
+Here `***` applies one function to each component of a pair (this does not start parallel execution), `|-` is forward composition, `uncurry` converts a curried function to take a pair, and `curry` converts back.
 
 **Why the name "currying"?** Converting a C/Pascal-style function (that takes all arguments as a tuple) into one that takes arguments one at a time is called *currying*, after the logician Haskell Brooks Curry. Since OCaml functions naturally take arguments one at a time, we often need `uncurry` to interface with tuple-based operations, and `curry` to convert back.
 
@@ -4152,7 +3276,7 @@ Now we turn to solving puzzles, which will showcase the power of backtracking wi
 - Target: 765
 - One possible solution: (25-10) * (50+1) = 15 * 51 = 765
 
-This example has 780 different solutions! Changing the target to 831 gives an example with no solutions at all.
+We will compare solvers on small inputs before attempting this larger search.
 
 Let us develop a solver step by step, starting with the data types.
 
@@ -4238,7 +3362,7 @@ We introduce a convenient operator for working with multiple data sources. The "
 let ( |-> ) x f = concat_map f x
 ```
 
-Now we can generate all expressions from a list of numbers. The structure elegantly expresses the backtracking search:
+Now we can generate all expressions from a list of numbers. The structure records each branch of the backtracking search:
 
 ```ocaml env=ch6
 let combine l r =                  (* Combine two expressions using each operator *)
@@ -4321,2046 +3445,670 @@ let () =
   assert (search index ["missing"] = [])
 ```
 
-### 6.9 The Honey Islands Puzzle
+### 6.9 A search contract before a speed claim
 
-Now let us tackle a different kind of puzzle that requires more sophisticated backtracking.
+For Countdown, **soundness** says every returned expression uses an allowed
+submultiset, has positive integer intermediate results, and reaches its target.
+**Completeness** of the reference enumerator says every legal expression over
+an allowed ordering appears. Induct on its syntax: a leaf comes from a singleton
+choice; an internal node splits its leaf sequence into two nonempty parts and
+chooses one of the four operators. Enumerating subsequences and permutations
+supplies every allowed ordered leaf sequence. Duplicate source values can produce
+duplicate syntax; they do not permit an extra use of an input occurrence.
 
-**Be a bee!** Imagine a honeycomb where you need to eat honey from certain cells to prevent the remaining honey from going sour. Sourness spreads through contact, so you want to divide the honey into isolated "islands" -- each small enough that it will be consumed before spoiling.
-
-More precisely: given a honeycomb with some cells initially marked black (empty), mark additional cells as empty so that the remaining (unmarked) cells form exactly `num_islands` disconnected components, each with exactly `island_size` cells.
-
-| Task: 3 islands × 3 cells | Solution |
-|:-------------------------:|:--------:|
-| ![Task](honey0.png){width=45%} | ![Solution](honey1.png){width=45%} |
-
-In the solution, yellow cells contain honey, black cells were initially empty, and purple cells are the newly "eaten" cells that separate the honey into 3 islands of 3 cells each.
-
-#### Representing the Honeycomb
-
-We represent cells using Cartesian coordinates. The honeycomb structure means that valid cells satisfy certain parity and boundary constraints.
-
-```ocaml env=ch6
-type cell = int * int          (* Cartesian coordinates *)
-
-module CellSet =               (* Store cells in sets for efficient membership tests *)
-  Set.Make (struct type t = cell let compare = compare end)
-
-type task = {                  (* For board size N, coordinates *)
-  board_size : int;            (* range from (-2N, -N) to (2N, N) *)
-  num_islands : int;           (* Required number of islands *)
-  island_size : int;           (* Required cells per island *)
-  empty_cells : CellSet.t;     (* Initially empty cells *)
-}
-
-let cellset_of_list l =           (* Convert list to set (inverse of CellSet.elements) *)
-  List.fold_right CellSet.add l CellSet.empty
-```
-
-**Neighborhood:** In a honeycomb, each cell has up to 6 neighbors. We filter out neighbors that are outside the board or already eaten:
+Fusing generation with evaluation preserves all valid syntax. The stronger
+predicate deliberately drops some syntax, so its claim is only preservation of
+**reachable target values**, when using any nonempty submultiset. Sorting the
+operands of a commutative operation preserves its value. Multiplication or division
+by one can be removed by using fewer inputs. That reasoning would fail for a rule
+requiring *every* input to be used. Integer overflow is outside the positive
+mathematical-integer argument; use small inputs for these checks, or add checked
+arithmetic before using this as a general solver.
 
 ```ocaml env=ch6
-let even x = x mod 2 = 0
-
-let inside_board n eaten (x, y) =
-  even x = even y && abs y <= n &&
-  abs x + abs y <= 2*n &&
-  not (CellSet.mem (x, y) eaten)
-
-let neighbors n eaten (x, y) =
-  List.filter
-    (inside_board n eaten)
-    [x-1,y-1; x+1,y-1; x+2,y;
-     x+1,y+1; x-1,y+1; x-2,y]
+let () =
+  let reachable xs =
+    choices xs |> List.concat_map exprs |> List.filter_map eval
+    |> List.sort_uniq compare in
+  let fused xs =
+    choices xs |> List.concat_map (results valid) |> List.map snd
+    |> List.sort_uniq compare in
+  List.iter (fun xs ->
+    let expected = reachable xs in
+    assert (fused xs = expected);
+    List.iter (fun target ->
+      assert (List.for_all (fun e -> solution e xs target)
+        (solutions_optimized xs target));
+      let syntax xs = List.sort_uniq compare xs in
+      assert (syntax (solutions xs target) = syntax (solutions' xs target)))
+      expected)
+    [[1]; [1;1]; [1;2]; [2;3]; [1;2;3]; [2;2;3]]
 ```
 
-**Building the honeycomb:** We generate all valid honey cells by iterating over the coordinate range and filtering:
+The **Honey Islands project**, in `projects/honey/README.md`, compares direct,
+pruned, monadic and state-transformer solvers against exhaustive subsets. It
+includes a counterexample to the old “always keep the first seed” traversal.
+That puzzle and its drawing infrastructure are optional; Countdown is the main
+search case study here.
 
-```ocaml env=ch6
-let honey_cells n eaten =
-  fromto (-2*n) (2*n) |-> (fun x ->
-    fromto (-n) n |-> (fun y ->
-     pred_guard (inside_board n eaten)
-        (x, y)))
+### 6.10 Exercises
+
+1. **Practice.** Generate permutations of `[1;2;3]`, then of `[1;1;2]`.
+   Distinguish positions from values. State whether duplicates are retained.
+2. **Proof.** Prove the reconstruction law for the expression fold. Include `Let`;
+   its binding name is unchanged even though both subexpressions are folded.
+3. **Experiment.** Compare subtraction with `fold_left` and `fold_right` on
+   `[1;2;3]` starting from zero. Explain why tail recursion alone does not justify
+   replacing one fold with the other. Selected answer: the results are `-6` and `2`.
+4. **Practice.** Use a fold to count syntactic variable occurrences, including
+   bound occurrences. Then compute free variables: at `Let (x, value, body)`,
+   remove `x` only from the body's set, not from the value's set.
+5. **Proof.** Identify the induction hypotheses in the Countdown completeness
+   argument. Explain why pruning `Mul 1 e` would be invalid if all inputs had
+   to be used exactly once.
+6. **Project.** Complete the Honey Islands project's extension and measurements.
+   Its acceptance criteria require reference equivalence before performance data.
+
+
+## Chapter 11: Binding, parsing, and extension
+
+![Chapter 11 illustration](Curious_OCaml-chapter_11.jpg){.chapter-image}
+
+**Prerequisites:** Chapters 3, 5 and 6. Chapter 8 is useful for parser choice;
+Chapter 9 is useful for GADT indices. **Route:** Part II continues from Chapter 6;
+read it before Part III if you want the whole expression-language thread together.
+
+We have evaluated one syntax directly, by CPS, by a machine and by a fold. Now
+we will substitute into it, parse it and compare ways of extending it. State the
+requirements before selecting an encoding: “extensible” can mean several
+incompatible things.
+
+### 11.1 The extension requirements
+
+Suppose we add unary negation and a new operation, pretty printing. We want:
+
+1. Existing expressions to keep their evaluation behavior.
+2. Negation to nest around old expressions, and inside old binary operations.
+3. Independently compiled code to add syntax or operations without editing every
+   original definition.
+4. Exhaustiveness or another explicit failure policy for unknown cases.
+5. Where required, result types to distinguish arithmetic from Boolean expressions.
+
+The classic expression problem asks for extension along both datatype and
+operation axes, with static type safety and without modifying existing code.
+A runtime registry offers a different tradeoff: separately loaded extensions with
+explicit missing-handler failures. A GADT result index solves another problem,
+namely ruling out ill-typed object-language expressions. It does not automatically
+solve separate extensibility.
+
+### 11.2 Binding is shared machinery
+
+Recall that `Let (x, value, body)` binds `x` only in `body`. The variable remains
+free in `value` unless an outer binding supplies it. A substitution must preserve
+that scope and avoid capturing free variables in its replacement.
+
+<!-- $MDX file=../projects/expressions/expr.ml,part=binding -->
+```ocaml
+module Names = Set.Make (String)
+
+let rec free = function
+  | Number _ -> Names.empty
+  | Variable x -> Names.singleton x
+  | Binary (_, a, b) -> Names.union (free a) (free b)
+  | Let (x, value, body) ->
+    Names.union (free value) (Names.remove x (free body))
+
+let rec names = function
+  | Number _ -> Names.empty
+  | Variable x -> Names.singleton x
+  | Binary (_, a, b) -> Names.union (names a) (names b)
+  | Let (x, value, body) ->
+    Names.add x (Names.union (names value) (names body))
+
+let fresh used x =
+  let rec loop x = if Names.mem x used then loop (x ^ "'") else x in
+  loop x
+
+let rec subst x replacement = function
+  | Number _ as e -> e
+  | Variable y as e -> if x = y then replacement else e
+  | Binary (op, a, b) ->
+    Binary (op, subst x replacement a, subst x replacement b)
+  | Let (y, value, body) ->
+    let value' = subst x replacement value in
+    if x = y then Let (y, value', body)
+    else if not (Names.mem y (free replacement)) then
+      Let (y, value', subst x replacement body)
+    else
+      let used = Names.add x (Names.union (names body) (names replacement)) in
+      let z = fresh used y in
+      let renamed = subst y (Variable z) body in
+      Let (z, value', subst x replacement renamed)
 ```
 
-#### Drawing Honeycombs
+If the binding name is the variable being substituted, skip its body, but still
+substitute in its value expression. Otherwise, if the replacement has that name
+free, choose a fresh name outside **all** names in the body and replacement, and
+outside the substituted name. Rename this binding's occurrences before descending.
+The recursive substitution respects inner shadowing; it is not a global string
+replacement. No prefix is reserved for generated names.
 
-To visualize the honeycomb, we generate colored polygons. Each cell is drawn as a hexagon
-by placing 6 points evenly spaced on a circumcircle:
-
-```ocaml env=ch6
-let draw_honeycomb ~w ~h task eaten =
-  let i2f = float_of_int in
-  let nx = i2f (4 * task.board_size + 2) in
-  let ny = i2f (2 * task.board_size + 2) in
-  let radius = min (i2f w /. nx) (i2f h /. ny) in
-  let x0 = w / 2 in
-  let y0 = h / 2 in
-  let dx = (sqrt 3. /. 2.) *. radius +. 1. in  (* Distance between *)
-  let dy = (3. /. 2.) *. radius +. 2. in       (* (x,y) and (x+1,y+1) *)
-  let draw_cell (x, y) =
-    Array.init 7                               (* Draw a closed polygon *)
-      (fun i ->                            (* with 6 points evenly spaced *)
-        let phi = float_of_int i *. Float.pi /. 3. in   (* on circumcircle *)
-        x0 + int_of_float (radius *. sin phi +. float_of_int x *. dx),
-        y0 + int_of_float (radius *. cos phi +. float_of_int y *. dy)) in
-  let honey =
-    honey_cells task.board_size (CellSet.union task.empty_cells
-                                   (cellset_of_list eaten))
-    |> List.map (fun p -> draw_cell p, (255, 255, 0)) in   (* Yellow cells *)
-  let eaten = List.map
-    (fun p -> draw_cell p, (50, 0, 50)) eaten in           (* Purple: eaten *)
-  let old_empty = List.map
-    (fun p -> draw_cell p, (0, 0, 0))                      (* Black: empty *)
-    (CellSet.elements task.empty_cells) in
-  honey @ eaten @ old_empty
+```ocaml env=binding
+open Expressions.Expr
+let () =
+  let e = Let ("y", Number 1., Binary (Add, Variable "x", Variable "y")) in
+  let e' = subst "x" (Variable "y") e in
+  assert (Names.elements (free e') = ["y"]);
+  assert (eval ["y",10.] e' = 11.);
+  let shadow = Let ("x", Variable "x", Variable "x") in
+  assert (eval [] (subst "x" (Number 7.) shadow) = 7.)
 ```
 
-**Drawing to SVG:** We can render the polygons to an SVG image file:
+The first result must use the outer `y=10` for the replacement while preserving
+the inner bound value one. The optional lambda interpreter in Chapter 4 avoids
+bound-name choices with de Bruijn indices. These are two representations of the
+same scope obligation, not two different meanings of substitution.
 
-```ocaml env=ch6
-let draw_to_svg file ~w ~h ?title ?desc curves =
-  let f = open_out file in
-  Printf.fprintf f "<?xml version=\"1.0\" standalone=\"no\"?>
-<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"
-  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
-<svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\"
-    xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">
-" w h w h;
-  (match title with None -> ()
-  | Some title -> Printf.fprintf f "  <title>%s</title>\n" title);
-  (match desc with None -> ()
-  | Some desc -> Printf.fprintf f "  <desc>%s</desc>\n" desc);
-  let draw_shape (points, (r, g, b)) =
-    uncurry (Printf.fprintf f "  <path d=\"M %d %d") points.(0);
-    Array.iteri (fun i (x, y) ->
-      if i > 0 then Printf.fprintf f " L %d %d" x y) points;
-    Printf.fprintf f "\"\n       fill=\"rgb(%d, %d, %d)\" stroke-width=\"3\" />\n"
-      r g b in
-  List.iter draw_shape curves;
-  Printf.fprintf f "</svg>%!";
-  close_out f
+### 11.3 Parse the common language
+
+We use an explicit parenthesized grammar to keep precedence out of the first
+parser. It accepts finite float literals, identifiers, binary arithmetic and
+local binding:
+
+```text
+expression := number | identifier
+            | "(" operator expression expression ")"
+            | "(let" identifier expression expression ")"
+operator   := "+" | "-" | "*" | "/"
 ```
 
-**Drawing to screen:** We can also draw interactively using the *Bogue* library. Note that Bogue does not directly support filled polygons, so we draw hexagons as line segments.
+The implementation is `projects/expressions/sexp.ml` for tokenization and nested
+forms, then `parser.ml` for translation into `Expr.t`. The parser requires the
+whole input to be consumed. Unknown forms, wrong arity, missing parentheses,
+invalid identifiers and trailing tokens are errors. Binding scope is represented
+by `Let`; parsing does not evaluate or substitute the body.
 
-```ocaml env=ch6
-let draw_to_screen ~w ~h curves =
-  let open Bogue in
-  let area_widget = Widget.sdl_area ~w ~h () in
-  let area = Widget.get_sdl_area area_widget in
-  (* Queue drawing commands for when the area is rendered *)
-  Sdl_area.add area (fun _renderer ->
-    (* Draw brown background *)
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "saddlebrown"))
-      ~w ~h (0, 0);
-    (* Draw each hexagon as connected line segments *)
-    List.iter (fun (points, (r, g, b)) ->
-      let color = Draw.opaque (r, g, b) in
-      let n = Array.length points in
-      for i = 0 to n - 2 do
-        let (x0, y0) = points.(i) in
-        let (x1, y1) = points.(i + 1) in
-        (* Flip y-coordinate: Bogue uses top-left origin *)
-        Sdl_area.draw_line area ~color ~thick:3 (x0, h - y0) (x1, h - y1)
-      done) curves);
-  let layout = Layout.resident area_widget in
-  let board = Main.of_layout layout in
-  Main.run board
+```ocaml env=parser
+let () =
+  let open Expressions in
+  let text = "(let x 3 (+ (* x 4) 2))" in
+  match Parser.parse text with
+  | Error message -> failwith message
+  | Ok e ->
+    assert (Expr.eval [] e = 14.);
+    assert (Parser.parse (Parser.print e) = Ok e);
+    assert (Result.is_error (Parser.parse "(+ 1 2) extra"));
+    assert (Result.is_error (Parser.parse "(+ 1)"))
 ```
 
-#### Testing Correctness
+The round-trip contract is for finite numbers and identifiers admitted by the
+grammar, not arbitrary strings supplied directly to `Variable` or `Let`. Printing
+uses enough significant digits to round-trip binary64 values through decimal
+notation. NaN and infinities are excluded from literals; evaluation can still
+produce them through floating-point operations.
 
-Before generating solutions, let us write code to *test* whether a proposed solution is correct. We walk through each island counting its cells using depth-first search: having visited everything reachable in one direction, we check whether any unvisited cells remain.
+#### Choice and repetition need a consumption contract
 
-```ocaml env=ch6
-let check_correct n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
+An enumerating parser returns a list of `(answer, next_position)` pairs. Its choice
+can concatenate all successful parses, as list choice in Chapter 8 does. That is
+not commitment to the first parse. A later end-of-input check may reject the
+first answer and accept another.
 
-  let rec check_board been_islands unvisited visited =
-    match unvisited with
-    | [] -> been_islands = num_islands
-    | cell::remaining when CellSet.mem cell visited ->
-        check_board been_islands remaining visited    (* Keep looking *)
-    | cell::remaining (* when not visited *) ->
-        let (been_size, unvisited, visited) =
-          check_island cell                           (* Visit another island *)
-            (1, remaining, CellSet.add cell visited) in
-        been_size = island_size
-        && check_board (been_islands+1) unvisited visited
+Repetition must reject a successful parser that consumes no input:
 
-  and check_island current state =
-    neighbors n empty_cells current
-    |> List.fold_left                                 (* Walk into each direction *)
-      (fun (been_size, unvisited, visited as state)
-        neighbor ->
-        if CellSet.mem neighbor visited then state
-        else
-          let unvisited = remove neighbor unvisited in
-          let visited = CellSet.add neighbor visited in
-          let been_size = been_size + 1 in
-          check_island neighbor
-            (been_size, unvisited, visited))
-      state in                                        (* Initial been_size is 1 *)
-
-  check_board 0 honey empty_cells
+```ocaml env=parsers
+type 'a parser = string array -> int -> ('a * int) list
+let return x _input pos = [x,pos]
+let token expected input pos =
+  if pos < Array.length input && input.(pos)=expected then [expected,pos+1]
+  else []
+let rec many p input pos =
+  let following = p input pos |> List.concat_map (fun (x,next) ->
+    if next <= pos || next > Array.length input then
+      invalid_arg "repeated parser must consume input";
+    List.map (fun (xs,last) -> x::xs,last) (many p input next)) in
+  ([],pos) :: following
+let () =
+  assert (many (token "a") [|"a";"a"|] 0 =
+    [[],0; ["a"],1; ["a";"a"],2]);
+  assert (try ignore (many (return ()) [||] 0); false
+          with Invalid_argument _ -> true)
 ```
 
-#### Multiple Results per Step: concat_fold
+Positive progress bounds recursion by the remaining token count, provided each
+call to `p` itself terminates and returns finitely many answers. It does not make
+a left-recursive grammar safe. Factor left recursion or use a parser designed to
+handle it; wrapping it in `many` is not a termination argument.
 
-When processing lists, sometimes each step can produce multiple results (not just one as in `fold_left`, or many independent ones as in `concat_map`). We need a hybrid: process elements sequentially like `fold_left`, but allow multiple results at each step, collecting all the final states.
+### 11.4 Compare representations against the requirements
 
-This is `concat_fold`:
+| Representation | Add syntax | Add operation | What the compiler or runtime guarantees |
+|---|---|---|---|
+| Closed variants (`Expr.t`) | Edit the type and affected matches | Add a new function/fold algebra | Exhaustiveness checks over the closed constructor set |
+| Extensible variants | Declare a constructor in another module | Add dispatch/handlers for cases | Unknown constructors need a fallback; no closed-world exhaustiveness |
+| Objects with evaluation methods | Add a class satisfying the interface | Extend classes/interfaces or introduce another abstraction | Method availability and subtyping, not an automatic new-operation solution |
+| Closed visitors | Extend visitor interface and visitors for new cases | Add a visitor over the fixed case set | Operations are extensible while the visited shape remains fixed |
+| Polymorphic variants and open recursion | Extend rows and compose cases | Add another recursive consumer | Row constraints describe accepted cases; composition still needs design |
+| GADT syntax | Add indexed constructors and affected matches | Add a type-indexed interpreter | Object-language result types; extension tradeoffs remain |
+| Tagless-final modules | Extend the signature and implementations | Instantiate another interpreter | Programs abstract over operations their signature provides |
 
-```ocaml env=ch6
-let rec concat_fold f a = function
-  | [] -> [a]
-  | x::xs ->
-    f x a |-> (fun a' -> concat_fold f a' xs)
+These are design tradeoffs, not a ranking of universally successful or failed
+encodings. Dynamic loading and static exhaustiveness are particularly different
+requirements. Repeating an entire evaluator for every row would hide that choice.
+
+#### Open recursion with polymorphic variants
+
+Make recursion an argument to the base cases, so an extension can decide how
+recursive children are dispatched:
+
+```ocaml env=poly
+let eval_base recur = function
+  | `Number n -> n
+  | `Add (a,b) -> let x=recur a in let y=recur b in x +. y
+let rec eval = function
+  | (`Number _ | `Add _) as e -> eval_base eval e
+  | `Neg e -> -. eval e
+let () = assert (eval (`Add (`Number 2., `Neg (`Number 3.))) = -1.)
 ```
 
-#### Generating Solutions
+The extended dispatcher recurs into itself, so a negation may occur beneath an
+old addition. Closing recursion over only the base evaluator would lose that
+property. The row inferred for this example does not admit arbitrary new tags;
+another extension must compose another appropriate dispatcher.
 
-The key insight is that we can transform the *testing* code into *generation* code by:
+### 11.5 Typed syntax and final representations
 
-1. Passing around the current partial solution (the `eaten` list)
-2. Returning results in a list (empty list means no solutions from this path)
-3. At each neighbor cell, exploring *both* possibilities: eating it (adding to `eaten`) or keeping it as honey (continuing to walk the island)
+A GADT can distinguish numeric and Boolean results. Here is a deliberately small
+extension experiment; it is a typed subset, not a second full parser/evaluator:
 
-```ocaml env=ch6
-let find_to_eat n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec find_board been_islands unvisited visited eaten =
-    match unvisited with
-    | [] ->
-      if been_islands = num_islands then [eaten] else []
-    | cell::remaining when CellSet.mem cell visited ->
-      find_board been_islands remaining visited eaten
-    | cell::remaining (* when not visited *) ->
-      find_island cell
-        (1, remaining, CellSet.add cell visited, eaten)
-      |->                                             (* Concatenate solutions *)
-      (fun (been_size, unvisited, visited, eaten) ->
-        if been_size = island_size
-        then find_board (been_islands+1)
-               unvisited visited eaten
-        else [])
-
-  and find_island current state =
-    neighbors n empty_cells current
-    |> concat_fold                                    (* Multiple results *)
-        (fun neighbor
-          (been_size, unvisited, visited, eaten as state) ->
-          if CellSet.mem neighbor visited then [state]
-          else
-            let unvisited = remove neighbor unvisited in
-            let visited = CellSet.add neighbor visited in
-            (been_size, unvisited, visited,
-             neighbor::eaten)::
-              (* solutions where neighbor is honey *)
-            find_island neighbor
-              (been_size+1, unvisited, visited, eaten))
-        state in
-
-  find_board 0 honey empty_cells []
+```ocaml env=typed
+type _ expression =
+  | Number : float -> float expression
+  | Add : float expression * float expression -> float expression
+  | Less : float expression * float expression -> bool expression
+  | If : bool expression * 'a expression * 'a expression -> 'a expression
+let rec eval : type a. a expression -> a = function
+  | Number n -> n
+  | Add (a,b) -> let x=eval a in let y=eval b in x +. y
+  | Less (a,b) -> let x=eval a in let y=eval b in x < y
+  | If (condition,yes,no) -> if eval condition then eval yes else eval no
+let () = assert (eval (If (Less (Number 1., Number 2.), Number 3., Number 4.)) = 3.)
 ```
 
-#### Optimizations
+`Add` cannot accept a Boolean expression. But all four cases are still listed in
+`eval`, so adding a constructor may require editing this operation. An indexed
+extensible variant would need a missing-case policy just like an unindexed one.
 
-The brute-force generation explores far too many possibilities. The key optimization principle is: **fail (drop solution candidates) as early as possible**.
+Tagless-final describes a program through the operations it uses:
 
-Instead of blindly exploring all choices, we add guards to prune branches that cannot lead to solutions:
-
-- Do not try to eat more cells if we have already eaten enough
-- Do not add more cells to an island that is already full
-- Track exactly how many cells still need to be eaten
-
-```ocaml env=ch6
-type state = {
-  been_size: int;                           (* Honey cells in current island *)
-  been_islands: int;                        (* Islands visited so far *)
-  unvisited: cell list;                     (* Cells to visit *)
-  visited: CellSet.t;                       (* Already visited *)
-  eaten: cell list;                         (* Current solution candidate *)
-  more_to_eat: int;                         (* Remaining cells to eat *)
-}
-
-let rec visit_cell s =
-  match s.unvisited with
-  | [] -> None
-  | c::remaining when CellSet.mem c s.visited ->
-    visit_cell {s with unvisited=remaining}
-  | c::remaining (* when c not visited *) ->
-    Some (c, {s with
-      unvisited=remaining;
-      visited = CellSet.add c s.visited})
-
-let eat_cell c s =
-  {s with eaten = c::s.eaten;
-    visited = CellSet.add c s.visited;
-    more_to_eat = s.more_to_eat - 1}
-
-let keep_cell c s =                         (* c is actually unused *)
-  {s with been_size = s.been_size + 1;
-    visited = CellSet.add c s.visited}
-
-let fresh_island s =                 (* Increment been_size at start of find_island *)
-  {s with been_size = 0;
-    been_islands = s.been_islands + 1}
-
-let init_state unvisited more_to_eat = {
-  been_size = 0; been_islands = 0;
-  unvisited; visited = CellSet.empty;
-  eaten = []; more_to_eat;
-}
+```ocaml env=final
+module type ARITH = sig
+  type repr
+  val number : float -> repr
+  val add : repr -> repr -> repr
+end
+module Example (S : ARITH) = struct
+  let value = S.add (S.number 2.) (S.number 3.)
+end
+module Evaluate = struct
+  type repr = float
+  let number x = x
+  let add = (+.)
+end
+module Print = struct
+  type repr = string
+  let number = string_of_float
+  let add a b = "(+ " ^ a ^ " " ^ b ^ ")"
+end
+module Value = Example (Evaluate)
+module Text = Example (Print)
+let () = assert (Value.value = 5. && Text.value = "(+ 2. 3.)")
 ```
 
-The optimized island loop only tries actions that make sense:
+A new interpreter supplies another `ARITH` module. A negation extension can include
+`ARITH` and add `neg`, with implementations including their base module. Old
+program functors still accept those modules; new programs require the larger
+signature. Extracting syntax for an arbitrary rewrite is easiest when one of the
+interpretations reifies an AST. The final interface does not make inspection free.
 
-```
-  and find_island current s =
-    let s = keep_cell current s in
-    neighbors n empty_cells current
-    |> concat_fold
-        (fun neighbor s ->
-          if CellSet.mem neighbor s.visited then [s]
-          else
-            let choose_eat =                (* Guard against failed actions *)
-              if s.more_to_eat = 0 then []
-              else [eat_cell neighbor s]
-            and choose_keep =
-              if s.been_size >= island_size then []
-              else find_island neighbor s in
-            choose_eat @ choose_keep)
-        s in
-  (* Finally, compute the required eaten cells and start searching *)
-  let cells_to_eat =
-    List.length honey - island_size * num_islands in
-  find_board (init_state honey cells_to_eat)
-```
+### 11.6 A genuinely separately compiled plugin
 
-### 6.10 Constraint-Based Puzzles
+`projects/plugins` is a complete native dynamic-loading project:
 
-Many puzzles can be understood in terms of **constraint satisfaction**:
+- `plugin_api.ml` defines an extensible syntax, core evaluation/printing, parsing
+  through the shared S-expression frontend, and a registration interface.
+- `negate_plugin.ml` defines a new constructor and registers its builder,
+  evaluation and printing handlers. It compiles to `negate_plugin.cmxs`.
+- `host.ml` links the API and `Dynlink`, but does **not** link the plugin. It checks
+  behavior before and after loading the compiled plugin.
 
-1. The puzzle defines the *general form* of solutions (what variables need values)
-2. The puzzle specifies *constraints* that valid solutions must satisfy
+Run `dune runtest projects/plugins`. This builds separate artifacts, loads the
+plugin, and evaluates `(+ 2 (neg (let x 3 (* x 4))))` to `-10`. Old constructors
+can contain the new one and vice versa. Core expressions can also be translated
+with the Chapter 6 fold, retaining their evaluation result.
 
-For example, in Sudoku, the variables are the 81 cells, each with domain {1,...,9}, and the constraints require each row, column, and 3x3 box to contain all digits exactly once.
+The failure tests cover an unavailable syntax before loading, an unknown
+constructor lacking an operation, a missing plugin file, wrong extension arity,
+duplicate registration and repeated loading. Registration rejects reserved core
+names. Native plugins must match their host's compilation interfaces; dynamic
+loading is trusted code execution, not a sandbox. Runtime fallback is explicit:
+unknown operations raise `Missing_operation` instead of silently returning a
+fabricated value.
 
-In the Honey Islands puzzle, we could view each cell as a variable with domain {Honey, Empty}. The constraints specify which cells must be empty initially, and the requirement of forming a specific number and size of connected components.
+Adding a new operation still requires appropriate handlers for every extension
+one wants to support. This project meets separate syntax loading with declared
+failure behavior; it does not claim the static exhaustive solution to every
+expression-problem requirement.
 
-#### Finite Domain Constraint Programming
+### 11.7 Exercises
 
-**Constraint propagation** is a powerful technique for solving such puzzles efficiently. The key idea is to track *sets of possible values* for each variable and systematically eliminate impossibilities:
+1. **Practice.** Substitute `x := y` under two nested binders named `y` and `y'`.
+   Check the free-variable set and evaluate the result with an outer value for `y`.
+2. **Proof.** Prove the free-variable formula for `Let`. Explain why removing its
+   name from the value expression's free set is wrong.
+3. **Experiment.** Give `many` a zero-consuming parser and then a consuming one.
+   Explain why the progress check cannot diagnose every divergent parser.
+4. **Project.** Add a separately compiled absolute-value plugin. Pass nested
+   old/new syntax, print/parse round trips, wrong-arity and missing-handler tests.
+5. **Proof / design.** For each representation in the table, identify which files
+   change when adding a constructor and when adding an operation. State whether
+   recompilation, runtime failure, or interface changes are allowed in your goal.
 
-1. **Initialize:** For each variable, start with the full set of possible values (its domain). The current "partial solution" is this collection of sets.
-
-2. **Propagate and split:** Repeat until all variables have exactly one value:
-   - (a) **Propagate constraints:** If some value for a variable is inconsistent with *all* possible values of related variables, remove it
-   - (b) **Prune failures:** If any variable has an empty set of possible values, this partial solution has no completions -- abandon it
-   - (c) **Split:** Select a variable with multiple possible values. Create new partial solutions by partitioning its possibilities (simplest: try each value separately, or split into "this value" vs "all others")
-
-3. **Extract solutions:** When all variables have single values, we have found a solution.
-
-The efficiency comes from *early pruning*: constraint propagation often eliminates many possibilities without explicitly trying them, dramatically reducing the search space compared to brute-force enumeration.
-
-### 6.11 Exercises
-
-#### Exercise 1: Combinatorial Generation
-
-Recall how we generated all subsequences of a list. Find (generate) all:
-
-- permutations of a list
-- ways of choosing without repetition from a list
-- combinations of K distinct objects chosen from N elements of a list
-
-#### Exercise 2: Polynomial Degree via Fold
-
-Using folding for the `expression` data type, compute the degree of the corresponding polynomial.
-
-#### Exercise 3: Simplification via Map
-
-Implement simplification of expressions using mapping for the `expression` data type.
-
-#### Exercise 4: Rewriting with Folds
-
-Express in terms of `fold_left` or `fold_right`:
-
-- `indexed : 'a list -> (int * 'a) list`, which pairs elements with their indices
-- `concat_fold` as used in Honey Islands
-- Run-length encoding of a list: `encode ['a;'a;'a;'a;'b;'c;'c;'a;'a;'d] = [4,'a; 1,'b; 2,'c; 2,'a; 1,'d]`
-
-#### Exercise 5: Efficient List Utilities
-
-Write more efficient variants:
-
-- `list_diff` computing difference of sets represented as sorted lists
-- `is_unique` in constant stack space
-
-#### Exercise 6: Function List Composition
-
-Write functions `compose` and `perform` that take a list of functions and return their composition:
-
-- `compose [f1; ...; fn] = x -> f1 (... (fn x)...)`
-- `perform [f1; ...; fn] = x -> fn (... (f1 x)...)`
-
-#### Exercise 7: Tents Puzzle Solver
-
-Write a solver for the *Tents Puzzle*.
-
-#### Exercise 8: Robot Squad (Harder)
-
-Given a map with walls and lidar readings (8 directions: E, NE, N, NW, W, SW, S, SE) for multiple robots, determine possible robot positions.
-
-#### Exercise 9: Plinx Puzzle Solver
-
-Write a solver for the *Plinx Puzzle* (does not need to solve all levels, but should handle initial ones).
+**Selected answer (2).**
+`FV(Let(x,v,b)) = FV(v) union (FV(b) minus {x})`.
+In `let x = x in x`, the occurrence in the value is free; the occurrence in the
+body is bound. The executable `shadow` example above checks exactly that boundary.
 
 
-## Chapter 7: Laziness
+
+
+# Part III: Computation over time and choices
+
+## Chapter 7: Streams, demand, and sharing
 
 ![Chapter 7 illustration](Curious_OCaml-chapter_7.jpg){.chapter-image}
 
-*"Today's lecture is about lazy evaluation. Thank you for coming, goodbye!"*
-
-Well, perhaps you have some questions? This chapter explores one of the most elegant ideas in functional programming: lazy evaluation. By deferring computation until results are actually needed, we unlock powerful techniques for working with infinite data structures, solving differential equations symbolically, and building sophisticated stream-processing pipelines.
-
-We will examine different evaluation strategies, implement streams and lazy lists, apply them to power series computation and differential equations, build circular data structures, and develop a sophisticated pipe-based pretty-printer. Along the way, we will see how laziness transforms the way we think about computation itself.
-
-**In this chapter, you will:**
-
-- Distinguish evaluation strategies (call-by-value/name/need) and their consequences
-- Build infinite data structures safely using streams and lazy values
-- Apply laziness to nontrivial examples (power series, differential equations, pretty-printing)
-- Learn where laziness interacts poorly with effects (I/O) and how to reason about it
-
-### 7.1 Evaluation Strategies and Parameter Passing
-
-**Evaluation strategy** is the order in which expressions are computed -- primarily, when arguments are computed. Recall our problems with using *flow control* expressions like `if_then_else` in examples from the lambda-calculus lecture. There are many technical terms describing various evaluation strategies:
-
-**Strict evaluation**: Arguments are evaluated to values before the function is applied. A value may itself contain a closure or a suspended lazy computation; those are not forced by this rule.
-
-**Non-strict evaluation**: Arguments are not evaluated unless they are actually used in the evaluation of the function body.
-
-**Eager evaluation**: An expression is evaluated as soon as it gets bound to a variable.
-
-**Lazy evaluation**: Non-strict evaluation which avoids repeating computation.
-
-**Call-by-value**: The argument expression is evaluated, and the resulting value is bound to the corresponding variable in the function (frequently by copying the value into a new memory region).
-
-**Call-by-reference**: A parameter aliases the caller's variable, so assigning to that parameter changes the variable. This differs from passing a pointer or an OCaml reference cell *by value*: the callee can mutate the shared cell, but cannot rebind the caller's variable. OCaml uses call-by-value, including for values represented internally by pointers.
-
-**Normal order**: Repeatedly reduce the leftmost outermost redex, including underneath lambdas when seeking a full normal form. Call-by-name is a weak strategy that stops at a lambda rather than reducing its body.
-
-**Call-by-name**: Arguments are substituted directly into the function body and then left to be evaluated whenever they appear in the function. This means an argument might be evaluated multiple times if it appears multiple times in the function body.
-
-**Call-by-need**: If the function argument is evaluated, that value is stored for subsequent uses. This avoids the redundant recomputation that can occur with call-by-name.
-
-Almost all languages do not compute inside the body of an un-applied function, but with curried functions you can pre-compute data before all arguments are provided (recall the `search_bible` example from earlier lectures, where preprocessing happened when the first argument was supplied).
-
-In eager / call-by-value languages we can simulate call-by-name by taking a function to compute the value as an argument instead of the value directly. "Our" languages have a `unit` type with a single value `()` specifically for use as throw-away arguments -- we pass `fun () -> expensive_computation` instead of `expensive_computation` directly. Scala has built-in support for call-by-name (i.e. direct, without the need to build argument functions).
-
-OCaml (like most ML-family languages) is *strict by default* but provides explicit laziness (`lazy`, `Lazy.force`, and `Lazy.t`) when you want it. Haskell is *lazy by default* but provides explicit strictness (e.g. `seq`, strict fields, bang patterns) when you need it. This reflects the different design philosophies: OCaml defaults to strict evaluation with opt-in laziness, while Haskell defaults to lazy evaluation with opt-in strictness.
-
-### 7.2 Call-by-name: Streams
-
-Call-by-name is useful not only for implementing flow control. Remember how we struggled to define `if_then_else` as a regular function in the lambda calculus lecture? The problem was that both branches would be evaluated before the function could choose between them. With call-by-name simulation, we can finally make it work:
-
-```ocaml env=ch7
-let if_then_else cond e1 e2 =
-  match cond with
-  | true -> e1 ()
-  | false -> e2 ()
-```
-
-Here `e1` and `e2` are functions that compute their respective branches only when called. But call-by-name is useful for more than just flow control -- it also enables lazy data structures.
-
-**Streams** are lists with call-by-name tails:
-
-```ocaml env=ch7
-type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
-```
-
-The key insight is that the tail is not a stream directly, but a *function* that produces a stream when called. This means the tail is not computed until we actually need it. Reading from a stream into a regular list forces evaluation of the requested elements:
-
-```ocaml env=ch7
-let rec stake n = function
-  | SCons (a, _) when n = 1 -> [a]
-  | SCons (a, s) when n > 0 -> a :: (stake (n-1) (s ()))
-  | _ -> []
-```
-
-Notice how we call `s ()` to get the next portion of the stream. This is where the "lazy" computation happens. Because of this delayed evaluation, streams can easily be infinite:
-
-```ocaml env=ch7
-let rec s_ones = SCons (1, fun () -> s_ones)
-
-let rec s_from n =
-  SCons (n, fun () -> s_from (n+1))
-```
-
-The stream `s_ones` is an infinite sequence of 1s -- it refers to itself as its own tail! The stream `s_from n` produces all integers starting from `n`. The thunks delay the recursive calls, so a dynamically generated stream computes only the requested prefix. OCaml also permits some static cyclic strict values, such as `let rec ones = 1 :: ones`; a finite cyclic value is different from computing an unbounded sequence of new nodes eagerly.
-
-#### Stream Operations
-
-Just as we can define higher-order functions on lists, streams admit similar operations. The key difference is that we must wrap recursive calls in functions to maintain laziness:
-
-```ocaml env=ch7
-let rec smap f = function
-  | SNil -> SNil
-  | SCons (a, s) -> SCons (f a, fun () -> smap f (s ()))
-
-let rec szip = function
-  | SNil, SNil -> SNil
-  | SCons (a1, s1), SCons (a2, s2) ->
-      SCons ((a1, a2), fun () -> szip (s1 (), s2 ()))
-  | _ -> raise (Invalid_argument "szip")
-```
-
-Streams can provide scaffolding for recursive algorithms, enabling elegant definitions that would be impossible with strict data structures. Consider the Fibonacci sequence:
-
-```ocaml env=ch7
-let rec sfib =
-  SCons (1, fun () -> smap (fun (a,b) -> a+b)
-    (szip (sfib, SCons (1, fun () -> sfib))))
-```
-
-This remarkably concise definition creates a stream where each element is computed by adding pairs from the current stream and itself shifted by one position. The stream effectively "builds itself" by referring to its own earlier elements:
-
-| sfib     | 1 | 2 | 3 | 5 | 8 | 13 | ... |
-|----------|---|---|---|---|---|----|-----|
-| sfib     | 1 | 2 | 3 | 5 | 8 | 13 | ... |
-| shifted  | 1 | 1 | 2 | 3 | 5 | 8  | ... |
-
-The `+` operation between corresponding elements produces the next values.
-
-#### Streams and Input-Output
-
-Streams can be used to read from files lazily, but there is a catch -- they are less functional than one might expect in the context of input-output effects:
-
-```ocaml env=ch7
-let file_stream name =
-  let ch = open_in name in
-  let rec ch_read_line () =
-    try SCons (input_line ch, ch_read_line)
-    with End_of_file -> SNil in
-  ch_read_line ()
-```
-
-The problem is that reading from a file is a side effect. If you traverse the stream twice, you will not get the same results -- the file handle advances with each read. This is why *OCaml Batteries* uses a stream type `enum` for interfacing between various sequence-like data types, with careful documentation about when streams can be safely reused.
-
-The safest way to use streams is in a *linear* or *ephemeral* manner: every value used only once. Streams minimize space consumption at the expense of time for recomputation -- if you need to traverse the data multiple times, you will recompute it each time. For data that should be computed once and accessed multiple times, we need lazy lists.
-
-### 7.3 Lazy Values
-
-Lazy evaluation is more general than call-by-need as any value can be lazy, not only a function parameter. While streams give us call-by-name semantics (recomputing on each access), lazy values give us call-by-need semantics (computing once and caching the result).
-
-A *lazy value* is a value that "holds" an expression until its result is needed, and from then on it "holds" the result. It is also called a *suspension*. If it holds the expression (not yet evaluated), it is called a *thunk* -- a placeholder waiting to become a real value.
-
-In OCaml, we build lazy values explicitly using the `lazy` keyword. In Haskell, all values are lazy by default, but functions can have call-by-value parameters which "need" (force evaluation of) the argument.
-
-To create a lazy value: `lazy expr` -- where `expr` is the suspended computation. The expression `expr` is not evaluated when the lazy value is created; it is stored for later.
-
-There are two ways to use a lazy value. Be careful to understand when the result is computed!
-- In expressions: `Lazy.force l_expr` -- explicitly forces evaluation
-- In patterns: `match l_expr with lazy v -> ...` -- forces evaluation during pattern matching
-  - Syntactically `lazy` behaves like a data constructor, which is why it can appear in patterns.
-
-#### Lazy Lists
-
-Lazy lists are the "memoizing" version of streams. Instead of a function that recomputes the tail each time, we use a lazy value that computes it once:
-
-```ocaml env=ch7
-type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
-```
-
-The tail is of type `'a llist Lazy.t` -- a lazy value that will produce the rest of the list when forced. Reading from a lazy list into a regular list forces evaluation of just the elements we need:
-
-```ocaml env=ch7
-let rec ltake n = function
-  | LCons (a, _) when n = 1 -> [a]
-  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
-  | _ -> []
-```
-
-We force the tail only when another element is requested. A `lazy l` pattern would force it while matching, even before a guard could reject the branch. Lazy lists can easily be infinite, just like streams:
-
-```ocaml env=ch7
-let rec l_ones = LCons (1, lazy l_ones)
-
-let rec l_from n = LCons (n, lazy (l_from (n+1)))
-```
-
-The crucial difference from streams is that lazy lists support "read once, access multiple times" semantics. Once a portion of the list has been computed, subsequent accesses return the cached result:
-
-```ocaml env=ch7
-let file_llist name =
-  let ch = open_in name in
-  let rec ch_read_line () =
-    try LCons (input_line ch, lazy (ch_read_line ()))
-    with End_of_file -> LNil in
-  ch_read_line ()
-```
-
-With `file_llist`, you can traverse the resulting list multiple times and get the same data each time (as long as you keep a reference to the head of the list). The file is read lazily, but each line is cached after being read.
-
-#### Lazy List Operations
-
-We can define the familiar higher-order functions on lazy lists. Notice the subtle but important difference from streams -- we must use `Lazy.force` to access the lazy tail before passing it to recursive calls:
-
-```ocaml env=ch7
-let rec lzip = function
-  | LNil, LNil -> LNil
-  | LCons (a1, ll1), LCons (a2, ll2) ->
-      LCons ((a1, a2), lazy (
-        lzip (Lazy.force ll1, Lazy.force ll2)))
-  | _ -> raise (Invalid_argument "lzip")
-
-let rec lmap f = function
-  | LNil -> LNil
-  | LCons (a, ll) ->
-    LCons (f a, lazy (lmap f (Lazy.force ll)))
-```
-
-Using these operations, we can define the factorial sequence in a beautifully self-referential way:
-
-```ocaml env=ch7
-let posnums = l_from 1
-
-let rec lfact =
-  LCons (1, lazy (lmap (fun (a,b) -> a*b)
-                    (lzip (lfact, posnums))))
-```
-
-This produces: 1, 1, 2, 6, 24, 120, ... The definition is elegant: each factorial is the product of the previous factorial and the corresponding positive integer. The lazy list `lfact` refers to itself to get the previous factorials!
-
-| lfact   | 1 | 1 | 2 |  6 |  24 | 120 | ... |
-|---------|---|---|---|----|-----|-----|-----|
-| lfact   | 1 | 1 | 2 |  6 |  24 | 120 | ... |
-| posnums | 1 | 2 | 3 |  4 |   5 |   6 | ... |
-
-The `*` operation between corresponding elements produces the next values.
-
-### 7.4 Power Series and Differential Equations
-
-This section presents a fascinating application of lazy lists: computing power series and solving differential equations symbolically. The differential equations idea is due to Henning Thielemann, and demonstrates the expressive power of lazy evaluation.
-
-The expression $P(x) = \sum_{i=0}^{n} a_i x^i$ defines a polynomial when $n < \infty$ and a power series when $n = \infty$. We can represent both as lazy lists of coefficients $[a_0; a_1; a_2; \ldots]$.
-
-If we define:
-
-```ocaml env=ch7
-let rec lfold_right f l base =
-  match l with
-    | LNil -> base
-    | LCons (a, lazy l) -> f a (lfold_right f l base)
-```
-
-then we can compute polynomials using Horner's method. Horner's method evaluates polynomials efficiently by factoring out powers of $x$: instead of computing $a_0 + a_1 x + a_2 x^2 + \ldots$, we compute $a_0 + x(a_1 + x(a_2 + \ldots))$:
-
-```ocaml env=ch7
-let horner x l =
-  lfold_right (fun c sum -> c +. x *. sum) l 0.
-```
-
-But this will not work for infinite power series! Two natural questions arise:
-
-- Does it make sense to compute the value at $x$ of a power series?
-- Does it make sense to fold an infinite list?
-
-The answer to both is "yes, sometimes." If the power series converges for $x > 1$, then when the elements $a_n$ get small, the remaining sum $\sum_{i=n}^{\infty} a_i x^i$ is also small. We can truncate the computation when the contribution becomes negligible.
-
-The problem is that `lfold_right` falls into an infinite loop on infinite lists -- it tries to reach the end before computing anything. We need call-by-name / call-by-need semantics for the argument function `f`, so it can decide to stop early:
-
-```ocaml env=ch7
-let rec lazy_foldr f l base =
-  match l with
-    | LNil -> base
-    | LCons (a, ll) ->
-      f a (lazy (lazy_foldr f (Lazy.force ll) base))
-```
-
-The following stopping condition is a heuristic: a small coefficient alone does not bound the remaining sum. Later coefficients may be large, and powers of `x` may amplify them. Use it only for examples whose tails are independently controlled; it is not a general power-series evaluator with an accuracy guarantee:
-
-```ocaml env=ch7
-let lhorner x l =                    (* This is a bit of a hack: *)
-  let upd c sum =                    (* we hope to "hit" the interval (0, epsilon]. *)
-    if c = 0. || abs_float c > epsilon_float
-    then c +. x *. Lazy.force sum
-    else 0. in                       (* Stop when c is tiny but nonzero. *)
-  lazy_foldr upd l 0.
-
-let inv_fact =
-  let rec loop n coefficient =
-    LCons (coefficient, lazy (loop (n +. 1.) (coefficient /. (n +. 1.)))) in
-  loop 0. 1.
-let e = lhorner 1. inv_fact
-```
-
-The recurrence avoids overflowing a machine-integer factorial, although its coefficients still have floating-point rounding and eventually underflow. The `inv_fact` list contains $[1/0!; 1/1!; 1/2!; \ldots]$, which is the power series for $e^x$. Evaluating `lhorner 1. inv_fact` computes $e^1 = e$.
-
-#### Power Series / Polynomial Operations
-
-To work with power series, we need to define arithmetic operations on lazy lists of coefficients. For floating-point coefficients, we first need a float-based version of positive numbers:
-
-```ocaml env=ch7
-let rec l_from_f n = LCons (n, lazy (l_from_f (n +. 1.)))
-let posnums_f = l_from_f 1.
-
-(* Unary negation for series *)
-let (~-:) = lmap (fun x -> -.x)
-```
-
-Now we can define the basic arithmetic operations on power series. Addition and subtraction work coefficient-wise:
-
-```ocaml env=ch7
-let rec add xs ys =
-  match xs, ys with
-    | LNil, _ -> ys
-    | _, LNil -> xs
-    | LCons (x,xs), LCons (y,ys) ->
-      LCons (x +. y, lazy (add (Lazy.force xs) (Lazy.force ys)))
-
-let rec sub xs ys =
-  match xs, ys with
-    | LNil, _ -> lmap (fun x -> -.x) ys
-    | _, LNil -> xs
-    | LCons (x,xs), LCons (y,ys) ->
-      LCons (x -. y, lazy (sub (Lazy.force xs) (Lazy.force ys)))
-
-let scale s = lmap (fun x -> s *. x)
-
-let rec shift n xs =
-  if n = 0 then xs
-  else if n > 0 then LCons (0., lazy (shift (n-1) xs))  (* Multiply by x^n *)
-  else match xs with                                    (* Divide by x^|n| *)
-    | LNil -> LNil
-    | LCons (0., lazy xs) -> shift (n+1) xs
-    | _ -> failwith "shift: fractional division"
-
-(* Multiplication uses the convolution formula *)
-let rec mul xs = function
-  | LNil -> LNil
-  | LCons (y, ys) ->
-    add (scale y xs) (LCons (0., lazy (mul xs (Lazy.force ys))))
-
-(* Division is like long division of polynomials *)
-let rec div xs ys =
-  match xs, ys with
-  | LNil, _ -> LNil
-  | LCons (0., xs'), LCons (0., ys') ->   (* Both start with zero: cancel x *)
-    div (Lazy.force xs') (Lazy.force ys')
-  | LCons (x, xs'), LCons (y, ys') ->
-    let q = x /. y in                     (* Leading coefficient of quotient *)
-    LCons (q, lazy (div (sub (Lazy.force xs')
-                                 (scale q (Lazy.force ys'))) ys))
-  | LCons _, LNil -> failwith "div: division by zero"
-
-(* Integration: integral of a_0 + a_1*x + a_2*x^2 + ...
-   is c + a_0*x + a_1*x^2/2 + a_2*x^3/3 + ... *)
-let rec map_coefficients f n = function
-  | LNil -> LNil
-  | LCons (x, xs) ->
-      LCons (f x n, lazy (map_coefficients f (n +. 1.) (Lazy.force xs)))
-
-let integrate c xs =
-  LCons (c, lazy (map_coefficients (/.) 1. xs))
-
-let ltail = function
-  | LNil -> invalid_arg "ltail"
-  | LCons (_, lazy tl) -> tl
-
-(* Differentiation: derivative of a_0 + a_1*x + a_2*x^2 + ...
-   is a_1 + 2*a_2*x + 3*a_3*x^2 + ... *)
-let differentiate = function
-  | LNil -> LNil
-  | LCons (_, xs) -> map_coefficients ( *. ) 1. (Lazy.force xs)
-```
-
-These operations also terminate on finite polynomials, including the zero polynomial represented by `LNil`:
-
-```ocaml env=ch7
+**Prerequisites:** lists, folds and the cost discussion in Chapters 3 and 6.
+**Route:** Part III begins here. Chapter 8 adds choice; Chapter 10 consumes a
+recorded input stream. Numerical analysis and pretty printing are optional projects.
+
+A delayed computation is a promise to do work later. It is not a promise to do
+less work, or to retain less memory. We will separate four questions: what demands
+a value, whether repeated demands share work, what history remains reachable,
+and who closes a resource when demand stops early.
+
+### 7.1 Call by name and call by need in a strict language
+
+OCaml evaluates an argument to a value before entering a function. A closure is
+already a value, so `fun () -> work ()` delays `work`; calling the closure twice
+runs `work` twice. A lazy value `lazy (work ())` instead caches the result when
+forced. This models call by need in this single-threaded example.
+
+```ocaml env=demand
+let calls = ref 0
+let work () = incr calls; 42
+let thunk = fun () -> work ()
+let shared = lazy (work ())
 let () =
-  let xs = LCons (2., lazy (LCons (3., lazy LNil))) in
-  assert (ltake 10 (integrate 1. xs) = [1.; 2.; 1.5]);
-  assert (ltake 10 (differentiate xs) = [3.]);
-  assert (ltake 10 (differentiate LNil) = []);
-  let tail = lazy (failwith "unrequested tail") in
-  assert (ltake 0 (LCons (1, tail)) = []);
-  assert (ltake 1 (LCons (1, tail)) = [1]);
-  assert (stake 1 (SCons (1, fun () -> failwith "unrequested tail")) = [1])
+  assert (!calls = 0);
+  ignore (thunk ()); ignore (thunk ());
+  assert (!calls = 2);
+  ignore (Lazy.force shared); ignore (Lazy.force shared);
+  assert (!calls = 3)
 ```
 
-#### Differential Equations
+Passing an OCaml reference cell still passes a value. A callee can mutate that
+shared cell, but cannot rebind the caller's variable. This differs from a
+call-by-reference parameter that aliases the variable itself. Likewise, normal
+order in Chapter 4 reduces under lambdas; a thunk here only runs when called.
 
-Now for the remarkable part: we can solve differential equations by representing the solutions as power series! Consider the differential equations for sine and cosine:
+### 7.2 Streams expose demand
 
-$$\frac{d \sin x}{dx} = \cos x, \quad \frac{d \cos x}{dx} = -\sin x, \quad \sin 0 = 0, \quad \cos 0 = 1$$
+A stream has an immediate head and a delayed tail:
 
-We will solve the corresponding integral equations. Why integral equations rather than differential equations? Because integration gives us a way to build up the solution coefficient by coefficient, starting from the initial conditions.
-
-Our first attempt might be to define them by direct recursion (repeating the `~-:` definition from earlier for self-contained context):
-
-```
-let (~-:) = lmap (fun x -> -.x)  (* Unary negation for series *)
-
-let rec sin = integrate (of_int 0) cos
-and cos = integrate (of_int 1) (~-:sin)
-```
-
-Unfortunately this fails with: `Error: This kind of expression is not allowed as right-hand side of 'let rec'`
-
-The problem is that OCaml's `let rec` requires the right-hand side to be a "static" value -- something like a function or a data constructor applied to arguments. Even changing the second argument of `integrate` to call-by-need does not help, because OCaml cannot represent the values that `sin` and `cos` refer to at the point of their definition.
-
-The solution is to inline a bit of `integrate` so that OCaml knows how to start building the recursive structure. We provide the first coefficient explicitly:
-
-```ocaml env=ch7
-let integ xs = map_coefficients (/.) 1. xs
-
-let rec sin = LCons (of_int 0, lazy (integ cos))
-and cos = LCons (of_int 1, lazy (integ (~-:sin)))
+```ocaml env=streams
+type 'a stream = Nil | Cons of 'a * (unit -> 'a stream)
+let rec from n = Cons (n, fun () -> from (n + 1))
+let rec map f = function
+  | Nil -> Nil
+  | Cons (x, tail) -> Cons (f x, fun () -> map f (tail ()))
+let rec take n = function
+  | _ when n <= 0 -> []
+  | Nil -> []
+  | Cons (x, _) when n = 1 -> [x]
+  | Cons (x, tail) -> x :: take (n - 1) (tail ())
+let () =
+  assert (take 4 (map (( * ) 2) (from 0)) = [0;2;4;6]);
+  assert (take 1 (Cons (7, fun () -> failwith "not demanded")) = [7])
 ```
 
-Now the `let rec` works because each right-hand side is just `LCons` applied to a value and a lazy expression. The lazy expressions are not evaluated during the definition, so there is no problem with the mutual recursion. When we force the lazy tails, the computation proceeds coefficient by coefficient.
+The `n = 1` case matters: a consumer of one element must not demand a second
+one. However, the head is strict. Constructing `map f s` applies `f` to the first
+head immediately. A fully suspended sequence would put the first node behind a
+thunk too, as `Seq.t` does. Demand contracts belong to representations and
+operations, not to the word “stream”.
 
-The complete example would look much more elegant in Haskell, where all values are lazy by default -- we would not need the explicit `LCons` and `lazy` wrappers.
+A stream may be finite, infinite, or fail while producing a tail. Arithmetic in
+`from` uses bounded machine integers; “infinite” describes how long it can keep
+producing nodes, not an unbounded integer representation.
 
-Nonlinear analytic systems, including Lotka–Volterra and the Lorenz system, also admit local power-series methods. A series about one initial time need not converge over the whole interval of interest. A practical solver needs convergence/error control and may restart the expansion at successive times.
+### 7.3 Sharing saves recomputation and retains history
 
-Drawing functions work like in the previous lecture, but with open curves:
-
-```ocaml env=ch7
-let plot_1D f ~w ~scale ~t_beg ~t_end =
-  let dt = (t_end -. t_beg) /. of_int w in
-  Array.init w (fun i ->
-    let y = lhorner (t_beg +. dt *. of_int i) f in
-    i, to_int (scale *. y))
+```ocaml env=streams
+type 'a lazy_list = End | More of 'a * 'a lazy_list Lazy.t
+let rec memoize = function
+  | Nil -> End
+  | Cons (x, tail) -> More (x, lazy (memoize (tail ())))
+let rec take_lazy n = function
+  | _ when n <= 0 -> []
+  | End -> []
+  | More (x, _) when n = 1 -> [x]
+  | More (x, tail) -> x :: take_lazy (n - 1) (Lazy.force tail)
+let () =
+  let calls = ref 0 in
+  let s = Cons (1, fun () -> incr calls; Cons (2, fun () -> Nil)) in
+  ignore (take 2 s); ignore (take 2 s);
+  assert (!calls = 2);
+  let cached = memoize s in
+  ignore (take_lazy 2 cached); ignore (take_lazy 2 cached);
+  assert (!calls = 3)
 ```
 
-### 7.5 Arbitrary Precision Computation
+Keeping `cached` retains every forced node reachable through its memoized tails.
+A consumer that advances and drops old roots may allow old nodes to be collected;
+a closure that still captures the original head prevents that. Conversely, a
+nonmemoized stream can recompute a prefix each time it is revisited. Neither
+representation is uniformly faster or smaller.
 
-Putting together the power series computation with floating-point numbers reveals drastic numerical errors for large $x$. There are two problems:
-1. Floating-point numbers have limited precision, so intermediate calculations accumulate errors.
-2. We break out of Horner method computations too quickly -- the stopping condition based on `epsilon_float` may stop before we have enough precision.
+| Representation | Repeated tail demand | Potential retained data |
+|---|---|---|
+| Thunk tail | Recomputes, or repeats effects | Whatever the closure captures |
+| Lazy tail | Shares the result (or cached failure) | Forced prefix reachable from old roots |
+| Mutable reader | Advances one external cursor | Open resource until its owner closes it |
 
-![Numerical errors in sine/cosine computation](sin_cos_1.png){width=70%}
+A self-referential definition must be *productive*: each requested node needs to
+be produced after finite work. `lazy (Lazy.force itself)` is not made productive
+by the `lazy` keyword. A recurrence with a known first node and delayed recursion
+can be productive, but sharing and arithmetic costs still need analysis.
 
-For infinite precision on rational numbers we can use the `nums` library, but it does not help by itself -- the stopping condition still causes us to truncate the computation prematurely.
+### 7.4 Resource ownership is a scope
 
-The key insight is that instead of computing a single approximate value, we should generate a *sequence of approximations* to the power series limit at $x$. Then we can watch the sequence until it converges:
+An EOF-only close leaks the resource when the consumer takes one line and stops,
+or raises before EOF. Returning a lazy list does not tell us when that consumer
+is finished. Instead make a callback own the whole reading scope:
 
-```ocaml env=ch7
-let infhorner x l =
-  let upd c sum =
-    LCons (c, lazy (lmap (fun apx -> c +. x *. apx)
-                      (Lazy.force sum))) in
-  lazy_foldr upd l (LCons (of_int 0, lazy LNil))
+```ocaml env=resource
+let with_lines filename consume =
+  Scoped.with_lines filename consume
 ```
 
-The function `infhorner` returns a lazy list of partial sums. These are successive approximations; they need not improve monotonically, and outside the convergence domain they need not converge. The next function detects repeated rounded values, not a proved error bound:
+`Scoped` is the compiled module in `projects/streams/scoped.ml`. Its implementation
+is short enough to inspect in full:
 
-```ocaml env=ch7
-let rec exact f = function         (* We arbitrarily decide that convergence is *)
-  | LNil -> assert false           (* when three consecutive results are the same. *)
-  | LCons (x0, lazy (LCons (x1, lazy (LCons (x2, _)))))
-      when f x0 = f x1 && f x0 = f x2 -> f x0
-  | LCons (_, lazy tl) -> exact f tl
+<!-- $MDX file=../projects/streams/scoped.ml -->
+```ocaml
+(* The callback owns the resource scope; an escaped reader is invalidated. *)
+let with_source ~acquire ~read ~close consume =
+  let resource = acquire () in
+  let active = ref true in
+  let next () =
+    if not !active then invalid_arg "reader used outside its scope";
+    read resource in
+  Fun.protect
+    ~finally:(fun () -> active := false; close resource)
+    (fun () -> consume next)
+
+let with_lines filename consume =
+  with_source
+    ~acquire:(fun () -> open_in filename)
+    ~read:(fun ch -> try Some (input_line ch) with End_of_file -> None)
+    ~close:close_in_noerr consume
 ```
 
-Despite its name, `exact` is a heuristic: for a sparse series such as $1+x^{100}$, several identical partial sums can precede a nonzero contribution. A certified answer needs a tail bound as well as control of arithmetic error. The function applies a test function `f` to the approximations and stops when three consecutive results give the same answer. Why three? Because some power series (like those for sine and cosine) have alternating terms, and we want to be sure the result has stabilized.
-
-Draw the pixels of the graph at exact coordinates:
-
-```ocaml env=ch7
-let plot_1D f ~w ~h0 ~scale ~t_beg ~t_end =
-  let dt = (t_end -. t_beg) /. of_int w in
-  let eval = exact (fun y -> to_int (scale *. y)) in
-  Array.init w (fun i ->
-    let y = infhorner (t_beg +. dt *. of_int i) f in
-    i, h0 + eval y)
-```
-
-If a power series had every third term contributing (zeros in a regular pattern), we would have to check more terms in the function `exact`. We could also use a different stopping criterion like `f x0 = f x1 && not (x0 =. x1)` (stop when the transformed values match but the raw values are still changing), similar to what we did in `lhorner`.
-
-#### Example: Nuclear Chain Reaction
-
-Consider a nuclear chain reaction where substance A decays into B, which then decays into C. This is a classic problem in nuclear physics. The differential equations are:
-
-$$\frac{dN_A}{dt} = -\lambda_A N_A, \quad \frac{dN_B}{dt} = \lambda_A N_A - \lambda_B N_B$$
-
-Here $\lambda_A$ and $\lambda_B$ are the decay constants, and $N_A$, $N_B$ are the amounts of each substance. Substance A decays at a rate proportional to its amount. Substance B is produced by A's decay and itself decays into C.
-
-We can solve these equations using the same technique as for sine and cosine:
-
-```
-let n_chain ~nA0 ~nB0 ~lA ~lB =
-  let rec nA =
-    LCons (nA0, lazy (integ (~-.lA *:. nA)))
-  and nB =
-    LCons (nB0, lazy (integ (~-.lB *:. nB +: lA *:. nA))) in
-  nA, nB
-```
-
-![Nuclear chain reaction: A decays into B decays into C](chain_reaction.png){width=70%}
-
-(See [Radioactive decay chain processes](http://en.wikipedia.org/wiki/Radioactive_decay#Chain-decay_processes) for more information.)
-
-### 7.6 Circular Data Structures: Double-Linked Lists
-
-Without delayed computation, the ability to define data structures with referential cycles is very limited. In a strict language, you cannot create a structure that refers to itself -- the reference would have to exist before the structure is created.
-
-Double-linked lists are a classic example of structures with inherent cycles. Even if the list itself is not circular (it has a beginning and an end), each pair of adjacent nodes forms a cycle: node A points forward to node B, and node B points backward to node A:
-
-```
-+--------+     +--------+     +--------+     +--------+     +--------+
-| DLNil  | <-> |   a1   | <-> |   a2   | <-> |   a3   | <-> | DLNil  |
-+--------+     +--------+     +--------+     +--------+     +--------+
-```
-
-To represent such structures in OCaml, we need to "break" the cycles by making some links lazy. The backward links will be lazy, allowing us to construct the structure one node at a time:
-
-```ocaml env=ch7
-type 'a dllist =
-  DLNil | DLCons of 'a dllist Lazy.t * 'a * 'a dllist
-```
-
-The type has three components: a lazy backward link, the element, and a (strict) forward link. The backward link is lazy because when we create a node, its predecessor may not exist yet.
-
-We can navigate forward through the list, dropping elements from the front:
-
-```ocaml env=ch7
-let rec dldrop n l =
-  match l with
-    | DLCons (_, x, xs) when n > 0 ->
-       dldrop (n-1) xs
-    | _ -> l
-```
-
-The tricky part is constructing a double-linked list from a regular list. Each cell must know its predecessor, but the predecessor is created first. We use a recursive lazy value to tie the knot:
-
-```ocaml env=ch7
-let dllist_of_list l =
-  let rec dllist prev l =
-    match l with
-      | [] -> DLNil
-      | x::xs ->
-        let rec cell =
-          lazy (DLCons (prev, x, dllist cell xs)) in
-        Lazy.force cell in
-  dllist (lazy DLNil) l
-```
-
-The key trick is `let rec cell = lazy (DLCons (prev, x, dllist cell xs))`. The lazy value `cell` refers to itself! When we force `cell`, it creates a `DLCons` node whose forward link (`dllist cell xs`) receives `cell` as the predecessor for the next node. This is only possible because the backward link is lazy -- when we create the next node, we do not need to evaluate `cell`, just store a reference to it.
-
-Taking elements going forward is straightforward:
-
-```ocaml env=ch7
-let rec dltake n l =
-  match l with
-    | DLCons (_, x, xs) when n > 0 ->
-       x :: dltake (n-1) xs
-    | _ -> []
-```
-
-Taking elements going backward shows the power of the double-linked structure -- we can traverse in either direction:
-
-```ocaml env=ch7
-let rec dlbackwards n l =
-  match l with
-    | DLCons (lazy xs, x, _) when n > 0 ->
-      x :: dlbackwards (n-1) xs
-    | _ -> []
-```
-
-### 7.7 Input-Output Streams
-
-Let us return to streams and generalize them. The stream type we defined earlier used a throwaway argument to make a suspension:
-
-```ocaml env=ch7
-type 'a stream = SNil | SCons of 'a * (unit -> 'a stream)
-```
-
-The `unit` argument serves only to delay computation. But what if we take a *real* argument -- one that provides input to the stream? This leads to a more powerful abstraction:
-
-```ocaml env=ch7
-type ('a, 'b) iostream =
-  EOS | More of 'b * ('a -> ('a, 'b) iostream)
-```
-
-This is an *interactive* stream: it produces an output value of type `'b`, and when given an input value of type `'a`, produces the rest of the stream. The stream alternates between producing output and consuming input.
-
-```ocaml env=ch7
-type 'a istream = (unit, 'a) iostream  (* Input stream produces output when "asked". *)
-type 'a ostream = ('a, unit) iostream  (* Output stream consumes provided input. *)
-```
-
-The terminology can be confusing. An "input stream" (`istream`) is one that produces output when asked (like reading from a file). An "output stream" (`ostream`) is one that consumes input (like writing to a file). The confusion arises from adapting the *input file / output file* terminology.
-
-The power of this abstraction is that we can compose streams, directing the output of one to the input of another:
-
-```ocaml env=ch7
-let rec compose sf sg =
-  match sg with
-  | EOS -> EOS                              (* No more output from sg. *)
-  | More (z, g) ->
-    match sf with
-    | EOS -> More (z, fun _ -> EOS)         (* No more input from sf. *)
-    | More (y, f) ->
-      let update x = compose (f x) (g y) in (* Feed sf's output y to sg. *)
-      More (z, update)
-```
-
-Think of it as connecting boxes with wires: every box has one incoming wire and one outgoing wire. When composing `sf` and `sg`, the output of `sf` becomes the input of `sg`. Notice that the output stream is "ahead" of the input stream -- `sg` can produce its first output `z` before `sf` has produced anything.
-
-### 7.8 Pipes
-
-The `iostream` type has a limitation: it must alternate strictly between producing output and consuming input. In many real-world scenarios, we need more flexibility:
-
-- A transformation might consume several inputs before producing a single output (like computing an average).
-- A transformation might produce several outputs from a single input (like splitting a string).
-- A transformation might produce output without needing any input (like a constant source).
-
-Following the Haskell tradition, we call this more flexible data structure a `pipe`:
-
-```ocaml env=ch7
-type ('a, 'b) pipe =
-  EOP                                       (* End of pipe -- done processing *)
-| Yield of 'b * ('a, 'b) pipe               (* Produce output b, then continue *)
-| Await of ('a -> ('a, 'b) pipe)            (* Wait for input a, then continue *)
-```
-
-A pipe can be in one of three states: finished (`EOP`), ready to produce output (`Yield`), or waiting for input (`Await`). The key insight is that `Yield` includes the continuation pipe directly (not wrapped in a function), so multiple outputs can be produced in sequence without requiring input. For incremental processing where outputs should be lazy, you would change `Yield` to hold a lazy pipe instead.
-
-Again, we can specialize to input-only and output-only pipes:
-
-```ocaml env=ch7
-type 'a ipipe = (unit, 'a) pipe
-type void = |
-type 'a opipe = ('a, void) pipe
-```
-
-Why `void` rather than `unit`, and why only for `opipe`? Because an output pipe never yields values -- if it used `unit` as the output type, it could still yield `()` values. But `void` is an empty variant with no constructors, making it impossible for an `opipe` to yield anything. This is a type-level guarantee that output pipes only consume.
-
-#### Pipe Composition
-
-Composition of pipes is like "concatenating them in space" or connecting boxes. We plug the output of pipe `pf` into the input of pipe `pg`:
-
-```ocaml env=ch7
-let rec compose pf pg =
-  match pg with
-  | EOP -> EOP                            (* pg is done -- composition is done. *)
-  | Yield (z, pg') -> Yield (z, compose pf pg')  (* pg has output -- pass it through. *)
-  | Await g ->                            (* pg needs input -- try to get it from pf. *)
-    match pf with
-    | EOP -> EOP                          (* pf is done -- no more input for pg. *)
-    | Yield (y, pf') -> compose pf' (g y)  (* pf has output -- feed it to pg. *)
-    | Await f ->                          (* Both waiting -- wait for external input. *)
-      let update x = compose (f x) pg in
-      Await update
-
-let (>->) pf pg = compose pf pg
-```
-
-The `>->` operator lets us chain pipes together like Unix pipes: `source >-> transform >-> sink`.
-
-Appending pipes means "concatenating them in time" rather than in space. When the first pipe finishes, we continue with the second:
-
-```ocaml env=ch7
-let rec append pf pg =
-  match pf with
-  | EOP -> pg                               (* pf is exhausted -- continue with pg. *)
-  | Yield (z, pf') -> Yield (z, append pf' pg)  (* pf has output -- pass it through. *)
-  | Await f ->                              (* pf awaits input -- pass it through. *)
-    let update x = append (f x) pg in
-    Await update
-```
-
-We can also append a list of ready results in front of a pipe. This is useful for producing multiple outputs at once:
-
-```ocaml env=ch7
-let rec yield_all l tail =
-  match l with
-  | [] -> tail
-  | x::xs -> Yield (x, yield_all xs tail)
-```
-
-Finally, the `iterate` function creates a pipe that repeatedly applies a side-effecting function to its inputs. This is **not functional** (it performs side effects), but it is useful for output:
-
-```ocaml env=ch7
-let rec iterate f : 'a opipe =
-  Await (fun x -> let () = f x in iterate f)
-```
-
-### 7.9 Example: Pretty-Printing
-
-Now let us apply pipes to a substantial example: pretty-printing. The goal is to print a hierarchically organized document with a limited line width. When a group of text fits on the current line, we keep it together; when it does not fit, we break it across multiple lines.
-
-```ocaml env=ch7
-type doc =
-  Text of string | Line | Cat of doc * doc | Group of doc
-```
-
-The document type has four constructors:
-
-- `Text s` -- literal text
-- `Line` -- a potential line break (rendered as a space if the group fits, or a newline if it does not)
-- `Cat (d1, d2)` -- concatenation
-- `Group d` -- a group that should be kept together if possible
-
-Some convenient operators for building documents:
-
-```ocaml env=ch7
-let (++) d1 d2 = Cat (d1, Cat (Line, d2))
-let (!) s = Text s
-
-let test_doc =
-  Group (!"Document" ++
-            Group (!"First part" ++ !"Second part"))
-```
-
-The pretty-printer should produce different outputs depending on the available width:
-
-```
-# let () = print_endline (pretty 30 test_doc);;
-Document
-First part Second part
-
-# let () = print_endline (pretty 20 test_doc);;
-Document
-First part
-Second part
-
-# let () = print_endline (pretty 60 test_doc);;
-Document First part Second part
-```
-
-#### Straightforward Solution
-
-Before diving into pipes, let us implement a straightforward recursive solution:
-
-```ocaml env=ch7
-let pretty w d =               (* Allowed width of line w. *)
-  let rec width = function     (* Compute total length of subdocument. *)
-    | Text z -> String.length z
-    | Line -> 1                (* A line break takes 1 character (space or newline). *)
-    | Cat (d1, d2) -> width d1 + width d2
-    | Group d -> width d in
-  let rec format f r = function  (* f: flatten (no breaks)? r: remaining space. *)
-    | Text z -> z, r - String.length z
-    | Line when f -> " ", r-1  (* Flatten mode: render as space. *)
-    | Line -> "\n", w          (* Break mode: newline, reset remaining to full width. *)
-    | Cat (d1, d2) ->
-      let s1, r = format f r d1 in
-      let s2, r = format f r d2 in
-      s1 ^ s2, r
-    | Group d -> format (f || width d <= r) r d  (* Flatten if group fits. *)
-  in
-  fst (format false w d)       (* Start outside any group (not flattening). *)
-```
-
-The `format` function takes a boolean `f` (are we in "flatten" mode?) and the remaining space `r`. When we enter a `Group`, we check if the whole group fits in the remaining space. If so, we format it in flatten mode (all `Line`s become spaces).
-
-#### Stream-Based Solution
-
-The straightforward solution works, but it has a problem: for each group, we compute `width` by traversing the entire subtree, potentially doing redundant work. The stream-based solution processes the document incrementally, computing positions as we go.
-
-First, we define a type for document elements that can carry annotations:
-
-```ocaml env=ch7
-type ('a, 'b) doc_e =          (* Annotated nodes, special for group beginning. *)
-  TE of 'a * string | LE of 'a | GBeg of 'b | GEnd of 'a
-```
-
-The type parameters `'a` and `'b` allow different annotations for different elements. `GBeg` (group beginning) has a different type because it will eventually carry the end position of the group.
-
-Normalize a subdocument to remove empty groups:
-
-```ocaml env=ch7
-let rec norm = function
-  | Group d -> norm d
-  | Text "" -> None
-  | Cat (Text "", d) -> norm d
-  | d -> Some d
-```
-
-Generate the stream of document elements by infix traversal:
-
-```ocaml env=ch7
-let rec gen = function
-  | Text z -> Yield (TE ((),z), EOP)
-  | Line -> Yield (LE (), EOP)
-  | Cat (d1, d2) -> append (gen d1) (gen d2)
-  | Group d ->
-    match norm d with
-    | None -> EOP
-    | Some d ->
-      Yield (GBeg (),
-             append (gen d) (Yield (GEnd (), EOP)))
-```
-
-The next pipe computes the position (character count from the beginning) of each element:
-
-```ocaml env=ch7
-let rec docpos curpos =
-  Await (function                   (* Input from a doc_e pipe, *)
-  | TE (_, z) ->
-    Yield (TE (curpos, z),          (* output doc_e annotated with position. *)
-           docpos (curpos + String.length z))
-  | LE _ ->                         (* Spaces and line breaks: 1 character. *)
-    Yield (LE curpos, docpos (curpos + 1))
-  | GBeg _ ->                       (* Groups themselves have no width. *)
-    Yield (GBeg curpos, docpos curpos)
-  | GEnd _ ->
-    Yield (GEnd curpos, docpos curpos))
-
-let docpos = docpos 0               (* The whole document starts at position 0. *)
-```
-
-Now comes the tricky part. We want to annotate each `GBeg` with the position where the group *ends*, so we can decide whether the group fits on the line. But we see `GBeg` before we see `GEnd`! We need to buffer elements until we see the end of each group:
-
-```ocaml env=ch7
-let rec grends grstack =
-  Await (function
-  | TE _ | LE _ as e ->
-    (match grstack with
-    | [] -> Yield (e, grends [])         (* No groups waiting -- yield immediately. *)
-    | gr::grs -> grends ((e::gr)::grs))  (* Inside a group -- buffer the element. *)
-  | GBeg _ -> grends ([]::grstack)       (* Start a new group: push empty buffer. *)
-  | GEnd endp ->
-    match grstack with                   (* End the group on top of stack. *)
-    | [] -> failwith "grends: unmatched group end marker"
-    | [gr] ->                          (* Outermost group -- yield everything now. *)
-      yield_all
-        (GBeg endp::List.rev (GEnd endp::gr))  (* Annotate GBeg with end position. *)
-        (grends [])
-    | gr::par::grs ->                    (* Nested group -- add to parent's buffer. *)
-      let par = GEnd endp::gr @ [GBeg endp] @ par in
-      grends (par::grs))               (* Could use catenable lists for efficiency. *)
-```
-
-This works, but it has a problem: we wait until the entire group is processed before yielding anything. For large groups (or groups that exceed the line width), this is wasteful. We can optimize by flushing the buffer when a group clearly exceeds the line width -- if we know a group will not fit, there is no need to remember where it ends:
-
-```ocaml env=ch7
-type grp_pos = Pos of int | Too_far
-
-let rev_concat_map ~prep f l =
-  let rec cmap_f accu = function
-    | [] -> accu
-    | a::l -> cmap_f (prep::List.rev_append (f a) accu) l in
-  cmap_f [] l
-
-let rec grends w grstack =
-  let flush tail =                   (* When a group exceeds width w, *)
-    yield_all                     (* flush the stack -- yield everything buffered. *)
-      (rev_concat_map ~prep:(GBeg Too_far) snd grstack)
-      tail in                        (* Mark flushed groups as Too_far. *)
-  Await (function
-  | TE (curp, _) | LE curp as e ->
-    (match grstack with              (* Track beginning position of each group. *)
-    | [] -> Yield (e, grends w [])   (* No groups -- yield immediately. *)
-    | (begp, _)::_ when curp-begp > w ->
-      flush (Yield (e, grends w []))    (* Group too wide -- flush and yield. *)
-    | (begp, gr)::grs -> grends w ((begp, e::gr)::grs))  (* Buffer element. *)
-  | GBeg begp -> grends w ((begp, [])::grstack)  (* New group: remember start pos. *)
-  | GEnd endp as e ->
-    match grstack with               (* No longer fail when stack is empty -- *)
-    | [] -> Yield (e, grends w [])   (* could have been flushed earlier. *)
-    | (begp, _)::_ when endp-begp > w ->
-      flush (Yield (e, grends w []))    (* Group exceeded width -- flush. *)
-    | [_, gr] ->                     (* Group fits -- annotate with end position. *)
-      yield_all
-        (GBeg (Pos endp)::List.rev (GEnd endp::gr))
-        (grends w [])
-    | (_, gr)::(par_begp, par)::grs ->  (* Nested group fits -- add to parent. *)
-      let par =
-        GEnd endp::gr @ [GBeg (Pos endp)] @ par in
-      grends w ((par_begp, par)::grs))
-
-let grends w = grends w []           (* Initial stack is empty. *)
-```
-
-Finally, the `format` pipe produces the resulting stream of strings. It maintains a stack of booleans indicating which groups are being "flattened" (rendered inline), and the position where the current line would end:
-
-```ocaml env=ch7
-let rec format w (inline, endlpos as st) = (* inline: stack of "flatten this group?" *)
-  Await (function                          (* endlpos: position where line ends *)
-  | TE (_, z) -> Yield (z, format w st)    (* Text: output directly. *)
-  | LE p when List.hd inline ->
-    Yield (" ", format w st)               (* In flatten mode: line break -> space. *)
-  | LE p -> Yield ("\n", format w (inline, p+w))  (* Break mode: update endlpos. *)
-  | GBeg Too_far ->                        (* Group too wide -- don't flatten. *)
-    format w (false::inline, endlpos)
-  | GBeg (Pos p) ->                        (* Group fits if it ends before endlpos. *)
-    format w ((p<=endlpos)::inline, endlpos)
-  | GEnd _ -> format w (List.tl inline, endlpos))  (* Pop the inline stack. *)
-
-let format w = format w ([false], w)   (* Start with no flattening, full line width. *)
-```
-
-Put the pipes together into a complete pipeline:
-
-```
-+--------+     +-------+     +---------+     +--------+     +----------------+
-| gen doc| --> |docpos | --> |grends w | --> |format w| --> |iterate print_s |
-+--------+     +-------+     +---------+     +--------+     +----------------+
-```
-
-The data flows from left to right: `gen` produces document elements, `docpos` annotates them with positions, `grends` annotates group beginnings with their end positions, `format` decides where to break lines and produces strings, and `iterate print_string` prints the strings.
-
-#### Factored Solution
-
-For maximum flexibility, we can factorize `format` into two parts: one that decides where to break lines (producing annotated document elements), and one that converts those to strings. This allows different line breaking strategies to be plugged in:
-
-```ocaml env=ch7
-(* breaks: decides where to break, outputs annotated doc_e elements *)
-let rec breaks w (inline, endlpos as st) =
-  Await (function
-  | TE _ as e -> Yield (e, breaks w st)          (* Pass through text. *)
-  | LE p when List.hd inline ->
-    Yield (TE (p, " "), breaks w st)             (* Flatten: convert to space. *)
-  | LE p as e -> Yield (e, breaks w (inline, p+w))  (* Break: keep as LE. *)
-  | GBeg Too_far as e ->
-    Yield (e, breaks w (false::inline, endlpos))
-  | GBeg (Pos p) as e ->
-    Yield (e, breaks w ((p<=endlpos)::inline, endlpos))
-  | GEnd _ as e ->
-    Yield (e, breaks w (List.tl inline, endlpos)))
-
-let breaks w = breaks w ([false], w)
-
-(* emit: converts doc_e elements to strings *)
-let rec emit =
-  Await (function
-  | TE (_, z) -> Yield (z, emit)                 (* Text: output directly. *)
-  | LE _ -> Yield ("\n", emit)                   (* Line break: output newline. *)
-  | GBeg _ | GEnd _ -> emit)                     (* Group markers: skip. *)
-
-let pretty_print w doc =
-  gen doc >-> docpos >-> grends w >-> breaks w >->
-  emit >-> iterate print_string
-```
-
-Now `breaks` can be replaced with a different strategy (for example, one that adds indentation), and `emit` stays the same. The full pipeline reads like a description of what happens: generate elements, compute positions, annotate groups with their ends, decide where to break, convert to strings, and print.
-
-### 7.10 Exercises
-
-#### Exercise 1: Lazy List Combinators
-
-My first impulse was to define lazy list functions as follows:
-
-
-```ocaml env=ch7
-let rec wrong_lzip = function
-  | LNil, LNil -> LNil
-  | LCons (a1, lazy l1), LCons (a2, lazy l2) ->
-      LCons ((a1, a2), lazy (wrong_lzip (l1, l2)))
-  | _ -> raise (Invalid_argument "lzip")
-
-let rec wrong_lmap f = function
-  | LNil -> LNil
-  | LCons (a, lazy l) -> LCons (f a, lazy (wrong_lmap f l))
-```
-
-What is wrong with these definitions -- for which edge cases do they not work as intended?
-
-#### Exercise 2: Cyclic Lazy Lists
-
-Cyclic lazy lists.
-
-
-1. Implement a function `cycle : 'a list -> 'a llist` that creates a lazy list with elements from a standard list, and the whole list as the tail after the last element from the input list:
-   `[a1; a2; ...; aN]` maps to a cyclic structure where `aN` points back to `a1`.
-   Your function `cycle` can either return `LNil` or fail for an empty list as argument.
-
-2. Note that `inv_fact` from the lecture defines the power series for the $\exp(\cdot)$ function ($\exp(x) = e^x$). Using `cycle` and `inv_fact`, define the power series for $\sin(\cdot)$ and $\cos(\cdot)$, and draw their graphs using helper functions from the lecture script `Lec7.ml`.
-
-#### Exercise 3: Lazy Puzzle Search
-
-Modify one of the puzzle solving programs (either from the previous lecture or from your previous homework) to work with lazy lists. Implement the necessary higher-order lazy list functions. Check that indeed displaying only the first solution when there are multiple solutions in the result takes shorter than computing solutions by the original program.
-
-
-#### Exercise 4: Hamming Numbers Stream
-
-*Hamming's problem*. Generate in increasing order the numbers of the form $2^{a_1} 3^{a_2} 5^{a_3} \ldots p_k^{a_k}$, that is numbers not divisible by prime numbers greater than the $k$th prime number.
-
-
-In the original Hamming's problem posed by Dijkstra, $k = 3$, which is related to [regular numbers](http://en.wikipedia.org/wiki/Regular_number).
-
-Starter code is available in the lecture script `Lec7.ml`:
-
-```ocaml env=ch7
-let rec lfilter f = function
-  | LNil -> LNil
-  | LCons (n, ll) ->
-      if f n then LCons (n, lazy (lfilter f (Lazy.force ll)))
-      else lfilter f (Lazy.force ll)
-
-let primes =
-  let rec sieve = function
-    | LCons(p, nf) ->
-        LCons(p, lazy (sieve (sift p (Lazy.force nf))))
-    | LNil -> failwith "Impossible! Internal error."
-  and sift p = lfilter (fun n -> n mod p <> 0)
-  in sieve (l_from 2)
-
-let times ll n = lmap (fun i -> i * n) ll
-
-let rec merge xs ys =
-  match xs, ys with
-  | LCons (x, lazy xr), LCons (y, lazy yr) ->
-      if x < y then LCons (x, lazy (merge xr ys))
-      else if x > y then LCons (y, lazy (merge xs yr))
-      else LCons (x, lazy (merge xr yr))
-  | r, LNil | LNil, r -> r
-
-let hamming k =
-  let _pr = ltake k primes in  (* TODO: use primes to generate smooth numbers *)
-  let rec h = LCons (1, lazy (
-     (* TODO: replace this placeholder with the real generator; `h` keeps the snippet compiling. *) h
-  )) in h
-```
-
-#### Exercise 5: Flattening Pretty-Printer State
-
-Modify `format` and/or `breaks` to use just a single number instead of a stack of booleans to keep track of what groups should be inlined.
-
-
-#### Exercise 6: Indentation-Aware Pretty-Printing
-
-Add **indentation** to the pretty-printer for groups: if a group does not fit in a single line, its consecutive lines are indented by a given amount `tab` of spaces deeper than its parent group lines would be. For comparison, let's do several implementations.
-
-
-1. Modify the straightforward implementation of `pretty`.
-2. Modify the first pipe-based implementation of `pretty` by modifying the `format` function.
-3. Modify the second pipe-based implementation of `pretty` by modifying the `breaks` function. Recover the positions of elements -- the number of characters from the beginning of the document -- by keeping track of the growing offset.
-4. (Harder) Modify a pipe-based implementation to provide a different style of indentation: indent the first line of a group, when the group starts on a new line, at the same level as the consecutive lines (rather than at the parent level of indentation).
-
-#### Exercise 7: Line/Column Annotation Pipe
-
-Write a pipe that takes document elements annotated with linear position, and produces document elements annotated with (line, column) coordinates.
-
-
-Write another pipe that takes so annotated elements and adds a line number indicator in front of each line. Do not update the column coordinate. Test the pipes by plugging them before the `emit` pipe.
-
-```
-1: first line
-2: second line, etc.
-```
-
-#### Exercise 8: Reconstructing Subdocuments
-
-Write a pipe that consumes document elements `doc_e` and yields the toplevel subdocuments `doc` which would generate the corresponding elements.
-
-
-You can modify the definition of documents to allow annotations, so that the element annotations are preserved (`gen` should ignore annotations to keep things simple):
-
-```ocaml env=ch7
-type 'a doc =
-  Text of 'a * string | Line of 'a | Cat of 'a doc * 'a doc | Group of 'a * 'a doc
-```
-
-#### Exercise 9: Memoizing Pipe Fan-Out
-
-(Harder) Design and implement a way to duplicate arrows outgoing from a pipe-box, that would memoize the stream, i.e. not recompute everything "upstream" for the composition of pipes. Such duplicated arrows would behave nicely with pipes reading from files.
-
-
-## Chapter 8: Monads
+`Fun.protect` closes the source on success, early return, or exception. It also
+marks an escaped `next` function inactive, so an attempted read after the callback
+returns raises an error. OCaml's type here does not prevent escape statically;
+the runtime check enforces the scope. Read values such as strings may safely
+escape. `close_in_noerr` avoids replacing a consumer failure with a close failure.
+For a general resource whose close can fail, choose and document an error policy.
+
+The project tests an early stop, a consumer exception, an escaped reader, and an
+actual file read. Reading twice from the same cursor is intentionally different
+from forcing the same memoized lazy node twice.
+
+### 7.5 Separate formal coefficients from approximation
+
+A stream of coefficients is a representation of a formal series. A finite prefix
+can be manipulated without claiming that its infinite sum converges anywhere.
+To evaluate numerically, specify the domain, truncation rule and error criterion.
+Small coefficients alone prove nothing about an unseen tail: at `x=1`, the
+polynomial `1 + x^100` has a long stretch of unchanged partial sums before its
+answer changes from one to two.
+
+The numerical project, `projects/numerical/README.md`, provides finite polynomial
+operations, a requested-length formal quotient with explicit zero-denominator
+rules, and a fixed-degree approximation of `exp x` on `[0,1]`. It derives a real
+truncation bound and distinguishes it from floating-point roundoff. It contains
+no function called `exact` that merely checks repeated rounded values.
+
+The larger pipe-based pretty-printer and circular-list construction are preserved
+in `projects/pipes/README.md`. Use them to investigate buffering and delayed
+references after the demand model above is familiar.
+
+### 7.6 Exercises
+
+1. **Practice.** Instrument both `map` and `take`. Count the calls for requesting
+   zero, one and three outputs, including the work performed during construction.
+2. **Proof.** State `take`'s demand contract and prove that a request for `n > 0`
+   nodes demands at most `n-1` tails, or fewer if the stream ends.
+3. **Experiment.** Traverse a memoized prefix twice. Then keep only an advanced
+   tail. Explain which old nodes are unreachable; do not infer garbage collection
+   from a wall-clock speed comparison.
+4. **Practice.** Change the reader callback to raise after its first read and
+   verify one acquisition and one close. The selected solution is the
+   exception-path check in `projects/streams/laws.ml`.
+5. **Project.** Implement an approximation with a domain and remainder estimate,
+   following the numerical project's acceptance criteria. Explicitly account for
+   rounding or limit the claim to a real-arithmetic truncation bound.
+
+
+## Chapter 8: Choices and their interpreters
 
 ![Chapter 8 illustration](Curious_OCaml-chapter_8.jpg){.chapter-image}
 
-**In this chapter, you will:**
+**Prerequisites:** Chapters 5–7: modules, folds, finite search and delayed work.
+**Route:** Part III. Chapter 9 changes how operations are represented, using
+OCaml effects; the shared probability project spans both chapters.
 
-- Recognize the “bind + return” pattern behind list comprehensions and other effects
-- Learn the monad laws (and what they do and do not guarantee)
-- Use monad-plus for non-deterministic/backtracking computation
-- Work through several concrete monads (lazy, list, exception, state, probability)
-- Combine effects with monad transformers and model cooperative concurrency
+A search program asks for alternatives and rejects some results. Does it want
+all answers, the first successful answer, or only their count? Begin with those
+operations, then choose their interpretation. A type signature alone does not
+make different interpretations equivalent.
 
-This chapter explores one of functional programming's most powerful abstractions: monads. We begin with equivalents of list comprehensions as a motivating example, then introduce monadic concepts and examine the monad laws. We explore the monad-plus extension that adds non-determinism, then work through various monad instances including the lazy, list, state, exception, and probability monads. We conclude with monad transformers for combining monads and cooperative lightweight threads for concurrency.
+### 8.1 A small language of search
 
-The material draws on several excellent resources: Jeff Newbern's "All About Monads," Martin Erwig and Steve Kollmansberger's "Probabilistic Functional Programming in Haskell," and Jerome Vouillon's "Lwt: a Cooperative Thread Library."
-
-### 8.1 List Comprehensions
-
-Recall the somewhat awkward syntax we used in the Countdown Problem example from earlier chapters. The nested callback style, while functional, is hard to read and understand at a glance. The brute-force generation of expressions looked like this:
-
-```ocaml env=ch8
-let combine l r =
-  List.map (fun o -> App (o, l, r)) [Add; Sub; Mul; Div]
-
-let rec exprs = function
-  | [] -> []
-  | [n] -> [Val n]
-  | ns ->
-      split ns |-> (fun (ls, rs) ->
-      exprs ls |-> (fun l ->
-      exprs rs |-> (fun r ->
-      combine l r)))
-```
-
-Notice how the nested callbacks pile up: each `|->` introduces another level of indentation. The generate-and-test scheme used similar nesting:
-
-```ocaml env=ch8
-let guard p e = if p e then [e] else []
-
-let solutions ns n =
-  choices ns |-> (fun ns' ->
-  exprs ns' |->
-    guard (fun e -> eval e = Some n))
-```
-
-The key insight is that we introduced the operator `|->` defined as:
-
-```ocaml env=ch8
-let ( |-> ) x f = concat_map f x
-```
-
-This pattern of "for each element in a list, apply a function that returns a list, then flatten the results" is so common that many languages provide special syntax for it. We can express such computations much more elegantly with *list comprehensions*, a syntax that originated in functional languages and was already present in Miranda, the precursor of Haskell.
-
-With list comprehensions, we can write expressions that read almost like set-builder notation in mathematics:
-
-```ocaml skip
-let test = [i * 2 | i <- from_to 2 22; i mod 3 = 0]
-```
-
-This reads as: "the list of `i * 2` for each `i` drawn from `from_to 2 22` where `i mod 3 = 0`." The `<-` arrow draws elements from a generator, and conditions filter which elements are kept.
-
-The translation rules that define list comprehension semantics are straightforward:
-
-- `[expr | ]` translates to `[expr]` -- the base case, a singleton list
-- `[expr | v <- generator; more]` translates to `generator |-> (fun v -> [expr | more])` -- draw from a generator, then recurse
-- `[expr | condition; more]` translates to `if condition then [expr | more] else []` -- filter by a condition
-
-The list comprehension syntax has not caught on in modern OCaml; there were a couple syntax extensions providing it, but none gained popularity. It is a nice syntax to build intuition but the examples in this section need additional setup to compile, you can treat them as pseudo-code.
-
-#### Revisiting Countdown with List Comprehensions
-
-Now let us revisit the Countdown Problem code with list comprehensions. The brute-force generation becomes dramatically cleaner -- compare this to the deeply nested version above:
-
-```ocaml skip
-let rec exprs = function
-  | [] -> []
-  | [n] -> [Val n]
-  | ns ->
-      [App (o, l, r) | (ls, rs) <- split ns;
-       l <- exprs ls; r <- exprs rs;
-       o <- [Add; Sub; Mul; Div]]
-```
-
-The intent is immediately clear: we split the numbers, recursively build expressions for left and right parts, and try each operator. The generate-and-test scheme becomes equally elegant:
-
-```ocaml skip
-let solutions ns n =
-  [e | ns' <- choices ns;
-   e <- exprs ns'; eval e = Some n]
-```
-
-The guard condition `eval e = Some n` filters out expressions that do not evaluate to the target value.
-
-#### More List Comprehension Examples
-
-List comprehensions shine when expressing combinatorial algorithms. Here is computing all subsequences of a list (note that this generates some intermediate garbage, but the intent is clear):
-
-```ocaml skip
-let rec subseqs l =
-  match l with
-  | [] -> [[]]
-  | x::xs -> [ys | px <- subseqs xs; ys <- [px; x::px]]
-```
-
-For each element `x`, we recursively compute subsequences of the tail, then for each such subsequence we include both the version without `x` and the version with `x` prepended.
-
-Computing permutations can be done via insertion -- inserting an element at every possible position:
-
-```ocaml skip
-let rec insert x = function
-  | [] -> [[x]]
-  | y::ys' as ys ->
-      (x::ys) :: [y::zs | zs <- insert x ys']
-
-let rec ins_perms = function
-  | [] -> [[]]
-  | x::xs -> [zs | ys <- ins_perms xs; zs <- insert x ys]
-```
-
-The `insert` function generates all ways to insert `x` into a list. Then `ins_perms` recursively permutes the tail and inserts the head at every position.
-
-Alternatively, we can compute permutations via selection -- repeatedly choosing which element comes first:
-
-```ocaml skip
-let rec select = function
-  | [x] -> [x, []]
-  | x::xs -> (x, xs) :: [y, x::ys | y, ys <- select xs]
-
-let rec sel_perms = function
-  | [] -> [[]]
-  | xs -> [x::ys | x, xs' <- select xs; ys <- sel_perms xs']
-```
-
-The `select` function returns all ways to pick one element from a list, along with the remaining elements. Then `sel_perms` chooses a first element and recursively permutes the rest.
-
-### 8.2 Generalized Comprehensions: Binding Operators
-
-The pattern we saw with list comprehensions is remarkably general. In fact, the same `|->` pattern (applying a function that returns a container, then flattening) works for many types beyond lists. This is the essence of monads.
-
-OCaml 4.08 introduced **binding operators** (`let*`, `let+`, `and*`, …) that provide a clean, native syntax for such computations. Instead of external syntax extensions like the old Camlp4-based `pa_monad`, we can now define custom operators that integrate naturally with the language.
-
-For the list monad, we define these binding operators:
-
-```ocaml env=ch8
-let ( let* ) x f = concat_map f x      (* bind: sequence computations *)
-let ( let+ ) x f = List.map f x        (* map: apply pure function *)
-let ( and* ) x y = concat_map (fun a -> List.map (fun b -> (a, b)) y) x
-let ( and+ ) = ( and* )                (* parallel binding *)
-let return x = [x]                     (* inject a value into the monad *)
-let fail = []                          (* the empty computation *)
-```
-
-The `let*` operator is the key: it sequences computations where each step can produce multiple results. The `and*` operator combines independent bindings; this definition computes their Cartesian product. The syntax does not itself introduce concurrent execution. With these operators, the expression generation code becomes:
-
-```
-let rec exprs = function
-  | [] -> []
-  | [n] -> [Val n]
-  | ns ->
-      let* (ls, rs) = split ns in
-      let* l = exprs ls in
-      let* r = exprs rs in
-      let* o = [Add; Sub; Mul; Div] in
-      [App (o, l, r)]
-```
-
-Each `let*` introduces a binding: the variable on the left is bound to each value produced by the expression on the right, and the computation continues with `in`. This is much more readable than the nested callbacks we started with.
-
-However, the `let*` syntax does not directly support guards (conditions that filter results). If we try to write:
-
-```
-let solutions ns n =
-  let* ns' = choices ns in
-  let* e = exprs ns' in
-  eval e = Some n;  (* Error! *)
-  e
-```
-
-We get a type error: the expression expects a list, but `eval e = Some n` is a boolean. What can we do?
-
-One approach is to explicitly decide whether to return anything:
-
-```
-let solutions ns n =
-  let* ns' = choices ns in
-  let* e = exprs ns' in
-  if eval e = Some n then [e] else []
-```
-
-But what if we want to check a condition earlier in the computation, or check multiple conditions? We need a general "guard check" function. The key insight is that we can use the monad itself to represent success or failure:
-
-```ocaml env=ch8
-let guard p = if p then [()] else []
-```
-
-When the condition `p` is true, `guard` returns `[()]` -- a list with one element (the unit value). When false, it returns `[]` -- an empty list. Now we can use it in a binding:
-
-```
-let solutions ns n =
-  let* ns' = choices ns in
-  let* e = exprs ns' in
-  let* () = guard (eval e = Some n) in
-  [e]
-```
-
-Why does this work? When the guard succeeds, `let* () = [()]` binds unit and continues. When it fails, `let* () = []` produces no results -- the empty list -- so the rest of the computation is never reached for that branch. This is exactly the filtering behavior we want!
-
-### 8.3 Monads
-
-Now we are ready to define monads properly. A **monad** is a polymorphic type `'a monad` (or `'a Monad.t`) that supports at least two operations:
-
-- `bind : 'a monad -> ('a -> 'b monad) -> 'b monad` -- sequence two computations, passing the result of the first to the second
-- `return : 'a -> 'a monad` -- inject a pure value into the monad
-- The infix `>>=` is commonly used for `bind`: `let (>>=) a b = bind a b`
-
-The `bind` operation is the heart of the monad: it takes a computation that produces an `'a`, and a function that takes an `'a` and produces a new computation yielding `'b`. The result is a combined computation that yields `'b`.
-
-With OCaml 5's binding operators, we define `let*` as an alias for `bind`:
-
-```ocaml env=ch8
-let bind a b = concat_map b a
-let return x = [x]
+<!-- $MDX file=../projects/choices/search.ml,part=language -->
+```ocaml
+type 'a t = Return of 'a | Fail | Choice of 'a t list
+let return x = Return x
+let rec bind m f = match m with
+  | Return x -> f x
+  | Fail -> Fail
+  | Choice branches -> Choice (List.map (fun m -> bind m f) branches)
 let ( let* ) = bind
-
-let solutions ns n =
-  let* ns' = choices ns in
-  let* e = exprs ns' in
-  let* () = guard (eval e = Some n) in
-  return e
+let choose xs = Choice (List.map return xs)
+let guard b = if b then return () else Fail
 ```
 
-But why does `guard` look the way it does? Let us examine more carefully:
+`Return` supplies an answer, `Fail` supplies none, and `Choice` records alternatives.
+`bind m f` replaces each successful leaf of `m` by the next search `f x`.
+The syntax is a finite tree; it eagerly constructs branches. We make no fairness
+claim for an infinite or diverging branch. A delayed representation could change
+that demand policy, as Chapter 7 suggests.
 
-```ocaml env=ch8
-let fail = []
-let guard p = if p then return () else fail
+<!-- $MDX file=../projects/choices/search.ml,part=model -->
+```ocaml
+let pairs target =
+  let* x = choose [1;2;3] in
+  let* y = choose [1;2;3] in
+  let* () = guard (x + y = target) in
+  return (x,y)
 ```
 
-Steps in monadic computation are composed with `let*` (or `>>=`, which is like `|->` for lists). The key insight is understanding what happens when we bind with an empty list versus a singleton:
+Read `let*` as sequencing through the language's `bind`. It is a binding operator,
+not built-in backtracking. Changing the definition of `let*` changes how the
+right-hand computation supplies values to the body. Ordinary `let` continues
+to mean ordinary OCaml evaluation.
 
-- `let* _ = [] in ...` does not produce anything -- the continuation is never called, so the computation fails (produces no results)
-- `let* _ = [()] in ...` calls the continuation once with `()`, which simply continues the computation unchanged
+### 8.2 Three interpretations of the same tree
 
-This is why `guard` works: returning `[()]` means "succeed with unit" and returning `[]` means "fail with no results." The unit value itself is a dummy -- we only care whether the list is empty or not.
+<!-- $MDX file=../projects/choices/search.ml,part=interpreters -->
+```ocaml
+let rec all = function
+  | Return x -> [x]
+  | Fail -> []
+  | Choice branches -> List.concat_map all branches
 
-Throwing away the binding argument is a common pattern. With binding operators, we use `let* () = ...` or `let* _ = ...` to indicate we do not need the bound value:
+let rec first = function
+  | Return x -> Some x
+  | Fail -> None
+  | Choice branches ->
+    let rec loop = function
+      | [] -> None
+      | m::ms -> match first m with None -> loop ms | answer -> answer in
+    loop branches
 
-```ocaml env=ch8
-let (>>=) a b = bind a b
-let (>>) m f = m >>= (fun _ -> f)
+let rec count = function
+  | Return _ -> 1
+  | Fail -> 0
+  | Choice branches -> List.fold_left (fun n m -> n + count m) 0 branches
 ```
 
-The `>>` operator (called "sequence" or "then") is useful when you want to perform a computation for its effect but discard its result.
-
-#### The Binding Operator Syntax
-
-For reference, OCaml 5's binding operators translate as follows:
-
-| Source | Translation |
-|--------|-------------|
-| `let* x = exp in body` | `bind exp (fun x -> body)` |
-| `let+ x = exp in body` | `map (fun x -> body) exp` |
-| `let* () = exp in body` | `bind exp (fun () -> body)` |
-| `let* x = e1 and* y = e2 in body` | `bind (( and* ) e1 e2) (fun (x, y) -> body)` |
-
-The binding operators `let*`, `let+`, `and*`, and `and+` must be defined in scope. These are regular OCaml operators and require no syntax extensions -- a significant improvement over the old Camlp4 approach.
-
-Note: For pattern matching in bindings, if the pattern is refutable (can fail to match), the monadic operation should handle the failure appropriately. For example, `let* Some x = e in body` is incomplete as written and needs to be augmented with handling of the `None` case.
-
-### 8.4 Monad Laws
-
-Not every type with `bind` and `return` operations is a proper monad. A parametric data type is a monad only if its `bind` and `return` operations meet three fundamental axioms:
-
-$$
-\begin{aligned}
-\text{bind}\ (\text{return}\ a)\ f &\approx f\ a & \text{(left identity)} \\
-\text{bind}\ a\ (\lambda x.\text{return}\ x) &\approx a & \text{(right identity)} \\
-\text{bind}\ (\text{bind}\ a\ (\lambda x.b))\ (\lambda y.c) &\approx \text{bind}\ a\ (\lambda x.\text{bind}\ b\ (\lambda y.c)) & \text{(associativity)}
-\end{aligned}
-$$
-
-Let us understand what these laws mean:
-
-- **Left identity**: If you inject a value with `return` and immediately bind it to a function, you get the same result as just applying the function. The `return` operation should not add any extra "effects."
-- **Right identity**: If you bind a computation to `return`, you get back the same computation. The `return` operation is neutral.
-- **Associativity**: Binding is associative -- it does not matter how you group nested binds. This means `let* x = (let* y = a in b) in c` is equivalent to `let* y = a in let* x = b in c` (after renaming binders so `y` does not occur free in `c`).
-
-You should verify that these laws hold for our list monad:
-
-```ocaml env=ch8
-let bind a b = concat_map b a
-let return x = [x]
+```ocaml env=search
+let () =
+  assert (Search.all (Search.pairs 4) = [1,3;2,2;3,1]);
+  assert (Search.first (Search.pairs 4) = Some (1,3));
+  assert (Search.count (Search.pairs 4) = 3);
+  assert (Search.first (Search.pairs 9) = None)
 ```
 
-For example, to verify left identity: `bind (return a) f` = `bind [a] f` = `concat_map f [a]` = `f a`. The other laws can be verified similarly.
-
-### 8.5 Monoid Laws and Monad-Plus
-
-The list monad has an additional structure beyond just `bind` and `return`: it supports combining multiple computations and representing failure. This leads us to the concept of a **monoid**.
-
-A monoid is a type with at least two operations:
-
-- `mzero : 'a monoid` -- an identity element (think: zero, or the empty container)
-- `mplus : 'a monoid -> 'a monoid -> 'a monoid` -- a combining operation (think: addition, or concatenation)
-
-These operations must meet the standard monoid laws:
-
-$$
-\begin{aligned}
-\text{mplus}\ \text{mzero}\ a &\approx a & \text{(left identity)} \\
-\text{mplus}\ a\ \text{mzero} &\approx a & \text{(right identity)} \\
-\text{mplus}\ a\ (\text{mplus}\ b\ c) &\approx \text{mplus}\ (\text{mplus}\ a\ b)\ c & \text{(associativity)}
-\end{aligned}
-$$
-
-We define `fail` as a synonym for `mzero` and infix `++` for `mplus`. For lists, `mzero` is `[]` and `mplus` is `@` (append).
-
-Fusing monads and monoids gives the most popular general flavor of monads, which we call **monad-plus** after Haskell. A monad-plus is a monad that also has monoid structure, with additional axioms relating the "addition" (`mplus`) and "multiplication" (`bind`):
-
-$$
-\begin{aligned}
-\text{bind}\ \text{mzero}\ f &\approx \text{mzero} \\
-\text{bind}\ m\ (\lambda x.\text{mzero}) &\approx \text{mzero}
-\end{aligned}
-$$
-
-These laws say that `mzero` acts like a "zero" for `bind`: binding from zero produces zero, and binding to a function that always returns zero also produces zero. This is analogous to how $0 \times x = 0$ and $x \times 0 = 0$ in arithmetic.
-
-Using infix notation with $\oplus$ for `mplus`, $\mathbf{0}$ for `mzero`, $\triangleright$ for `bind`, and $\mathbf{1}$ for `return`, the complete monad-plus axioms are:
-
-$$
-\begin{aligned}
-\mathbf{0} \oplus a &\approx a \\
-a \oplus \mathbf{0} &\approx a \\
-a \oplus (b \oplus c) &\approx (a \oplus b) \oplus c \\
-\mathbf{1}\ x \triangleright f &\approx f\ x \\
-a \triangleright \lambda x.\mathbf{1}\ x &\approx a \\
-(a \triangleright \lambda x.b) \triangleright \lambda y.c &\approx a \triangleright (\lambda x.b \triangleright \lambda y.c) \\
-\mathbf{0} \triangleright f &\approx \mathbf{0} \\
-a \triangleright (\lambda x.\mathbf{0}) &\approx \mathbf{0}
-\end{aligned}
-$$
-
-The list type has a natural monad and monoid structure:
-
-```ocaml env=ch8
-let mzero = []
-let mplus = (@)
-let bind a b = concat_map b a
-let return a = [a]
-```
-
-Given any monad-plus, we can define useful derived operations:
-
-```ocaml env=ch8
-let fail = mzero
-let (++) = mplus
-let (>>=) a b = bind a b
-let guard p = if p then return () else fail
-```
-
-Now we can see that `guard` is defined in terms of the monad-plus structure: it returns the identity element (`return ()`) on success, or the zero element (`fail`) on failure.
-
-### 8.6 Backtracking: Computation with Choice
-
-We have seen `mzero` (i.e., `fail`) in the countdown problem -- it represents a computation that produces no results. But what about `mplus`? The `mplus` operation combines two computations, giving us a way to express *choice*: try this computation, or try that one.
-
-Here is an example from a puzzle solver where `mplus` creates a choice point:
-
-```ocaml skip
-let find_to_eat n island_size num_islands empty_cells =
-  let honey = honey_cells n empty_cells in
-
-  let rec find_board s =
-    match visit_cell s with
-    | None ->
-        let* () = guard (s.been_islands = num_islands) in
-        return s.eaten
-    | Some (cell, s) ->
-        let* s = find_island cell (fresh_island s) in
-        let* () = guard (s.been_size = island_size) in
-        find_board s
-
-  and find_island current s =
-    let s = keep_cell current s in
-    neighbors n empty_cells current
-    |> foldM
-         (fun neighbor s ->
-           if CellSet.mem neighbor s.visited then return s
-           else
-             let choose_eat =
-               if s.more_to_eat <= 0 then fail
-               else return (eat_cell neighbor s)
-             and choose_keep =
-               if s.been_size >= island_size then fail
-               else find_island neighbor s in
-             mplus choose_eat choose_keep)  (* Choice point! *)
-         s in
-
-  let cells_to_eat =
-    List.length honey - island_size * num_islands in
-  find_board (init_state honey cells_to_eat)
-```
-
-The line `mplus choose_eat choose_keep` creates a choice point: the algorithm can either eat the cell (removing it from consideration) or keep it as part of the current island. When we use the list monad as our monad-plus, this explores *all* possible choices, collecting all solutions. The monad-plus structure handles the bookkeeping of backtracking automatically -- we just express the choices declaratively.
-
-### 8.7 Monad Flavors
-
-Monads "wrap around" a type, but some monads need an additional type parameter. For example, a state monad might be parameterized by the type of state it carries. Usually the additional type does not change while within a monad, so we stick to `'a monad` rather than `('s, 'a) monad`.
-
-As monad-plus shows, things get interesting when we add more operations to a basic monad. Different "flavors" of monads provide different capabilities. Here are the most common ones:
-
-**Monads with access:**
-
-```
-access : 'a monad -> 'a
-```
-
-An `access` operation lets you extract the value from the monad. Not all monads support this -- some only allow you to "run" the monad at the top level. Example: the lazy monad, where `access` is `Lazy.force`.
-
-**Monad-plus (non-deterministic computation):**
-
-```
-mzero : 'a monad
-mplus : 'a monad -> 'a monad -> 'a monad
-```
-
-We have already seen this. The monad-plus flavor supports failure and choice, enabling backtracking search.
-
-**Monads with state (parameterized by type `store`):**
-
-```
-get : store monad
-put : store -> unit monad
-```
-
-These operations let you read and write a piece of state that is threaded through the computation. There is a "canonical" state monad we will examine later. Related monads include:
-
-- The **writer monad**: has `tell` (append to a log) and `listen` (read the log)
-- The **reader monad**: has `ask` (read an environment) and `local` to modify the environment for a sub-computation:
-
-```
-local : (store -> store) -> 'a monad -> 'a monad
-```
-
-**Exception/error monads (parameterized by type `excn`):**
-
-```
-throw : excn -> 'a monad
-catch : 'a monad -> (excn -> 'a monad) -> 'a monad
-```
-
-These provide structured error handling within the monad. The `throw` operation raises an exception; `catch` handles it.
-
-**Continuation monad:**
-
-```
-callCC : (('a -> 'b monad) -> 'a monad) -> 'a monad
-```
-
-The continuation monad gives you access to the "rest of the computation" as a first-class value. This is powerful but complex; we will not cover continuations in detail here.
-
-**Probabilistic computation:**
-
-```
-choose : float -> 'a monad -> 'a monad -> 'a monad
-```
-
-The `choose p a b` operation selects `a` with probability `p` and `b` with probability `1-p`. This enables reasoning about probability distributions. The laws ensure that probability behaves correctly:
-
-$$
-\begin{aligned}
-a \oplus_0 b &\approx b \\
-a \oplus_p b &\approx b \oplus_{1-p} a \\
-a \oplus_p (b \oplus_q c) &\approx (a \oplus_{\frac{p}{p+q-pq}} b) \oplus_{p+q-pq} c \\
-a \oplus_p a &\approx a
-\end{aligned}
-$$
-
-**Parallel computation (monad with access and parallel bind):**
-
-```
-parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
-```
-
-The `parallel` operation runs two computations concurrently and combines their results. Example: lightweight threads like in the Lwt library.
-
-### 8.8 Interlude: The Module System
-
-Before we implement various monads, we need to understand OCaml's module system, which provides the infrastructure for defining monads in a reusable, generic way. This section provides a brief overview of the key concepts.
-
-Modules collect related type definitions and operations together. Module values are introduced with `struct ... end` (called *structures*), and module types with `sig ... end` (called *signatures*). A structure is a package of definitions; a signature is an interface that specifies what a structure must provide.
-
-A source file `source.ml` defines a module `Source`. A file `source.mli` defines its type.
-
-In the module level, modules are defined with `module ModuleName = ...` or `module ModuleName : MODULE_TYPE = ...`, and module types with `module type MODULE_TYPE = ...`.
-
-Locally in expressions, modules are defined with `let module M = ... in ...`.
-
-The content of a module is made visible with `open Module`. Module `Pervasives` (now `Stdlib`) is initially visible.
-
-Content of a module is included into another module with `include Module`.
-
-**Functors** are module functions -- functions from modules to modules. They are the key to writing generic code that works with any monad:
-
-```
-module Funct = functor (Arg : sig ... end) -> struct ... end
-(* Or equivalently: *)
-module Funct (Arg : sig ... end) = struct ... end
-```
-
-Functors can return functors, and modules can be parameterized by multiple modules. Functor application always uses parentheses: `Funct (struct ... end)`.
-
-A signature `MODULE_TYPE with type t_name = ...` is like `MODULE_TYPE` but with `t_name` made more specific. This is useful when you want to expose the concrete type after applying a functor. We can also include signatures with `include MODULE_TYPE`.
-
-Finally, we can pass around modules in normal functions using first-class modules:
-
-```ocaml env=ch8
-module type T = sig val g : int -> int end
-
-let f mod_v x =
-  let module M = (val mod_v : T) in
-  M.g x
-(* val f : (module T) -> int -> int = <fun> *)
-
-let test = f (module struct let g i = i*i end : T)
-(* val test : int -> int = <fun> *)
-```
-
-### 8.9 The Two Metaphors
-
-Monads are abstract, but two complementary metaphors can help build intuition for what they are and how they work.
-
-#### Monads as Containers
-
-The first metaphor views a monad as a **quarantine container**. Think of it like a sealed box:
-
-- We can put something into the container with `return` -- this "seals" a pure value inside the monad
-- We can operate on the contents, but the result must stay in the container -- we cannot simply extract values
-
-The `lift` function applies a pure function to the contents of a monad, keeping the result wrapped:
-
-```ocaml env=ch8
-let lift f m =
-  let* x = m in
-  return (f x)
-(* val lift : ('a -> 'b) -> 'a monad -> 'b monad *)
-```
-
-We can also "flatten" nested containers. If we have a monad containing another monad, `join` unwraps one layer -- but the result is still in a monad, so the quarantine is not broken:
-
-```ocaml env=ch8
-let join m =
-  let* x = m in
-  x
-(* val join : ('a monad) monad -> 'a monad *)
-```
-
-The quarantine container for a **monad-plus** is more like a collection: it can be empty (failure), contain one element (success), or contain multiple elements (multiple solutions).
-
-Monads with access allow us to extract the resulting element from the container. Other monads provide a `run` operation that exposes "what really happened behind the quarantine" -- for example, the state monad's `run` takes an initial state and returns both the final value and the final state.
-
-#### Monads as Computation
-
-The second metaphor views a monad as a way to structure computation. Each `let*` binding is a step in a sequence, and the monad controls how steps are connected. The physical metaphor is an **assembly line**:
-
-```
-let assemblyLine w =
-  let* c = makeChopsticks w in    (* Worker makes chopsticks *)
-  let* c' = polishChopsticks c in (* Worker polishes them *)
-  let* c'' = wrapChopsticks c' in (* Worker wraps them *)
-  return c''                       (* Final product goes out *)
-```
-
-Each worker (operation) takes material from the previous step and produces something for the next step. The monad defines what happens between steps -- for lists, it means "do this for each element"; for state, it means "thread the state through"; for exceptions, it means "propagate errors."
-
-Any expression can be systematically translated into a monadic form. For lambda-terms:
-
-$$
-\begin{aligned}
-[\![ N ]\!] &= \text{return}\ N & \text{(constant)} \\
-[\![ x ]\!] &= \text{return}\ x & \text{(variable)} \\
-[\![ \lambda x.a ]\!] &= \text{return}\ (\lambda x.[\![ a ]\!]) & \text{(function)} \\
-[\![ \text{let}\ x = a\ \text{in}\ b ]\!] &= \text{bind}\ [\![ a ]\!]\ (\lambda x.[\![ b ]\!]) & \text{(local definition)} \\
-[\![ a\ b ]\!] &= \text{bind}\ [\![ a ]\!]\ (\lambda v_a.\text{bind}\ [\![ b ]\!]\ (\lambda v_b.v_a\ v_b)) & \text{(application)}
-\end{aligned}
-$$
-
-This translation inserts `bind` at every point where execution flows from one subexpression to another. The beauty of this approach is that once an expression is spread over a monad, its computation can be monitored, logged, or affected without modifying the expression itself. This is the key to implementing effects like state, exceptions, or non-determinism in a purely functional way.
-
-### 8.10 Monad Classes and Instances
-
-Now we will see how to implement monads in OCaml using the module system. To implement a monad, we need to provide the implementation type, `return`, and `bind` operations. Here is the minimal signature:
-
-```ocaml env=ch8
+These interpreters are folds over the search representation. `all` preserves the
+left-to-right order and multiplicity of leaves. `first` chooses the first
+*successful leaf after downstream failures*. `count` counts leaves, including
+repeated equal answers; its machine integer can overflow on a very large tree.
+The agreement laws for finite searches are
+`first m = List.nth_opt (all m) 0` and `count m = List.length (all m)`, when that
+count fits. These are weaker than saying the three results are identical.
+
+The source and tests are `projects/choices/search.ml` and `laws.ml`. The
+Honey Islands project also expresses its choices through a module interface,
+so its direct and monadic implementations can share a reference specification.
+
+### 8.3 Monad laws say how sequencing associates
+
+A monad interface supplies a type constructor `'a t`, `return`, and `bind`:
+
+```ocaml env=interfaces
 module type MONAD = sig
   type 'a t
   val return : 'a -> 'a t
@@ -6368,7088 +4116,1079 @@ module type MONAD = sig
 end
 ```
 
-This is the "class" that all monads must implement. Alternatively, we could start from `return`, `lift`, and `join` operations -- these are mathematically equivalent starting points.
+For the chosen notion of observational equality, the laws are:
 
-The power of functors is that we can define a suite of general-purpose functions that work for *any* monad, just based on these two operations:
+- `bind (return x) f = f x` (left identity).
+- `bind m return = m` (right identity).
+- `bind (bind m f) g = bind m (fun x -> bind (f x) g)` (associativity).
 
-```ocaml env=ch8
-module type MONAD_OPS = sig
-  type 'a monad
-  include MONAD with type 'a t := 'a monad
-  val ( let* ) : 'a monad -> ('a -> 'b monad) -> 'b monad
-  val ( let+ ) : 'a monad -> ('a -> 'b) -> 'b monad
-  val ( >>= ) : 'a monad -> ('a -> 'b monad) -> 'b monad
-  val foldM : ('a -> 'b -> 'a monad) -> 'a -> 'b list -> 'a monad
-  val whenM : bool -> unit monad -> unit monad
-  val lift : ('a -> 'b) -> 'a monad -> 'b monad
-  val (>>|) : 'a monad -> ('a -> 'b) -> 'b monad
-  val join : 'a monad monad -> 'a monad
-  val ( >=>) : ('a -> 'b monad) -> ('b -> 'c monad) -> 'a -> 'c monad
-end
+For our search language, compare `all` results as lists: order and duplicates
+matter. Some syntactically different trees then count as equal. The laws follow
+by induction on the tree and list concatenation's associativity. They are not
+claims about identical allocation, termination on infinite structures, or equal
+performance. `projects/choices/laws.ml` gives bounded executable instances.
 
-module MonadOps (M : MONAD) = struct
-  open M
-  type 'a monad = 'a t
-  let run x = x
-  let ( let* ) a b = bind a b
-  let ( let+ ) a f = bind a (fun x -> return (f x))
-  let (>>=) a b = bind a b
-  let rec foldM f a = function
-    | [] -> return a
-    | x::xs ->
-        let* a' = f a x in
-        foldM f a' xs
-  let whenM p s = if p then s else return ()
-  let lift f m =
-    let* x = m in
-    return (f x)
-  let (>>|) a b = lift b a
-  let join m =
-    let* x = m in
-    x
-  let (>=>) f g = fun x ->
-    let* y = f x in
-    g y
-end
+Options, lists and state computations can all support lawful sequencing, but
+they do different things. `Option.bind None f` does not run `f`; list bind runs
+it for each element. A state computation receives an initial state and returns
+a result together with a new state. The interface organizes composition without
+identifying these behaviors.
+
+### 8.4 Choice needs additional laws
+
+Let `zero` be failure and `plus` combine searches. List interpretation uses `[]`
+and `(@)`. It satisfies associative choice with failure as identity and, for
+finite pure computations, left distribution through bind:
+
+```text
+bind (plus a b) f = plus (bind a f) (bind b f)
+bind zero f = zero
+bind m (fun _ -> zero) = zero
 ```
 
-We make the monad "safe" by keeping its type abstract. The `run` function exposes the underlying representation -- "what really happened behind the scenes":
+These equations justify exploring alternatives and then applying a common
+continuation. They do not follow from monad laws plus monoid laws alone.
+Left-biased option has a lawful monad and associative choice, but fails the first:
 
-```ocaml env=ch8
-module Monad (M : MONAD) : sig
-  include MONAD_OPS
-  val run : 'a monad -> 'a M.t
-end = struct
-  include M
-  include MonadOps(M)
-end
-```
-
-The pattern here is important: we take a minimal implementation (`M : MONAD`) and produce a full-featured monad module with all the derived operations.
-
-#### Monad-Plus Classes
-
-The monad-plus class extends the basic monad with failure and choice. Implementations need to provide `mzero` and `mplus` in addition to `return` and `bind`:
-
-```ocaml env=ch8
-module type MONAD_PLUS = sig
-  include MONAD
-  val mzero : 'a t
-  val mplus : 'a t -> 'a t -> 'a t
-end
-
-module type MONAD_PLUS_OPS = sig
-  include MONAD_OPS
-  val mzero : 'a monad
-  val mplus : 'a monad -> 'a monad -> 'a monad
-  val fail : 'a monad
-  val (++) : 'a monad -> 'a monad -> 'a monad
-  val guard : bool -> unit monad
-  val msum_map : ('a -> 'b monad) -> 'a list -> 'b monad
-end
-
-module MonadPlusOps (M : MONAD_PLUS) = struct
-  open M
-  include MonadOps(M)
-  let fail = mzero
-  let (++) a b = mplus a b
-  let guard p = if p then return () else fail
-  let msum_map f l = List.fold_right
-    (fun a acc -> mplus (f a) acc) l mzero
-end
-
-module MonadPlus (M : MONAD_PLUS) : sig
-  include MONAD_PLUS_OPS
-  val run : 'a monad -> 'a M.t
-end = struct
-  include M
-  include MonadPlusOps(M)
-end
-```
-
-We also need a class for computations with state. This signature will be included in state monads:
-
-```ocaml env=ch8
-module type STATE = sig
-  type store
-  type 'a t
-  val get : store t
-  val put : store -> unit t
-end
-```
-
-### 8.11 Monad Instances
-
-Now let us see concrete implementations of various monads.
-
-#### The Lazy Monad
-
-If you find OCaml's laziness notation (with `lazy` and `Lazy.force` everywhere) too heavy, you can use a monad! The lazy monad wraps lazy computations:
-
-```ocaml env=ch8
-module LazyM = Monad (struct
-  type 'a t = 'a Lazy.t
-  let bind a b = lazy (Lazy.force (b (Lazy.force a)))
-  let return a = lazy a
-end)
-
-let laccess m = Lazy.force (LazyM.run m)
-```
-
-The `bind` operation creates a new lazy value that, when forced, forces `a`, passes the result to `b`, and forces the result. The `laccess` function forces the final lazy value to get the result.
-
-#### The List Monad
-
-Our familiar list monad is a monad-plus, supporting non-deterministic computation:
-
-```ocaml env=ch8
-module ListM = MonadPlus (struct
-  type 'a t = 'a list
-  let bind a b = concat_map b a
-  let return a = [a]
-  let mzero = []
-  let mplus = List.append
-end)
-```
-
-#### Backtracking Parameterized by Monad-Plus
-
-Here is the power of abstraction: we can write the Countdown solver parameterized by *any* monad-plus. The same code works with lists (exploring all solutions), lazy lists (computing solutions on demand), or any other monad-plus implementation:
-
-```ocaml env=ch8
-module Countdown (M : MONAD_PLUS_OPS) = struct
-  open M  (* Open the module to make monad operations visible *)
-
-  let rec insert x = function  (* All choice-introducing operations *)
-    | [] -> return [x]          (* need to happen in the monad *)
-    | y::ys as xs ->
-        return (x::xs) ++
-        (let* xys = insert x ys in return (y::xys))
-
-  let rec choices = function
-    | [] -> return []
-    | x::xs ->
-        let* cxs = choices xs in           (* Choosing which numbers in what order *)
-        return cxs ++ insert x cxs         (* and now whether with or without x *)
-
-  type op = Add | Sub | Mul | Div
-
-  let apply op x y =
-    match op with
-    | Add -> x + y
-    | Sub -> x - y
-    | Mul -> x * y
-    | Div -> x / y
-
-  let valid op x y =
-    match op with
-    | Add -> x <= y
-    | Sub -> x > y
-    | Mul -> x <= y && x <> 1 && y <> 1
-    | Div -> x mod y = 0 && y <> 1
-
-  type expr = Val of int | App of op * expr * expr
-
-  let op2str = function
-    | Add -> "+" | Sub -> "-" | Mul -> "*" | Div -> "/"
-
-  let rec expr2str = function  (* We will provide solutions as strings *)
-    | Val n -> string_of_int n
-    | App (op, l, r) -> "(" ^ expr2str l ^ op2str op ^ expr2str r ^ ")"
-
-  let combine (l, x) (r, y) o =  (* Try out an operator *)
-    let* () = guard (valid o x y) in
-    return (App (o, l, r), apply o x y)
-
-  let split l =  (* Another choice: which numbers go into which argument *)
-    let rec aux lhs = function
-      | [] | [_] -> fail                    (* Both arguments need numbers *)
-      | [y; z] -> return (List.rev (y::lhs), [z])
-      | hd::rhs ->
-          let lhs = hd::lhs in
-          return (List.rev lhs, rhs)
-            ++ aux lhs rhs in
-    aux [] l
-
-  let rec results = function  (* Build possible expressions once numbers *)
-    | [] -> fail                (* have been picked *)
-    | [n] ->
-        let* () = guard (n > 0) in
-        return (Val n, n)
-    | ns ->
-        let* (ls, rs) = split ns in
-        let* lx = results ls in
-        let* ly = results rs in  (* Collect solutions using each operator *)
-        msum_map (combine lx ly) [Add; Sub; Mul; Div]
-
-  let solutions ns n =  (* Solve the problem: *)
-    let* ns' = choices ns in         (* pick numbers and their order, *)
-    let* (e, m) = results ns' in     (* build possible expressions, *)
-    let* () = guard (m = n) in       (* check if the expression gives target value, *)
-    return (expr2str e)              (* "print" the solution *)
-end
-```
-
-#### Understanding Laziness
-
-Now let us explore a practical question: what if we only want *one* solution, not all of them? With the list monad, we compute all solutions even if we only look at the first one. Can laziness help?
-
-Let us sketch how you might measure execution times to find out (the numbers will vary wildly between machines, and the full Countdown search is expensive enough that it is better left out of mdx tests):
-
-```ocaml env=ch8
-let time f =
-  let tbeg = Sys.time () in
-  let res = f () in
-  let tend = Sys.time () in
-  tend -. tbeg, res
-```
-
-With the list monad:
-
-```ocaml skip
-module ListCountdown = Countdown (ListM)
-let test1 () = ListM.run (ListCountdown.solutions [1;3;7;10;25;50] 765)
-let t1, sol1 = time test1
-(* val t1 : float = 2.28... *)
-(* val sol1 : string list = ["((25-(3+7))*(1+50))"; "(((25-3)-7)*(1+50))"; ...] *)
-```
-
-```ocaml env=ch8
+```ocaml env=choice_laws
+let plus a b = match a with Some _ -> a | None -> b
+let f x = if x = 2 then Some x else None
 let () =
-  let module C = Countdown (ListM) in
-  assert (ListM.run (C.insert 0 [1; 2])
-    = [[0; 1; 2]; [1; 0; 2]; [1; 2; 0]])
+  let left = Option.bind (plus (Some 1) (Some 2)) f in
+  let right = plus (Option.bind (Some 1) f) (Option.bind (Some 2) f) in
+  assert (left = None && right = Some 2)
 ```
 
-The sample timing above illustrates the cost of enumerating every solution; measure it on your own machine. What if we want only one solution? Laziness to the rescue!
+Committing to `Some 1` discarded the alternative before `f` rejected it. In
+contrast, `Search.first` sees the completed search tree and can try the second
+branch. This is why a `MONAD_PLUS` signature is not enough to certify a
+backtracking algorithm.
 
-Our first attempt uses an "odd lazy list" -- a list where the tail is lazy but the head is strict:
+Other tempting laws also depend on equality. List choice is not commutative or
+idempotent when order and multiplicity are observed. Right distribution can
+reorder results: branching inside each value produces a different order from
+collecting one branch's answers and then the other's. A set interpreter may
+forget those differences; a probability interpreter may need their multiplicities.
+State each law the optimization actually uses.
 
-```ocaml env=ch8
-type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
+### 8.5 A concrete reason to combine effects
 
-let rec ltake n = function
-  | LCons (a, _) when n = 1 -> [a]
-  | LCons (a, l) when n > 1 -> a :: ltake (n-1) (Lazy.force l)
-  | _ -> []
+Suppose a branch increments a counter and then fails. Should the alternative
+branch see the increment? There are two useful answers:
 
-let rec lappend l1 l2 =
-  match l1 with
-  | LNil -> l2
-  | LCons (hd, tl) ->
-      LCons (hd, lazy (lappend (Lazy.force tl) l2))
+- **Branch-local state:** a failed branch rolls back its state. Represent a
+  computation as `state -> (answer * state) list`, conventionally `StateT(List)`.
+- **Shared execution state:** exploration updates one state even when a branch
+  produces no answers. A possible representation is `state -> answer list * state`;
+  its sequencing and traversal order must be specified, not inferred from its type.
 
-let rec lconcat_map f = function
-  | LNil -> LNil
-  | LCons (a, lazy l) ->
-      lappend (f a) (lconcat_map f l)
+Here is the first semantics in a small example:
 
-module LListM = MonadPlus (struct
-  type 'a t = 'a llist
-  let bind a b = lconcat_map b a
-  let return a = LCons (a, lazy LNil)
-  let mzero = LNil
-  let mplus = lappend
-end)
+```ocaml env=state_choice
+type 'a local = int -> ('a * int) list
+let return x s = [x,s]
+let bind m f s = List.concat_map (fun (x,s') -> f x s') (m s)
+let ( let* ) = bind
+let get s = [s,s]
+let put s _ = [(),s]
+let fail _ = []
+let plus a b s = a s @ b s
+let losing = let* () = put 1 in fail
+let () = assert (plus losing get 0 = [0,0])
 ```
 
-But testing shows disappointing results: the odd lazy list still takes about 2.5 seconds just to create the lazy list! The elements are almost all computed by the time we get the first one.
-
-Why? Because whenever we pattern match on `LCons (hd, tl)`, we have already evaluated the head. And when building lists with `mplus`, the head of the first list is computed immediately.
-
-What about using the **option monad** to find just the first solution?
-
-```ocaml env=ch8
-module OptionM = MonadPlus (struct
-  type 'a t = 'a option
-  let bind a b =
-    match a with None -> None | Some x -> b x
-  let return a = Some a
-  let mzero = None
-  let mplus a b = match a with None -> b | Some _ -> a
-end)
-```
-
-This very quickly computes... nothing! The option monad returns `None`.
-
-Why? The `OptionM` monad (Haskell's `Maybe` monad) is good for computations that might fail, but it does not *search* -- its `mplus` just picks the first non-`None` value. Since our search often needs to backtrack when a choice leads to failure, option gives up too early.
-
-Our odd lazy list type is not lazy *enough*. Whenever we "make" a choice with `a ++ b` or `msum_map`, it computes the first candidate for each choice path immediately. We need **even lazy lists** -- lists where even the outermost constructor is wrapped in `lazy`:
-
-```ocaml env=ch8
-type 'a lazy_list = 'a lazy_list_ Lazy.t
-and 'a lazy_list_ = LazNil | LazCons of 'a * 'a lazy_list
-
-let rec laztake n l =
-  if n <= 0 then [] else
-  match Lazy.force l with
-  | LazCons (a, tail) -> a :: laztake (n-1) tail
-  | LazNil -> []
-
-let rec append_aux l1 l2 =
-  match l1 with
-  | lazy LazNil -> Lazy.force l2
-  | lazy (LazCons (hd, tl)) ->
-      LazCons (hd, lazy (append_aux tl l2))
-
-let lazappend l1 l2 = lazy (append_aux l1 l2)
-
-let rec concat_map_aux f = function
-  | lazy LazNil -> LazNil
-  | lazy (LazCons (a, l)) ->
-      append_aux (f a) (lazy (concat_map_aux f l))
-
-let lazconcat_map f l = lazy (concat_map_aux f l)
-
-module LazyListM = MonadPlus (struct
-  type 'a t = 'a lazy_list
-  let bind a b = lazconcat_map b a
-  let return a = lazy (LazCons (a, lazy LazNil))
-  let mzero = lazy LazNil
-  let mplus = lazappend
-end)
-```
-
-Now the first solution takes only about 0.37 seconds -- considerably less time than the 2.3 seconds for all solutions! The next 9 solutions are almost computed once the first one is (just 0.23 seconds more). But computing all 49 solutions takes about 4 seconds -- nearly twice as long as without laziness. This is the price we pay for lazy computation: overhead when we do need all results.
-
-The lesson: even lazy lists enable true lazy search, but they come with overhead. Choose the right monad for your use case.
-
-#### The Exception Monad
-
-OCaml has built-in exceptions that are efficient and flexible. However, monadic exceptions have advantages in certain situations:
-
-- They are safer in multi-threading contexts (no risk of unhandled exceptions escaping)
-- They compose well with other monads (via monad transformers)
-- They make the possibility of failure explicit in the type
-
-The monadic lightweight-thread library Lwt has `throw` (called `fail` there) and `catch` operations in its monad for exactly these reasons.
-
-```ocaml env=ch8
-module ExceptionM (Excn : sig type t end) : sig
-  type excn = Excn.t
-  type 'a t = OK of 'a | Bad of excn
-  include MONAD_OPS
-  val run : 'a monad -> 'a t
-  val throw : excn -> 'a monad
-  val catch : 'a monad -> (excn -> 'a monad) -> 'a monad
-end = struct
-  type excn = Excn.t
-  module M = struct
-    type 'a t = OK of 'a | Bad of excn
-    let return a = OK a
-    let bind m b = match m with
-      | OK a -> b a
-      | Bad e -> Bad e
-  end
-  include M
-  include MonadOps(M)
-  let throw e = Bad e
-  let catch m handler = match m with
-    | OK _ -> m
-    | Bad e -> handler e
-end
-```
-
-#### The State Monad
-
-The state monad threads a piece of mutable state through a computation without actually using mutation. The key insight is that a stateful computation can be represented as a *function* from the current state to a pair of (result, new state):
-
-```ocaml env=ch8
-module StateM (Store : sig type t end) : sig
-  type store = Store.t
-  type 'a t = store -> 'a * store  (* A stateful computation *)
-  include MONAD_OPS
-  include STATE with type 'a t := 'a monad
-                 and type store := store
-  val run : 'a monad -> 'a t
-end = struct
-  type store = Store.t
-  module M = struct
-    type 'a t = store -> 'a * store
-    let return a = fun s -> a, s     (* Return value, keep state unchanged *)
-    let bind m b = fun s -> let a, s' = m s in b a s'
-  end                          (* Run m, then pass result and new state to b *)
-  include M
-  include MonadOps(M)
-  let get = fun s -> s, s            (* Return the current state *)
-  let put s' = fun _ -> (), s'       (* Replace the state, return unit *)
-end
-```
-
-The `bind` operation sequences two stateful computations: it runs the first one with the initial state, then passes both the result and the new state to the second computation.
-
-The state monad is useful to hide the threading of a "current" value through a computation. Here is an example that renames variables in lambda-terms to eliminate potential name clashes (alpha-conversion):
-
-```ocaml env=ch8
-type term =
-  | Var of string
-  | Lam of string * term
-  | App of term * term
-
-module TermOps = struct
-  let (!) x = Var x
-  let (|->) x t = Lam (x, t)
-  let (@) t1 t2 = App (t1, t2)
-end
-let test = TermOps.("x" |-> ("x" |-> !"y" @ !"x") @ !"x")
-
-module S = StateM (struct type t = int * (string * string) list end)
-open S
-
-let rec alpha_conv = function
-  | Var x as v ->                      (* Function from terms to StateM monad *)
-      let* (_, env) = get in           (* Seeing a variable does not change state *)
-      let v = try Var (List.assoc x env)  (* but we need its new name *)
-        with Not_found -> v in         (* Free variables don't change name *)
-      return v
-  | Lam (x, t) ->                      (* We rename each bound variable *)
-      let* (fresh, env) = get in       (* We need a fresh number *)
-      let x' = x ^ string_of_int fresh in
-      let* () = put (fresh+1, (x, x')::env) in  (* Remember new name, update number *)
-      let* t' = alpha_conv t in
-      let* (fresh', _) = get in        (* We need to restore names, *)
-      let* () = put (fresh', env) in   (* but keep the number fresh *)
-      return (Lam (x', t'))
-  | App (t1, t2) ->
-      let* t1 = alpha_conv t1 in       (* Passing around of names *)
-      let* t2 = alpha_conv t2 in       (* and the currently fresh number *)
-      return (App (t1, t2))            (* is done by the monad *)
-
-(* # StateM.run (alpha_conv test) (5, []);; *)
-```
-
-The state consists of a fresh counter and an environment mapping old names to new names. The `get` and `put` operations access and modify this state, while `let*` sequences the operations. Without the state monad, we would have to explicitly pass the state through every recursive call -- tedious and error-prone.
-
-This example assumes every generated name is absent from the input, including its free variables. Without that precondition it can capture a variable even on the first pass: try a binder `x` and a free `x0` with the initial counter zero. It also does not make a term safe for arbitrary later beta-reductions. Extend the name supply to track all names in use.
-
-### 8.12 Monad Transformers
-
-Sometimes we need the capabilities of multiple monads at the same time. For example, we might want both state (to track information) and non-determinism (to explore choices). The straightforward idea is to nest one monad within another: either `'a AM.monad BM.monad` or `'a BM.monad AM.monad`. But this does not work well -- we want a single monad that has operations of *both* `AM` and `BM`.
-
-The solution is a **monad transformer**. A monad transformer `AT` takes a monad `BM` and produces a new monad `AT(BM)` that has operations of both. The transformed monad wraps around `BM` in a specific way to make the operations interact correctly.
-
-We will develop a monad transformer `StateT` which adds state to any monad-plus. The resulting monad has all the operations: `return`, `bind`, `mzero`, `mplus`, `put`, `get`, and all their derived functions.
-
-Why do we need monad transformers in OCaml? Because "monads are contagious": although we have built-in state and exceptions, we need to use *monadic* state and exceptions when we are inside a monad. For example, using OCaml's native `ref` cells inside a list monad would give the wrong semantics for backtracking. This is also why Lwt is both a concurrency monad and an exception monad -- it needs monadic exceptions to interact correctly with its concurrency model.
-
-To understand how the transformer works, let us compare the regular state monad with the transformed version. The regular state monad uses ordinary OCaml binding:
-
-```ocaml skip
-type 'a state = store -> ('a * store)
-
-let return (a : 'a) : 'a state =
-  fun s -> (a, s)
-
-let bind (u : 'a state) (f : 'a -> 'b state) : 'b state =
-  fun s -> let (a, s') = u s in f a s'
-```
-
-The transformed version wraps everything in the underlying monad `M`:
-
-```ocaml skip
-(* Monad M transformed to add state, in pseudo-code: *)
-type 'a stateT(M) = store -> ('a * store) M
-(* Note: this is store -> ('a * store) M, not ('a M) state *)
-
-let return (a : 'a) : 'a stateT(M) =
-  fun s -> M.return (a, s)           (* Use M.return instead of just returning *)
-
-let bind (u : 'a stateT(M)) (f : 'a -> 'b stateT(M)) : 'b stateT(M) =
-  fun s -> M.bind (u s) (fun (a, s') -> f a s')  (* Use M.bind instead of let *)
-```
-
-The key insight is that the result type is `('a * store) M` -- the result and state are wrapped *together* in the underlying monad. This ensures that backtracking (in a monad-plus) correctly restores the state.
-
-#### State Transformer Implementation
-
-```ocaml env=ch8
-module StateT (MP : MONAD_PLUS_OPS) (Store : sig type t end) : sig
-  type store = Store.t
-  type 'a t = store -> ('a * store) MP.monad
-  include MONAD_PLUS_OPS         (* Exporting all monad-plus operations *)
-  include STATE with type 'a t := 'a monad
-                 and type store := store  (* and state operations *)
-  val run : 'a monad -> 'a t     (* Expose "what happened" -- resulting states *)
-  val runT : 'a monad -> store -> 'a MP.monad
-end = struct              (* Run the state transformer -- get resulting values *)
-  type store = Store.t
-  module M = struct
-    type 'a t = store -> ('a * store) MP.monad
-    let return a = fun s -> MP.return (a, s)
-    let bind m b = fun s ->
-      MP.bind (m s) (fun (a, s') -> b a s')
-    let mzero = fun _ -> MP.mzero            (* Lift the monad-plus operations *)
-    let mplus ma mb = fun s -> MP.mplus (ma s) (mb s)
-  end
-  include M
-  include MonadPlusOps(M)
-  let get = fun s -> MP.return (s, s)        (* Instead of just returning, *)
-  let put s' = fun _ -> MP.return ((), s')   (* MP.return *)
-  let runT m s = MP.lift fst (m s)
-end
-```
-
-#### Backtracking with State
-
-Now we can combine backtracking with state for our puzzle solver. The state tracks which cells have been visited, eaten, and how many islands we have found. The monad-plus structure handles the backtracking when a choice leads to a dead end:
-
-```ocaml env=ch8
-module HoneyIslands (M : MONAD_PLUS_OPS) = struct
-  type state = {
-    been_size : int;
-    been_islands : int;
-    unvisited : cell list;
-    visited : CellSet.t;
-    eaten : cell list;
-    more_to_eat : int;
-  }
-
-  let init_state unvisited more_to_eat = {
-    been_size = 0;
-    been_islands = 0;
-    unvisited;
-    visited = CellSet.empty;
-    eaten = [];
-    more_to_eat;
-  }
-
-  module BacktrackingM = StateT (M) (struct type t = state end)
-  open BacktrackingM
-
-  let rec visit_cell () =           (* State update actions *)
-    let* s = get in
-    match s.unvisited with
-    | [] -> return None
-    | c::remaining when CellSet.mem c s.visited ->
-        let* () = put {s with unvisited=remaining} in
-        visit_cell ()               (* Throwaway argument because of recursion *)
-    | c::remaining ->
-        let* () = put {s with
-          unvisited=remaining;
-          visited = CellSet.add c s.visited} in
-        return (Some c)             (* This action returns a value *)
-
-  let eat_cell c =
-    let* s = get in
-    let* () = put {s with eaten = c::s.eaten;
-         visited = CellSet.add c s.visited;
-         more_to_eat = s.more_to_eat - 1} in
-    return ()              (* Remaining state update actions just affect the state *)
-
-  let keep_cell c =
-    let* s = get in
-    let* () = put {s with
-      visited = CellSet.add c s.visited;
-      been_size = s.been_size + 1} in
-    return ()
-
-  let fresh_island =
-    let* s = get in
-    let* () = put {s with been_size = 0;
-         been_islands = s.been_islands + 1} in
-    return ()
-
-  let find_to_eat n island_size num_islands empty_cells =
-    let honey = honey_cells n empty_cells in
-    let rec find_board () =
-      let* cell = visit_cell () in
-      match cell with
-      | None ->
-          let* s = get in
-          let* () = guard (s.been_islands = num_islands) in
-          return s.eaten
-      | Some cell ->
-          let* () = fresh_island in
-          let* () = find_island cell in
-          let* s = get in
-          let* () = guard (s.been_size = island_size) in
-          find_board ()
-
-    and find_island current =
-      let* () = keep_cell current in
-      neighbors n empty_cells current
-      |> foldM
-           (fun () neighbor ->
-              let* s = get in
-              whenM (not (CellSet.mem neighbor s.visited))
-                (let choose_eat =
-                   let* () = guard (s.more_to_eat > 0) in
-                   eat_cell neighbor
-                 and choose_keep =
-                   let* () = guard (s.been_size < island_size) in
-                   find_island neighbor in
-                 choose_eat ++ choose_keep)) () in
-
-    let cells_to_eat =
-      List.length honey - island_size * num_islands in
-    init_state honey cells_to_eat
-    |> runT (find_board ())
-end
-
-module HoneyL = HoneyIslands (ListM)
-let find_to_eat a b c d =
-  ListM.run (HoneyL.find_to_eat a b c d)
-```
-
-### 8.13 Probabilistic Programming
-
-Using a random number generator, we can define procedures that produce various outputs. This is **not functional** in the mathematical sense -- mathematical functions have deterministic results for fixed arguments.
-
-Just as we can "simulate" mutable variables with the state monad and non-determinism with the list monad, we can "simulate" random computation with a **probability monad**. But the probability monad is more than just randomized computation -- it lets us *reason* about probabilities. We can ask questions like "what is the probability of this outcome?" or "what is the distribution of possible results?"
-
-Different monad implementations make different tradeoffs:
-
-- **Exact distribution**: Track all possible outcomes and their probabilities precisely
-- **Sampling (Monte Carlo)**: Approximate probabilities by running many random trials
-
-#### The Probability Monad
-
-The essential functions for the probability monad class are `choose` (for making probabilistic choices) and `distrib` (for extracting the probability distribution). Other operations could be defined in terms of these but are provided by each instance for efficiency.
-
-**Inside-monad operations** (building probabilistic computations):
-
-- `choose : float -> 'a monad -> 'a monad -> 'a monad`: `choose p a b` represents an event which is `a` with probability $p$ and `b` with probability $1-p$.
-- `pick : ('a * float) list -> 'a monad`: Draw a result from a given probability distribution. The argument must be a valid distribution: positive probabilities summing to 1.
-- `uniform : 'a list -> 'a monad`: Uniform distribution -- each element equally likely.
-- `flip : float -> bool monad`: A biased coin: `true` with probability `p`, `false` otherwise.
-- `coin : bool monad`: A fair coin: `flip 0.5`.
-
-**Outside-monad operations** (querying probabilistic computations):
-
-- `prob : ('a -> bool) -> 'a monad -> float`: Returns the probability that a predicate holds.
-- `distrib : 'a monad -> ('a * float) list`: Returns the full distribution of probabilities over outcomes.
-- `access : 'a monad -> 'a`: Samples a random result from the distribution -- this is **non-functional** behavior (different calls may return different results).
-
-```ocaml env=ch8
-module type PROBABILITY = sig
-  include MONAD_OPS
-  val choose : float -> 'a monad -> 'a monad -> 'a monad
-  val pick : ('a * float) list -> 'a monad
-  val uniform : 'a list -> 'a monad
-  val coin : bool monad
-  val flip : float -> bool monad
-  val prob : ('a -> bool) -> 'a monad -> float
-  val distrib : 'a monad -> ('a * float) list
-  val access : 'a monad -> 'a
-end
-```
-
-Helper functions:
-
-```ocaml env=ch8
-let total dist =
-  List.fold_left (fun a (_,b) -> a +. b) 0. dist
-
-let merge dist = map_reduce (fun x -> x) (+.) 0. dist  (* Merge repeating elements *)
-
-let normalize dist =                 (* Normalize a measure into a distribution *)
-  let tot = total dist in
-  if tot = 0. then dist
-  else List.map (fun (e,w) -> e, w /. tot) dist
-
-let roulette dist =                  (* Roulette wheel from a distribution/measure *)
-  if List.exists (fun (_, w) -> not (Float.is_finite w) || w < 0.) dist then
-    invalid_arg "roulette: weights must be finite and nonnegative";
-  let dist = List.filter (fun (_, w) -> w > 0.) dist in
-  let tot = total dist in
-  if not (Float.is_finite tot) || tot <= 0. then
-    invalid_arg "roulette: total weight must be finite and positive";
-  let rec aux r = function
-    | [] -> assert false
-    | [e, _] -> e                    (* Absorb floating-point rounding at the end. *)
-    | (e, w)::_ when r < w -> e
-    | (_, w)::tl -> aux (r -. w) tl in
-  aux (Random.float tot) dist
-```
-
-A zero-weight outcome must never be selected; a distribution with one positive outcome must always return it:
-
-```ocaml env=ch8
+Both alternatives receive the original state zero. Compare an explicitly shared
+state interpretation of that same policy question:
+
+```ocaml env=state_choice
+let shared_counter = ref 0
+let losing_shared () = shared_counter := 1; []
+let alternative_shared () = [!shared_counter]
 let () =
-  for _ = 1 to 100 do
-    assert (roulette ["impossible", 0.; "certain", 1.] = "certain")
-  done
+  let a = losing_shared () in
+  let b = alternative_shared () in
+  assert (a @ b = [1])
 ```
 
-#### Exact Distribution Monad
-
-```ocaml env=ch8
-module DistribM : PROBABILITY = struct
-  module M = struct       (* Exact probability distribution -- naive implementation *)
-    type 'a t = ('a * float) list
-    let bind a b = merge             (* x w.p. p and then y w.p. q happens = *)
-      (List.concat_map (fun (x, p) ->
-        List.map (fun (y, q) -> (y, q *. p)) (b x)) a)  (* y results w.p. p*q *)
-    let return a = [a, 1.]           (* Certainly a *)
-  end
-  include M
-  include MonadOps (M)
-  let choose p a b =
-    List.append
-      (List.map (fun (e,w) -> e, p *. w) a)
-      (List.map (fun (e,w) -> e, (1. -. p) *. w) b)
-  let pick dist = dist
-  let uniform elems = normalize
-    (List.map (fun e -> e, 1.) elems)
-  let coin = [true, 0.5; false, 0.5]
-  let flip p = [true, p; false, 1. -. p]
-  let prob p m = m
-    |> List.filter (fun (e,_) -> p e)    (* All cases where p holds, *)
-    |> List.map snd |> List.fold_left (+.) 0.  (* add up *)
-  let distrib m = m
-  let access m = roulette m
-end
-```
-
-#### Sampling Monad
-
-```ocaml env=ch8
-module SamplingM (S : sig val samples : int end) : PROBABILITY = struct
-  module M = struct                      (* Parameterized by how many samples *)
-    type 'a t = unit -> 'a               (* used to approximate prob or distrib *)
-    let bind a b () = b (a ()) ()        (* Randomized computation -- each call a() *)
-    let return a = fun () -> a           (* is an independent sample. Always a. *)
-  end
-  include M
-  include MonadOps (M)
-  let choose p a b () =
-    if Random.float 1. < p then a () else b ()
-  let pick dist = fun () -> roulette dist
-  let uniform elems =
-    let n = List.length elems in
-    fun () -> List.nth elems (Random.int n)
-  let coin = Random.bool
-  let flip p = choose p (return true) (return false)
-  let prob p m =
-    let count = ref 0 in
-    for i = 1 to S.samples do
-      if p (m ()) then incr count
-    done;
-    float_of_int !count /. float_of_int S.samples
-  let distrib m =
-    let dist = ref [] in
-    for i = 1 to S.samples do
-      dist := (m (), 1.) :: !dist done;
-    normalize (merge !dist)
-  let access m = m ()
-end
-```
-
-#### Example: The Monty Hall Problem
-
-The Monty Hall problem is a famous probability puzzle. In search of a new car, the player picks a door, say 1. The game host (who knows what is behind each door) then opens one of the other doors, say 3, to reveal a goat and offers to let the player switch to door 2 instead of door 1. Should the player switch?
-
-Most people's intuition says it does not matter, but let us compute the actual probabilities:
-
-```ocaml env=ch8
-module MontyHall (P : PROBABILITY) = struct
-  open P
-  type door = A | B | C
-  let doors = [A; B; C]
-
-  let monty_win switch =
-    let* prize = uniform doors in
-    let* chosen = uniform doors in
-    let* opened = uniform (list_diff doors [prize; chosen]) in
-    let final =
-      if switch then List.hd (list_diff doors [opened; chosen])
-      else chosen in
-    return (final = prize)
-end
-
-module MontyExact = MontyHall (DistribM)
-module Sampling1000 =
-  SamplingM (struct let samples = 1000 end)
-module MontySimul = MontyHall (Sampling1000)
-
-(* DistribM.distrib (MontyExact.monty_win false);; *)
-(* DistribM.distrib (MontyExact.monty_win true);; *)
-```
-
-The famous result: switching doubles your chances of winning! Counter-intuitively, the host's choice of which door to open gives you information -- by switching, you are betting that your initial choice was wrong (which it is 2/3 of the time).
-
-#### Conditional Probabilities
-
-So far we have computed unconditional probabilities. But what if we want to answer questions like "given that X happened, what is the probability of Y?" This is a conditional probability $P(Y|X)$.
-
-Wouldn't it be nice to have a monad-plus rather than just a monad? Then we could use `guard` for conditional probabilities!
-
-To compute $P(A|B)$:
-1. Compute what is needed for both $A$ and $B$
-2. Guard $B$
-3. Return $A$
-
-For the exact distribution monad, we allow intermediate distributions to be *unnormalized* (probabilities sum to less than 1) and normalize at the end. For the sampling monad, we use *rejection sampling*: generate samples and discard those that do not satisfy the condition (though `mplus` has no straightforward correct implementation in this approach).
-
-```ocaml env=ch8
-module type COND_PROBAB = sig
-  include PROBABILITY
-  include MONAD_PLUS_OPS with type 'a monad := 'a monad
-end
-
-module DistribMP : COND_PROBAB = struct
-  module MP = struct
-    type 'a t = ('a * float) list      (* Measures no longer restricted to *)
-    let bind a b = merge               (* probability distributions *)
-      (List.concat_map (fun (x, p) ->
-        List.map (fun (y, q) -> (y, q *. p)) (b x)) a)
-    let return a = [a, 1.]
-    let mzero = []                     (* Measure equal 0 everywhere is OK *)
-    let mplus = List.append
-  end
-  include MP
-  include MonadPlusOps (MP)
-  let choose p a b =              (* It isn't a w.p. p & b w.p. (1-p) since a and b *)
-    List.map (fun (e,w) -> e, p *. w) a @  (* are not normalized! *)
-      List.map (fun (e,w) -> e, (1. -. p) *. w) b
-  let pick dist = dist
-  let uniform elems = normalize
-    (List.map (fun e -> e, 1.) elems)
-  let coin = [true, 0.5; false, 0.5]
-  let flip p = [true, p; false, 1. -. p]
-  let prob p m = normalize m           (* Final normalization step *)
-    |> List.filter (fun (e,_) -> p e)
-    |> List.map snd |> List.fold_left (+.) 0.
-  let distrib m = normalize m
-  let access m = roulette m
-end
-
-module SamplingMP (S : sig val samples : int end) : COND_PROBAB = struct
-  exception Rejected              (* For rejecting current sample *)
-  module MP = struct              (* Monad operations are exactly as for SamplingM *)
-    type 'a t = unit -> 'a
-    let bind a b () = b (a ()) ()
-    let return a = fun () -> a
-    let mzero = fun () -> raise Rejected  (* but now we can fail *)
-    let mplus a b = fun () ->
-      failwith "SamplingMP.mplus not implemented"
-  end
-  include MP
-  include MonadPlusOps (MP)
-  let choose p a b () =                (* Inside-monad operations don't change *)
-    if Random.float 1. < p then a () else b ()
-  let pick dist = fun () -> roulette dist
-  let uniform elems =
-    let n = List.length elems in
-    fun () -> List.nth elems (Random.int n)
-  let coin = Random.bool
-  let flip p = choose p (return true) (return false)
-  let prob p m =                  (* Getting out of monad: handle rejected samples *)
-    let count = ref 0 and tot = ref 0 in
-    while !tot < S.samples do          (* Count up to the required *)
-      try                              (* number of samples *)
-        if p (m ()) then incr count;   (* m() can fail *)
-        incr tot                       (* But if we got here it hasn't *)
-      with Rejected -> ()              (* Rejected, keep sampling *)
-    done;
-    float_of_int !count /. float_of_int S.samples
-  let distrib m =
-    let dist = ref [] and tot = ref 0 in
-    while !tot < S.samples do
-      try
-        dist := (m (), 1.) :: !dist;
-        incr tot
-      with Rejected -> ()
-    done;
-    normalize (merge !dist)
-  let rec access m =
-    try m () with Rejected -> access m
-end
-```
-
-#### Burglary Example: Encoding a Bayes Net
-
-Consider a problem with this dependency structure:
-
-- An alarm can be due to either a burglary or an earthquake
-- You are on vacation and have asked neighbors John and Mary to call if the alarm rings
-- Mary only calls when she is really sure about the alarm, but John has better hearing
-- Earthquakes are twice as probable as burglaries
-- The alarm has about 30% chance of going off during an earthquake
-- You can check on the radio if there was an earthquake, but you might miss the news
-
-Probability tables:
-
-- $P(\text{Burglary}) = 0.001$
-- $P(\text{Earthquake}) = 0.002$
-- $P(\text{Alarm}|\text{B}, \text{E})$ varies (0.001 for FF, 0.29 for FT, 0.94 for TF, 0.95 for TT)
-- $P(\text{John calls}|\text{Alarm})$ is 0.9 if alarm, 0.05 otherwise
-- $P(\text{Mary calls}|\text{Alarm})$ is 0.7 if alarm, 0.01 otherwise
-
-```ocaml env=ch8
-module Burglary (P : COND_PROBAB) = struct
-  open P
-  type what_happened =
-    | Safe | Burgl | Earthq | Burgl_n_earthq
-
-  let check ~john_called ~mary_called ~radio =
-    let* earthquake = flip 0.002 in
-    let* () = guard (radio = None || radio = Some earthquake) in
-    let* burglary = flip 0.001 in
-    let alarm_p =
-      match burglary, earthquake with
-      | false, false -> 0.001
-      | false, true -> 0.29
-      | true, false -> 0.94
-      | true, true -> 0.95 in
-    let* alarm = flip alarm_p in
-    let john_p = if alarm then 0.9 else 0.05 in
-    let* john_calls = flip john_p in
-    let* () = guard (john_calls = john_called) in
-    let mary_p = if alarm then 0.7 else 0.01 in
-    let* mary_calls = flip mary_p in
-    let* () = guard (mary_calls = mary_called) in
-    match burglary, earthquake with
-    | false, false -> return Safe
-    | true, false -> return Burgl
-    | false, true -> return Earthq
-    | true, true -> return Burgl_n_earthq
-end
-
-module BurglaryExact = Burglary (DistribMP)
-module Sampling2000 =
-  SamplingMP (struct let samples = 2000 end)
-module BurglarySimul = Burglary (Sampling2000)
-```
-
-### 8.14 Lightweight Cooperative Threads
-
-Running multiple tasks asynchronously can hide I/O latency and utilize multi-core architectures. Traditional operating system threads are "heavyweight" -- they have significant overhead for context switching and memory. **Lightweight threads** are managed by the application rather than the OS, allowing many concurrent tasks with lower overhead.
-
-Lightweight threads can be:
-
-- **Preemptive**: The scheduler interrupts running threads to switch between them
-- **Cooperative**: Threads voluntarily give up control at specific points (like I/O operations)
-
-**Lwt** is a popular OCaml library for lightweight cooperative threads, implemented as a monad. The monadic structure ensures that thread switching happens at well-defined points (whenever you use `let*`), making the code easier to reason about.
-
-The `bind` operation is inherently sequential: `bind a (fun x -> b)` computes `a`, and only resumes computing `b` once the result `x` is known.
-
-For concurrency, we need to "suppress" this sequentiality. We introduce a parallel bind:
-
-```
-parallel : 'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
-```
-
-With `parallel ea eb f`, computations `ea` and `eb` can proceed concurrently. The continuation `f` runs once both results are available.
-
-If the monad starts computing right away (as in the Lwt library), `parallel ea eb f` is equivalent to:
-
-```
-let a = ea in
-let b = eb in
-let* x = a in
-let* y = b in
-f x y
-```
-
-#### Fine-Grained vs. Coarse-Grained Concurrency
-
-There are two approaches to when threads switch:
-
-**Fine-grained** concurrency suspends at every `bind`. The scheduler runs other threads and comes back to complete the `bind` before running threads created since the suspension. This gives maximum interleaving but has higher overhead.
-
-**Coarse-grained** concurrency only suspends when explicitly requested via a `suspend` (often called `yield`) operation. Library operations that need to wait for I/O should call `suspend` internally. This is more efficient but requires careful placement of suspension points.
-
-#### Thread Monad Signatures
-
-The thread monad extends the basic monad with parallel composition:
-
-```ocaml env=ch8
-module type THREADS = sig
-  include MONAD
-  val parallel :
-    'a t -> 'b t -> ('a -> 'b -> 'c t) -> 'c t
-end
-
-module type THREAD_OPS = sig
-  include MONAD_OPS
-  include THREADS with type 'a t := 'a monad
-  val parallel_map :
-    'a list -> ('a -> 'b monad) -> 'b list monad
-  val (>||=) :
-    'a monad -> 'b monad -> ('a -> 'b -> 'c monad) -> 'c monad
-  val (>||) :
-    'a monad -> 'b monad -> (unit -> 'c monad) -> 'c monad
-end
-
-module type THREADSYS = sig
-  include THREADS
-  val access : 'a t -> 'a
-  val kill_threads : unit -> unit
-end
-
-module ThreadOps (M : THREADS) = struct
-  open M
-  include MonadOps (M)
-  let parallel_map l f =
-    List.fold_right (fun a bs ->
-      parallel (f a) bs
-        (fun a bs -> return (a::bs))) l (return [])
-  let (>||=) = parallel
-  let (>||) a b c = parallel a b (fun _ _ -> c ())
-end
-
-module Threads (M : THREADSYS) : sig
-  include THREAD_OPS
-  val access : 'a monad -> 'a
-  val kill_threads : unit -> unit
-end = struct
-  include M
-  include ThreadOps(M)
-end
-```
-
-#### Cooperative Thread Implementation
-
-The implementation uses a mutable state to track thread progress. Each thread is in one of three states: completed (`Return`), waiting (`Sleep` with a list of callbacks to invoke when done), or forwarded to another thread (`Link`):
-
-```ocaml env=ch8
-module Cooperative = Threads(struct
-  type 'a state =
-    | Return of 'a                 (* The thread has returned *)
-    | Sleep of ('a -> unit) list   (* When thread returns, wake up waiters *)
-    | Link of 'a t                 (* A link to the actual thread *)
-  and 'a t = {mutable state : 'a state}  (* State of the thread can change *)
-                                   (* -- it can return, or more waiters added *)
-  let rec find t =                 (* Union-find style link chasing *)
-    match t.state with
-    | Link t -> find t
-    | _ -> t
-
-  let jobs = Queue.create ()       (* Work queue -- will store unit -> unit procedures *)
-
-  let wakeup m a =                 (* Thread m has actually finished -- *)
-    let m = find m in              (* updating its state *)
-    match m.state with
-    | Return _ -> assert false
-    | Sleep waiters ->
-        m.state <- Return a;       (* Set the state, and only then *)
-        List.iter ((|>) a) waiters (* wake up the waiters *)
-    | Link _ -> assert false
-
-  let return a = {state = Return a}
-
-  let connect t t' =               (* t was a placeholder for t' *)
-    let t' = find t' in
-    match t'.state with
-    | Sleep waiters' ->
-        let t = find t in
-        (match t.state with
-        | Sleep waiters ->         (* If both sleep, collect their waiters *)
-            t.state <- Sleep (waiters' @ waiters);
-            t'.state <- Link t     (* and link one to the other *)
-        | _ -> assert false)
-    | Return x -> wakeup t x       (* If t' returned, wake up the placeholder *)
-    | Link _ -> assert false
-
-  let rec bind a b =
-    let a = find a in
-    let m = {state = Sleep []} in  (* The resulting monad *)
-    (match a.state with
-    | Return x ->                  (* If a returned, we suspend further work *)
-        let job () = connect m (b x) in  (* (In exercise 11, this should *)
-        Queue.push job jobs        (* only happen after suspend) *)
-    | Sleep waiters ->             (* If a sleeps, we wait for it to return *)
-        let job x = connect m (b x) in
-        a.state <- Sleep (job::waiters)
-    | Link _ -> assert false);
-    m
-
-  let parallel a b c =             (* Since in our implementation *)
-    bind a (fun x ->               (* the threads run as soon as they are created, *)
-    bind b (fun y ->               (* parallel is redundant *)
-    c x y))
-
-  let rec access m =               (* Accessing not only gets the result of m, *)
-    let m = find m in              (* but spins the thread loop till m terminates *)
-    match m.state with
-    | Return x -> x                (* No further work *)
-    | Sleep _ ->
-        (try Queue.pop jobs ()     (* Perform suspended work *)
-         with Queue.Empty ->
-           failwith "access: result not available");
-        access m
-    | Link _ -> assert false
-
-  let kill_threads () = Queue.clear jobs  (* Remove pending work *)
-end)
-```
-
-#### Testing the Thread Implementation
-
-Let us test the implementation with two threads that each print a sequence of numbers:
-
-```ocaml env=ch8
-module TTest (T : THREAD_OPS) = struct
-  open T
-  let rec loop s n =
-    let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
-    if n > 0 then loop s (n-1)     (* We cannot use whenM because the thread *)
-    else return ()                 (* would be created regardless of condition *)
-end
-
-module TT = TTest (Cooperative)
-
-let test =
-  Cooperative.kill_threads ();     (* Clean-up after previous tests *)
-  let thread1 = TT.loop "A" 5 in
-  let thread2 = TT.loop "B" 4 in
-  Cooperative.access thread1;      (* We ensure threads finish computing *)
-  Cooperative.access thread2       (* before we proceed *)
-```
-
-The output shows that the threads interleave their execution beautifully: A(5), B(4), A(4), B(3), and so on. Each `bind` (the `let*`) causes a context switch to the other thread. This is fine-grained concurrency in action.
-
-The key insight is that monadic structure gives us precise control over concurrency. Every `let*` is a potential suspension point, making the code's behavior predictable and debuggable -- a significant advantage over preemptive threading where context switches can happen anywhere.
-
-### 8.15 Exercises
-
-#### Exercise 1: Oleg's Monad Puzzle
-
-(Puzzle via Oleg Kiselyov)
-
-
-"U2" has a concert that starts in 17 minutes and they must all cross a bridge to get there. All four men begin on the same side of the bridge. It is night. There is one flashlight. A maximum of two people can cross at one time. Any party who crosses, either 1 or 2 people, must have the flashlight with them. The flashlight must be walked back and forth, it cannot be thrown, etc. Each band member walks at a different speed. A pair must walk together at the rate of the slower man's pace:
-
-- Bono: 1 minute to cross
-- Edge: 2 minutes to cross
-- Adam: 5 minutes to cross
-- Larry: 10 minutes to cross
-
-For example: if Bono and Larry walk across first, 10 minutes have elapsed when they get to the other side of the bridge. If Larry then returns with the flashlight, a total of 20 minutes have passed and you have failed the mission.
-
-Find all answers to the puzzle using `let*` notation. The expression will be a bit long but recursion is not needed.
-
-#### Exercise 2: Predict Monadic Results
-
-Assume `concat_map` as defined in lecture 6 and the binding operators defined above. What will the following expressions return? Why?
-
-
-1. `let* _ = return 5 in return 7`
-2. `let guard p = if p then [()] else [] in let* () = guard false in return 7`
-3. `let* _ = return 5 in let* () = guard false in return 7`
-
-#### Exercise 3: Bind from Lift and Join
-
-Define `bind` in terms of `lift` and `join`.
-
-
-#### Exercise 4: Tree-Based Monad Plus
-
-Define a monad-plus implementation based on binary trees, with constant-time `mzero` and `mplus`. Starter code:
-
-
-```ocaml skip
-type 'a tree = Empty | Leaf of 'a | T of 'a tree * 'a tree
-
-module TreeM = MonadPlus (struct
-  type 'a t = 'a tree
-  let bind a b = (* TODO *)
-  let return a = (* TODO *)
-  let mzero = (* TODO *)
-  let mplus a b = (* TODO *)
-end)
-```
-
-#### Exercise 5: Prove Monad-Plus Laws
-
-Show the monad-plus laws for one of:
-
-1. `TreeM` from your solution of exercise 4
-2. `ListM` from lecture
-
-#### Exercise 6: Laziness Diagnosis
-
-Why is the following monad-plus not lazy enough?
-
-
-```ocaml skip
-let rec badappend l1 l2 =
-  match l1 with lazy LazNil -> l2
-  | lazy (LazCons (hd, tl)) ->
-      lazy (LazCons (hd, badappend tl l2))
-
-let rec badconcatmap f = function
-  | lazy LazNil -> lazy LazNil
-  | lazy (LazCons (a, l)) ->
-      badappend (f a) (badconcatmap f l)
-
-module BadyListM = MonadPlus (struct
-  type 'a t = 'a lazylist
-  let bind a b = badconcatmap b a
-  let return a = lazy (LazCons (a, lazy LazNil))
-  let mzero = lazy LazNil
-  let mplus = badappend
-end)
-```
-
-#### Exercise 7: Column-Aligned Matrix Printing
-
-Convert a "rectangular" list of lists of strings, representing a matrix with inner lists being rows, into a string, where elements are column-aligned. (Exercise not related to monads.)
-
-
-#### Exercise 8: Enriched Exception Signatures
-
-Recall the enriched monad signature with `('s, 'a) t` type. Design the signatures for the exception monad operations to provide more flexibility than our exception monad. Does the implementation need to change?
-
-
-#### Exercise 9: Generic Monadic Control Constructs
-
-Implement the following constructs for *all* monads:
-
-
-1. `for...to...`
-2. `for...downto...`
-3. `while...do...`
-4. `do...while...`
-5. `repeat...until...`
-
-Explain how, when your implementation is instantiated with the StateM monad, we get the solution to exercise 2 from lecture 4.
-
-#### Exercise 10: Wet-Grass Inference Model
-
-A canonical example of a probabilistic model is that of a lawn whose grass may be wet because it rained, because the sprinkler was on, or for some other reason. The probability tables are:
-
-
-$$
-\begin{aligned}
-P(\text{cloudy}) &= 0.5 \\
-P(\text{rain}|\text{cloudy}) &= 0.8 \\
-P(\text{rain}|\neg\text{cloudy}) &= 0.2 \\
-P(\text{sprinkler}|\text{cloudy}) &= 0.1 \\
-P(\text{sprinkler}|\neg\text{cloudy}) &= 0.5 \\
-P(\text{wet\_roof}|\neg\text{rain}) &= 0 \\
-P(\text{wet\_roof}|\text{rain}) &= 0.7 \\
-P(\text{wet\_grass}|\text{rain} \land \neg\text{sprinkler}) &= 0.9 \\
-P(\text{wet\_grass}|\text{sprinkler} \land \neg\text{rain}) &= 0.9
-\end{aligned}
-$$
-
-We observe whether the grass is wet and whether the roof is wet. What is the probability that it rained?
-
-#### Exercise 11: Coarse-Grained Concurrency
-
-Implement the coarse-grained concurrency model:
-
-
-- Modify `bind` to compute the resulting monad straight away if the input monad has returned.
-- Introduce `suspend` to do what in the fine-grained model was the effect of `bind (return a) b`, i.e., suspend the work although it could already be started.
-- One possibility is to introduce `suspend` of type `unit monad`, introduce a "dummy" monadic value `Suspend` (besides `Return` and `Sleep`), and define `bind suspend b` to do what `bind (return ()) b` would formerly do.
-
-
-## Chapter 9: Algebraic Effects
+A transformer is useful once this semantic choice is concrete. It systematically
+builds one interface from another; it does not make the order irrelevant. The
+Honey Islands transformer uses branch-local removal lists, and its tests compare
+all resulting removal sets against exhaustive subsets. Accidental shared state
+would change that solver's meaning.
+
+### 8.6 Probability is weighted choice
+
+A finite distribution assigns nonnegative, finite weights to outcomes. To sample,
+the support must contain positive total mass; normalize the weights before
+selecting an interval. Zero-weight outcomes must never be selected. Conditioning
+multiplies weights by likelihoods and normalizes at the end; impossible evidence
+has zero total mass and cannot yield a posterior distribution.
+
+For a fair Boolean `b`, observing likelihood `0.8` if true and `0.2` otherwise
+gives unnormalized masses `0.4` and `0.1`, hence posterior `P(b=true)=0.8`.
+A subsequent irrelevant fair draw must not change that posterior. Recounting the
+observation on each replay would incorrectly strengthen the evidence.
+
+`projects/probability/README.md` uses the same tiny models with finite enumeration,
+likelihood weighting, and replay with or without resampling. “Exact enumeration”
+means the entire finite support is explored; its numerical weights are still
+floats. It is a reference for small models, not a cure for underflow or a proof
+that a sampling estimator is consistent. The larger sensor-fusion application
+uses the same compiled inference module.
+
+### 8.7 Exercises
+
+1. **Practice.** Add an interpreter returning the last successful result. State
+   its relation to `all`, including the empty case, and check it on `pairs`.
+2. **Proof.** Prove left distribution for list bind. Exhibit the order difference
+   in a proposed right-distribution law using two inputs and two outcomes.
+3. **Experiment.** Run the option counterexample after changing `f` so both
+   inputs succeed. Explain why that passing case does not establish the law.
+4. **Practice.** Count *distinct* answers by interpreting to a set. Give a search
+   where this differs from `count`; specify a comparison function for the answers.
+5. **Project.** Port a new Honey Islands pruning rule through its direct and
+   monadic implementations, preserving its exhaustive reference comparisons.
+6. **Proof / experiment.** Derive the posterior above by hand, then compare the
+   inference project outputs. Explain why another draw must not square the
+   likelihood, and why a fixed-seed test is weaker than a statistical theorem.
+
+**Selected answer (2).** With inputs `[1;2]`, branches `f x = [x]` and
+`g x = [10*x]`, branching inside bind gives `[1;10;2;20]`; concatenating the two
+bound computations gives `[1;2;10;20]`. They are equal as multisets, not as lists.
+
+
+## Chapter 9: Effects, ownership, and cancellation
 
 ![Chapter 9 illustration](Curious_OCaml-chapter_9.jpg){.chapter-image}
 
-**In this chapter, you will:**
+**Prerequisites:** Chapter 3's continuations, Chapter 5's interfaces, and Chapter 8's
+interpreters. **Route:** Part III. The executable project is `projects/effects`;
+probability shares `projects/probability` with Chapter 8.
 
-- Understand Generalized Algebraic Data Types (GADTs) and how they enable type-refined pattern matching
-- Learn about algebraic effects and handlers as a powerful alternative to monads
-- Implement lightweight cooperative threads using effects (comparing with the monad-based version)
-- Model probabilistic programming with effect handlers
-- Build interpreters for probabilistic programs: rejection sampling and particle filtering
-- Understand the replay-with-fast-forward pattern for efficient inference
-- Use GADTs to build a type-safe probabilistic programming interface
+An effect operation transfers control to a handler. The handler receives a
+continuation: the suspended rest of the computation. It can resume that
+continuation or discontinue it with an exception. Once suspension is possible,
+“who owns the continuation?” becomes as important as “what value does it return?”.
+We establish that ownership before building a scheduler.
 
-OCaml 5 introduced a game-changing feature: algebraic effects with effect handlers. While monads provide a disciplined way to structure effectful computations, they require threading computations explicitly through bind operations. Algebraic effects offer a different approach: effects can be performed directly, and handlers define how those effects are interpreted.
+### 9.1 Operations have result types
 
-This chapter explores algebraic effects through two substantial examples. First, we will reimplement the cooperative lightweight threads from the previous chapter, showing how effects simplify the code. Then we will tackle probabilistic programming, building interpreters that can answer questions about probability distributions.
+An extensible GADT describes the type of each operation's result:
 
-Before diving into effects, we need to understand GADTs -- they are the foundation on which OCaml's effect system is built.
-
-### 9.1 Generalized Algebraic Data Types
-
-Generalized Algebraic Data Types (GADTs) extend ordinary algebraic data types by allowing each constructor to specify a *more precise* return type. Where regular data types have constructors that all produce the same type, GADT constructors can refine the type parameter.
-
-#### Basic GADT Syntax
-
-Consider a simple expression type. With ordinary data types, we cannot distinguish integer expressions from boolean expressions at the type level:
-
-```ocaml skip
-type expr =
-  | Int of int
-  | Bool of bool
-  | Add of expr * expr
-  | If of expr * expr * expr
+```ocaml env=effects
+type _ Effect.t += Ask : string Effect.t
+let greeting () = "Hello, " ^ Effect.perform Ask
+let answer () =
+  match greeting () with
+  | text -> text
+  | effect Ask, k -> Effect.Deep.continue k "reader"
+let () = assert (answer () = "Hello, reader")
 ```
 
-The `Add` constructor should only work with integer expressions, but the type system cannot enforce this -- we can construct `Add (Bool true, Bool false)` which is nonsensical.
-
-GADTs solve this problem. The syntax uses explicit return type annotations:
-
-```ocaml env=ch9
-type _ expr =
-  | Int : int -> int expr
-  | Bool : bool -> bool expr
-  | Add : int expr * int expr -> int expr
-  | If : bool expr * 'a expr * 'a expr -> 'a expr
-```
-
-Each constructor now specifies its return type after the colon. `Int` constructs an `int expr`, `Bool` constructs a `bool expr`, and `Add` requires two `int expr` arguments and produces an `int expr`. The `If` constructor is polymorphic: it requires a boolean condition and two branches of the same type `'a`, producing an `'a expr`.
-
-Now `Add (Bool true, Bool false)` is a type error -- the type checker rejects it because `Bool true` has type `bool expr`, not `int expr`.
-
-#### Type Refinement in Pattern Matching
-
-The real power of GADTs emerges in pattern matching. When we match on a GADT constructor, the type checker *learns* information about the type parameter:
-
-```ocaml env=ch9
-let rec eval : type a. a expr -> a = function
-  | Int n -> n          (* Here a = int, so we return int *)
-  | Bool b -> b         (* Here a = bool, so we return bool *)
-  | Add (e1, e2) -> eval e1 + eval e2   (* Here a = int *)
-  | If (cond, then_, else_) ->
-      if eval cond then eval then_ else eval else_
-```
-
-The annotation `type a. a expr -> a` declares a *locally abstract type* `a`. This tells OCaml that `a` is a type variable that may be refined differently in each branch. In the `Int n` branch, the type checker knows that `a = int` because we matched the `Int` constructor which returns `int expr`. This allows us to return `n` (an `int`) where the return type is `a` -- which in this branch *is* `int`.
-
-Without the locally abstract type annotation, the code would fail to type-check. The annotation is necessary because different branches may assign different concrete types to `a`.
-
-#### Existential Types in GADTs
-
-GADT constructors can introduce *existential* type variables -- types that exist within the constructor but are not exposed in the result type:
-
-```ocaml env=ch9
-type printable =
-  | Printable : { value : 'a; print : 'a -> string } -> printable
-```
-
-The type variable `'a` appears in the arguments but not in the result type `printable`. This means we can pack any value together with a function that knows how to print it:
-
-```ocaml env=ch9
-let examples = [
-  Printable { value = 42; print = string_of_int };
-  Printable { value = "hello"; print = Fun.id };
-  Printable { value = [1;2;3]; print = fun l ->
-      "[" ^ String.concat "; " (List.map string_of_int l) ^ "]" }
-]
-
-let print_all items =
-  List.iter (fun (Printable { value; print }) ->
-    print_endline (print value)) items
-
-let () = print_all examples
-```
-
-Within the pattern match, we can use `print value` because both refer to the same existential type `'a`. But we cannot extract `value` and use it outside the pattern -- its type is unknown.
-
-#### Connection to Type Inference
-
-In [Section 5.3](#type-inference-formally), we presented the formal rules for type constraint generation. The key rule for pattern clauses was:
-
-$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
-
-where $\exists \overline{\beta} \Gamma'$ is $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, $\overline{\beta} \# \text{FV}(\Gamma, \tau_2)$
-
-For ordinary data types, the constraints derived from patterns are equations. For GADTs, the pattern derivation also produces type equalities $D$, so we have $\exists \overline{\beta} [D] \Gamma'$ from $[\![ \Sigma \vdash p \uparrow \tau_1 ]\!]$, and the constraint becomes an *implication*:
-
-$$[\![ \Gamma, \Sigma \vdash p.e : \tau_1 \rightarrow \tau_2 ]\!] = [\![ \Sigma \vdash p \downarrow \tau_1 ]\!] \wedge \forall \overline{\beta} . D \Rightarrow [\![ \Gamma \Gamma' \vdash e : \tau_2 ]\!]$$
-
-The premise $D$ is the conjunction of type equalities that the GADT constructor establishes. The universal quantification over $\overline{\beta}$ reflects that these equalities hold for *all* values matching the pattern.
-
-For example, when type-checking `eval` and matching the `Int n` case:
-
-- The pattern produces the equality $D = (\text{a} \doteq \text{int})$
-- The constraint becomes: $\forall \text{a} . (\text{a} \doteq \text{int}) \Rightarrow [\![ \text{n} : \text{int} \vdash \text{n} : \text{a} ]\!]$
-- Under the assumption `a = int`, returning `n : int` satisfies the requirement `result : a`
-
-This is why GADT pattern matching can have different types in different branches -- each branch operates under different type assumptions given by the implication premise. The type checker uses these *local type refinements* to verify that each branch is well-typed.
-
-GADTs also enable the type checker to recognize *impossible* cases. If a function takes `int expr` as input, the `Bool` constructor can never match because `Bool` produces `bool expr`, not `int expr`. The compiler can use this information for exhaustiveness checking.
-
-#### GADTs and Effects
-
-OCaml's effect system uses GADTs in a fundamental way. The type `Effect.t` is defined roughly as:
-
-```ocaml skip
-type _ Effect.t = ..
-```
-
-This is an *extensible* GADT -- new constructors can be added anywhere in the program. The type parameter indicates what type of value the effect produces when handled:
-
-```ocaml skip
-type _ Effect.t +=
-  | Get : int Effect.t           (* Returns an int *)
-  | Put : int -> unit Effect.t   (* Takes an int, returns unit *)
-```
-
-When handling effects, the continuation's type is refined based on which effect was performed:
-
-```ocaml skip
-match f () with
-| result -> result
-| effect Get, k -> Effect.Deep.continue k 42
-    (* k : (int, 'a) continuation because Get : int Effect.t *)
-| effect (Put n), k -> Effect.Deep.continue k ()
-    (* k : (unit, 'a) continuation because Put : unit Effect.t *)
-```
-
-The GADT structure ensures type safety: you cannot `continue k "hello"` when handling `Get` because the continuation expects an `int`. This type safety is crucial for building reliable effect handlers.
-
-With this foundation, we can now explore how effects provide an elegant alternative to monads.
-
-### 9.2 From Monads to Effects
-
-In the previous chapter, we saw how monads structure effectful computations. Every monadic operation had to be sequenced with `let*`:
-
-```ocaml skip
-let rec loop s n =
-  let* () = return (Printf.printf "-- %s(%d)\n%!" s n) in
-  let* () = yield in  (* yielding could be implicit in the monad's bind *)
-  if n > 0 then loop s (n-1)
-  else return ()
-```
-
-This works, but it is infectious: once you are inside a monad, everything must be monadic. You cannot simply call a regular function that might perform effects -- you must lift it into the monad. Even a simple `Printf.printf` must be wrapped in `return`.
-
-Algebraic effects take a different approach. Effects are *performed* as regular function calls, and *handled* at a distance:
-
-```ocaml skip
-let rec loop s n =
-  Printf.printf "-- %s(%d)\n%!" s n;
-  yield ();  (* explicit effect, but looks like a normal call *)
-  if n > 0 then loop s (n-1)
-```
-
-The key difference is not that effects happen implicitly -- you still call `yield ()` explicitly at suspension points. The difference is that:
-
-1. **Direct style**: Effects look like ordinary function calls, not monadic binds
-2. **Non-infectious**: Code that does not perform effects (like `Printf.printf`) remains unchanged
-3. **Separation of concerns**: The program says *what* effects occur; the handler decides *how* to interpret them
-
-#### A First Example
-
-Before diving into the full API, let us see the simplest possible effect: one that asks for an integer value.
-
-```ocaml env=ch9
-type _ Effect.t += Ask : int Effect.t
-
-let ask () = Effect.perform Ask
-
-let program () =
-  let x = ask () in
-  x + 1
-
-let answer_42 () =
-  try program () with
-  | effect Ask, k -> Effect.Deep.continue k 42
-
-let () = assert (answer_42 () = 43)
-```
-
-The `try ... with | effect Ask, k -> ...` syntax handles effects similarly to how `try ... with` handles exceptions. When the `Ask` effect is performed, the pattern `effect Ask, k` matches. The variable `k` is the *continuation*: it represents "the rest of the computation" from the point where the effect was performed. By calling `Effect.Deep.continue k 42`, we resume the computation with `42` as the result of `ask ()`.
-
-#### Declaring Effects
-
-Effects are declared by extending the built-in extensible GADT `Effect.t`. The type parameter indicates what the effect returns:
-
-```ocaml env=ch9
-type _ Effect.t += Yield : unit Effect.t
-```
-
-This declares a `Yield` effect that returns `unit`. The `type _ Effect.t +=` syntax is similar to how exceptions extend the `exn` type.
-
-Effects can carry data and return values:
-
-```ocaml env=ch9
-type _ Effect.t += Get : int Effect.t
-type _ Effect.t += Put : int -> unit Effect.t
-```
-
-Here `Get` is an effect that returns an `int`, and `Put` takes an `int` argument and returns `unit`.
-
-#### Performing Effects
-
-To perform an effect, we use `Effect.perform`:
-
-```ocaml env=ch9
-let yield () = Effect.perform Yield
-let get () = Effect.perform Get
-let put n = Effect.perform (Put n)
-```
-
-When `Effect.perform` is called, control transfers to the nearest enclosing handler for that effect. If no handler exists, OCaml raises `Effect.Unhandled`.
-
-**Note:** The effect system API is marked as unstable in OCaml 5.x and may change in future versions. Effects can only be performed synchronously -- not from signal handlers, finalisers, or C callbacks.
-
-#### Handling Effects
-
-OCaml 5.3+ provides a convenient syntax for handling effects. The simplest form uses `try ... with` when you just want to return the result unchanged. When you need to transform the result, and especially if you want to pattern match on it, `match ... with` is more elegant.
-
-```ocaml env=ch9
+`Ask` returns a string, so its continuation expects a string. By contrast a
+`Yield : unit Effect.t` operation expects `()`. A GADT constructor refines its
+result index; it is not merely a tag in an untyped message channel. Chapter 11
+uses the same idea to index expression syntax by its evaluation result.
+
+The syntax here requires OCaml 5.3 or later. The
+[OCaml effect-handler reference](https://ocaml.org/manual/5.3/effects.html)
+describes deep handlers, one-shot continuations and discontinuation.
+A deep handler remains installed when its continuation resumes, so later
+operations can be handled by the same interpretation.
+
+### 9.2 Consume a continuation exactly once
+
+A captured continuation is one-shot. Calling `continue` twice, or calling
+`discontinue` after continuing, is an error. An abandoned continuation can retain
+resources and skip cleanup that would have run during stack unwinding. A handler
+must therefore own it until either a resumption or a discontinuation consumes it.
+
+```ocaml env=ownership
+type _ Effect.t += Pause : unit Effect.t
+exception Stop
+let saved : (unit, unit) Effect.Deep.continuation option ref = ref None
+let released = ref 0
 let () =
-  let state = ref 0 in
-  let result =
-    try put 10; get () + get () with
-    | effect Get, k -> Effect.Deep.continue k !state
-    | effect (Put n), k -> state := n; Effect.Deep.continue k ()
+  (match Fun.protect ~finally:(fun () -> incr released)
+     (fun () -> Effect.perform Pause) with
+   | () -> ()
+   | effect Pause, k -> saved := Some k);
+  assert (!released = 0);
+  let k = Option.get !saved in
+  saved := None;  (* Consume the ownership slot before transferring control. *)
+  (try Effect.Deep.discontinue k Stop with Stop -> ());
+  assert (!released = 1)
+```
+
+The resource is released on discontinuation because the exception travels through
+the suspended `Fun.protect`. Removing the only reference to `k` without that
+step would not express this cleanup policy. In a real resource scope, acquire
+before the protected computation, and decide how a cleanup failure interacts
+with an earlier exception.
+
+Nesting also matters. The innermost matching handler handles an operation; an
+unmatched operation can propagate outward. A task created by one scheduler must
+not be awaited or cancelled through another scheduler's queue. Our handles carry
+an owner identity to reject that mistake, while nested independent runs work.
+
+### 9.3 Define the scheduling policy first
+
+Our teaching runtime has these explicit rules:
+
+| Event | Policy |
+|---|---|
+| Spawn | Enqueue a new child; return its handle without running the child |
+| Yield | Put the current continuation at the back of the FIFO ready queue |
+| Await | Suspend until the target finishes; propagate its result or exception |
+| Cancel | Discontinue suspended work with `Cancelled`; never start a new cancelled child |
+| Child failure | Stop the run, cancel unfinished tasks, then propagate the first failure |
+| Root completion | Cancel unfinished children before returning |
+| No runnable tasks with unfinished root | Raise `Deadlock` and release suspended work |
+| Nested run | Own a separate queue and reject handles from another run |
+
+Tasks cooperate: a computation that never performs a scheduler operation prevents
+others from running. Cancellation exceptions must not be swallowed indefinitely,
+and cleanup functions must not suspend. These are program contracts, not facts
+proved by the interface. This is concurrency on one domain: tasks interleave.
+Parallel execution would run work simultaneously on multiple domains and needs
+synchronization policies absent from this runtime.
+
+```ocaml env=runtime
+let events = ref []
+let worker name () =
+  events := (name ^ "1") :: !events;
+  Runtime.yield ();
+  events := (name ^ "2") :: !events
+let () =
+  Runtime.run (fun () ->
+    let a = Runtime.spawn (worker "A") in
+    let b = Runtime.spawn (worker "B") in
+    Runtime.await a;
+    Runtime.await b);
+  assert (List.rev !events = ["A1";"B1";"A2";"B2"])
+```
+
+There are no timing assumptions in this test. The trace follows from queue order:
+spawning enqueues A and B, awaiting suspends the parent, A yields behind B, and B
+yields behind A. The scheduler's driver owns dequeueing; spawning never recursively
+runs a child to completion.
+
+### 9.4 The runtime and its ownership invariant
+
+The public interface is in `projects/effects/runtime.mli`. Here is the complete
+implementation, so the cancellation paths are reviewable alongside normal resume:
+
+<!-- $MDX file=../projects/effects/runtime.ml -->
+```ocaml
+open Effect
+open Effect.Deep
+
+exception Cancelled
+exception Deadlock
+
+type task = {
+  owner : int;
+  mutable state : state;
+  mutable cancelled : bool;
+  mutable queued : bool;
+  mutable waiters : task list;
+}
+and state =
+  | New of (unit -> unit)
+  | Running
+  | Paused of suspension
+  | Finished of (unit, exn) result
+and suspension = { resume : unit -> unit; abort : exn -> unit }
+
+type _ Effect.t +=
+  | Spawn : (unit -> unit) -> task Effect.t
+  | Yield : unit Effect.t
+  | Await : task -> unit Effect.t
+  | Cancel : task -> unit Effect.t
+
+let spawn f = perform (Spawn f)
+let yield () = perform Yield
+let await task = perform (Await task)
+let cancel task = perform (Cancel task)
+let next_owner = ref 0
+
+let run main =
+  incr next_owner;
+  let owner = !next_owner in
+  let queue = Queue.create () and tasks = ref [] and failure = ref None in
+  let enqueue task =
+    match task.state with
+    | Finished _ | Running -> ()
+    | New _ | Paused _ ->
+      if not task.queued then (task.queued <- true; Queue.add task queue) in
+  let create f =
+    let task = {owner; state=New f; cancelled=false; queued=false; waiters=[]} in
+    tasks := task :: !tasks; enqueue task; task in
+  let finish task result =
+    task.state <- Finished result;
+    (match result with
+     | Error Cancelled | Ok () -> ()
+     | Error exn -> if !failure = None then failure := Some exn);
+    List.iter enqueue (List.rev task.waiters);
+    task.waiters <- [] in
+  let rec stop task =
+    task.cancelled <- true;
+    match task.state with
+    | Finished _ -> ()
+    | New _ -> finish task (Error Cancelled)
+    | Running -> () (* Delivered at the next scheduler operation. *)
+    | Paused continuation ->
+      task.state <- Running; (* Consume the ownership slot before resuming. *)
+      continuation.abort Cancelled
+  and start task f =
+    match_with f () {
+      retc = (fun () -> finish task (Ok ()));
+      exnc = (fun exn -> finish task (Error exn));
+      effc = (fun (type a) (operation : a Effect.t) ->
+        match operation with
+        | Yield -> Some (fun (k : (a, unit) continuation) ->
+          if task.cancelled then discontinue k Cancelled
+          else begin
+            task.state <- Paused {
+              resume=(fun () -> continue k ());
+              abort=(fun exn -> discontinue k exn)};
+            enqueue task
+          end)
+        | Spawn f -> Some (fun (k : (a, unit) continuation) ->
+          if task.cancelled then discontinue k Cancelled
+          else let child = create f in continue k child)
+        | Cancel target -> Some (fun (k : (a, unit) continuation) ->
+          if target.owner <> owner then
+            discontinue k (Invalid_argument "task belongs to another run")
+          else if target == task || task.cancelled then begin
+            task.cancelled <- true; discontinue k Cancelled
+          end else (stop target; continue k ()))
+        | Await target -> Some (fun (k : (a, unit) continuation) ->
+          if target.owner <> owner then
+            discontinue k (Invalid_argument "task belongs to another run")
+          else if task.cancelled then discontinue k Cancelled
+          else
+            let resume () = match target.state with
+              | Finished (Ok ()) -> continue k ()
+              | Finished (Error exn) -> discontinue k exn
+              | _ -> failwith "scheduler resumed an unfinished await" in
+            (match target.state with
+             | Finished _ -> resume ()
+             | _ ->
+               task.state <- Paused {resume; abort=(fun exn -> discontinue k exn)};
+               target.waiters <- task :: target.waiters))
+        | _ -> None)
+    }
   in
-  assert (result = 20)
+  let root = create main in
+  let rec drive () =
+    match !failure, root.state with
+    | Some _, _ | _, Finished _ -> ()
+    | None, _ when Queue.is_empty queue -> failure := Some Deadlock
+    | None, _ ->
+      let task = Queue.take queue in
+      task.queued <- false;
+      (match task.state with
+       | New f -> task.state <- Running; start task f
+       | Paused continuation -> task.state <- Running; continuation.resume ()
+       | Running | Finished _ -> ());
+      drive () in
+  (* Scope exit cancels children, including blocked awaiters. *)
+  Fun.protect ~finally:(fun () -> List.iter stop !tasks) drive;
+  match !failure, root.state with
+  | Some exn, _ -> raise exn
+  | None, Finished (Ok ()) -> ()
+  | None, Finished (Error exn) -> raise exn
+  | _ -> raise Deadlock
 ```
 
-The `effect E, k` pattern matches when effect `E` is performed. The continuation `k` captures everything that would happen after `Effect.perform` returns. We can:
+A task is new, running, paused, or finished. Only `Paused` owns a continuation.
+Both the driver and `stop` change the state to `Running` **before** invoking its
+resumption or abort closure. Thus a stale queue entry cannot consume that same
+slot again. A finished task's stale entries do nothing. The `queued` bit prevents
+duplicate enqueuing while awaiters are awakened.
 
-- **Continue** by calling `Effect.Deep.continue k value`, where `value` becomes the return value of `perform`
-- **Discontinue** by calling `Effect.Deep.discontinue k exn`, raising an exception at the effect site
-- **Store** the continuation and resume it later (useful for schedulers)
+An await suspension stores a resume closure that checks the target's final
+result. It does not guess that waking means success. A cancelled awaiter can
+remain temporarily in its target's waiter list, but enqueuing a finished task
+has no effect; scope exit clears the remaining lists while finishing the tasks.
 
-**Important:** OCaml continuations are *one-shot* -- each continuation must be resumed exactly once with `continue` or `discontinue`. Attempting to resume a continuation twice raises `Effect.Continuation_already_resumed`. Not resuming a continuation might work in specific cases but risks leaking resources (e.g. open files).
+The finalizer owns the entire run's unfinished children. A child that never
+started acquired nothing; a paused child is discontinued to unwind its dynamic
+resource scopes. If a child failed, its exception is recorded before siblings
+are cancelled, preserving that original failure. The tests cover these separate
+paths rather than only a happy scheduling trace.
 
-The three kinds of patterns in a handler correspond to three cases:
+### 9.5 A monadic program over the same operations
 
-- Regular patterns handle normal return values
-- `exception` patterns handle raised exceptions
-- `effect` patterns handle performed effects
+Chapter 8 represented a computation as data. We can do that here too:
 
-This mirrors the explicit handler record form `{ retc; exnc; effc }` used by `Effect.Deep.match_with`.
+<!-- $MDX file=../projects/effects/script.ml -->
+```ocaml
+(* A monadic syntax for the same operations, interpreted by the teaching runtime.
+   Bind builds a program; it does not run an action during construction. *)
+type 'a t =
+  | Return : 'a -> 'a t
+  | Bind : 'b t * ('b -> 'a t) -> 'a t
+  | Action : (unit -> 'a) -> 'a t
+  | Yield : unit t
+  | Spawn : unit t -> Runtime.task t
+  | Await : Runtime.task -> unit t
+  | Cancel : Runtime.task -> unit t
+  | Protect : 'a t * (unit -> unit) -> 'a t
 
-#### Deep vs Shallow Handlers
-
-OCaml provides two kinds of handlers in `Effect.Deep` and `Effect.Shallow`:
-
-- **Deep handlers** (which we use throughout this chapter) automatically re-install themselves when you continue a computation. Effects performed after resumption are handled by the same handler.
-
-- **Shallow handlers** handle only the first effect encountered. After continuing, subsequent effects are not automatically handled. This gives more control but requires more explicit management.
-
-For most use cases, deep handlers are simpler and sufficient. We will use `Effect.Deep` exclusively in this chapter.
-
-This ability to capture and manipulate continuations is what makes algebraic effects so powerful. Let us see this in action.
-
-### 9.3 Lightweight Threads with Effects
-
-In the previous chapter, we implemented cooperative threads using a monad. The implementation involved mutable state to track thread status, a work queue, and careful management of continuations encoded as closures. With effects, we can write a much simpler implementation.
-
-#### The Thread Interface
-
-Our goal is to support concurrent computations that can yield control to other threads and eventually produce results. Here is a simple interface:
-
-```ocaml env=ch9
-module type THREADS = sig
-  type 'a promise
-  val async : (unit -> 'a) -> 'a promise  (* Start a new thread *)
-  val await : 'a promise -> 'a            (* Wait for a thread to complete *)
-  val yield : unit -> unit                (* Yield control to other threads *)
-  val run : (unit -> 'a) -> 'a            (* Run the scheduler *)
-end
+let return x = Return x
+let ( let* ) m f = Bind (m,f)
+let rec interpret : type a. a t -> a = function
+  | Return x -> x
+  | Bind (m,f) -> let x = interpret m in interpret (f x)
+  | Action f -> f ()
+  | Yield -> Runtime.yield ()
+  | Spawn m -> Runtime.spawn (fun () -> interpret m)
+  | Await task -> Runtime.await task
+  | Cancel task -> Runtime.cancel task
+  | Protect (m, release) -> Fun.protect ~finally:release (fun () -> interpret m)
+let run m = Runtime.run (fun () -> interpret m)
 ```
 
-A *promise* represents a computation that will eventually produce a value. We can start new threads with `async`, wait for their results with `await`, and voluntarily give up control with `yield`.
+`Action` delays host work; constructing a `Bind` does not execute it. `Protect`
+records a cleanup scope. The interpreter folds the syntax into the direct-style
+runtime. This shares the scheduler policy, so it tests equivalence of two program
+representations, not independence of two scheduler implementations.
 
-#### Declaring the Effects
+The same test functor in `projects/effects/laws.ml` runs both representations.
+It asserts the A/B trace, cleanup after scope exit, explicit repeated cancellation,
+no acquisition for a cancelled new child, child-failure propagation and nested
+runs. Additional tests reject foreign handles and clean up a deadlocked await.
 
-We need three effects:
+The explicit syntax makes operations available for inspection and alternative
+interpretation. Direct style uses the host stack for continuations and makes
+ordinary function calls natural. Either representation still owes an ownership
+policy. A `let*` does not by itself make resource use safe, and an effect handler
+does not by itself make scheduling structured.
 
-```ocaml env=ch9
-type 'a promise_state =
-  | Pending of ('a, unit) Effect.Deep.continuation list  (* Waiting continuations *)
-  | Done of 'a                                           (* Completed with value *)
+### 9.6 Inference is another interpretation
 
-type 'a promise = 'a promise_state ref
+The probability project exposes typed `Choose`, `Gaussian` and `GObserve`
+operations. Its finite reference enumerator only accepts finite choices; a
+Gaussian draw cannot be enumerated as a finite support. Likelihood weighting
+samples each draw and multiplies likelihoods along that run. The replay filter
+records draws and restarts a pure model at the next choice boundary.
 
-type _ Effect.t +=
-  | Async : (unit -> 'a) -> 'a promise Effect.t  (* Fork a new thread *)
-  | Await : 'a promise -> 'a Effect.t            (* Wait for completion *)
-  | TYield : unit Effect.t                       (* Give up control *)
-```
+On replay, observations already accounted for must not be multiplied again.
+When resampling active particles, preserve their **total active mass**, including
+when other particles have already finished; resetting every active weight to one
+would change their mass relative to finished results. Zero-mass particles must
+not be resurrected. Paused continuations are discontinued before restarting.
 
-The `Async` effect carries a thunk and returns a promise. The `Await` effect takes a promise and returns its value (potentially blocking). The `TYield` effect temporarily suspends the current thread.
-
-A promise is a mutable reference that starts as `Pending` (with a list of continuations waiting for the result) and becomes `Done` once the computation completes.
-
-#### The Scheduler
-
-The scheduler maintains a queue of ready threads (continuations waiting to run):
-
-```ocaml env=ch9
-module Threads : THREADS = struct
-  type 'a promise_state =
-    | Pending of ('a, unit) Effect.Deep.continuation list
-    | Done of 'a
-  type 'a promise = 'a promise_state ref
-
-  type _ Effect.t +=
-    | Async : (unit -> 'a) -> 'a promise Effect.t
-    | Await : 'a promise -> 'a Effect.t
-    | TYield : unit Effect.t
-
-  let async f = Effect.perform (Async f)
-  let await p = Effect.perform (Await p)
-  let yield () = Effect.perform TYield
-
-  let run_queue : (unit -> unit) Queue.t = Queue.create ()
-  let enqueue f = Queue.push f run_queue
-  let dequeue () = if Queue.is_empty run_queue then () else Queue.pop run_queue ()
-
-  let fulfill p v =
-    match !p with
-    | Done _ -> failwith "Promise already fulfilled"
-    | Pending waiters ->
-        p := Done v;
-        List.iter (fun k -> enqueue (fun () -> Effect.Deep.continue k v)) waiters
-
-  let rec run_thread : 'a. (unit -> 'a) -> 'a promise = fun f ->
-    let p = ref (Pending []) in
-    enqueue (fun () -> match f () with
-      | v -> fulfill p v
-      | effect (Async g), k ->
-          let p' = run_thread g in
-          Effect.Deep.continue k p'
-      | effect (Await p'), k ->
-          (match !p' with
-           | Done v -> Effect.Deep.continue k v
-           | Pending ks -> p' := Pending (k :: ks))
-      | effect TYield, k ->
-          enqueue (fun () -> Effect.Deep.continue k ()));
-    p
-
-  let run f =
-    Queue.clear run_queue;
-    let p = run_thread f in
-    while not (Queue.is_empty run_queue) do dequeue () done;
-    match !p with
-    | Done v -> v
-    | Pending _ -> failwith "Main thread did not complete"
-end
-```
-
-Let us understand how each effect is handled:
-
-**Async**: When a thread calls `async g`, `run_thread g` enqueues the child and returns a promise immediately. We pass that promise back to the parent by continuing its continuation. Only the loop in `run` removes work from the queue.
-
-**Await**: When a thread calls `await p`, we check the promise. If it is already `Done`, we continue immediately with the value. If it is `Pending`, we add the current continuation to the list of waiters and run another thread from the queue.
-
-**TYield**: When a thread calls `yield ()`, we add the current continuation to the back of the queue and run the next thread. This implements round-robin scheduling.
-
-#### Testing the Implementation
-
-Let us test with a simple example:
-
-```ocaml env=ch9
-let test_threads () =
-  let open Threads in
-  run (fun () ->
-    let rec loop s n =
-      Printf.printf "-- %s(%d)\n%!" s n;
-      yield ();
-      if n > 0 then loop s (n-1) in
-    let p1 = async (fun () -> loop "A" 3) in
-    let p2 = async (fun () -> loop "B" 2) in
-    await p1;
-    await p2;
-    Printf.printf "Done!\n%!")
-
-let () = test_threads ()
-```
-
-This creates two threads that print messages and yield control. The output shows interleaving:
-
-```
--- A(3)
--- B(2)
--- A(2)
--- B(1)
--- A(1)
--- B(0)
--- A(0)
-Done!
-```
-
-Compare this to the monadic version from the previous chapter. The code is more direct: we write `yield ()` instead of `let* () = suspend in`, and `Printf.printf` is just a regular function call. The complexity of managing thread state has moved from the user code into the handler.
-
-We can check scheduling without relying on printed output:
-
-```ocaml env=ch9
+```ocaml env=inference
+let model () =
+  let b = Probability.GProb.choose [false; true] in
+  Probability.GProb.observe (if b then 0.8 else 0.2);
+  ignore (Probability.GProb.choose [0;1]);
+  b
 let () =
-  let seen = ref [] in
-  let worker name () =
-    for i = 1 to 2 do
-      seen := (name, i) :: !seen;
-      Threads.yield ()
-    done in
-  Threads.run (fun () ->
-    let a = Threads.async (worker "A") in
-    let b = Threads.async (worker "B") in
-    Threads.await a; Threads.await b);
-  assert (List.rev !seen = ["A", 1; "B", 1; "A", 2; "B", 2])
+  let exact = Probability.Enumerate.infer model in
+  assert (abs_float (List.assoc true exact -. 0.8) < 1e-12)
 ```
 
-This is a cooperative teaching scheduler. Uncaught child exceptions, cancellation, nested calls to `run`, and cleanup of blocked threads require a fuller design before using it as an application runtime.
-
-### 9.4 State with Effects
-
-Before diving into probabilistic programming, let us see how to implement mutable state using effects. This demonstrates another common pattern.
-
-```ocaml env=ch9
-module State = struct
-  type _ Effect.t +=
-    | SGet : int Effect.t
-    | SPut : int -> unit Effect.t
-
-  let get () = Effect.perform SGet
-  let put n = Effect.perform (SPut n)
-
-  let run : type a. int -> (unit -> a) -> a = fun init f ->
-    let state = ref init in
-    try f () with
-    | effect SGet, k -> Effect.Deep.continue k !state
-    | effect (SPut n), k -> state := n; Effect.Deep.continue k ()
-end
-```
-
-Now we can write stateful computations:
-
-```ocaml env=ch9
-let counter () =
-  let open State in
-  for _ = 1 to 5 do
-    put (get () + 1)
-  done;
-  get ()
-
-let result = State.run 0 counter  (* result = 5 *)
-let () = Printf.printf "Counter result: %d\n" result
-```
-
-The key insight is that effects let us *separate the description of what effects occur* from *how those effects are implemented*. The `counter` function describes a computation that gets and puts state. The `State.run` handler interprets those effects using a mutable reference.
-
-### 9.5 Probabilistic Programming with Effects
-
-Now we are ready to tackle something more ambitious: probabilistic programming. In the previous chapter, we implemented probability monads that could compute exact distributions or approximate them via sampling. Effect handlers give us a different, more flexible approach.
-
-#### The Key Idea
-
-A probabilistic program is a program with random choices. Instead of thinking about distributions as data, we think about *sampling* and *conditioning*:
-
-- **Sample**: Draw a value from a probability distribution
-- **Observe/Condition**: Assert that a certain event occurred, affecting the posterior probability
-
-Effect handlers let us *reify* these operations. When a program performs a `Sample` effect, the handler can decide: "run this with value X and probability P". When a program performs an `Observe` effect, the handler can adjust weights or reject samples that do not match the observation.
-
-#### Declaring Probability Effects
-
-```ocaml env=ch9
-type _ Effect.t +=
-  | Sample : (string * float array) -> int Effect.t  (* name, weights -> index *)
-  | Observe : float -> unit Effect.t                 (* observe with likelihood *)
-  | Fail : 'a Effect.t                               (* reject this execution *)
-```
-
-`Sample` takes a name (for debugging) and an array of weights, returning the index of the chosen alternative. `Observe` records a likelihood weight. `Fail` indicates this execution path should be abandoned.
-
-```ocaml env=ch9
-let sample name weights = Effect.perform (Sample (name, weights))
-let observe likelihood = Effect.perform (Observe likelihood)
-let fail () = Effect.perform Fail
-```
-
-We can build familiar probabilistic primitives:
-
-```ocaml env=ch9
-let flip p =
-  let i = sample "flip" [| p; 1.0 -. p |] in
-  i = 0
-
-let uniform choices =
-  let n = Array.length choices in
-  let weights = Array.make n (1.0 /. float_of_int n) in
-  let i = sample "uniform" weights in
-  choices.(i)
-
-let bernoulli p = flip p
-
-let categorical weights =
-  let total = Array.fold_left (+.) 0.0 weights in
-  let normalized = Array.map (fun w -> w /. total) weights in
-  sample "categorical" normalized
-```
-
-#### Example: Monty Hall
-
-Let us encode the Monty Hall problem:
-
-```ocaml env=ch9
-type door = A | B | C
-
-let monty_hall ~switch =
-  let doors = [| A; B; C |] in
-  let prize = uniform doors in
-  let chosen = uniform doors in
-  (* Host opens a door that is neither prize nor chosen *)
-  let can_open =
-    doors
-    |> Array.to_list
-    |> List.filter (fun d -> d <> prize && d <> chosen)
-    |> Array.of_list
-  in
-  let opened = uniform can_open in
-  (* Player's final choice *)
-  let final =
-    if switch then
-      (* Switch to the remaining door *)
-      List.hd (List.filter (fun d -> d <> opened && d <> chosen) [A; B; C])
-    else chosen in
-  final = prize
-```
-
-This is cleaner than the monadic version: we just write the generative model directly. The `uniform` calls represent random choices, and we return whether the player wins.
-
-#### Example: Burglary Network
-
-Here is the Bayesian network example from the previous chapter:
-
-```ocaml env=ch9
-type outcome = Safe | Burglary | Earthquake | Both
-
-let burglary ~john_called ~mary_called =
-  let earthquake = flip 0.002 in
-  let burglary = flip 0.001 in
-  let alarm_prob = match burglary, earthquake with
-    | false, false -> 0.001
-    | false, true -> 0.29
-    | true, false -> 0.94
-    | true, true -> 0.95 in
-  let alarm = flip alarm_prob in
-  let john_prob = if alarm then 0.9 else 0.05 in
-  let mary_prob = if alarm then 0.7 else 0.01 in
-  (* Condition on observations *)
-  if flip john_prob <> john_called then fail ();
-  if flip mary_prob <> mary_called then fail ();
-  (* Return the outcome *)
-  match burglary, earthquake with
-  | false, false -> Safe
-  | true, false -> Burglary
-  | false, true -> Earthquake
-  | true, true -> Both
-```
-
-The key difference from the monad version: we use `fail ()` to reject executions that do not match our observations. This is *rejection sampling*: we run the program many times and keep only the runs where the observations match.
-
-### 9.6 Rejection Sampling Interpreter
-
-Our first interpreter uses rejection sampling: run the probabilistic program many times, rejecting executions that fail, and collect statistics on the successful runs.
-
-```ocaml env=ch9
-module Rejection = struct
-  exception Rejected
-
-  let sample_index weights =
-    let total = Array.fold_left (+.) 0.0 weights in
-    let r = Random.float total in
-    let rec find i acc =
-      if i >= Array.length weights then Array.length weights - 1
-      else
-        let acc' = acc +. weights.(i) in
-        if r < acc' then i else find (i + 1) acc'
-    in
-    find 0 0.0
-
-  let run_once : type a. (unit -> a) -> a option = fun f ->
-    match f () with
-    | result -> Some result
-    | effect (Sample (_, weights)), k ->
-        Effect.Deep.continue k (sample_index weights)
-    | effect (Observe w), k ->
-        if Random.float 1.0 < w
-        then Effect.Deep.continue k ()
-        else Effect.Deep.discontinue k Rejected
-    | effect Fail, k -> Effect.Deep.discontinue k Rejected
-    | exception Rejected -> None
-
-  let infer ?(samples=10000) f =
-    let results = Hashtbl.create 16 in
-    let successes = ref 0 in
-    for _ = 1 to samples do
-      match run_once f with
-      | None -> ()
-      | Some v ->
-          incr successes;
-          let count = try Hashtbl.find results v with Not_found -> 0 in
-          Hashtbl.replace results v (count + 1)
-    done;
-    let n = float_of_int !successes in
-    if n > 0.0 then
-      Hashtbl.fold (fun v c acc ->
-        (v, float_of_int c /. n) :: acc) results []
-      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
-    else []
-end
-```
-
-Let us test it:
-
-```ocaml env=ch9
-let () =
-  Printf.printf "\n=== Rejection Sampling Tests ===\n";
-  Printf.printf "Monty Hall (no switch): ";
-  let dist = Rejection.infer (fun () -> monty_hall ~switch:false) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-
-let () =
-  Printf.printf "Monty Hall (switch): ";
-  let dist = Rejection.infer (fun () -> monty_hall ~switch:true) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-```
-
-The famous result: switching doubles your chances of winning!
-
-#### Limitations of Rejection Sampling
-
-Rejection sampling is simple but has a major limitation: if the observations are unlikely, most samples are rejected, making inference very slow. For example, if we observe both John and Mary called (a rare event), rejection sampling needs many attempts to find a valid sample:
-
-```ocaml env=ch9
-let () =
-  Printf.printf "Burglary (john=true, mary=true):\n";
-  let dist = Rejection.infer ~samples:100000 (fun () ->
-    burglary ~john_called:true ~mary_called:true) in
-  List.iter (fun (outcome, p) ->
-    let s = match outcome with
-      | Safe -> "Safe" | Burglary -> "Burglary"
-      | Earthquake -> "Earthquake" | Both -> "Both" in
-    Printf.printf "  %s: %.4f\n" s p) dist
-```
-
-With rare observations, we need many more samples to get accurate estimates. This is where more sophisticated inference methods help.
-
-### 9.7 Importance Sampling
-
-Rejection sampling throws away information: every rejected sample is wasted computation. *Importance sampling* does better by keeping track of weights. Instead of rejecting unlikely executions, we weigh them by their likelihood.
-
-The idea is simple: run particles and track a weight for each. When an observation occurs, multiply the particle's weight by the likelihood instead of rejecting.
-
-```ocaml env=ch9
-module Importance = struct
-  exception HardFail
-
-  let sample_index weights =
-    let total = Array.fold_left (+.) 0.0 weights in
-    let r = Random.float total in
-    let rec find i acc =
-      if i >= Array.length weights then Array.length weights - 1
-      else if r < acc +. weights.(i) then i
-      else find (i + 1) (acc +. weights.(i)) in
-    find 0 0.0
-
-  let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
-    let weight = ref 1.0 in
-    match f () with
-    | result -> Some (result, !weight)
-    | effect (Sample (_, weights)), k ->
-        Effect.Deep.continue k (sample_index weights)
-    | effect (Observe likelihood), k ->
-        weight := !weight *. likelihood;
-        Effect.Deep.continue k ()
-    | effect Fail, k -> Effect.Deep.discontinue k HardFail
-    | exception HardFail -> None
-
-  let infer ?(samples=10000) f =
-    let results = Hashtbl.create 16 in
-    let total_weight = ref 0.0 in
-    for _ = 1 to samples do
-      match run_once f with
-      | None -> ()
-      | Some (v, w) ->
-          total_weight := !total_weight +. w;
-          let prev = try Hashtbl.find results v with Not_found -> 0.0 in
-          Hashtbl.replace results v (prev +. w)
-    done;
-    if !total_weight > 0.0 then
-      Hashtbl.fold (fun v w acc -> (v, w /. !total_weight) :: acc) results []
-      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
-    else []
-end
-```
-
-### 9.8 Soft Conditioning with Observe
-
-So far our burglary example uses hard conditioning with `fail ()`. Let us rewrite it to use soft conditioning with `observe`:
-
-```ocaml env=ch9
-let burglary_soft ~john_called ~mary_called =
-  let earthquake = flip 0.002 in
-  let burglary = flip 0.001 in
-  let alarm_prob = match burglary, earthquake with
-    | false, false -> 0.001
-    | false, true -> 0.29
-    | true, false -> 0.94
-    | true, true -> 0.95 in
-  let alarm = flip alarm_prob in
-  (* Soft conditioning: observe the likelihood of the evidence *)
-  let john_prob = if alarm then 0.9 else 0.05 in
-  let mary_prob = if alarm then 0.7 else 0.01 in
-  let john_like = if john_called then john_prob else 1.0 -. john_prob in
-  let mary_like = if mary_called then mary_prob else 1.0 -. mary_prob in
-  observe john_like;
-  observe mary_like;
-  (* Return the outcome *)
-  match burglary, earthquake with
-  | false, false -> Safe
-  | true, false -> Burglary
-  | false, true -> Earthquake
-  | true, true -> Both
-
-let () =
-  Printf.printf "\n=== Importance Sampling Tests ===\n";
-  Printf.printf "Burglary soft (john=true, mary=true):\n";
-  let dist = Importance.infer ~samples:50000 (fun () ->
-    burglary_soft ~john_called:true ~mary_called:true) in
-  List.iter (fun (outcome, p) ->
-    let s = match outcome with
-      | Safe -> "Safe" | Burglary -> "Burglary"
-      | Earthquake -> "Earthquake" | Both -> "Both" in
-    Printf.printf "  %s: %.4f\n" s p) dist
-```
-
-The soft conditioning version is more efficient because every particle contributes to the estimate, weighted by how well it matches the observations.
-
-### 9.9 Particle Filter with Replay
-
-For models where observations occur at multiple points during execution, we can do even better with *particle filtering*. The key idea is to run multiple particles in parallel, periodically *resampling* to focus computation on high-weight particles.
-
-The challenge is that OCaml's continuations are one-shot, so we cannot simply "clone" a particle. Instead, we use **replay-based inference**: store the sequence of sampling choices (a *trace*), and when we need to continue a particle, re-run the program from the beginning but fast-forward through already-recorded choices. Each `Sample` effect serves as a synchronization point in this simplified algorithm, even when different control-flow paths reach different sampling sites.
-
-Replay assumes the model is deterministic except for the sampling effects handled here. External mutation, I/O, and unhandled randomness would be repeated and could invalidate the trace. On each replay, observations before the last recorded draw have already contributed to the particle weight; only the newly executed segment contributes again. Resampling preserves the active particles' total mass, including when other particles have already completed. Zero total mass remains zero.
-
-At a fresh sample we abort the suspended run with the private `Pause` exception rather than discard a live continuation. Models must not catch that control exception or depend on side effects during replay; cleanup may run once per replay. The examples assume finite nonnegative likelihoods, valid sampling distributions, a positive particle count, and terminating models. This is a teaching implementation, not a general-purpose inference engine.
-
-```ocaml env=ch9
-module ParticleFilter = struct
-  type trace = int list
-  exception Pause of trace * float
-  exception HardFail
-
-  (* Result of running one step *)
-  type 'a step =
-    | Done of 'a * trace * float   (* completed with result, trace, weight *)
-    | Paused of trace * float      (* paused at Sample with trace, weight *)
-    | Failed                       (* hard failure *)
-
-  let sample_index weights =
-    let total = Array.fold_left (+.) 0.0 weights in
-    let r = Random.float total in
-    let rec find i acc =
-      if i >= Array.length weights then Array.length weights - 1
-      else if r < acc +. weights.(i) then i
-      else find (i + 1) (acc +. weights.(i)) in
-    find 0 0.0
-
-  (* Run until the next fresh Sample, replaying recorded choices *)
-  let run_one_step : type a. (unit -> a) -> trace -> a step = fun f trace ->
-    let remaining = ref trace in
-    let recorded = ref [] in
-    let weight = ref 1.0 in
-    match f () with
-    | result -> Done (result, List.rev !recorded, !weight)
-    | effect (Sample (_, weights)), k ->
-        (match !remaining with
-         | choice :: rest ->
-             (* Replay: use recorded choice *)
-             remaining := rest;
-             recorded := choice :: !recorded;
-             Effect.Deep.continue k choice
-         | [] ->
-             (* Fresh sample: make choice and pause *)
-             let choice = sample_index weights in
-             recorded := choice :: !recorded;
-             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight)))
-    | effect (Observe likelihood), k ->
-        if !remaining = [] then weight := !weight *. likelihood;
-        Effect.Deep.continue k ()
-    | effect Fail, k -> Effect.Deep.discontinue k HardFail
-    | exception Pause (trace, w) -> Paused (trace, w)
-    | exception HardFail -> Failed
-
-  (* Resample: select n indices according to weights *)
-  let resample_indices n weights =
-    let total = Array.fold_left (+.) 0.0 weights in
-    if total <= 0.0 then Array.init n (fun i -> i mod n)
-    else begin
-      let cumulative = Array.make n 0.0 in
-      let acc = ref 0.0 in
-      Array.iteri (fun i w ->
-        acc := !acc +. w /. total;
-        cumulative.(i) <- !acc) weights;
-      Array.init n (fun _ ->
-        let r = Random.float 1.0 in
-        let rec find i =
-          if i >= n - 1 || cumulative.(i) >= r then i
-          else find (i + 1) in
-        find 0)
-    end
-
-  (* Effective sample size relative to n (returns value in [0, 1]) *)
-  let effective_sample_size weights =
-    let n = float_of_int (Array.length weights) in
-    let total = Array.fold_left (+.) 0.0 weights in
-    if total <= 0.0 then 0.0
-    else begin
-      let sum_sq = Array.fold_left (fun acc w ->
-        let nw = w /. total in acc +. nw *. nw) 0.0 weights in
-      1.0 /. sum_sq /. n
-    end
-
-  let infer ?(n=1000) ?(resample_threshold=0.5) f =
-    (* Each particle: trace, weight *)
-    let traces = Array.make n [] in
-    let weights = Array.make n 1.0 in
-    let active = Array.make n true in
-    let final_results = ref [] in
-    let n_active = ref n in
-
-    while !n_active > 0 do
-      (* Advance each active particle by one Sample *)
-      for i = 0 to n - 1 do
-        if active.(i) then
-          match run_one_step f traces.(i) with
-          | Done (result, trace, w) ->
-              final_results := (result, weights.(i) *. w) :: !final_results;
-              active.(i) <- false;
-              decr n_active
-          | Paused (trace, w) ->
-              traces.(i) <- trace;
-              weights.(i) <- weights.(i) *. w
-          | Failed ->
-              active.(i) <- false;
-              decr n_active
-      done;
-
-      (* Resample if ESS is low and there are still active particles *)
-      if !n_active > 0 then begin
-        let active_weights = Array.of_list (
-          Array.to_list weights |> List.filteri (fun i _ -> active.(i))) in
-        if Array.fold_left (+.) 0.0 active_weights > 0.0 &&
-            effective_sample_size active_weights < resample_threshold then begin
-          let active_indices = Array.of_list (
-            List.init n (fun i -> i) |> List.filter (fun i -> active.(i))) in
-          let active_n = Array.length active_indices in
-          let indices = resample_indices active_n active_weights in
-          let new_traces = Array.map (fun j ->
-            traces.(active_indices.(j))) indices in
-          let new_weight =
-            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
-          Array.iteri (fun j _ ->
-            traces.(active_indices.(j)) <- new_traces.(j);
-            weights.(active_indices.(j)) <- new_weight) indices
-        end
-      end
-    done;
-
-    (* Aggregate results *)
-    let combined = Hashtbl.create 16 in
-    let total = ref 0.0 in
-    List.iter (fun (v, w) ->
-      total := !total +. w;
-      let prev = try Hashtbl.find combined v with Not_found -> 0.0 in
-      Hashtbl.replace combined v (prev +. w)) !final_results;
-    if !total > 0.0 then
-      Hashtbl.fold (fun v w acc -> (v, w /. !total) :: acc) combined []
-      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
-    else []
-end
-```
-
-The particle filter works by:
-
-1. **Initialization**: Start n particles with empty traces and equal weights
-2. **Extension**: Advance each particle to the next `Sample`. During replay, recorded choices are reused; at a fresh `Sample`, we make a new choice and pause
-3. **Weight accumulation**: `Observe` effects multiply the particle's weight
-4. **Resampling**: If the effective sample size drops below the threshold, resample traces proportional to weights
-5. **Completion**: When a particle finishes, record its result weighted by its final weight
-
-Let us test the particle filter:
-
-```ocaml env=ch9
-let () =
-  Printf.printf "\n=== Particle Filter Tests ===\n";
-  Printf.printf "Monty Hall (no switch): ";
-  let dist = ParticleFilter.infer ~n:5000 (fun () -> monty_hall ~switch:false) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-
-let () =
-  Printf.printf "Monty Hall (switch): ";
-  let dist = ParticleFilter.infer ~n:5000 (fun () -> monty_hall ~switch:true) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-
-let () =
-  Printf.printf "Burglary soft (particle filter):\n";
-  let dist = ParticleFilter.infer ~n:10000 (fun () ->
-    burglary_soft ~john_called:true ~mary_called:true) in
-  List.iter (fun (outcome, p) ->
-    let s = match outcome with
-      | Safe -> "Safe" | Burglary -> "Burglary"
-      | Earthquake -> "Earthquake" | Both -> "Both" in
-    Printf.printf "  %s: %.4f\n" s p) dist
-```
-
-### 9.10 Comparing Inference Methods
-
-We have seen three approaches to probabilistic inference:
-
-| Method | Pros | Cons |
-|--------|------|------|
-| Rejection Sampling | Simple, exact for accepted samples | Wasteful when observations are rare |
-| Importance Sampling | Uses all samples | Can suffer from weight degeneracy |
-| Particle Filtering | Adaptive resampling | More complex, replay overhead |
-
-The effect-based approach has a key advantage: the *same probabilistic program* can be interpreted by different handlers. We write `monty_hall` once and run it with any inference engine.
-
-```ocaml env=ch9
-let () =
-  Printf.printf "\n=== Comparison ===\n";
-  let test name infer =
-    let dist = infer (fun () -> monty_hall ~switch:true) in
-    let win_prob = try List.assoc true dist with Not_found -> 0.0 in
-    Printf.printf "%s: P(win|switch) = %.4f\n" name win_prob
-  in
-  test "Rejection" (Rejection.infer ~samples:10000);
-  test "Importance" (Importance.infer ~samples:10000);
-  test "Particle Filter" (ParticleFilter.infer ~n:5000)
-```
-
-### 9.11 Summary
-
-Algebraic effects provide a powerful alternative to monads for structuring effectful computations:
-
-1. **Separation of concerns**: Effect declarations specify *what* effects can occur. Handlers specify *how* effects are interpreted.
-
-2. **Direct style**: Code performing effects looks like ordinary code. No `let*` or bind operators needed.
-
-3. **Flexibility**: The same effectful code can be interpreted different ways by different handlers.
-
-4. **Continuations**: Handlers receive continuations, enabling sophisticated control flow patterns like coroutines and particle filtering.
-
-We saw two substantial applications:
-
-- **Lightweight threads**: Effects make cooperative concurrency straightforward. The `Yield`, `Async`, and `Await` effects are handled by a scheduler that manages continuations.
-
-- **Probabilistic programming**: `Sample`, `Observe`, and `Fail` effects describe probabilistic models. Different handlers implement different inference strategies.
-
-The key insight is that effects are a *programming interface* that can have multiple *implementations*. This makes code more modular and reusable.
-
-### 9.12 A Typed Sampling Interface with GADTs
-
-In Section 9.5, we defined probabilistic effects using indices into arrays:
-
-```ocaml skip
-type _ Effect.t +=
-  | Sample : (string * float array) -> int Effect.t  (* returns index *)
-```
-
-This works but is somewhat awkward: `flip` returns an integer 0 or 1 that we then compare to 0, and `uniform` selects from an array by index. Can we define a more direct `Choose : 'a list -> 'a Effect.t` effect that returns elements directly?
-
-The worry is easy to overstate:
-
-- Defining `Choose : 'a list -> 'a Effect.t` is *not* a type-system problem: `Effect.t` is already an extensible GADT, so each effect constructor can refine the return type, and the handler case `effect (Choose xs), k -> ...` is type-checked using the same GADT mechanism as any other GADT match.
-- What *can* become problematic is **replay traces**: if we tried to store the *chosen values* (of many different types) in a single list, we would need some form of dynamic typing.
-
-For replay-based inference, we can avoid that entirely: we store a trace of **type-agnostic random choices** (indices for `Choose`, floats for `Gaussian`). The program remains fully typed, and replay is straightforward: we use the stored index to select from the list passed to `Choose`.
-
-#### A GADT-Typed Sampling API
-
-```ocaml env=ch9
-module GProb = struct
-  type _ Effect.t +=
-    | Choose : 'a list -> 'a Effect.t
-    | Gaussian : float * float -> float Effect.t
-    | GObserve : float -> unit Effect.t
-    | GFail : 'a Effect.t
-
-  let choose xs =
-    match xs with
-    | [] -> invalid_arg "choose: empty list"
-    | _ -> Effect.perform (Choose xs)
-
-  let gaussian ~mu ~sigma =
-    if sigma <= 0.0 then invalid_arg "gaussian: sigma must be positive";
-    Effect.perform (Gaussian (mu, sigma))
-
-  let observe w =
-    if w < 0.0 then invalid_arg "observe: weight must be nonnegative";
-    Effect.perform (GObserve w)
-
-  let fail () = Effect.perform GFail
-
-  let pi = 4.0 *. atan 1.0
-
-  let normal_pdf x ~mu ~sigma =
-    let z = (x -. mu) /. sigma in
-    (1.0 /. (sigma *. sqrt (2.0 *. pi))) *. exp (-0.5 *. z *. z)
-
-  let sample_gaussian ~mu ~sigma =
-    (* Box-Muller transform *)
-    let u1 = max 1e-12 (Random.float 1.0) in
-    let u2 = Random.float 1.0 in
-    let r = sqrt (-2.0 *. log u1) in
-    let theta = 2.0 *. pi *. u2 in
-    mu +. sigma *. (r *. cos theta)
-end
-```
-
-The `Choose` effect is polymorphic: `Choose : 'a list -> 'a Effect.t`. When we perform `Choose ["heads"; "tails"]`, the result type is `string`. When we perform `Choose [1; 2; 3; 4; 5; 6]`, the result type is `int`. The GADT ensures type safety at each use site.
-
-The `Gaussian` effect samples from a normal distribution using the Box-Muller transform.
-
-#### Importance Sampling for Choose + Gaussian
-
-```ocaml env=ch9
-module GImportance = struct
-  exception HardFail
-
-  let run_once : type a. (unit -> a) -> (a * float) option = fun f ->
-    let weight = ref 1.0 in
-    match f () with
-    | result -> Some (result, !weight)
-    | effect (GProb.Choose xs), k ->
-        let i = Random.int (List.length xs) in
-        Effect.Deep.continue k (List.nth xs i)
-    | effect (GProb.Gaussian (mu, sigma)), k ->
-        Effect.Deep.continue k (GProb.sample_gaussian ~mu ~sigma)
-    | effect (GProb.GObserve w), k ->
-        weight := !weight *. w;
-        Effect.Deep.continue k ()
-    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
-    | exception HardFail -> None
-
-  let infer ?(samples=10000) f =
-    let results = Hashtbl.create 16 in
-    let total_weight = ref 0.0 in
-    for _ = 1 to samples do
-      match run_once f with
-      | None -> ()
-      | Some (v, w) ->
-          total_weight := !total_weight +. w;
-          let prev = try Hashtbl.find results v with Not_found -> 0.0 in
-          Hashtbl.replace results v (prev +. w)
-    done;
-    if !total_weight > 0.0 then
-      Hashtbl.fold (fun v w acc -> (v, w /. !total_weight) :: acc) results []
-      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
-    else []
-end
-```
-
-The handler matches `Choose xs` and samples uniformly, returning the actual value. The GADT ensures that `List.nth xs i` has type `'a` and that `continue k (List.nth xs i)` is well-typed because `k` expects type `'a`.
-
-#### Particle Filtering with Replay for Choose + Gaussian
-
-The key insight for replay is simple: we store only **type-agnostic random draws** -- an index for discrete choices, a float for Gaussian samples. During replay, we use the stored index to select from the list that's passed to `Choose`:
-
-```ocaml env=ch9
-module GParticleFilter = struct
-  exception HardFail
-
-  type draw =
-    | DChoose of int      (* index into the list *)
-    | DGaussian of float  (* sampled value *)
-
-  type trace = draw list
-  exception Pause of trace * float
-
-  type 'a step =
-    | Done of 'a * trace * float
-    | Paused of trace * float
-    | Failed
-
-  let run_one_step : type a. (unit -> a) -> trace -> a step = fun f trace ->
-    let remaining = ref trace in
-    let recorded = ref [] in
-    let weight = ref 1.0 in
-    match f () with
-    | result -> Done (result, List.rev !recorded, !weight)
-    | effect (GProb.Choose xs), k ->
-        (match !remaining with
-         | DChoose i :: rest ->
-             (* Replay: use recorded index to select from list *)
-             remaining := rest;
-             recorded := DChoose i :: !recorded;
-             Effect.Deep.continue k (List.nth xs i)
-         | [] ->
-             (* Fresh sample: choose index and pause *)
-             let i = Random.int (List.length xs) in
-             recorded := DChoose i :: !recorded;
-             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
-         | _ :: _ ->
-             (* Trace mismatch *)
-             Effect.Deep.discontinue k HardFail)
-    | effect (GProb.Gaussian (mu, sigma)), k ->
-        (match !remaining with
-         | DGaussian x :: rest ->
-             (* Replay: use recorded Gaussian sample *)
-             remaining := rest;
-             recorded := DGaussian x :: !recorded;
-             Effect.Deep.continue k x
-         | [] ->
-             (* Fresh Gaussian sample *)
-             let x = GProb.sample_gaussian ~mu ~sigma in
-             recorded := DGaussian x :: !recorded;
-             Effect.Deep.discontinue k (Pause (List.rev !recorded, !weight))
-         | _ :: _ ->
-             Effect.Deep.discontinue k HardFail)
-    | effect (GProb.GObserve w), k ->
-        if !remaining = [] then weight := !weight *. w;
-        Effect.Deep.continue k ()
-    | effect GProb.GFail, k -> Effect.Deep.discontinue k HardFail
-    | exception Pause (trace, w) -> Paused (trace, w)
-    | exception HardFail -> Failed
-
-  let resample_indices n weights =
-    let total = Array.fold_left (+.) 0.0 weights in
-    if total <= 0.0 then Array.init n (fun i -> i mod n)
-    else begin
-      let cumulative = Array.make n 0.0 in
-      let acc = ref 0.0 in
-      Array.iteri (fun i w ->
-        acc := !acc +. w /. total;
-        cumulative.(i) <- !acc) weights;
-      Array.init n (fun _ ->
-        let r = Random.float 1.0 in
-        let rec find i =
-          if i >= n - 1 || cumulative.(i) >= r then i
-          else find (i + 1)
-        in find 0)
-    end
-
-  let effective_sample_size weights =
-    let n = float_of_int (Array.length weights) in
-    let total = Array.fold_left (+.) 0.0 weights in
-    if total <= 0.0 then 0.0
-    else begin
-      let sum_sq = Array.fold_left (fun acc w ->
-        let nw = w /. total in acc +. nw *. nw) 0.0 weights in
-      1.0 /. sum_sq /. n
-    end
-
-  let infer ?(n=1000) ?(resample_threshold=0.5) f =
-    let traces = Array.make n [] in
-    let weights = Array.make n 1.0 in
-    let active = Array.make n true in
-    let final_results = ref [] in
-    let n_active = ref n in
-
-    while !n_active > 0 do
-      for i = 0 to n - 1 do
-        if active.(i) then
-          match run_one_step f traces.(i) with
-          | Done (result, trace, w) ->
-              final_results := (result, weights.(i) *. w) :: !final_results;
-              active.(i) <- false;
-              decr n_active
-          | Paused (trace, w) ->
-              traces.(i) <- trace;
-              weights.(i) <- weights.(i) *. w
-          | Failed ->
-              active.(i) <- false;
-              decr n_active
-      done;
-
-      if !n_active > 0 then begin
-        let active_indices =
-          Array.to_list (Array.init n (fun i -> i))
-          |> List.filter (fun i -> active.(i))
-          |> Array.of_list in
-        let active_n = Array.length active_indices in
-        let active_weights =
-          Array.init active_n (fun j -> weights.(active_indices.(j))) in
-        if active_n > 0 && Array.fold_left (+.) 0.0 active_weights > 0.0 &&
-            effective_sample_size active_weights < resample_threshold then begin
-          let indices = resample_indices active_n active_weights in
-          let new_traces =
-            Array.map (fun j -> traces.(active_indices.(j))) indices in
-          let new_weight =
-            Array.fold_left (+.) 0.0 active_weights /. float_of_int active_n in
-          Array.iteri (fun j _ ->
-            traces.(active_indices.(j)) <- new_traces.(j);
-            weights.(active_indices.(j)) <- new_weight) indices
-        end
-      end
-    done;
-
-    let combined = Hashtbl.create 16 in
-    let total = ref 0.0 in
-    List.iter (fun (v, w) ->
-      total := !total +. w;
-      let prev = try Hashtbl.find combined v with Not_found -> 0.0 in
-      Hashtbl.replace combined v (prev +. w)) !final_results;
-    if !total > 0.0 then
-      Hashtbl.fold (fun v w acc -> (v, w /. !total) :: acc) combined []
-      |> List.sort (fun (_, p1) (_, p2) -> compare p2 p1)
-    else []
-end
-```
-
-The trace type `draw list` is simple and type-safe: `DChoose of int` stores only the index, `DGaussian of float` stores the sampled value. During replay, we use the stored index to select from the list passed to `Choose`. No existential types, no `Obj.magic`.
-
-Replay must count each observation once and preserve the total weight of active particles when resampling. Otherwise a later sample can silently change a posterior. Here Bayes' rule gives $0.8/(0.8+0.2)=0.8$:
-
-```ocaml env=ch9
-let () =
-  let saved_random = Random.get_state () in
-  let check infer =
-    List.iter (fun threshold ->
-      Random.init 42;
-      let probability = List.assoc true (infer threshold) in
-      assert (abs_float (probability -. 0.8) < 0.03)) [0.; 1.] in
-  let model () =
-    let b = flip 0.5 in
-    observe (if b then 0.8 else 0.2);
-    ignore (flip 0.5);
-    b in
-  check (fun threshold ->
-    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold model);
-  let typed_model () =
-    let b = GProb.choose [true; false] in
-    GProb.observe (if b then 0.8 else 0.2);
-    ignore (GProb.choose [()]);
-    b in
-  check (fun threshold ->
-    GParticleFilter.infer ~n:10000 ~resample_threshold:threshold typed_model);
-  (* Some paths complete before the others resample. *)
-  let early_finish () =
-    let b = flip 0.5 in
-    observe (if b then 0.8 else 0.2);
-    if b then ignore (flip 0.5);
-    b in
-  check (fun threshold ->
-    ParticleFilter.infer ~n:10000 ~resample_threshold:threshold early_finish);
-  assert (ParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
-    observe 0.; ignore (flip 0.5); true) = []);
-  assert (GParticleFilter.infer ~n:10 ~resample_threshold:1. (fun () ->
-    GProb.observe 0.; ignore (GProb.choose [()]); true) = []);
-  Random.set_state saved_random
-```
-
-#### Example: Sensor Fusion
-
-Here is an example using both discrete and continuous distributions. A robot can be in one of several rooms, and we receive noisy sensor readings of its position:
-
-```ocaml env=ch9
-type room = Kitchen | Living | Bedroom | Bathroom
-
-let room_center = function
-  | Kitchen -> (0.0, 0.0)
-  | Living -> (5.0, 0.0)
-  | Bedroom -> (0.0, 5.0)
-  | Bathroom -> (5.0, 5.0)
-
-let sensor_fusion ~observed_x ~observed_y =
-  let open GProb in
-  (* Prior: uniform over rooms *)
-  let room = choose [Kitchen; Living; Bedroom; Bathroom] in
-  let (cx, cy) = room_center room in
-  (* Sensor model: noisy reading centered on true position *)
-  let sensor_noise = 1.0 in
-  let x = gaussian ~mu:cx ~sigma:sensor_noise in
-  let y = gaussian ~mu:cy ~sigma:sensor_noise in
-  (* Observe the sensor readings *)
-  observe (normal_pdf observed_x ~mu:x ~sigma:0.5);
-  observe (normal_pdf observed_y ~mu:y ~sigma:0.5);
-  room
-
-let () =
-  Printf.printf "\n=== Typed Probabilistic Effects ===\n";
-  Printf.printf "Sensor fusion (observed near Living room at 4.8, 0.2):\n";
-  let dist1 = GImportance.infer ~samples:50000 (fun () ->
-    sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
-  let dist2 = GParticleFilter.infer ~n:5000 (fun () ->
-    sensor_fusion ~observed_x:4.8 ~observed_y:0.2) in
-  let show_room r = match r with
-    | Kitchen -> "Kitchen" | Living -> "Living"
-    | Bedroom -> "Bedroom" | Bathroom -> "Bathroom" in
-  Printf.printf "  GImportance:     ";
-  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist1;
-  print_newline ();
-  Printf.printf "  GParticleFilter: ";
-  List.iter (fun (r, p) -> Printf.printf "%s: %.3f  " (show_room r) p) dist2;
-  print_newline ()
-```
-
-#### Testing with Monty Hall
-
-Let us verify that the typed interface produces correct results:
-
-```ocaml env=ch9
-let typed_monty_hall ~switch =
-  let open GProb in
-  let doors = [`A; `B; `C] in
-  let prize = choose doors in
-  let chosen = choose doors in
-  let can_open = List.filter (fun d -> d <> prize && d <> chosen) doors in
-  let opened = choose can_open in
-  let final =
-    if switch then
-      List.hd (List.filter (fun d -> d <> opened && d <> chosen) doors)
-    else chosen in
-  final = prize
-
-let () =
-  Printf.printf "\nTyped Monty Hall (no switch): ";
-  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:false) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-
-let () =
-  Printf.printf "Typed Monty Hall (switch): ";
-  let dist = GImportance.infer (fun () -> typed_monty_hall ~switch:true) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-
-let () =
-  Printf.printf "Typed Monty Hall with Particle Filter (switch): ";
-  let dist = GParticleFilter.infer ~n:5000 (fun () ->
-    typed_monty_hall ~switch:true) in
-  List.iter (fun (win, p) ->
-    Printf.printf "%s: %.3f  " (if win then "win" else "lose") p) dist;
-  print_newline ()
-```
-
-The typed interface makes probabilistic programs cleaner and more expressive while maintaining full type safety. The GADT structure of OCaml's effect system ensures that `choose` returns the right type at each call site, and the simple index-based trace representation keeps replay straightforward.
-
-### 9.13 Exercises
-
-#### Exercise 1: Promise Timeouts
-
-Extend the `Threads` module to support timeouts. Add an effect `Timeout : float -> 'a promise -> 'a option Effect.t` that waits for a promise with a timeout, returning `None` if the timeout expires. You will need to track elapsed "time" (perhaps measured in yields).
-
-
-#### Exercise 2: Effectful Generators
-
-Implement a generator using a functor `Generator (A : sig type t end)`. Inside it, define `YieldGen : A.t -> unit Effect.t`; fixing the element type connects the effect payload to the resulting sequence. An unconstrained existential payload would not provide that connection.
-
-
-- A function `generate : (unit -> unit) -> A.t Seq.t` that converts a procedure using `YieldGen` into a sequence. Specify single-use traversal, or memoize sequence nodes so repeated forcing never resumes a continuation twice.
-- Use it to implement a generator for Fibonacci numbers.
-
-#### Exercise 3: Polymorphic State Effect
-
-The `State` module above only handles integer state. Generalize it to handle state of any type using a functor or first-class modules.
-
-
-#### Exercise 4: Two-Coin Bayesian Inference
-
-Write a probabilistic program for the following scenario: You have two coins, a fair one (50% heads) and a biased one (70% heads). You pick a coin uniformly at random, flip it three times, and observe that all three flips came up heads. What is the probability that you picked the biased coin? Run inference with both `Rejection` and `Importance` and compare the results and efficiency.
-
-
-#### Exercise 5: Likelihood Weighting
-
-The `Importance` handler already performs likelihood weighting: it samples from the prior and multiplies observation likelihoods. Compare it with rejection sampling on the burglary example. Then extend it to sample from a different proposal distribution and include the prior-to-proposal probability ratio in the weight. State the required support condition.
-
-
-#### Exercise 6: Selective Particle Pausing
-
-The particle filter currently pauses at every `Sample`, which may cause excessive resampling overhead. Modify it to pause more selectively: only pause at a `Sample` that occurs after at least one `Observe` since the last pause. This focuses resampling on points where weights have actually changed. (Hint: track whether any `Observe` has occurred since the last pause.)
-
-
-#### Exercise 7: Continuation-Cached Particle Filter
-
-Optimize the particle filter by storing the suspended continuation alongside the trace in `Paused`. Represent ownership explicitly, for example with a shared continuation option reference. Atomically take the continuation before resuming it; duplicated particles whose shared slot is empty must replay instead. Do not use a broad exception handler around `continue` to detect ownership, since it could also catch an exception from inside the model. Ensure every abandoned live continuation is discontinued. This avoids replay overhead for particles that weren't duplicated during resampling.
-
-
-## Chapter 10: Functional Reactive Programming
+`projects/probability/laws.ml` compares this model, an early-completion model, and
+a zero-mass model across enumeration, importance sampling and replay with and
+without resampling. Impossible evidence returns an empty result; it is not a
+posterior assigning equal probabilities to everything. Supports, weights and
+sample counts are validated before interpretation.
+
+Replay has a stricter contract than ordinary effect handling: the model must be
+deterministic apart from its handled draws, terminate on each explored trace,
+and not catch the private exceptions used to pause or reject it. Arbitrary I/O,
+mutation observed across runs, or changed choice support can invalidate replay.
+Long traces and very small likelihoods need log-domain or otherwise stabilized
+weights; the current short-model float implementation does not solve underflow.
+The sensor-fusion executable is an application experiment, not a validated
+physical estimator.
+
+### 9.7 Exercises
+
+1. **Practice.** Change the A/B program so the parent yields after spawning only
+   A. Predict the trace before running it; explain the queue after each operation.
+2. **Proof.** Audit the continuation ownership invariant. List every transition
+   out of `Paused` and explain why repeated cancellation cannot resume twice.
+3. **Experiment.** Make a child raise after its first yield. Check both the
+   propagated exception and the sibling's release count.
+4. **Project.** Add a timeout expressed in logical scheduler ticks. Specify which
+   side wins when completion and timeout happen at the same tick. Test the policy
+   in both program representations without wall-clock sleeps.
+5. **Proof / experiment.** Derive the early-completion posterior in the probability
+   project. Explain why normalizing only active particles changes its answer.
+
+**Boundary of this project.** There is no OS I/O polling, multicore synchronization,
+preemption, priority system or production cancellation protocol here. Adding
+those requires new contracts and tests. The complete project demonstrates a small,
+explicit scope policy; it is not an application runtime recommendation.
+
+
+## Chapter 10: One game, three interpretations
 
 ![Chapter 10 illustration](Curious_OCaml-chapter_10.jpg){.chapter-image}
 
-How do we deal with change and interaction in functional programming? This is one of the most challenging questions in the field, and over the years programmers have developed increasingly sophisticated answers. This chapter explores a progression of techniques: we begin with *zippers*, a clever data structure for navigating and modifying positions within larger structures. We then advance to *adaptive programming* (also known as incremental computing), which automatically propagates changes through computations. Finally, we arrive at *Functional Reactive Programming* (FRP), a declarative approach to handling time-varying values and event streams. We conclude with practical examples including graphical user interfaces.
+**Prerequisites:** Chapters 7–9: streams, interpreters and owned continuations.
+**Route:** the final chapter of Part III. Chapter 12 returns to the laws connecting
+representations. Zipper navigation and rewriting are in `projects/zippers`.
 
-**Recommended Reading:**
+A moving ball on a screen is not a specification. Before comparing reactive
+libraries, define one transition, a logical clock, an input log and its expected
+output. Then ask whether streams, incremental signals and direct-style effects
+interpret that same program. Drawing becomes a consumer of the verified states.
 
-- *"The Zipper"* by Gérard Huet -- the original paper introducing zippers
-- [Zippers (Haskell Wikibook)](https://en.wikibooks.org/wiki/Haskell/Zippers) -- visual intuition and examples
-- [*How `froc` works*](how-froc-works-a.png) -- a slide-friendly walk through dependency graphs (this chapter includes the figures)
-- [`lwd` documentation](https://github.com/let-def/lwd) -- lightweight reactive documents for OCaml
-- [`incremental` documentation](https://github.com/janestreet/incremental) -- Jane Street's industrial incremental engine
-- *"The Haskell School of Expression"* by Paul Hudak -- a classic FRP source
-- *"Deprecating the Observer Pattern with `Scala.React`"* by Ingo Maier and Martin Odersky
-- If you want background on OCaml 5 effect handlers (used in Section 10.7), see the OCaml manual and OCaml 5 release material.
+### 10.1 Define a discrete world
 
-### 10.1 Zippers
+The playfield has integer x-coordinates 0–10 and y-coordinates 0–6. The ball moves
+one cell per axis per tick. A paddle centered at `paddle` covers its center and
+one cell on either side. Each input moves it by at most one cell, clamped to
+centers 1–9. Move the paddle first, then move the ball, then resolve collisions.
+A ball arriving at y=0 bounces if within the paddle; otherwise the game is lost.
+At x=0 or x=10 its horizontal velocity reverses; at y=6 its vertical velocity
+reverses. Simultaneous collisions emit events in wall, ceiling, paddle/miss order.
 
-Imagine you are editing a document, a tree structure, or navigating through a file system. You need to keep track of where you are, easily access and modify the data at that location, and move around efficiently. This is exactly the problem that zippers solve.
-
-Recall from earlier chapters how we defined *context types* for datatypes -- types that represent a data structure with one of its elements missing. We discovered that taking the derivative of an algebraic datatype gives us exactly this context type. Now we will put this theory to practical use.
-
-Consider binary trees:
-
-```ocaml skip
-type btree = Tip | Node of int * btree * btree
+<!-- $MDX file=../projects/reactive/game.ml,part=transition -->
+```ocaml
+type status = Playing | Lost
+type state = { tick:int; x:int; y:int; vx:int; vy:int; paddle:int; status:status }
+type input = { move:int }
+type event = Paddle | Wall | Ceiling | Miss
+let initial = {tick=0; x=5; y=2; vx=1; vy=(-1); paddle=5; status=Playing}
+let clamp lo hi x = max lo (min hi x)
+let step s input =
+  if input.move < -1 || input.move > 1 then invalid_arg "move must be -1, 0 or 1";
+  let paddle = clamp 1 9 (s.paddle + input.move) in
+  let tick = s.tick + 1 in
+  if s.status = Lost then {s with tick; paddle}, []
+  else
+    let x = s.x + s.vx and y = s.y + s.vy in
+    let wall = x = 0 || x = 10 in
+    let ceiling = y = 6 in
+    let bottom = y = 0 in
+    let hit = bottom && abs (x - paddle) <= 1 in
+    let missed = bottom && not hit in
+    let state = {tick; x; y; paddle;
+      vx=(if wall then -s.vx else s.vx);
+      vy=(if ceiling || hit then -s.vy else s.vy);
+      status=(if missed then Lost else Playing)} in
+    let events =
+      (if wall then [Wall] else []) @ (if ceiling then [Ceiling] else []) @
+      (if hit then [Paddle] else []) @ (if missed then [Miss] else []) in
+    state, events
 ```
 
-Using our algebraic datatype calculus, where $T$ represents the tree type:
-
-$$
-\begin{matrix}
-T & = & 1 + xT^2 \\
-\frac{\partial T}{\partial x} & = & 0 + T^2 + 2xT\frac{\partial T}{\partial x} = TT + 2xT\frac{\partial T}{\partial x}
-\end{matrix}
-$$
-
-This derivative gives us the context type:
-
-```ocaml skip
-type btree_dir = LeftBranch | RightBranch
-type btree_deriv =
-  | Here of btree * btree
-  | Below of btree_dir * int * btree * btree_deriv
-```
-
-The key insight is that **Location = context + subtree**! A location in a data structure consists of two parts: the context (everything around the focused element) and the subtree (what we are currently looking at).
-
-However, there is a problem with the representation above: we cannot easily move the location if `Here` is at the bottom of our context representation. Think about it: if we want to move up from our current position, we need to access the innermost layer of the context first. The part closest to the location should be on top, not buried at the bottom.
-
-#### Revisiting the Equations
-
-Let us revisit the equations for trees and lists:
-
-$$
-\begin{matrix}
-T & = & 1 + xT^2 \\
-\frac{\partial T}{\partial x} & = & 0 + T^2 + 2xT\frac{\partial T}{\partial x} \\
-\frac{\partial T}{\partial x} & = & \frac{T^2}{1 - 2xT} \\
-L(y) & = & 1 + yL(y) \\
-L(y) & = & \frac{1}{1 - y} \\
-\frac{\partial T}{\partial x} & = & T^2 L(2xT)
-\end{matrix}
-$$
-
-This algebraic manipulation reveals something beautiful: the context can be stored as a list with the root as the last node. The $L(2xT)$ factor tells us that we have a list where each element consists of $2xT$ -- that is, a direction indicator (left or right, hence the factor of 2), the element at that node ($x$), and the sibling subtree ($T$).
-
-It does not matter whether we use built-in OCaml lists or define a custom type with `Above` and `Root` variants -- the structure is the same.
-
-In practice, contexts of subtrees are more useful than contexts of single elements. Rather than tracking where a single value lives, we track the position of an entire subtree within the larger structure:
-
-```ocaml env=ch10
-type 'a tree = Tip | Node of 'a tree * 'a * 'a tree
-type tree_dir = Left_br | Right_br
-type 'a context = (tree_dir * 'a * 'a tree) list
-type 'a location = {sub: 'a tree; ctx: 'a context}
-
-let access {sub; _} = sub       (* Get the current subtree *)
-let change {ctx; _} sub = {sub; ctx}  (* Replace the subtree, keep context *)
-let modify f {sub; ctx} = {sub = f sub; ctx}  (* Transform the subtree *)
-```
-
-There is a wonderful visual intuition for zippers: imagine taking a tree and pinning it at one of its nodes, then letting it hang down under gravity. The pinned node becomes "the current focus," and all the other parts of the tree dangle from it. This mental picture helps understand how movement works: moving to a child means letting a new node become the pin point, with the old parent now hanging above. For excellent visualizations, see [Zippers (Haskell Wikibook)](https://en.wikibooks.org/wiki/Haskell/Zippers).
-
-#### Moving Around
-
-Navigation functions allow us to traverse the structure. Each movement operation restructures the zipper: what was context becomes part of the subtree, and vice versa. Watch how ascending rebuilds a parent node from the context, while descending breaks apart a node to create new context:
-
-```ocaml env=ch10
-let ascend loc =
-  match loc.ctx with
-  | [] -> loc  (* At root already, or raise exception *)
-  | (Left_br, n, l) :: up_ctx ->
-    (* We were in the right subtree; rebuild the parent node *)
-    {sub = Node (l, n, loc.sub); ctx = up_ctx}
-  | (Right_br, n, r) :: up_ctx ->
-    (* We were in the left subtree; rebuild the parent node *)
-    {sub = Node (loc.sub, n, r); ctx = up_ctx}
-
-let desc_left loc =
-  match loc.sub with
-  | Tip -> loc  (* Cannot descend into a tip, or raise exception *)
-  | Node (l, n, r) ->
-    (* Focus on left child; right sibling goes into context *)
-    {sub = l; ctx = (Right_br, n, r) :: loc.ctx}
-
-let desc_right loc =
-  match loc.sub with
-  | Tip -> loc  (* Cannot descend into a tip, or raise exception *)
-  | Node (l, n, r) ->
-    (* Focus on right child; left sibling goes into context *)
-    {sub = r; ctx = (Left_br, n, l) :: loc.ctx}
-```
-
-#### Trees with Arbitrary Branching
-
-Following *The Zipper* by Gerard Huet, let us look at a tree with an arbitrary number of branches. This is particularly useful for representing document structures where a group can contain any number of children:
-
-```ocaml env=ch10
-type doc = Text of string | Line | Group of doc list
-type context = (doc list * doc list) list  (* left siblings, right siblings *)
-type location = {sub: doc; ctx: context}
-```
-
-In this design, the context at each level stores two lists: the siblings to the left of our current position (in reverse order for efficient access) and the siblings to the right. This allows us to move not just up and down, but also left and right among siblings.
-
-The navigation functions for this more complex structure show how we reconstruct the parent when going up, and how we split the sibling list when going down:
-
-```ocaml env=ch10
-let go_up loc =
-  match loc.ctx with
-  | [] -> invalid_arg "go_up: at top"
-  | (left, right) :: up_ctx ->
-    (* Reconstruct the Group: reverse left siblings, add current, then right *)
-    {sub = Group (List.rev left @ loc.sub :: right); ctx = up_ctx}
-
-let go_left loc =
-  match loc.ctx with
-  | [] -> invalid_arg "go_left: at top"
-  | (l :: left, right) :: up_ctx ->
-    (* Move to left sibling; current element moves to right siblings *)
-    {sub = l; ctx = (left, loc.sub :: right) :: up_ctx}
-  | ([], _) :: _ -> invalid_arg "go_left: at first"
-
-let go_right loc =
-  match loc.ctx with
-  | [] -> invalid_arg "go_right: at top"
-  | (left, r :: right) :: up_ctx ->
-    (* Move to right sibling; current element moves to left siblings *)
-    {sub = r; ctx = (loc.sub :: left, right) :: up_ctx}
-  | (_, []) :: _ -> invalid_arg "go_right: at last"
-
-let go_down loc =
-  (* Go to the first (i.e. leftmost) subdocument *)
-  match loc.sub with
-  | Text _ -> invalid_arg "go_down: at text"
-  | Line -> invalid_arg "go_down: at line"
-  | Group [] -> invalid_arg "go_down: at empty"
-  | Group (doc :: docs) ->
-    (* First child becomes focus; rest become right siblings *)
-    {sub = doc; ctx = ([], docs) :: loc.ctx}
-```
-
-### 10.2 Example: Context Rewriting
-
-Let us put zippers to work on a real problem. Imagine a friend working on string theory asks us for help simplifying equations. The task is to pull out particular subexpressions as far to the left as possible, while changing the whole expression as little as possible. This kind of algebraic manipulation is common in symbolic computation.
-
-We can illustrate our algorithm using mathematical notation. Let:
-
-- $x$ be the thing we pull out
-- $C[e]$ and $D[e]$ be big expressions with subexpression $e$
-- operator $\circ$ stand for one of: $*, +$
-
-The rewriting rules are:
-
-$$
-\begin{matrix}
-D[(C[x] \circ e_1) \circ e_2] & \Rightarrow & D[C[x] \circ (e_1 \circ e_2)] \\
-D[e_2 \circ (C[x] \circ e_1)] & \Rightarrow & D[C[x] \circ (e_1 \circ e_2)] \\
-D[(C[x] + e_1) e_2] & \Rightarrow & D[C[x] e_2 + e_1 e_2] \\
-D[e_2 (C[x] + e_1)] & \Rightarrow & D[C[x] e_2 + e_1 e_2] \\
-D[e \circ C[x]] & \Rightarrow & D[C[x] \circ e]
-\end{matrix}
-$$
-
-These rules encode the algebraic properties we need: associativity (first two rules), distributivity of multiplication over addition (third and fourth rules), and commutativity (last rule, which lets us swap operands). The key insight is that we can implement these transformations efficiently using a zipper, since each rule only needs to look at a small neighborhood of the current position.
-
-First, the groundwork. We define expression types and a zipper for navigating them:
-
-```ocaml env=ch10
-type op = Add | Mul
-type expr = Val of int | Var of string | App of expr * op * expr
-type expr_dir = Left_arg | Right_arg
-type context = (expr_dir * op * expr) list
-type location = {sub: expr; ctx: context}
-```
-
-To locate the subexpression described by predicate `p`, we search the expression tree and build up the context as we go. Notice that we build the context in reverse order during the search, then reverse it at the end so the innermost context comes first (as required for efficient navigation):
-
-```ocaml env=ch10
-let rec find_aux p e =
-  if p e then Some (e, [])
-  else match e with
-  | Val _ | Var _ -> None
-  | App (l, op, r) ->
-    match find_aux p l with
-    | Some (sub, up_ctx) ->
-      Some (sub, (Right_arg, op, r) :: up_ctx)
-    | None ->
-      match find_aux p r with
-      | Some (sub, up_ctx) ->
-        Some (sub, (Left_arg, op, l) :: up_ctx)
-      | None -> None
-
-let find p e =
-  match find_aux p e with
-  | None -> None
-  | Some (sub, ctx) -> Some {sub; ctx = List.rev ctx}
-```
-
-Now we can implement the pull-out transformation. This is where the zipper shines: we pattern match on the context to decide which rewriting rule to apply, then modify the context directly. The function recursively moves the target subexpression outward until it reaches the root:
-
-```ocaml env=ch10
-let rec pull_out loc =
-  match loc.ctx with
-  | [] -> loc  (* Done: reached the root *)
-  | (Left_arg, op, l) :: up_ctx ->
-    (* D[e . C[x]] => D[C[x] . e] -- use commutativity to swap sides *)
-    pull_out {loc with ctx = (Right_arg, op, l) :: up_ctx}
-  | (Right_arg, op1, e1) :: (_, op2, e2) :: up_ctx
-      when op1 = op2 ->
-    (* D[(C[x] . e1) . e2] => D[C[x] . (e1 . e2)] -- associativity *)
-    pull_out {loc with ctx = (Right_arg, op1, App(e1, op1, e2)) :: up_ctx}
-  | (Right_arg, Add, e1) :: (_, Mul, e2) :: up_ctx ->
-    (* D[(C[x] + e1) * e2] => D[C[x] * e2 + e1 * e2] -- distributivity *)
-    pull_out {loc with ctx =
-        (Right_arg, Mul, e2) ::
-          (Right_arg, Add, App(e1, Mul, e2)) :: up_ctx}
-  | (Right_arg, op, r) :: up_ctx ->
-    (* No rule applies: move up by incorporating current context *)
-    pull_out {sub = App(loc.sub, op, r); ctx = up_ctx}
-```
-
-Since we assume operators are commutative, we can ignore the direction for the second piece of context above -- both `(C[x] . e1) . e2` and `e2 . (C[x] . e1)` are handled by the same associativity rule.
-
-Let us test the implementation with a concrete example:
-
-```ocaml env=ch10
-let rec expr_to_string = function
-  | Val n -> string_of_int n
-  | Var v -> v
-  | App (l, Add, r) -> "(" ^ expr_to_string l ^ "+" ^ expr_to_string r ^ ")"
-  | App (l, Mul, r) -> "(" ^ expr_to_string l ^ "*" ^ expr_to_string r ^ ")"
-
-module ExprOps = struct
-  let (+) a b = App (a, Add, b)
-  let ( * ) a b = App (a, Mul, b)
-  let (!) a = Val a
-end
-let x = Var "x"
-let y = Var "y"
-
-(* Original: 5 + y * (7 + x) * (3 + y) -- we want to pull x to the front *)
-let ex = ExprOps.(!5 + y * (!7 + x) * (!3 + y))
-let loc = find (fun e -> e = x) ex
-let sol =
-  match loc with
-  | None -> raise Not_found
-  | Some loc -> pull_out loc
-let result = expr_to_string sol.sub
-let () = assert (result = "(((x*y)*(3+y))+(((7*y)*(3+y))+5))")
-```
-
-The transformation successfully pulled `x` from deep inside the expression to the outermost left position. For best results on complex expressions, we can iterate the `pull_out` function until a fixpoint is reached, ensuring all instances of the target are pulled out as far as possible.
-
-### 10.3 Adaptive Programming (Incremental Computing)
-
-Zippers gave us a way to make *local* edits to a large structure while keeping enough context to put the structure back together. But they do not, by themselves, solve a more global problem:
-
-> if we change an input, how do we update *all* the derived results efficiently, without rewriting the whole program to “thread the context around”?
-
-**Incremental computing** (also called **self-adjusting computation** or **adaptive programming**) answers this by letting us write code in a direct style while the runtime system records *dependencies* between intermediate results. When an input changes, only the part of the computation graph that depends on that input is recomputed; everything else is reused.
-
-#### A Mental Model: Traces and Change Propagation
-
-Think of an incremental program as building a directed acyclic graph (DAG):
-
-- **Leaves** are *changeable inputs* (mutable cells).
-- **Internal nodes** are *pure computations* (maps, combinations, binds).
-- **Roots** are *observers* (the results we care to keep up-to-date).
-
-When a leaf changes, the system does two logically separate things:
-
-1. **Invalidate** cached results that (transitively) depend on the changed leaf.
-2. **Recompute** just enough of the graph to bring the observed roots back to a consistent state.
-
-Different libraries make different choices about *when* recomputation happens (eager stabilization vs. lazy sampling), *how* they avoid redundant work (timestamps vs. boolean dirty flags), and *what* extra guarantees they provide (cutoffs, resource lifetimes, “no glitches”).
-
-#### The Core Idea: Write Normal Code, Get a DAG
-
-Consider a simple expression:
-
-```
-u = v / w + x * y + z
-```
-
-As ordinary code, this just computes a number. As an *incremental* computation, it implicitly defines a dependency graph:
-
-- `n0 = v / w`
-- `n1 = x * y`
-- `n2 = n0 + n1`
-- `u  = n2 + z`
-
-When `v` changes, we should update `n0`, then `n2`, then `u`. When `z` changes, we should update only `u`. The point of incremental computing is that you should not have to maintain this update order yourself.
-
-Most libraries expose a “lifted arithmetic” style: you still write expressions like `v / w + x * y + z`, but the operators build graph nodes rather than eagerly computing.
-
-#### A Worked Picture: *How `froc` Works*
-
-Jacob Donham’s short note *How `froc` works* explains incremental computation using pictures of a dependency graph (the `froc` library is historically important, but in this book we will use modern OCaml libraries in the same design space).
-
-The expression `u = v / w + x * y + z` as a dependency graph:
-
-![](how-froc-works-a.png){width=75%}
-
-The same graph after memoizing intermediate results:
-
-![](how-froc-works-b.png){width=75%}
-
-If multiple inputs change, the engine must update nodes in a safe order (a topological schedule). The picture uses grey numbers to indicate a recomputation order:
-
-![](how-froc-works-c.png){width=75%}
-
-The subtle case is **dynamic dependency** (a `bind`/`join` that can choose a different subgraph). If we recompute “everything that ever depended on `x`”, we may attempt to update a branch that is no longer relevant:
-
-![](how-froc-works-d.png){width=75%}
-
-One approach (as described in the note) is to track not just a single timestamp but an *interval* for a node’s computation, detach the old subgraph interval when a dynamic node is recomputed, and reattach only what the new branch actually needs:
-
-![](how-froc-works-e.png){width=75%}
-
-Two practical lessons fall out of this:
-
-- **Prefer applicative combinators** (`map`, `map2`, `map3`, …) for static dependency structure.
-- Use **dynamic dependency** (`bind`/`join`) only when the structure truly depends on values (conditionals, switching, dynamic collections).
-
-#### Conditional Dependencies (Dynamic Graphs)
-
-The most interesting case is when the dependency graph itself depends on data:
-
-```ocaml skip
-(* Pseudocode: the dependencies of [out] depend on [use_fast]. *)
-let out =
-  if use_fast then fast_path input
-  else slow_path input
-```
-
-If `use_fast` flips, we must stop depending on the old branch and start depending on the new one. Incremental systems support this with a *dynamic dependency* operator:
-
-- `bind` / `join` / `switch` (names vary): pick which subgraph is active *based on a value*.
-
-Operationally, this means: detach edges to the old branch, attach edges to the new branch, then recompute along the newly relevant dependencies. This is also where “glitch freedom” matters: we want each observed root to be updated as if we recomputed in a topological order on a single, consistent snapshot of inputs.
-
-Here is the classic pitfall:
-
-```ocaml skip
-(* Pseudocode: [x] is a changeable input. *)
-let b  = map x ~f:(fun x -> x = 0)
-let n0 = map x ~f:(fun x -> 100 / x)
-let y  = bind b ~f:(fun b -> if b then return 0 else n0)
-```
-
-If we naïvely “recompute everything that ever depended on `x`”, then changing `x` to `0` would try to compute `100 / 0` even though the branch containing `n0` is no longer relevant. Dynamic dependency operators solve this by making *reachability* part of correctness: when the branch switches, the old subgraph becomes inactive and stops being demanded by observers.
-
-#### Two Modern OCaml Libraries: `lwd` and `incremental`
-
-Many ideas above can be packaged behind a small “conceptual API”:
-
-```ocaml env=ch10
-module type INCREMENTAL = sig
-  type 'a t
-  type 'a var
-  type 'a obs
-
-  val var : 'a -> 'a var
-  val get : 'a var -> 'a t
-  val set : 'a var -> 'a -> unit
-
-  val map : 'a t -> f:('a -> 'b) -> 'b t
-  val map2 : 'a t -> 'b t -> f:('a -> 'b -> 'c) -> 'c t
-  val bind : 'a t -> f:('a -> 'b t) -> 'b t
-
-  val observe : 'a t -> 'a obs
-  val sample : 'a obs -> 'a
-end
-```
-
-OCaml has at least two widely used implementations of this idea, with different priorities.
-
-##### `Lwd` (Lightweight Reactive Documents)
-
-`Lwd` is designed around building *reactive trees* (most famously, UI trees). Its model is **invalidate eagerly, recompute lazily**:
-
-- `Lwd.var` / `Lwd.set` mutate leaves and immediately invalidate dependent nodes.
-- Values are recomputed on demand when you `Lwd.sample` a **root** (an observer).
-- It tracks *liveness*: nodes not reachable from any root are released, and `Lwd.prim` supports `acquire`/`release` for resource lifetimes (subscriptions, DOM nodes, etc.).
-
-```ocaml env=ch10
-(* Using Lwd as an incremental engine *)
-let a = Lwd.var 10
-let b = Lwd.var 32
-
-let sum : int Lwd.t =
-  Lwd.map2 (Lwd.get a) (Lwd.get b) ~f:( + )
-
-let root = Lwd.observe sum
-let now () = Lwd.quick_sample root
-
+The transition's state precondition is a state reachable from `initial` by valid
+inputs. It is not a continuous-physics solver: there is no variable time step,
+subpixel velocity or swept collision detection. After loss, ticks and paddle
+inputs continue, while ball position and velocity remain fixed and no new
+collision event is emitted. The simple integer model makes the semantics exact
+until the machine tick counter overflows.
+
+### 10.2 Establish the expected trace
+
+The recorded paddle movements are
+`[1;1;0;-1;0;0;0;0;0;0;0;0;0;0]`. Starting at `(5,2)` with paddle 5, the first
+input moves the paddle to 6 and ball to `(6,1)`. The second moves the paddle to 7,
+so the ball hits it at `(7,0)` and reverses vertically.
+
+| Tick | Ball position | Event |
+|---|---|---|
+| 1 | (6,1) | none |
+| 2 | (7,0) | paddle |
+| 3 | (8,1) | none |
+| 4 | (9,2) | none |
+| 5 | (10,3) | wall |
+| 6 | (9,4) | none |
+| 7 | (8,5) | none |
+| 8 | (7,6) | ceiling |
+| 9 | (6,5) | none |
+| 10 | (5,4) | none |
+| 11 | (4,3) | none |
+| 12 | (3,2) | none |
+| 13 | (2,1) | none |
+| 14 | (1,0) | miss |
+
+At the last tick the paddle is still centered at 6, so the ball misses. This
+trace exercises the paddle rule that a picture alone would not establish.
+
+```ocaml env=game
+let trace = Game.through_stream Game.recorded
 let () =
-  let s0 = now () in  (* 42 *)
-  Lwd.set a 11;
-  let s1 = now () in  (* 43 *)
-  ignore (s0, s1)
+  assert (List.map (fun (s,_) -> s.Game.x,s.Game.y) trace = Game.expected_positions);
+  assert (List.filter_map (fun (s,e) ->
+    if e=[] then None else Some (s.Game.tick,e)) trace =
+    [2,[Game.Paddle];5,[Game.Wall];8,[Game.Ceiling];14,[Game.Miss]])
 ```
 
-##### `Incremental` (Jane Street)
+### 10.3 A stream is a sequence of transitions
 
-`Incremental` is a general-purpose industrial incremental engine. Its model is **batch updates into a stabilization pass**:
+`Game.stream state inputs` yields the next `(state, events)` pair and delays the
+rest behind a `Seq.t` thunk. It applies `step` once per demanded node. It is not
+memoized: traversing the same sequence twice recomputes its pure transitions.
+The input list is immutable, so recomputation gives the same trace.
 
-- `Incr.Var.set` records changes to leaves.
-- `Incr.stabilize` recomputes all stale *necessary* nodes in an order based on node heights (a topological schedule).
-- It supports **cutoffs** (don’t propagate if “unchanged enough”), rich observer hooks, and scoping mechanisms that help manage dynamic graphs.
+```ocaml env=game
+let () = assert (Game.through_stream Game.recorded = trace)
+```
 
-```ocaml env=ch10
-module Incr = Incremental.Make ()
+This interpretation is a scan: a fold that exposes each intermediate state.
+With a live reader, re-traversal would be a different contract; Chapter 7's
+resource scope would still be required. A finite input log separates that concern
+from the game's state semantics.
 
-let a = Incr.Var.create 10
-let b = Incr.Var.create 32
-let sum = Incr.map2 (Incr.Var.watch a) (Incr.Var.watch b) ~f:( + )
+### 10.4 Incremental signals cache dependencies
 
-let obs = Incr.observe sum
-let now () =
-  Incr.stabilize ();
-  Incr.Observer.value_exn obs
+The project's `Signal` module implements a small static dependency graph. A
+variable has a revision; setting it to an equal value leaves that revision alone.
+A `map2` node samples its two dependencies and caches its output under their pair
+of revisions. Re-reading unchanged dependencies returns the cached value.
 
+The game scan depends on **both logical tick and input value**. Holding the same
+movement key for two ticks must still move the ball twice. The driver delivers
+every consecutive tick and samples it before delivering the next; an attempted
+skip raises an error. The scan's stateful update is confined to that node, while
+ordinary derived nodes can be pure functions of the resulting snapshot.
+
+```ocaml env=game
 let () =
-  let s0 = now () in  (* 42 *)
-  Incr.Var.set a 11;
-  let s1 = now () in  (* 43 *)
-  ignore (s0, s1)
+  let update,sample,cost = Game.incremental () in
+  update {Game.move=1};
+  let first = sample () in
+  assert (sample () = first && cost () = 1);
+  update {Game.move=1};
+  ignore (sample ());
+  assert (cost () = 2);
+  assert (Game.through_incremental Game.recorded = trace)
 ```
 
-##### Comparing Design Choices (Why Two Libraries?)
-
-Both libraries implement self-adjusting computation, but they optimize for different problem shapes. A quick high-level summary:
-
-- **When recomputation happens**
-  - `Lwd`: recompute on `sample` (pull), after eager invalidation (push).
-  - `Incremental`: recompute during `stabilize` (push), sampling is just reading.
-- **Graph shape expectations**
-  - `Lwd`: typically tree-ish with occasional sharing; optimized to be small.
-  - `Incremental`: arbitrary large DAGs with heavy sharing; optimized to schedule recomputation precisely.
-- **Change propagation policy**
-  - `Lwd`: simple invalidation flags; minimal bookkeeping.
-  - `Incremental`: timestamps/heights, recompute heaps, cutoffs; more bookkeeping, more guarantees and knobs.
-- **Lifetimes**
-  - `Lwd`: explicit `acquire`/`release` on primitives; roots control liveness.
-  - `Incremental`: observers/scopes and finalizers; “necessary” vs “unnecessary” nodes.
-
-As a rule of thumb:
-
-- Choose **`Lwd`** when your reactive graph is primarily a *view tree* (documents/widgets/DOM-ish nodes), and you care about explicit resource lifetimes and keeping the runtime lightweight.
-- Choose **`Incremental`** when you have a large shared DAG, you need cutoffs and richer scheduling/inspection tools, or you want to build higher-level frameworks (e.g. component systems) on top.
-
-The moral is not “one is better”; it is that incremental computing is a *design space*. Your choice should match how you expect your graph to evolve (tree vs. DAG, dynamic dependencies, scale) and how much control you need over scheduling and cutoffs.
-
-#### When Incremental Computing Wins (and When It Doesn’t)
-
-Incremental computing has overhead: it builds and maintains a dependency graph and caches intermediate results. It tends to win when you have:
-
-- a large computation that you will update *many times*,
-- each update changes a *small part* of the inputs,
-- and you need outputs after each update.
-
-If you build something once and throw it away, plain recomputation can be faster and simpler.
-
-### 10.4 Functional Reactive Programming
-
-Incremental computing is about efficiently updating a *pure* computation when some inputs change. **Functional Reactive Programming (FRP)** is about structuring programs that interact with a changing world—key presses, network packets, sensor readings, animations—*without giving up declarative composition*.
-
-FRP revolves around a small vocabulary:
-
-- A **behavior** is a value that exists “at every time” (mouse position, window size, current score).
-- An **event** is a discrete occurrence (a key press, a click, a timer tick).
-- A **signal** is a generic name for either kind of thing (terminology varies across libraries).
-
-Two constraints shape every FRP design:
-
-1. **Causality**. A signal at time `t` may depend on the past and present, but not on the future. Feedback loops must include a delay (e.g. “previous value”, integration, an explicit state step).
-2. **Efficiency and consistency**. We want to avoid replaying the entire history of the world on every sample, and we want to avoid *glitches*—temporarily observing inconsistent intermediate states because dependencies update in the wrong order.
-
-In practice, FRP systems implement some notion of an **update step** (also called a tick, a frame, a stabilization pass). During an update step we incorporate all inputs that “happened simultaneously” and then recompute derived signals in a schedule that respects dependencies.
-
-#### Idealized Definitions (and Why We Don’t Implement Them Directly)
-
-In the most mathematical presentation, we might write:
-
-```ocaml skip
-type time = float
-type 'a behavior = time -> 'a
-type 'a event = (time * 'a) stream  (* increasing time stamps *)
-```
-
-This says: a behavior has a value at every time; an event is a (possibly infinite) stream of timestamped occurrences.
-
-The trouble is that real programs must react to *external* events (mouse moves, clicks, window resize). If we define behaviors as “functions of time”, we still need some representation of “the history of inputs so far”, and we need to compute behavior values without rescanning that history from the beginning each time.
-
-The usual move is to turn behaviors into **stream transformers** that process time and inputs incrementally:
-
-```ocaml skip
-type 'a behavior = user_action event -> time -> 'a
-type 'a behavior = user_action event -> time stream -> 'a stream
-type 'a behavior = (user_action option * time) stream -> 'a stream
-```
-
-This transformation from functions-of-time to stream transformers is analogous to a classic algorithm optimization. Computing the intersection of two lists naively checks every pair, giving $O(mn)$ time. If the lists are sorted, the smart approach walks through both lists simultaneously, giving $O(m + n)$ time. Similarly, our stream-based behaviors process time and events together in a single pass.
-
-Once behaviors are stream transformers, a very convenient representation for events is:
-
-```ocaml skip
-type 'a event = 'a option behavior
-```
-
-An event is just a behavior that yields `None` most of the time and `Some v` at the instants where the event occurs.
-
-#### Behaviors as Applicative (Static Wiring)
-
-Pointwise behaviors form an applicative functor (and, in idealized presentations, a monad). For `type 'a behavior = time -> 'a` we can define:
-
-```ocaml env=ch10
-let pure a = fun _t -> a
-let map f b = fun t -> f (b t)
-let ap bf ba = fun t -> (bf t) (ba t)
-```
-
-From `ap` we get the familiar lifting operators:
-
-```ocaml env=ch10
-let lift2 f a b = ap (map f a) b
-let lift3 f a b c = ap (lift2 f a b) c
-```
-
-In practice, most FRP code is written in this *applicative* style: it gives a static “wiring diagram”, which is easier to implement efficiently and avoids surprising dynamic dependencies.
-
-#### Converting Between Events and Behaviors
-
-Four combinators show up again and again:
-
-- `step : init:'a -> 'a event -> 'a behavior` (hold last event value)
-- `switch : init:'a behavior -> 'a behavior event -> 'a behavior` (switch behaviors over time)
-- `until : 'a behavior -> 'a behavior event -> 'a behavior` (switch once)
-- `snapshot : 'a event -> 'b behavior -> ('a * 'b) event` (sample a behavior when an event fires)
-
-Section 10.5 builds a small stream-based FRP core where these are concrete functions on lazy streams.
-
-#### A Concrete Input Model
-
-To keep the discussion concrete, we will package external inputs (user actions) together with sampling times:
-
-```ocaml env=ch10
-type time = float
-
-type user_action =
-  | Key of char * bool
-  | Button of int * int * bool * bool
-  | MouseMove of int * int
-  | Resize of int * int
-```
-
-We will present two implementations:
-
-1. A **stream-processing** implementation (Section 10.5) that makes time explicit and computes signals by consuming an input stream.
-2. An **incremental** implementation (Section 10.6) that represents signals as nodes in an incremental dependency graph and updates them by invalidation/stabilization.
-
-Conceptually, in the stream-processing interpretation we will treat:
-
-```ocaml skip
-(* Conceptual types (we refine the representation in Section 10.5). *)
-type 'a behavior = (user_action option * time) stream -> 'a stream
-type 'a event = 'a option behavior
-```
-
-### 10.5 Reactivity by Stream Processing
-
-Now let us implement FRP using the stream processing techniques from Chapter 7. The infrastructure should be familiar:
-
-```ocaml env=ch10
-type 'a stream = 'a stream_ Lazy.t
-and 'a stream_ = Cons of 'a * 'a stream
-
-let rec lmap f l = lazy (
-  let Cons (x, xs) = Lazy.force l in
-  Cons (f x, lmap f xs))
-
-(* Infinite loop: only exits via an exception, either from forcing
-   e.g. "end of stream", or from f e.g. "exit". *)
-let rec liter (f : 'a -> unit) (l : 'a stream) : unit =
-  let Cons (x, xs) = Lazy.force l in
-  f x; liter f xs
-
-let rec lmap2 f xs ys = lazy (
-  let Cons (x, xs) = Lazy.force xs in
-  let Cons (y, ys) = Lazy.force ys in
-  Cons (f x y, lmap2 f xs ys))
-
-let rec lmap3 f xs ys zs = lazy (
-  let Cons (x, xs) = Lazy.force xs in
-  let Cons (y, ys) = Lazy.force ys in
-  let Cons (z, zs) = Lazy.force zs in
-  Cons (f x y z, lmap3 f xs ys zs))
-
-let rec lfold acc f (l : 'a stream) = lazy (
-  let Cons (x, xs) = Lazy.force l in  (* Fold a function over the stream *)
-  let acc = f acc x in  (* producing a stream of partial results *)
-  Cons (acc, lfold acc f xs))
-```
-
-Since a behavior is a function from the input stream to an output stream, we face a subtle sharing problem: if we apply the same behavior function twice to the "same" input, we might create two separate streams that diverge. We need to ensure that for any actual input stream, each behavior creates exactly one output stream. This requires memoization:
-
-```ocaml env=ch10
-type ('a, 'b) memo1 =
-  {memo_f : 'a -> 'b; mutable memo_r : ('a * 'b) option}
-
-let memo1 f = {memo_f = f; memo_r = None}
-
-let memo1_app f x =
-  match f.memo_r with
-  | Some (y, res) when x == y -> res  (* Physical equality check *)
-  | _ ->
-    let res = f.memo_f x in
-    f.memo_r <- Some (x, res);  (* Cache for next call *)
-    res
-
-let ($) = memo1_app  (* Convenient infix for memoized application *)
-
-type 'a behavior =
-  ((user_action option * time) stream, 'a stream) memo1
-
-type 'a event = 'a option behavior
-```
-
-We use physical equality (`==`) rather than structural equality (`=`) because the external input stream is a single physical object -- if we see the same pointer, we know it is the same stream. During debugging, we can verify that `memo_r` is `None` before the first call and `Some` afterwards.
-
-#### Building Complex Behaviors
-
-Now we can build the monadic/applicative functions for composing behaviors. A practical tip: when working with these higher-order types, type annotations are essential. If you do not provide type annotations in `.ml` files, work together with an `.mli` interface file to catch type problems early.
-
-```ocaml env=ch10
-(* A constant behavior: returns the same value at all times *)
-let returnB x : 'a behavior =
-  let rec xs = lazy (Cons (x, xs)) in  (* Infinite stream of x *)
-  memo1 (fun _ -> xs)
-
-let ( !* ) = returnB  (* Convenient prefix operator for constants *)
-
-(* Lift a unary function to work on behaviors *)
-let liftB f fb = memo1 (fun uts -> lmap f (fb $ uts))
-
-(* Lift binary and ternary functions similarly *)
-let liftB2 f fb1 fb2 = memo1
-  (fun uts -> lmap2 f (fb1 $ uts) (fb2 $ uts))
-
-let liftB3 f fb1 fb2 fb3 = memo1
-  (fun uts -> lmap3 f (fb1 $ uts) (fb2 $ uts) (fb3 $ uts))
-
-(* Lift a function to work on events (None -> None, Some e -> Some (f e)) *)
-let liftE f (fe : 'a event) : 'b event = memo1
-  (fun uts -> lmap
-    (function Some e -> Some (f e) | None -> None)
-    (fe $ uts))
-
-let (=>>) fe f = liftE f fe  (* Map over events, infix style *)
-let (->>) e v = e =>> fun _ -> v  (* Replace event value with constant *)
-```
-
-We also need to create events from behaviors and vice versa. Creating events out of behaviors:
-
-```ocaml env=ch10
-(* whileB: produces an event at every moment the behavior is true *)
-let whileB (fb : bool behavior) : unit event =
-  memo1 (fun uts ->
-    lmap (function true -> Some () | false -> None)
-      (fb $ uts))
-
-(* unique: filters out duplicate consecutive events *)
-let unique fe : 'a event =
-  memo1 (fun uts ->
-    let xs = fe $ uts in
-    lmap2 (fun x y -> if x = y then None else y)
-      (lazy (Cons (None, xs))) xs)  (* Compare with previous value *)
-
-(* whenB: produces an event when the behavior becomes true (edge detection) *)
-let whenB fb =
-  memo1 (fun uts -> unique (whileB fb) $ uts)
-
-(* snapshot: when an event occurs, capture both the event value
-   and current behavior value *)
-let snapshot fe fb : ('a * 'b) event =
-  memo1 (fun uts -> lmap2
-    (fun x -> function Some y -> Some (y, x) | None -> None)
-      (fb $ uts) (fe $ uts))
-```
-
-Creating behaviors out of events:
-
-```ocaml env=ch10
-(* step: holds the value of the most recent event, starting with 'acc' *)
-let step acc fe =
-  memo1 (fun uts -> lfold acc
-    (fun acc -> function None -> acc | Some v -> v)
-    (fe $ uts))
-
-(* step_accum: accumulates by applying functions from events to current value *)
-let step_accum acc ff =
-  memo1 (fun uts ->
-    lfold acc (fun acc -> function
-      | None -> acc | Some f -> f acc)
-      (ff $ uts))
-```
-
-For physics simulations like our upcoming paddle game, we need to integrate behaviors over time. This requires access to the sampling timestamps:
-
-```ocaml env=ch10
-let integral fb =
-  let rec loop t0 acc uts bs =
-    let Cons ((_, t1), uts) = Lazy.force uts in
-    let Cons (b, bs) = Lazy.force bs in
-    (* Left rectangle rule: b is fb(t0), acc approximates integral up to t0 *)
-    let acc = acc +. (t1 -. t0) *. b in
-    Cons (acc, lazy (loop t1 acc uts bs)) in
-  memo1 (fun uts -> lazy (
-    let Cons ((_, t), uts') = Lazy.force uts in
-    Cons (0., lazy (loop t 0. uts' (fb $ uts)))))
-```
-
-In our upcoming *paddle game* example, we will express position and velocity in a mutually recursive manner -- position is the integral of velocity, but velocity changes when position hits a wall. This seems paradoxical: how can we define position in terms of velocity if velocity depends on position?
-
-The trick is the same as we saw in Chapter 7: integration introduces one step of delay. The integral at time $t$ depends on velocities at times *before* $t$, while the bounce detection at time $t$ uses the position at time $t$. This breaks the cyclic dependency and makes the recursion well-founded.
-
-We define behaviors for user actions by extracting them from the input stream:
-
-```ocaml env=ch10
-(* Left button press event *)
-let lbp : unit event =
-  memo1 (fun uts -> lmap
-    (function Some (Button (_, _, true, _)), _ -> Some () | _ -> None)
-    uts)
-
-(* Mouse movement event (carries coordinates) *)
-let mm : (int * int) event =
-  memo1 (fun uts -> lmap
-    (function Some (MouseMove (x, y)), _ -> Some (x, y) | _ -> None)
-    uts)
-
-(* Window resize event *)
-let screen : (int * int) event =
-  memo1 (fun uts -> lmap
-    (function Some (Resize (x, y)), _ -> Some (x, y) | _ -> None)
-    uts)
-
-(* Behaviors derived from events using step *)
-let mouse_x : int behavior = step 0 (liftE fst mm)  (* Current mouse X *)
-let mouse_y : int behavior = step 0 (liftE snd mm)  (* Current mouse Y *)
-let width : int behavior = step 640 (liftE fst screen)  (* Window width *)
-let height : int behavior = step 512 (liftE snd screen) (* Window height *)
-```
-
-#### The Paddle Game Example
-
-Now let us put all these pieces together to build a classic paddle game (similar to Pong). A ball bounces around the screen, and the player controls a paddle at the bottom to prevent the ball from falling.
-
-First, we define a *scene graph*, a data structure that represents a "world" which can be drawn on screen. Since we will use Bogue's `Sdl_area` for rendering, we use simple line-based shapes (rectangles drawn as outlines, circles approximated by line segments):
-
-```ocaml env=ch10
-type color = int * int * int  (* RGB components *)
-
-type scene =
-  | Rect of int * int * int * int  (* x, y, width, height *)
-  | Circle of int * int * int      (* x, y, radius *)
-  | Group of scene list
-  | Color of color * scene         (* color of subscene objects *)
-  | Translate of float * float * scene  (* offset *)
-```
-
-The drawing function interprets the scene graph. We use Bogue's `Sdl_area` to draw lines:
-
-```ocaml env=ch10
-let draw area ~h sc =
-  let open Bogue in
-  let f2i = int_of_float in
-  let flip_y y = h - y in  (* Bogue uses top-left origin *)
-  let rec aux t_x t_y (r, g, b) = function
-    | Rect (x, y, w, ht) ->
-      let color = Draw.opaque (r, g, b) in
-      let x0, y0 = f2i t_x + x, flip_y (f2i t_y + y + ht) in
-      Sdl_area.draw_rectangle area ~color ~thick:2 ~w ~h:ht (x0, y0)
-    | Circle (x, y, rad) ->
-      let color = Draw.opaque (r, g, b) in
-      let cx, cy = f2i t_x + x, flip_y (f2i t_y + y) in
-      Sdl_area.draw_circle area ~color ~thick:2 ~radius:rad (cx, cy)
-    | Group scs ->
-      List.iter (aux t_x t_y (r, g, b)) scs
-    | Color (c, sc) ->
-      aux t_x t_y c sc
-    | Translate (dx, dy, sc) ->
-      aux (t_x +. dx) (t_y +. dy) (r, g, b) sc
-  in
-  aux 0. 0. (255, 255, 255) sc  (* Default color: white *)
-```
-
-An *animation* is simply a scene behavior -- a time-varying scene. The `reactimate` function runs the animation loop: it creates the input stream (user actions paired with sampling times), feeds it to the scene behavior to get a stream of scenes, and draws each scene. We use double buffering to avoid flickering.
-
-For the game logic, we define lifted operators so we can write behavior expressions naturally:
-
-```ocaml env=ch10
-let (+*) = liftB2 (+)
-let (-*) = liftB2 (-)
-let ( *** ) = liftB2 ( * )
-let (/*) = liftB2 (/)
-let (&&*) = liftB2 (&&)
-let (||*) = liftB2 (||)
-let (<*) = liftB2 (<)
-let (>*) = liftB2 (>)
-```
-
-Now we can define the game elements. The walls are drawn on the left, top and right borders of the window:
-
-```ocaml env=ch10
-let blue = (0, 0, 255)
-
-let walls =
-  liftB2 (fun w h -> Color (blue, Group
-    [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
-     Rect (w-21, 0, 20, h-1)]))
-    width height
-```
-
-The paddle is tied to the mouse at the bottom border of the window:
-
-```ocaml env=ch10
-let black = (0, 0, 0)
-
-let clamp_int ~lo ~hi x = max lo (min hi x)
-
-let wall_thickness = 20
-let paddle_w = 70
-let paddle_h = 10
-
-let paddle_x : int behavior =
-  liftB2 (fun mx w ->
-    let lo = wall_thickness in
-    let hi = max lo (w - 21 - paddle_w) in
-    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
-    mouse_x width
-
-let paddle =
-  liftB (fun px -> Color (black, Rect (px, 0, paddle_w, paddle_h))) paddle_x
-```
-
-The ball has a velocity in pixels per second and bounces from the walls.
-
-The key ideas in the ball implementation:
-
-- `xbounce ->> (~-.)` -- When an `xbounce` event fires, emit the negation function `(~-.)`. This will be used to flip the velocity sign.
-
-- `step_accum vel (xbounce ->> (~-.))` -- Start with velocity `vel`, and whenever a bounce event occurs, apply the negation function to flip the sign. This creates a velocity that bounces back and forth.
-
-- `liftB int_of_float (integral xvel) +* width /* !*2` -- Integrate velocity to get position (as a float), truncate to integers, and offset to center the ball in the window.
-
-- `whenB ((xpos >* width -* !*27) ||* (xpos <* !*27))` -- Fire an event the *first* time the position exceeds the wall boundaries (27 pixels from edges, accounting for wall thickness and ball radius). The `whenB` combinator produces an event only on the *transition* from false to true, ensuring we do not keep bouncing while inside the wall.
-
-**Tying the knot with memo1 records.** The mutual recursion between `xvel`, `xpos`, and `xbounce` requires care. If we naively wrote mutually recursive *functions* that call each other, we would get an infinite loop at definition time (before any stream is consumed). The trick is to define the recursion at the *memo1 record* level: we use `let rec ... and ...` to create mutually recursive records where each record's `memo_f` field references the other records by name. The actual computation is deferred until `$ uts` is applied.
-
-```ocaml env=ch10
-let red = (255, 0, 0)
-
-let ball : scene behavior =
-  let wall_margin = 27 in
-  let vel = 100.0 in
-  (* Horizontal motion with bouncing.
-     The mutual recursion is between memo1 records, not function calls. *)
-  let rec xvel_ uts = step_accum vel (xbounce ->> (~-.)) $ uts
-  and xvel = {memo_f = xvel_; memo_r = None}
-  and xpos_ uts = (liftB int_of_float (integral xvel) +* width /* !*2) $ uts
-  and xpos = {memo_f = xpos_; memo_r = None}
-  and xbounce_ uts =
-    whenB ((xpos >* width -* !*wall_margin) ||* (xpos <* !*wall_margin)) $ uts
-  and xbounce = {memo_f = xbounce_; memo_r = None} in
-  (* Vertical motion with bouncing *)
-  let rec yvel_ uts = step_accum vel (ybounce ->> (~-.)) $ uts
-  and yvel = {memo_f = yvel_; memo_r = None}
-  and ypos_ uts = (liftB int_of_float (integral yvel) +* height /* !*2) $ uts
-  and ypos = {memo_f = ypos_; memo_r = None}
-  and ybounce_ uts =
-    whenB ((ypos >* height -* !*wall_margin) ||* (ypos <* !*wall_margin)) $ uts
-  and ybounce = {memo_f = ybounce_; memo_r = None} in
-  liftB2 (fun x y -> Color (red, Circle (x, y, 7))) xpos ypos
-```
-
-Finally, we compose everything into the complete game scene:
-
-```ocaml skip
-let game : scene behavior =
-  liftB3 (fun w p b -> Group [w; p; b]) walls paddle ball
-```
-
-The animation loop drives the system. With Bogue, we integrate with its event loop by using a timer and connection callbacks:
-
-```ocaml skip
-let reactimate (scene : scene behavior) =
-  let open Bogue in
-  let w, h = 640, 512 in
-  let area_widget = Widget.sdl_area ~w ~h () in
-  let area = Widget.get_sdl_area area_widget in
-
-  (* Append-only input stream: each node's tail forces a mutable "hole". *)
-  let mk_node (x : user_action option * time) :
-    (user_action option * time) stream * (user_action option * time) stream ref =
-    let next_ref : (user_action option * time) stream ref =
-      ref (lazy (assert false))
-    in
-    let tail : (user_action option * time) stream =
-      lazy (Lazy.force !next_ref)
-    in
-    (lazy (Cons (x, tail)), next_ref)
-  in
-
-  let t0 = Unix.gettimeofday () in
-  let uts0, hole0 = mk_node (Some (Resize (w, h)), t0) in
-  let hole : (user_action option * time) stream ref ref = ref hole0 in
-  let pending = ref 0 in
-  let last_time = ref t0 in
-
-  let append_input (x : user_action option * time) =
-    let node, next = mk_node x in
-    (!hole) := node;
-    hole := next;
-    incr pending
-  in
-
-  (* Keep physics stable even if the GUI stalls: subdivide large dt. *)
-  let advance_time_to (t : time) =
-    if t <= !last_time then ()
-    else begin
-      let max_step = 1.0 /. 240.0 in
-      let max_catchup = 0.25 in
-      let target = min t (!last_time +. max_catchup) in
-      while !last_time +. 1e-9 < target do
-        let dt = min max_step (target -. !last_time) in
-        last_time := !last_time +. dt;
-        append_input (None, !last_time)
-      done
-    end
-  in
-
-  (* Consume the scene stream one step per input element. *)
-  let scenes = scene $ uts0 in
-  let Cons (sc0, tail0) = Lazy.force scenes in
-  let scene_cursor = ref tail0 in
-  let current = ref sc0 in
-
-  Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
-      ~w ~h (0, 0);
-    while !pending > 0 do
-      decr pending;
-      let Cons (sc, rest) = Lazy.force !scene_cursor in
-      current := sc;
-      scene_cursor := rest
-    done;
-    draw area ~h !current);
-
-  let layout = Layout.resident area_widget in
-
-  let action _w _l ev =
-    let mx, my = Mouse.pointer_pos ev in
-    let t = Unix.gettimeofday () in
-    advance_time_to t;
-    (* Mouse movement updates the paddle; time was advanced above. *)
-    append_input (Some (MouseMove (mx, my)), !last_time);
-    Sdl_area.update area
-  in
-  let connection =
-    Widget.connect area_widget area_widget action Trigger.pointer_motion
-  in
-  Widget.add_connection area_widget connection;
-
-  let rec tick () =
-    advance_time_to (Unix.gettimeofday ());
-    Sdl_area.update area;
-    Widget.update area_widget;
-    Timeout.add_ignore 16 tick
-  in
-  Timeout.add_ignore 16 tick;
-
-  let board = Main.of_layout layout in
-  Main.run board
-```
-
-The stream-based implementation is elegant but has a limitation: in strict OCaml, recursive signal definitions require care. In the ball example we “tie the knot” at the level of `memo1` records (so recursion is in *data*, not immediate function calls), and we rely on the integrator to introduce the one-step delay that makes the dependency causal. In a lazy language like Haskell, the same kind of recursive definition often reads more directly, but it still needs a delay to be meaningful.
-
-### 10.6 FRP by Incremental Computing (Lwd)
-
-The stream-processing implementation from Section 10.5 makes time explicit and computes signals by consuming an input stream. An alternative is to let an incremental engine maintain the dependency graph for you, and to put “time” and “inputs” into mutable cells.
-
-This is the same picture as Section 10.3:
-
-1. **Inputs** live in mutable variables (`Lwd.var`).
-2. **Derived signals** are pure computations over those vars (`Lwd.map`, `Lwd.map2`, `Lwd.join`, …).
-3. The host program chooses an **update step** and samples a root once per step.
-
-This “one sample per step” discipline establishes an **update cycle**:
-
-- You may update many input vars; the step ends when you sample the root.
-- Inputs updated within the same step are treated as **simultaneous** (one consistent snapshot).
-- Glitch-freedom -- do not interleave “half-updated inputs” with sampling: set everything first, then sample once.
-
-#### Mapping FRP Concepts to Lwd
-
-A useful correspondence is:
-
-- **Behavior**: `'a Lwd.t`
-- **Event**: `'a option Lwd.t` (a pulse) or a queue/list carried by a var
-- **Observer/root**: `'a Lwd.root`
-
-```ocaml env=ch10
-module LwdFrp = struct
-  type 'a behavior = 'a Lwd.t
-  type 'a event = 'a option Lwd.t
-
-  let returnB = Lwd.return
-  let mapB = Lwd.map
-  let mapB2 = Lwd.map2
-
-  let mapE e ~f = Lwd.map e ~f:(Option.map f)
-  let filterE e ~f =
-    Lwd.map e ~f:(function None -> None | Some x -> f x)
-
-  let mergeE a b =
-    Lwd.map2 a b ~f:(fun a b -> match a with Some _ -> a | None -> b)
-end
-```
-
-`Lwd` does not have a built-in notion of time; you supply one (usually as a `float` variable updated each frame):
-
-```ocaml env=ch10
-let time_v : float Lwd.var = Lwd.var 0.0
-let time_b : float Lwd.t = Lwd.get time_v
-
-let mouse_v : (int * int) Lwd.var = Lwd.var (0, 0)
-let mouse_b : (int * int) Lwd.t = Lwd.get mouse_v
-let mouse_x : int Lwd.t = Lwd.map mouse_b ~f:fst
-let mouse_y : int Lwd.t = Lwd.map mouse_b ~f:snd
-```
-
-#### Events as Pulses (and a Caveat)
-
-The simplest event representation is a one-step pulse:
-
-```ocaml env=ch10
-let click_v : unit option Lwd.var = Lwd.var None
-let click_e : unit option Lwd.t = Lwd.get click_v
-```
-
-In the host program, you set `click_v` to `Some ()` for one update step and then clear it to `None` after sampling. This gives you “happened this step?” semantics.
-
-The caveat: if many events can occur between samples, a single `option` cell will lose information. In that case, represent events as a list/queue (e.g. `user_action list`) accumulated by the host program and drained once per step.
-
-One more practical rule: keep mutations (`Lwd.set`) in the host program. If a derived signal needs to “request” an output event, model that request as data (e.g. return `Some msg`) and let the host send it on the next step.
-
-#### Stateful Signal Combinators (One-Step Memory)
-
-In FRP, feedback loops require *delay* (“previous value”). In a stream-based model, delay falls out of stream processing. With incremental engines, you can implement the same idea with a bit of internal state.
-
-Here are two classic combinators implemented with internal references. They are intentionally “single-sample” oriented: sample once per step.
-
-```ocaml env=ch10
-(* step: hold the last event value, starting from [init] *)
-let step (init : 'a) (e : 'a option Lwd.t) : 'a Lwd.t =
-  let last = ref init in
-  Lwd.map e ~f:(function
-    | None -> !last
-    | Some v -> last := v; v)
-
-(* rising_edge: None most of the time, Some () exactly when b flips false->true *)
-let rising_edge ~(tick : int Lwd.t) (b : bool Lwd.t) : unit option Lwd.t =
-  let was_true = ref false in
-  Lwd.map2 b tick ~f:(fun now _ ->
-    let fire = now && not !was_true in
-    was_true := now;
-    if fire then Some () else None)
-```
-
-The caller must advance `tick` once per logical update and keep the observed node live. Without that clock dependency, Lwd can cache `Some ()` while `b` stays true, so sampling again would repeat the event. Repeated samples within one tick read the same event; consumers process it once per tick.
-
-These are not “pure” in the mathematical FRP sense, but they capture a key idea: **signals can have local memory**, and that memory is exactly what causality demands.
-
-#### Integration (Discrete Time)
-
-We can also integrate a velocity signal by accumulating over time. This is effectively a discrete-time integrator driven by your chosen update step:
-
-```ocaml env=ch10
-let integral (v : float Lwd.t) (t : float Lwd.t) : float Lwd.t =
-  let acc = ref 0.0 in
-  let prev_t = ref 0.0 in
-  Lwd.map2 v t ~f:(fun v t ->
-    let dt = t -. !prev_t in
-    prev_t := t;
-    acc := !acc +. dt *. v;
-    !acc)
-```
-
-#### Example: Reimplementing the Paddle Scene with Lwd
-
-We reuse the `scene` type and `draw` function from Section 10.5. The idea is:
-
-- treat `mouse_x`, `width`, `height`, `time` as input behaviors,
-- build a reactive scene graph as an `Lwd.t`,
-- sample and draw once per frame.
-
-```ocaml env=ch10
-let time_v : float Lwd.var = Lwd.var 0.0
-let time_b : float Lwd.t = Lwd.get time_v
-
-let mouse_v : (int * int) Lwd.var = Lwd.var (0, 0)
-let mouse_x : int Lwd.t = Lwd.map (Lwd.get mouse_v) ~f:fst
-
-let width_v : int Lwd.var = Lwd.var 640
-let height_v : int Lwd.var = Lwd.var 512
-let width : int Lwd.t = Lwd.get width_v
-let height : int Lwd.t = Lwd.get height_v
-
-let blue = (0, 0, 255)
-let black = (0, 0, 0)
-let red = (255, 0, 0)
-
-let clamp_int ~lo ~hi x = max lo (min hi x)
-
-let wall_thickness = 20
-let ball_r = 7
-let paddle_w = 70
-let paddle_h = 10
-
-let walls : scene Lwd.t =
-  Lwd.map2 width height ~f:(fun w h ->
-    Color (blue, Group
-      [Rect (0, 0, 20, h-1); Rect (0, h-21, w-1, 20);
-       Rect (w-21, 0, 20, h-1)]))
-
-let paddle_x : int Lwd.t =
-  Lwd.map2 mouse_x width ~f:(fun mx w ->
-    let lo = wall_thickness in
-    let hi = max lo (w - 21 - paddle_w) in
-    clamp_int ~lo ~hi (mx - (paddle_w / 2)))
-
-let paddle : scene Lwd.t =
-  Lwd.map paddle_x ~f:(fun px ->
-    Color (black, Rect (px, 0, paddle_w, paddle_h)))
-
-type ball_state =
-  { mutable x : float
-  ; mutable y : float
-  ; mutable vx : float
-  ; mutable vy : float
-  }
-
-let ball : scene Lwd.t =
-  let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 160.0 } in
-  let prev_t : float option ref = ref None in
-  let prev_wh : (int * int) option ref = ref None in
-  let dir : float ref = ref 1.0 in
-
-  let reset ~w ~h =
-    st.x <- float_of_int w /. 2.0;
-    st.y <- float_of_int h /. 2.0;
-    st.vx <- !dir *. 120.0;
-    st.vy <- 180.0;
-    dir := -. !dir
-  in
-
-  let clamp_float ~lo ~hi x = max lo (min hi x) in
-
-  let step_physics ~w ~h ~paddle_x ~dt =
-    let max_step = 1.0 /. 240.0 in
-    let paddle_plane = float_of_int (paddle_h + ball_r) in
-    let xmin = float_of_int (wall_thickness + ball_r) in
-    let xmax = float_of_int (max (wall_thickness + ball_r) (w - 21 - ball_r)) in
-    let ymax = float_of_int (max (paddle_h + ball_r) (h - 21 - ball_r)) in
-    let max_speed = 500.0 in
-
-    let rec loop remaining =
-      if remaining <= 0.0 then ()
-      else begin
-        let dt1 = min max_step remaining in
-        let x0, y0 = st.x, st.y in
-        let x1 = x0 +. dt1 *. st.vx in
-        let y1 = y0 +. dt1 *. st.vy in
-        let x1, vx =
-          if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
-          else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
-          else (x1, st.vx)
-        in
-        let y1, vy =
-          if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
-          else (y1, st.vy)
-        in
-        st.x <- x1;
-        st.y <- y1;
-        st.vx <- vx;
-        st.vy <- vy;
-
-        if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
-          let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
-          let x_hit = x0 +. alpha *. (st.x -. x0) in
-          let paddle_left = float_of_int paddle_x -. float_of_int ball_r in
-          let paddle_right =
-            float_of_int (paddle_x + paddle_w) +. float_of_int ball_r
-          in
-          if x_hit >= paddle_left && x_hit <= paddle_right then begin
-            st.y <- paddle_plane +. (paddle_plane -. st.y);
-            st.vy <- abs_float st.vy;
-            let paddle_center =
-              float_of_int paddle_x +. (float_of_int paddle_w /. 2.0)
-            in
-            let offset =
-              (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
-              |> clamp_float ~lo:(-1.0) ~hi:1.0
-            in
-            st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
-          end else (
-            reset ~w ~h
-          )
-        end else if st.y < -50.0 then (
-          reset ~w ~h
-        );
-
-        st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
-        st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
-        loop (remaining -. dt1)
-      end
-    in
-    loop dt
-  in
-
-  let inputs : (int * int * int * float) Lwd.t =
-    let wh_px : ((int * int) * int) Lwd.t =
-      Lwd.pair (Lwd.pair width height) paddle_x
-    in
-    Lwd.map2 wh_px time_b ~f:(fun ((w, h), px) t -> (w, h, px, t))
-  in
-  Lwd.map inputs ~f:(fun (w, h, px, t) ->
-    (match !prev_wh with
-     | Some (w0, h0) when w0 = w && h0 = h -> ()
-     | _ -> prev_wh := Some (w, h); reset ~w ~h);
-
-    let dt =
-      match !prev_t with
-      | None -> 0.0
-      | Some t0 ->
-        let dt = t -. t0 in
-        if dt <= 0.0 then 0.0 else min dt 0.25
-    in
-    prev_t := Some t;
-    if dt > 0.0 then step_physics ~w ~h ~paddle_x:px ~dt;
-    Color (red, Circle (int_of_float st.x, int_of_float st.y, ball_r)))
-
-let game : scene Lwd.t =
-  Lwd.map2 walls (Lwd.pair paddle ball) ~f:(fun w (p, b) -> Group [w; p; b])
-```
-
-Treat each update as a transaction: set the time and input cells, then sample the root scene. Repeated samples without invalidation may simply return Lwd's cached value; they do not inherently advance physics. Stateful nodes must nevertheless have explicit clock dependencies and remain observed so their updates have a defined cadence.
-
-Keep the sampled root (and anything you need for its computation) reachable. In `Lwd`, nodes not reachable from any root are considered dead and can be released.
-
-This is “FRP by incremental computing” in a nutshell: the engine caches and reuses computations in the scene graph; the host program decides what constitutes a step and updates the input vars accordingly.
-
-#### Stream FRP vs. Lwd FRP (A Practical Contrast)
-
-- Stream-based FRP is *purely functional* and makes time explicit, but in strict OCaml mutual recursion can be awkward.
-- Lwd-based FRP makes dependency tracking automatic and integrates naturally with an imperative “main loop”, but stateful signal combinators must be handled with care (sample once per step; avoid depending on evaluation order).
-
-### 10.7 Direct Control (Effects)
-
-FRP shines when the program is mostly “wiring”: combine signals, transform values, render a view. But many interactions are naturally **staged**:
-
-- wait for a click,
-- then track mouse movement until release,
-- then wait for the next click,
-- and so on.
-
-You *can* encode staged workflows in pure FRP, but it often becomes awkward: you start building explicit state machines “in the large”.
-
-Think of a recipe:
-
-1. preheat the oven,
-2. mix ingredients,
-3. bake,
-4. take out and cool.
-
-That is not a static wiring diagram: it is a program that *proceeds through stages*. We want a *flow* that can proceed through events in sequence: when the first relevant event arrives, we process it and then wait for the next event—**ignoring** any further occurrences of the “earlier-stage” event after we have moved on.
-
-Standard FRP combinators like “map an event” (or “whenever behavior changes, do …”) are not designed to express this “move forward and never look back” semantics. In Chapter 9 we learned that algebraic effects let us express such workflows in **direct style**, while still keeping the effectful interface abstract and interpretable by different handlers.
-
-In this section we will reuse the **paddle game** from Sections 10.5 and 10.6, but we will drive it in direct style using effects.
-
-#### An Effect Interface: Await Inputs, Render Scenes
-
-We separate the *script* (the staged logic) from the *interpreter* (Bogue / headless tests) via a small effect interface:
-
-```ocaml env=ch10
-type input =
-  | Tick of float                 (* dt in seconds *)
-  | User of user_action
-
-type _ Effect.t +=
-  | Await : (input -> 'a option) -> 'a Effect.t
-  | Render : scene -> unit Effect.t
-
-let await p = Effect.perform (Await p)
-let render sc = Effect.perform (Render sc)
-```
-
-`Await p` means: “pause until you receive an `input` for which `p` returns `Some v`, then resume and return `v`.” This neatly expresses “ignore everything else until the thing I’m waiting for happens”. Operationally, this is the effect-based analog of “the next occurrence of event `e`, and only that one”.
-
-`Render sc` is the output side: “send this scene to whatever display I’m running under”.
-
-We are implementing *coarse-grained threads* (cooperative scripts): a script runs in direct style until it reaches `Await`, at which point it yields back to the surrounding driver. There is no explicit `Yield`: `Await` is the suspension point.
-
-Sometimes we need to wait for *one of several* possible events. With the predicate-based `await`, this is a one-liner:
-
-```ocaml env=ch10
-let await_either p q =
-  await (fun u ->
-    match p u with
-    | Some a -> Some (`A a)
-    | None ->
-      match q u with
-      | Some b -> Some (`B b)
-      | None -> None)
-
-let race = await_either
-```
-
-#### A Driver: “Step Until You Need Input”
-
-To integrate a script with a GUI event loop (and to make it testable), it is useful to *step* the script until it blocks on `Await`, and then resume it only when an input arrives.
-
-One convenient representation is a paused computation that either finished, or is waiting and provides a function to feed the next input action:
-
-```ocaml env=ch10
-type 'a paused =
-  | Done of 'a
-  | Awaiting of {feed : input -> 'a paused}
-
-let step ~(on_render : scene -> unit) (th : unit -> 'a) : 'a paused =
-  Effect.Deep.match_with th () {
-    retc = (fun v -> Done v);
-    exnc = raise;
-    effc = fun (type c) (eff : c Effect.t) ->
-      match eff with
-      | Render sc ->
-        Some (fun (k : (c, _) Effect.Deep.continuation) ->
-          on_render sc;
-          Effect.Deep.continue k ())
-      | Await p ->
-        Some (fun (k : (c, _) Effect.Deep.continuation) ->
-          let rec feed (u : input) =
-            match p u with
-            | None -> Awaiting {feed}  (* ignore and keep waiting *)
-            | Some v -> Effect.Deep.continue k v
-          in
-          Awaiting {feed})
-      | _ -> None
-  }
-```
-
-This is the “flow as a lightweight thread” idea, but without a monad: the state of the thread is the (closed-over) continuation stored inside `feed`.
-
-#### A Handler: Replay a Script of Inputs (Headless)
-
-Using the stepping driver, we can interpret `Await` by consuming a pre-recorded list of inputs (useful for tests and examples):
-
-```ocaml env=ch10
-let run_script (type a) ~(inputs : input list) ~(on_render : scene -> unit)
-    (f : unit -> a) : a =
-  let rec drive (st : a paused) (inputs : input list) : a =
-    match st with
-    | Done a -> a
-    | Awaiting {feed} ->
-      (match inputs with
-       | [] -> failwith "run_script: no more inputs"
-       | u :: us -> drive (feed u) us)
-  in
-  drive (step ~on_render f) inputs
-```
-
-In a real GUI, you keep the current `paused` state in a mutable cell. On each incoming event `u`, if the script is `Awaiting {feed}`, you update the state to `feed u`; if the script is `Done _`, you stop. This also gives a simple form of **cancellation**: to cancel a running script “from the outside”, you overwrite the stored state (dropping the continuation) and stop feeding it inputs.
-
-Here is the basic shape of such a driver loop:
-
-```ocaml skip
-(* This snippet uses a [script] defined below. See chapter10.ml for a runnable
-   version. *)
-let st : unit paused ref = ref (step ~on_render:(fun _ -> ()) script)
-
-let on_input (u : input) =
-  match !st with
-  | Done () -> ()
-  | Awaiting {feed} -> st := feed u
-```
-
-#### Example: The Paddle Game in Direct Style
-
-We reuse the `scene` type and the constants from Sections 10.5–10.6. We will keep the entire game state local to the script, and we will request rendering after every relevant input.
-
-```ocaml env=ch10
-let walls_scene ~w ~h : scene =
-  Color (blue, Group
-    [Rect (0, 0, 20, h - 1)
-    ; Rect (0, h - 21, w - 1, 20)
-    ; Rect (w - 21, 0, 20, h - 1)
-    ])
-
-let paddle_scene ~x : scene =
-  Color (black, Rect (x, 0, paddle_w, paddle_h))
-
-let ball_scene ~x ~y : scene =
-  Color (red, Circle (int_of_float x, int_of_float y, ball_r))
-
-let scene_of_state ~w ~h ~paddle_x (st : ball_state) : scene =
-  Group [walls_scene ~w ~h; paddle_scene ~x:paddle_x; ball_scene ~x:st.x ~y:st.y]
-```
-
-The physics is the same as in the Lwd implementation (Section 10.6), including paddle collision and “reset on miss”:
-
-```ocaml env=ch10
-let clamp_float ~lo ~hi x = max lo (min hi x)
-
-let step_physics ~w ~h ~(paddle_x : int) ~(st : ball_state) ~(reset : unit -> unit) ~dt =
-  let max_step = 1.0 /. 240.0 in
-  let paddle_plane = float_of_int (paddle_h + ball_r) in
-  let xmin = float_of_int (wall_thickness + ball_r) in
-  let xmax = float_of_int (max (wall_thickness + ball_r) (w - 21 - ball_r)) in
-  let ymax = float_of_int (max (paddle_h + ball_r) (h - 21 - ball_r)) in
-  let max_speed = 500.0 in
-
-  let rec loop remaining =
-    if remaining <= 0.0 then ()
-    else begin
-      let dt1 = min max_step remaining in
-      let x0, y0 = st.x, st.y in
-      let x1 = x0 +. dt1 *. st.vx in
-      let y1 = y0 +. dt1 *. st.vy in
-      let x1, vx =
-        if x1 < xmin then (xmin +. (xmin -. x1), -. st.vx)
-        else if x1 > xmax then (xmax -. (x1 -. xmax), -. st.vx)
-        else (x1, st.vx)
-      in
-      let y1, vy =
-        if y1 > ymax then (ymax -. (y1 -. ymax), -. st.vy)
-        else (y1, st.vy)
-      in
-      st.x <- x1;
-      st.y <- y1;
-      st.vx <- vx;
-      st.vy <- vy;
-
-      if st.vy < 0.0 && y0 >= paddle_plane && st.y < paddle_plane then begin
-        let alpha = (y0 -. paddle_plane) /. (y0 -. st.y) in
-        let x_hit = x0 +. alpha *. (st.x -. x0) in
-        let paddle_left = float_of_int paddle_x -. float_of_int ball_r in
-        let paddle_right =
-          float_of_int (paddle_x + paddle_w) +. float_of_int ball_r
-        in
-        if x_hit >= paddle_left && x_hit <= paddle_right then begin
-          st.y <- paddle_plane +. (paddle_plane -. st.y);
-          st.vy <- abs_float st.vy;
-          let paddle_center =
-            float_of_int paddle_x +. (float_of_int paddle_w /. 2.0)
-          in
-          let offset =
-            (x_hit -. paddle_center) /. (float_of_int paddle_w /. 2.0)
-            |> clamp_float ~lo:(-1.0) ~hi:1.0
-          in
-          st.vx <-
-            clamp_float ~lo:(-.max_speed) ~hi:max_speed (st.vx +. offset *. 120.0)
-        end else (
-          reset ()
-        )
-      end else if st.y < -50.0 then (
-        reset ()
-      );
-
-      st.vx <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vx;
-      st.vy <- clamp_float ~lo:(-.max_speed) ~hi:max_speed st.vy;
-      loop (remaining -. dt1)
-    end
-  in
-  loop dt
-```
-
-Now the *script* is just a direct-style loop:
-
-```ocaml env=ch10
-let paddle_game () =
-  let w = ref 640 in
-  let h = ref 512 in
-  let paddle_x = ref (wall_thickness + 10) in
-  let st : ball_state = { x = 0.0; y = 0.0; vx = 120.0; vy = 180.0 } in
-  let dir = ref 1.0 in
-
-  let reset () =
-    st.x <- float_of_int !w /. 2.0;
-    st.y <- float_of_int !h /. 2.0;
-    st.vx <- !dir *. 120.0;
-    st.vy <- 180.0;
-    dir := -. !dir
-  in
-  reset ();
-
-  let set_paddle mx =
-    let lo = wall_thickness in
-    let hi = max lo (!w - 21 - paddle_w) in
-    paddle_x := clamp_int ~lo ~hi (mx - (paddle_w / 2))
-  in
-
-  render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
-
-  let rec loop () =
-    let ev =
-      await (function
-        | Tick dt -> Some (`Tick dt)
-        | User (MouseMove (mx, _my)) -> Some (`Move mx)
-        | User (Resize (w1, h1)) -> Some (`Resize (w1, h1))
-        | _ -> None)
-    in
-    (match ev with
-     | `Move mx -> set_paddle mx
-     | `Resize (w1, h1) -> w := w1; h := h1; reset ()
-     | `Tick dt ->
-       let dt = if dt <= 0.0 then 0.0 else min dt 0.25 in
-       if dt > 0.0 then step_physics ~w:!w ~h:!h ~paddle_x:!paddle_x ~st ~reset ~dt);
-    render (scene_of_state ~w:!w ~h:!h ~paddle_x:!paddle_x st);
-    loop ()
-  in
-  loop ()
-```
-
-#### A Bogue Interpreter for the Effects
-
-In a GUI, we keep the current paused state in a mutable cell, feed it on pointer motion and on a periodic timer tick, and interpret `Render` by updating a “current scene” ref that the draw callback reads:
-
-```ocaml env=ch10
-let run_bogue ~(w : int) ~(h : int) (script : unit -> unit) : unit =
-  let open Bogue in
-  let area_widget = Widget.sdl_area ~w ~h () in
-  let area = Widget.get_sdl_area area_widget in
-
-  let current : scene ref = ref (Group []) in
-  let st : unit paused ref = ref (Done ()) in
-
-  let on_render sc =
-    current := sc;
-    Sdl_area.update area
-  in
-  st := step ~on_render script;
-  (* Let the script know the initial size, if it cares. *)
-  (match !st with
-   | Done () -> ()
-   | Awaiting {feed} -> st := feed (User (Resize (w, h))));
-
-  let feed_input (u : input) =
-    match !st with
-    | Done () -> ()
-    | Awaiting {feed} -> st := feed u
-  in
-
-  Sdl_area.add area (fun _renderer ->
-    Sdl_area.fill_rectangle area ~color:(Draw.opaque (Draw.find_color "grey"))
-      ~w ~h (0, 0);
-    draw area ~h !current);
-
-  let action _w _l ev =
-    let mx, my = Mouse.pointer_pos ev in
-    feed_input (User (MouseMove (mx, my)));
-    Widget.update area_widget
-  in
-  let connection =
-    Widget.connect area_widget area_widget action Trigger.pointer_motion
-  in
-  Widget.add_connection area_widget connection;
-
-  let last = ref (Unix.gettimeofday ()) in
-  let rec tick () =
-    let now = Unix.gettimeofday () in
-    let dt = now -. !last in
-    last := now;
-    feed_input (Tick dt);
-    Widget.update area_widget;
-    Timeout.add_ignore 16 tick
-  in
-  Timeout.add_ignore 16 tick;
-
-  let layout = Layout.resident area_widget in
-  let board = Main.of_layout layout in
-  Main.run board
-```
-
-You can run it (outside of mdx) like this:
-
-```ocaml skip
-let () = run_bogue ~w:640 ~h:512 paddle_game
-```
-
-One practical tip (mirroring the “flows and state” warning from the monadic version): keep the script itself as a thunk `unit -> _`, and run it *inside* a handler/driver. If you accidentally *call* it while *building* a larger structure, you may trigger effects too early (or outside any handler).
-
-### 10.8 Summary
-
-This chapter explored a progression of techniques for handling change and interaction in functional programming.
-
-**Zippers** make “where am I in the structure?” explicit, by representing a location as *context + focused subtree*. This turns local navigation and rewriting problems (like our algebraic manipulation example) into simple, efficient code.
-
-**Incremental computing** makes “what depends on what?” explicit, by building a dependency graph behind the scenes. You write normal-looking code; the system tracks dependencies and recomputes only what is necessary after an update. We compared two modern OCaml libraries:
-
-- `Lwd`: lightweight, pull-based sampling, explicit resource lifetimes (`prim` acquire/release); a good fit for reactive view trees.
-- `Incremental`: stabilization-based recomputation with cutoffs and rich observer tooling; a good fit for large DAGs and complex dependency structure.
-
-**Functional Reactive Programming (FRP)** adds the time dimension. We modernized the standard vocabulary (behaviors, events, signals), emphasized causality and glitch freedom, and kept a stream-based implementation that makes time explicit.
-
-**Direct control with effects** complements FRP: many interactions are staged state machines. With algebraic effects (Chapter 9), we can write reactive “scripts” in direct style (`await`, `race`, …) and interpret them with different handlers (real GUI loop, replayed test script, simulation).
-
-A note on practice: OCaml UI and dataflow systems today often embed an incremental engine under the hood (`Lwd`, or `Incremental` via frameworks like Bonsai). Even without adopting a full FRP framework, the core ideas transfer: choose a clear update-step boundary, keep effectful input/output at the edge, and make dependencies explicit so the runtime can do less work.
-
-### 10.9 Exercises
-
-#### Exercise 1: Non-Commutative Context Rewriting
-
-Extend the context rewriting “pull out subexpression” example to include `-` and `/`. Remember: they are not commutative.
-
-
-#### Exercise 2: Text Editor Zipper
-
-Implement a simple text editor zipper:
-
-
-1. Define a type for a text buffer as a zipper over characters, with the cursor position represented by the split between left context and right content.
-2. Implement `insert_char`, `delete_char`, `move_left`, `move_right`, `move_to_start`, and `move_to_end` operations.
-3. Add word-based movement: `move_word_left` and `move_word_right`.
-
-#### Exercise 3: Paddle Game Extensions
-
-Add the following features to the paddle game example:
-
-
-1. Score keeping: increment score when the ball bounces off the paddle
-2. Game over: detect when the ball falls below the paddle
-3. Restart: press a key to restart after game over
-4. Speed increase: gradually increase ball speed as the game progresses
-
-
-#### Exercise 4: Integration Rule Comparison
-
-Our numerical integration function uses the rectangle rule (left endpoint). Implement and compare:
-
-
-1. The midpoint rule: $\int_a^b f(x)dx \approx (b-a) \cdot f\left(\frac{a+b}{2}\right)$
-2. The trapezoidal rule: $\int_a^b f(x)dx \approx (b-a) \cdot \frac{f(a) + f(b)}{2}$
-3. Simpson's rule: $\int_a^b f(x)dx \approx \frac{b-a}{6} \left( f(a) + 4f\left(\frac{a+b}{2}\right) + f(b) \right)$
-
-Test the accuracy by integrating $\sin(x)$ from 0 to $\pi$ (exact answer: 2).
-
-#### Exercise 5: FRP Switching and Termination
-
-Implement `switch` and `until` for the stream-based FRP system:
-
-
-- `switch : 'a behavior -> 'a behavior event -> 'a behavior` -- behaves as the most recent behavior from events
-- `until : 'a behavior -> 'a behavior event -> 'a behavior` -- switches once on the first event
-
-#### Exercise 6: Event Debouncing
-
-Implement a `debounce` combinator for events:
-
-```
-val debounce : float -> 'a event -> 'a event
-```
-The debounced event only fires if the original event has not fired for the specified time interval. This is useful for handling rapid user input like typing. Example: throttling API requests for auto-complete in a text field.
-
-#### Exercise 7: Reactive Spreadsheet
-
-Build a tiny “spreadsheet” with either `Lwd` or `Incremental`: some cells are input variables; other cells are formulas over them. Measure how much recomputation happens when you update a single input cell.
-
-
-#### Exercise 8: Dynamic Dependency Graphs
-
-Using `Lwd.join` (or `Incremental.bind`), build a reactive computation with *dynamic dependencies* (e.g. a toggle that chooses which subgraph is active). Explain what should be recomputed when the toggle flips.
-
-
-#### Exercise 9: Flow Timeouts
-
-Extend the effect-based interface in Section 10.7 with timeouts.
-
-
-```ocaml skip
-val await_timeout : deadline:float -> (user_action -> 'a option) -> 'a option
-```
-
-The function should return `Some v` if the awaited action happens before the deadline, and `None` otherwise. Write a small scripted test with `run_script`.
-
-#### Exercise 10: Parallel Effect Flows
-
-Implement `parallel` for effect-based flows:
-
-```
-val parallel : (unit -> 'a) list -> 'a list
-```
-This should run multiple flows concurrently and collect their results. Think about:
-
-- How do you handle flows that await events?
-- What happens if one flow fails?
-- How do you handle cancellation?
-
-#### Exercise 11: Virtual Time FRP
-
-The FRP implementations in this chapter handle time as wall-clock time from `Unix.gettimeofday`. Implement a version with *virtual time* that can be controlled programmatically:
-
-
-1. Create a `Clock` module with `advance : float -> unit` and `now : unit -> float` functions
-2. Modify the integration function to use virtual time
-3. Write tests that use virtual time to verify physics behavior deterministically
-
-#### Exercise 12: FRP Memory Profiling
-
-Compare the memory characteristics of the three FRP approaches:
-
-
-1. Create a benchmark that builds a dependency graph with N nodes
-2. Measure memory usage for each approach (stream-based, Lwd-based, effect-based)
-3. Measure update time when one input changes
-4. Plot the results and explain the tradeoffs
-
-
-## Chapter 11: The Expression Problem
-
-![Chapter 11 illustration](Curious_OCaml-chapter_11.jpg){.chapter-image}
-
-**In this chapter, you will:**
-
-- Understand the expression problem and why it matters for evolving codebases
-- Compare extensibility trade-offs across ADTs, objects, variants, and GADTs in OCaml
-- Learn how polymorphic variants and recursive modules enable modular extension
-- Understand why extensible GADTs offer stronger typing but the same exhaustiveness penalty
-- Build a practical capstone: parser combinators (including dynamic loading)
-
-This chapter explores **the expression problem**, a classic challenge in software engineering that addresses how to design systems that can be extended with both new data variants and new operations without modifying existing code, while maintaining static type safety. The expression problem lies at the heart of code organization, extensibility, and reuse, so understanding the various solutions helps us write more maintainable and flexible software.
-
-We will examine multiple approaches in OCaml, ranging from algebraic data types through object-oriented programming to polymorphic variants with recursive modules. Each approach has different trade-offs in terms of type safety, code organization, and ease of use. The chapter concludes with a practical application: parser combinators with dynamic code loading, demonstrating how these techniques apply to real-world problems.
-
-### 11.1 The Expression Problem: Definition
-
-The **Expression Problem** concerns the design of an implementation for expressions where:
-
-- **Datatype extensibility**: New variants of expressions can be added
-- **Functional extensibility**: New operations on expressions can be added
-
-By *extensibility* we mean three conditions:
-
-1. **Code-level modularization**: The new datatype variants and new operations are in separate files
-2. **Separate compilation**: The files can be compiled and distributed separately
-3. **Static type safety**: We do not lose type checking help and guarantees
-
-The name comes from a classic example: extending a language of expressions with new constructs. Consider two sub-languages:
-
-- **Lambda calculus**: variables `Var`, $\lambda$-abstractions `Abs`, function applications `App`
-- **Arithmetic**: variables `Var`, constants `Num`, addition `Add`, multiplication `Mult`
-
-And operations we want to support:
-
-- Evaluation `eval`
-- Pretty-printing to strings `string_of`
-- Free variables computation `free_vars`
-
-The challenge is to combine these sub-languages and add new operations without breaking existing code or sacrificing type safety. This is a fundamental tension in programming language design: functional languages typically make it easy to add new operations (just write a new function with pattern matching), while object-oriented languages typically make it easy to add new data variants (just add a new subclass). Finding a solution that provides both kinds of extensibility simultaneously, with static type safety and separate compilation, is the essence of the expression problem.
-
-#### References
-
-- Ralf Lammel lectures on MSDN's Channel 9: [The Expression Problem](http://channel9.msdn.com/Shows/Going+Deep/C9-Lectures-Dr-Ralf-Laemmel-Advanced-Functional-Programming-The-Expression-Problem), [Haskell's Type Classes](http://channel9.msdn.com/Shows/Going+Deep/C9-Lectures-Dr-Ralf-Lmmel-Advanced-Functional-Programming-Type-Classes)
-- The book *Developing Applications with Objective Caml*: [Comparison of Modules and Objects](http://caml.inria.fr/pub/docs/oreilly-book/html/book-ora153.html), [Extending Components](http://caml.inria.fr/pub/docs/oreilly-book/html/book-ora154.html)
-- *Real World OCaml*: [Chapter 11: Objects](https://realworldocaml.org/v1/en/html/objects.html), [Chapter 12: Classes](https://realworldocaml.org/v1/en/html/classes.html)
-- Jacques Garrigue's [Code reuse through polymorphic variants](http://www.math.nagoya-u.ac.jp/~garrigue/papers/variant-reuse.ps.gz), and [Recursive Modules for Programming](http://www.math.nagoya-u.ac.jp/~garrigue/papers/nakata-icfp2006.pdf) with Keiko Nakata
-- [Extensible variant types](http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec246)
-- Graham Hutton's and Erik Meijer's [Monadic Parser Combinators](https://www.cs.nott.ac.uk/~gmh/monparsing.pdf)
-
-**Names in the evaluator examples:** the simple `gensym` implementations reserve names of the form `_1`, `_2`, and so on. Inputs and substitution environments must not already contain those names. Without that precondition the examples can capture a free variable. A general evaluator needs a supply fresh for every name in the expression and environment, or a representation such as de Bruijn indices.
-
-### 11.2 Functional Programming Non-Solution: Ordinary Algebraic Datatypes
-
-Pattern matching makes **functional extensibility** easy in functional programming. When we want to add a new operation, we simply write a new function that pattern-matches on the existing datatype. However, ensuring **datatype extensibility** is complicated when using standard variant types, because adding a new variant requires modifying the type definition and all functions that pattern-match on it.
-
-For brevity, we place examples in a single file, but the component type and function definitions are not mutually recursive, so they can be put in separate modules for separate compilation.
-
-**Non-solution penalty points:**
-
-- Functions implemented for a broader language (e.g., `lexpr_t`) cannot be used with a value from a narrower language (e.g., `expr_t`). This breaks the intuition that a smaller language should be usable wherever a larger one is expected.
-- Significant memory (and some time) overhead due to *tagging*: the work of the `wrap` and `unwrap` functions, adding tags such as `Lambda` and `Expr` to distinguish which sub-language an expression belongs to.
-- Some code bloat due to tagging. For example, deep pattern matching needs to be manually unrolled and interspersed with calls to `unwrap`, making the code harder to read and maintain.
-
-**Verdict:** Non-solution, but better than the extensible variant types-based approach and the direct OOP approach.
-
-Here is the implementation. Note how we use type parameters and wrap/unwrap functions to achieve a form of extensibility:
-
-```ocaml env=sol1
-type var = string  (* Variables constitute a sub-language of its own *)
-                   (* We treat this sub-language slightly differently --
-                      no need for a dedicated variant *)
-
-let eval_var wrap sub (s : var) =
-  try List.assoc s sub with Not_found -> wrap s
-
-type 'a lambda =  (* Here we define the sub-language of lambda-expressions *)
-  VarL of var | Abs of string * 'a | App of 'a * 'a
-
-(* During evaluation, we need to freshen variables to avoid capture *)
-(* (mistaking distinct variables with the same name) *)
-let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-let eval_lambda eval_rec wrap unwrap subst e =
-  match unwrap e with  (* Alternatively, unwrapping could use an exception *)
-  | Some (VarL v) -> eval_var (fun v -> wrap (VarL v)) subst v
-  | Some (App (l1, l2)) ->  (* but we use the option type as it is safer *)
-    let l1' = eval_rec subst l1  (* and more flexible in this context *)
-    and l2' = eval_rec subst l2 in  (* Recursive processing returns expression *)
-    (match unwrap l1' with     (* of the completed language, we need *)
-    | Some (Abs (s, body)) ->  (* to unwrap it into the current sub-language *)
-      eval_rec [s, l2'] body  (* The recursive call is already wrapped *)
-    | _ -> wrap (App (l1', l2')))  (* Wrap into the completed language *)
-  | Some (Abs (s, l1)) ->
-    let s' = gensym () in  (* Rename variable to avoid capture (alpha-equivalence) *)
-    wrap (Abs (s', eval_rec ((s, wrap (VarL s'))::subst) l1))
-  | None -> e  (* Falling-through when not in the current sub-language *)
-
-type lambda_t = Lambda_t of lambda_t lambda  (* Lambdas as the completed language *)
-
-let rec eval1 subst =  (* and the corresponding eval function *)
-  eval_lambda eval1
-    (fun e -> Lambda_t e) (fun (Lambda_t e) -> Some e) subst
-```
-
-Now we define the arithmetic sub-language:
-
-```ocaml env=sol1
-type 'a expr =  (* The sub-language of arithmetic expressions *)
-  VarE of var | Num of int | Add of 'a * 'a | Mult of 'a * 'a
-
-let eval_expr eval_rec wrap unwrap subst e =
-  match unwrap e with
-  | Some (Num _) -> e
-  | Some (VarE v) ->
-    eval_var (fun x -> wrap (VarE x)) subst v
-  | Some (Add (m, n)) ->
-    let m' = eval_rec subst m
-    and n' = eval_rec subst n in
-    (match unwrap m', unwrap n' with  (* Unwrapping to check if the subexpressions *)
-    | Some (Num m'), Some (Num n') ->  (* got computed to values *)
-      wrap (Num (m' + n'))
-    | _ -> wrap (Add (m', n')))  (* Here m' and n' are wrapped *)
-  | Some (Mult (m, n)) ->
-    let m' = eval_rec subst m
-    and n' = eval_rec subst n in
-    (match unwrap m', unwrap n' with
-    | Some (Num m'), Some (Num n') ->
-      wrap (Num (m' * n'))
-    | _ -> wrap (Mult (m', n')))
-  | None -> e
-
-type expr_t = Expr_t of expr_t expr  (* Defining arithmetic as the completed lang *)
-
-let rec eval2 subst =  (* aka "tying the recursive knot" *)
-  eval_expr eval2
-    (fun e -> Expr_t e) (fun (Expr_t e) -> Some e) subst
-```
-
-Finally, we merge the two sub-languages. The key insight is that we can compose evaluators by using the "fall-through" property: when one evaluator does not recognize an expression (returning it unchanged via the `None` case), we pass it to the next evaluator:
-
-```ocaml env=sol1
-type 'a lexpr =  (* The language merging lambda-expressions and arithmetic exprs *)
-  Lambda of 'a lambda | Expr of 'a expr  (* can also be used in further extensions *)
-
-let eval_lexpr eval_rec wrap unwrap subst e =
-  eval_lambda eval_rec
-    (fun e -> wrap (Lambda e))
-    (fun e ->
-      match unwrap e with
-      | Some (Lambda e) -> Some e
-      | _ -> None)
-    subst
-    (eval_expr eval_rec  (* We use the "fall-through" property of eval_expr *)
-       (fun e -> wrap (Expr e))  (* to combine the evaluators *)
-       (fun e ->
-         match unwrap e with
-         | Some (Expr e) -> Some e
-         | _ -> None)
-       subst e)
-
-type lexpr_t = LExpr_t of lexpr_t lexpr  (* Tying the recursive knot one last time *)
-
-let rec eval3 subst =
-  eval_lexpr eval3
-    (fun e -> LExpr_t e)
-    (fun (LExpr_t e) -> Some e) subst
-```
-
-### 11.3 Lightweight FP Non-Solution: Extensible Variant Types
-
-Exceptions have always formed an extensible variant type in OCaml, whose pattern matching is done using the `try...with` syntax. Since OCaml 4.02, the same mechanism is available for ordinary types via **extensible variant types** (`type t = ..`). This augments the normal function extensibility of FP with straightforward data extensibility, providing a seemingly elegant solution.
-
-The syntax is simple: `type expr = ..` declares an extensible type, and `type expr += Var of string` adds a new variant case to it. This mirrors how exceptions work in OCaml, but for arbitrary types.
-
-**Non-solution penalty points:**
-
-- **Giving up exhaustivity checking**, which is an important aspect of static type safety. The compiler cannot warn you when you forget to handle a case, because new cases can be added at any time.
-- More natural with "single inheritance" extension chains, although merging is possible and demonstrated in our example. The sub-languages are not differentiated by types, which is a significant shortcoming.
-- Requires "tying the recursive knot" for functions, similar to the previous approach.
-
-**Verdict:** Pleasant-looking, but arguably the worst approach because of possible bugginess. The loss of exhaustivity checking means that bugs from unhandled cases will only be discovered at runtime. However, if bug-proneness is not a concern (e.g., for rapid prototyping), this is actually the most concise approach.
-
-```ocaml env=sol2
-type expr = ..  (* This is how extensible variant types are defined *)
-
-type var_name = string
-type expr += Var of string  (* We add a variant case *)
-
-let eval_var sub = function
-  | Var s as v -> (try List.assoc s sub with Not_found -> v)
-  | e -> e
-
-let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-type expr += Abs of string * expr | App of expr * expr
-(* The sub-languages are not differentiated by types,
-   a shortcoming of this non-solution *)
-
-let eval_lambda eval_rec subst = function
-  | Var _ as v -> eval_var subst v
-  | App (l1, l2) ->
-    let l2' = eval_rec subst l2 in
-    (match eval_rec subst l1 with
-    | Abs (s, body) ->
-      eval_rec [s, l2'] body
-    | l1' -> App (l1', l2'))
-  | Abs (s, l1) ->
-    let s' = gensym () in
-    Abs (s', eval_rec ((s, Var s')::subst) l1)
-  | e -> e
-
-let freevars_lambda freevars_rec = function
-  | Var v -> [v]
-  | App (l1, l2) -> freevars_rec l1 @ freevars_rec l2
-  | Abs (s, l1) ->
-    List.filter (fun v -> v <> s) (freevars_rec l1)
-  | _ -> []
-
-let rec eval1 subst e = eval_lambda eval1 subst e
-let rec freevars1 e = freevars_lambda freevars1 e
-
-let test1 = App (Abs ("x", Var "x"), Var "y")
-let e_test = eval1 [] test1
-let fv_test = freevars1 test1
-```
-
-Now we extend with arithmetic:
-
-```ocaml env=sol2
-type expr += Num of int | Add of expr * expr | Mult of expr * expr
-
-let map_expr f = function
-  | Add (e1, e2) -> Add (f e1, f e2)
-  | Mult (e1, e2) -> Mult (f e1, f e2)
-  | e -> e
-
-let eval_expr eval_rec subst e =
-  match map_expr (eval_rec subst) e with
-  | Var _ as v -> eval_var subst v
-  | Add (Num m, Num n) -> Num (m + n)
-  | Mult (Num m, Num n) -> Num (m * n)
-  | (Num _ | Add _ | Mult _) as e -> e
-  | e -> e
-
-let freevars_expr freevars_rec = function
-  | Num _ -> []
-  | Add (e1, e2) | Mult (e1, e2) -> freevars_rec e1 @ freevars_rec e2
-  | _ -> []
-
-let rec eval2 subst e = eval_expr eval2 subst e
-let rec freevars2 e = freevars_expr freevars2 e
-
-let test2 = Add (Mult (Num 3, Var "x"), Num 1)
-let e_test2 = eval2 [] test2
-let fv_test2 = freevars2 test2
-let () = assert (eval2 ["x", Num 2] test2 = Num 7)
-```
-
-Merging the sub-languages:
-
-```ocaml env=sol2
-let eval_lexpr eval_rec subst e =
-  eval_expr eval_rec subst (eval_lambda eval_rec subst e)
-
-let freevars_lexpr freevars_rec e =
-  freevars_lambda freevars_rec e @ freevars_expr freevars_rec e
-
-let rec eval3 subst e = eval_lexpr eval3 subst e
-let rec freevars3 e = freevars_lexpr freevars3 e
-
-let test3 =
-  App (Abs ("x", Add (Mult (Num 3, Var "x"), Num 1)),
-       Num 2)
-let e_test3 = eval3 [] test3
-let fv_test3 = freevars3 test3
-```
-
-### 11.4 Object-Oriented Programming: Subtyping
-
-Before examining OOP solutions to the expression problem, let us understand OCaml's object system.
-
-OCaml's **objects** are values, somewhat similar to records. Viewed from the outside, an OCaml object has only **methods**, identifying the code with which to respond to messages (method invocations). All methods are **late-bound**; the object determines what code is run (i.e., *virtual* in C++ parlance). This is in contrast to records, where field access is resolved at compile time.
-
-**Subtyping** determines if an object can be used in some context. OCaml has **structural subtyping**: the content of the types concerned (the methods they provide) decides if an object can be used, not the name of the type or class. Parametric polymorphism can be used to infer if an object has the required methods.
-
-```ocaml env=oop_intro
-let f x = x#m  (* Method invocation: object#method *)
-(* val f : < m : 'a; .. > -> 'a *)
-(* Type polymorphic in two ways: 'a is the method type, *)
-(* .. means that objects with more methods will be accepted *)
-```
-
-Methods are computed when they are invoked, even if they do not take arguments (unlike record fields, which are computed once when the record is created). We define objects inside `object...end` (compare: records `{...}`) using keywords:
-
-- `method` for methods (always late-bound)
-- `val` for constant fields (only accessible within the object)
-- `val mutable` for mutable fields
-
-Constructor arguments can often be used instead of constant fields. Here is a simple example:
-
-```ocaml env=oop_intro
-let square w = object
-  method area = float_of_int (w * w)
-  method width = w
-end
-```
-
-Subtyping often needs to be explicit: we write `(object :> supertype)` or in more complex cases `(object : type :> supertype)`.
-
-Technically speaking, subtyping in OCaml always is explicit, and *open types*, containing `..`, use **row polymorphism** rather than subtyping.
-
-```ocaml env=oop_intro
-let a = object method m = 7  method x = "a" end  (* Toy example: object types *)
-let b = object method m = 42 method y = "b" end  (* share some but not all methods *)
-
-(* let l = [a; b]  -- Error: the exact types of the objects do not agree *)
-(* Error: This expression has type < m : int; y : string >
-         but an expression was expected of type < m : int; x : string >
-         The second object type has no method y *)
-
-let l = [(a :> <m : 'a>); (b :> <m : 'a>)]  (* But the types share a supertype *)
-(* val l : < m : int > list *)
-```
-
-#### Object-Oriented Programming: Inheritance
-
-The system of object classes in OCaml is similar to the module system. Object classes are not types; rather, classes are a way to build object *constructors*, which are functions that return objects. Classes have their types, called class types (compare: modules and signatures).
-
-In OCaml parlance:
-
-- **Late binding** is not called anything special, since all methods are late-bound (called *virtual* in C++)
-- A method or field declared to be defined in sub-classes is called **virtual** (called *abstract* in C++); classes that use virtual methods or fields are also called virtual
-- A method that is only visible in sub-classes is called **private** (called *protected* in C++)
-- A method not visible outside the class is achieved by omitting it from the class type (called *private* in C++) -- you provide the type for the class and omit the method in the class type, similar to module signatures and `.mli` files
-
-OCaml allows **multiple inheritance**, which can be used to implement *mixins* as virtual/abstract classes. Inheritance works somewhat similarly to textual inclusion: the inherited class's methods and fields are copied into the inheriting class, but with late binding preserved.
-
-The `{< ... >}` syntax creates a *clone* of the current object with some fields changed. This is essential for functional-style object programming, where we create new objects rather than mutating existing ones.
-
-### 11.5 Direct Object-Oriented Non-Solution
-
-It turns out that although object-oriented programming was designed with data extensibility in mind, it is a bad fit for recursive types like those in the expression problem. Below is an attempt at solving our problem using classes.
-
-We can try to solve the expression problem using objects directly. However, adding new functionality still requires modifying old code, so this approach does not fully solve the expression problem.
-
-**Non-solution penalty points:**
-
-- No way to add functionality without modifying old code (in particular, the abstract class and all concrete classes must be extended with new methods)
-- Functions implemented for a broader language cannot handle values from a narrower one
-- No deep pattern matching: we cannot examine the structure of nested expressions
-
-**Verdict:** Non-solution, and probably the worst approach.
-
-Here is an implementation using objects. The abstract class `evaluable` defines the interface that all expression objects must implement. For lambda calculus, we need helper methods: `rename` for renaming free variables (needed for alpha-conversion), and `apply` for beta-reduction when possible:
-
-```ocaml env=sol3
-type var_name = string
-
-let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-class virtual ['lang] evaluable =
-object
-  method virtual eval : (var_name * 'lang) list -> 'lang
-  method virtual rename : var_name -> var_name -> 'lang
-  method apply (_arg : 'lang)
-    (fallback : unit -> 'lang) (_subst : (var_name * 'lang) list) =
-    fallback ()
-end
-
-class ['lang] var (v : var_name) =
-object (self)  (* We name the current object `self` for later reference *)
-  inherit ['lang] evaluable
-  val v = v
-  method eval subst =
-    try List.assoc v subst with Not_found -> self
-  method rename v1 v2 =  (* Renaming a variable: *)
-    if v = v1 then {< v = v2 >} else self  (* clone with new name if matched *)
-end
-
-class ['lang] abs (v : var_name) (body : 'lang) =
-object (self)
-  inherit ['lang] evaluable
-  val v = v
-  val body = body
-  method eval subst =  (* We do alpha-conversion prior to evaluation *)
-    let v' = gensym () in  (* Generate fresh name to avoid capture *)
-    {< v = v'; body = (body#rename v v')#eval subst >}
-  method rename v1 v2 =  (* Renaming the free variable v1 *)
-    if v = v1 then self  (* If v=v1, then v1 is bound here, not free -- no work *)
-    else {< body = body#rename v1 v2 >}
-  method apply arg _ subst =  (* Beta-reduction: substitute arg for v in body *)
-    body#eval ((v, arg)::subst)
-end
-
-class ['lang] app (f : 'lang) (arg : 'lang) =
-object (self)
-  inherit ['lang] evaluable
-  val f = f
-  val arg = arg
-  method eval subst =  (* We use `apply` to differentiate between f=abs *)
-    let arg' = arg#eval subst in  (* (beta-redexes) and f<>abs *)
-    let f' = f#eval subst in
-    f'#apply arg' (fun () -> {< f = f'; arg = arg' >}) subst
-  method rename v1 v2 =  (* Cloning ensures result is subtype of 'lang *)
-    {< f = f#rename v1 v2; arg = arg#rename v1 v2 >}  (* not just 'lang app *)
-end
-
-type evaluable_t = evaluable_t evaluable
-let new_var1 v : evaluable_t = new var v
-let new_abs1 v (body : evaluable_t) : evaluable_t = new abs v body
-let new_app1 (arg1 : evaluable_t) (arg2 : evaluable_t) : evaluable_t =
-  new app arg1 arg2
-
-let test1 = new_app1 (new_abs1 "x" (new_var1 "x")) (new_var1 "y")
-let e_test1 = test1#eval []
-```
-
-Extending with arithmetic requires additional mixins. To use lambda-expressions together with arithmetic expressions, we need to upgrade them with a helper method `compute` that returns the numeric value if one exists:
-
-```ocaml env=sol3
-class virtual compute_mixin = object
-  method compute : int option = None
-end
-
-class ['lang] var_c v = object
-  inherit ['lang] var v
-  inherit compute_mixin
-end
-
-class ['lang] abs_c v body = object
-  inherit ['lang] abs v body
-  inherit compute_mixin
-end
-
-class ['lang] app_c f arg = object
-  inherit ['lang] app f arg
-  inherit compute_mixin
-end
-
-class ['lang] num (i : int) =
-object (self)
-  inherit ['lang] evaluable
-  val i = i
-  method eval _subst = self
-  method rename _ _ = self
-  method compute = Some i
-end
-
-class virtual ['lang] operation
-    (num_inst : int -> 'lang) (n1 : 'lang) (n2 : 'lang) =
-object (self)
-  inherit ['lang] evaluable
-  val n1 = n1
-  val n2 = n2
-  method eval subst =
-    let self' = {< n1 = n1#eval subst; n2 = n2#eval subst >} in
-    match self'#compute with
-    | Some i -> num_inst i
-    | _ -> self'
-  method rename v1 v2 = {< n1 = n1#rename v1 v2; n2 = n2#rename v1 v2 >}
-end
-
-class ['lang] add num_inst n1 n2 =
-object (self)
-  inherit ['lang] operation num_inst n1 n2
-  method compute =
-    match n1#compute, n2#compute with
-    | Some i1, Some i2 -> Some (i1 + i2)
-    | _ -> None
-end
-
-class ['lang] mult num_inst n1 n2 =
-object (self)
-  inherit ['lang] operation num_inst n1 n2
-  method compute =
-    match n1#compute, n2#compute with
-    | Some i1, Some i2 -> Some (i1 * i2)
-    | _ -> None
-end
-
-class virtual ['lang] computable =
-object
-  inherit ['lang] evaluable
-  inherit compute_mixin
-end
-
-type computable_t = computable_t computable
-let new_var2 v : computable_t = new var_c v
-let new_abs2 v (body : computable_t) : computable_t = new abs_c v body
-let new_app2 v (body : computable_t) : computable_t = new app_c v body
-let new_num2 i : computable_t = new num i
-let new_add2 (n1 : computable_t) (n2 : computable_t) : computable_t =
-  new add new_num2 n1 n2
-let new_mult2 (n1 : computable_t) (n2 : computable_t) : computable_t =
-  new mult new_num2 n1 n2
-
-let test2 =
-  new_app2 (new_abs2 "x" (new_add2 (new_mult2 (new_num2 3) (new_var2 "x"))
-                            (new_num2 1)))
-    (new_num2 2)
-let e_test2 = test2#eval []
-
-(* The function position can itself reduce to an abstraction. *)
+The input value is unchanged on the second update, but the tick revision changes.
+This is the same issue an event edge detector faces: a rising edge belongs to
+one tick, not every future sampling of a cached `Some event`. The `rising_edge`
+example explicitly invalidates by tick. Repeated samples within one tick return
+the same occurrence, and an unchanged true input on the next tick produces none.
+
+```ocaml env=game
 let () =
-  let identity = new_abs2 "x" (new_var2 "x") in
-  let nested = new_app2 (new_app2 identity identity) (new_num2 7) in
-  assert ((nested#eval [])#compute = Some 7)
+  let edge = Game.rising_edge () in
+  assert (edge ~tick:1 true);
+  assert (edge ~tick:1 true);
+  assert (not (edge ~tick:2 true));
+  assert (not (edge ~tick:3 false));
+  assert (edge ~tick:4 true)
 ```
 
-### 11.6 OOP Non-Solution: The Visitor Pattern
+Caching a result and consuming an event are separate operations. `Game.consumer`
+remembers the most recently consumed tick for one monotone consumer, returning no
+events on a second poll. Another consumer owns its own cursor. No global clearing
+of the event is needed, so one observer cannot silently steal it from another.
 
-The **visitor pattern** is an object-oriented programming pattern for turning objects into variants with shallow pattern-matching (i.e., dispatch based on which variant a value is). It effectively replaces data extensibility with operation extensibility: instead of being able to add new data variants easily, we can add new operations easily.
+This small graph makes dependency invalidation visible. It omits dynamic graph
+rewiring, disposal of observers, scheduling priorities and equality cutoffs at
+derived nodes. The optional GUI laboratory describes what a port to a library
+must verify; it does not infer equivalence from similar APIs.
 
-The key idea is that each data variant has an `accept` method that takes a visitor object and calls the appropriate `visit` method on it. This inverts the usual pattern matching: instead of the function choosing which branch to take based on the data, the data chooses which method to call on the visitor.
+### 10.5 Direct-style scripts suspend for input
 
-**Non-solution penalty points:**
+A direct-style script asks for an input, calls `step`, publishes the snapshot,
+and repeats. `Game.start` handles its input effect by owning the suspended
+continuation. `push` consumes that continuation and supplies one input; the script
+then publishes and suspends again. `close` discontinues the pending continuation
+and runs its resource finalizer. Pushing after close is an error; closing twice
+is harmless.
 
-- Adding new data constructors requires modifying old code (the abstract visitor class must declare new `visit` methods); new operations can be added as new visitors
-- Heavy code bloat compared to pattern matching
-- No deep pattern matching: we can only dispatch on the outermost constructor
-- Side-effects appear to be required for returning results (we store computation results in mutable fields because keeping the visitor polymorphic while having the result type depend on the visitor is difficult)
-
-**Verdict:** Poor solution, better than approaches we considered so far, and worse than approaches we consider next.
-
-```ocaml env=sol4
-type 'visitor visitable = < accept : 'visitor -> unit >
-(* The variants need be visitable *)
-(* We store the computation as side effect because of the difficulty *)
-(* to keep the visitor polymorphic but have the result type depend on the visitor *)
-
-type var_name = string
-
-class ['visitor] var (v : var_name) =
-object (self)  (* The 'visitor will determine the (sub)language *)
-               (* to which a given var variant belongs *)
-  method v = v
-  method accept : 'visitor -> unit =  (* The visitor pattern inverts the way *)
-    fun visitor -> visitor#visitVar self  (* pattern matching proceeds: *)
-end                              (* the variant selects the computation *)
-let new_var v = (new var v :> 'a visitable)
-
-class ['visitor] abs (v : var_name) (body : 'visitor visitable) =
-object (self)
-  method v = v
-  method body = body
-  method accept : 'visitor -> unit =
-    fun visitor -> visitor#visitAbs self
-end
-let new_abs v body = (new abs v body :> 'a visitable)
-
-class ['visitor] app (f : 'visitor visitable) (arg : 'visitor visitable) =
-object (self)
-  method f = f
-  method arg = arg
-  method accept : 'visitor -> unit =
-    fun visitor -> visitor#visitApp self
-end
-let new_app f arg = (new app f arg :> 'a visitable)
-
-class virtual ['visitor] lambda_visit =
-object
-  method virtual visitVar : 'visitor var -> unit
-  method virtual visitAbs : 'visitor abs -> unit
-  method virtual visitApp : 'visitor app -> unit
-end
-
-let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-class ['visitor] eval_lambda
-  (subst : (var_name * 'visitor visitable) list)
-  (result : 'visitor visitable ref) =
-object (self)
-  inherit ['visitor] lambda_visit
-  val mutable subst = subst
-  val mutable beta_redex : (var_name * 'visitor visitable) option = None
-  method visitVar var =
-    beta_redex <- None;
-    try result := List.assoc var#v subst
-    with Not_found -> result := (var :> 'visitor visitable)
-  method visitAbs abs =
-    let v' = gensym () in
-    let orig_subst = subst in
-    subst <- (abs#v, new_var v')::subst;
-    (abs#body)#accept self;
-    let body' = !result in
-    subst <- orig_subst;
-    beta_redex <- Some (v', body');
-    result := new_abs v' body'
-  method visitApp app =
-    app#arg#accept self;
-    let arg' = !result in
-    app#f#accept self;
-    let f' = !result in
-    match beta_redex with
-    | Some (v', body') ->
-      beta_redex <- None;
-      let orig_subst = subst in
-      subst <- (v', arg')::subst;
-      body'#accept self;
-      subst <- orig_subst
-    | None -> result := new_app f' arg'
-end
-
-class ['visitor] freevars_lambda (result : var_name list ref) =
-object (self)
-  inherit ['visitor] lambda_visit
-  method visitVar var =
-    result := var#v :: !result
-  method visitAbs abs =
-    let outside = !result in
-    result := [];
-    (abs#body)#accept self;
-    result := List.filter (fun v' -> v' <> abs#v) !result @ outside
-  method visitApp app =
-    app#arg#accept self; app#f#accept self
-end
-
-type lambda_visit_t = lambda_visit_t lambda_visit
-type lambda_t = lambda_visit_t visitable
-
-let eval1 (e : lambda_t) subst : lambda_t =
-  let result = ref (new_var "") in
-  e#accept (new eval_lambda subst result :> lambda_visit_t);
-  !result
-
-let freevars1 (e : lambda_t) =
-  let result = ref [] in
-  e#accept (new freevars_lambda result);
-  !result
-
-let test1 =
-  (new_app (new_abs "x" (new_var "x")) (new_var "y") :> lambda_t)
-let e_test = eval1 test1 []
-let fv_test = freevars1 test1
-```
-
-Extending with arithmetic expressions follows a similar pattern, and the merged language visitor inherits from both `lambda_visit` and `expr_visit`.
-
-A binder removes occurrences only from its own body, not from a sibling expression:
-
-```ocaml env=sol4
+```ocaml env=game
 let () =
-  let e = new_app (new_abs "x" (new_var "x")) (new_var "x") in
-  assert (freevars1 e = ["x"])
+  let released = ref 0 and output = ref [] in
+  let session = Game.start
+    ~publish:(fun snapshot -> output := snapshot :: !output)
+    ~release:(fun () -> incr released) in
+  Fun.protect ~finally:session.close
+    (fun () -> List.iter session.push Game.recorded);
+  assert (List.rev !output = trace);
+  assert (!released = 1);
+  assert (Game.through_effects Game.recorded = trace)
 ```
 
-### 11.7 Polymorphic Variants
-
-**Polymorphic variants** provide a flexible alternative to standard variants. They are to ordinary variants as objects are to records: both enable *open types* and subtyping, both allow different types to share the same components.
-
-Interestingly, they are *dual* concepts: if we replace "product" of records/objects by "sum" (as we discussed in earlier chapters), we get variants/polymorphic variants. This duality implies many behaviors are opposite. For example:
-
-- While object subtypes have *more* methods, polymorphic variant subtypes have *fewer* tags
-- The `>` sign means "these tags or more" (open for adding tags)
-- The `<` sign means "these tags or less" (closed to these tags only)
-- No sign means a closed type
-
-Because distinct polymorphic variant types can share the same tags, the solution to the Expression Problem becomes straightforward: we can define sub-languages with overlapping tags and compose them.
-
-**Penalty points:**
-
-- Requires explicit type annotations more often than regular variants
-- Requires "tying the recursive knots" for types, e.g., `type lambda_t = lambda_t lambda`
-- The need to tie the recursive knot separately at both the type level and the function level. At the function level, an eta-expansion is sometimes required due to the *value recursion* problem
-- There can be a slight time cost compared to the visitor pattern: additional dispatch at each level of type aggregation (i.e., merging sub-languages)
-
-**Verdict:** A flexible and concise solution, second-best place overall.
-
-```ocaml env=sol5
-type var = [`Var of string]
-
-let eval_var sub (`Var s as v : var) =
-  try List.assoc s sub with Not_found -> v
-
-type 'a lambda =
-  [`Var of string | `Abs of string * 'a | `App of 'a * 'a]
-
-let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-let eval_lambda eval_rec subst : 'a lambda -> 'a = function
-  | #var as v -> eval_var subst v  (* We could also leave the type open *)
-  | `App (l1, l2) ->               (* rather than closing it to `lambda` *)
-    let l2' = eval_rec subst l2 in
-    (match eval_rec subst l1 with
-    | `Abs (s, body) ->
-      eval_rec [s, l2'] body
-    | l1' -> `App (l1', l2'))
-  | `Abs (s, l1) ->
-    let s' = gensym () in
-    `Abs (s', eval_rec ((s, `Var s')::subst) l1)
-
-let freevars_lambda freevars_rec : 'a lambda -> 'b = function
-  | `Var v -> [v]
-  | `App (l1, l2) -> freevars_rec l1 @ freevars_rec l2
-  | `Abs (s, l1) ->
-    List.filter (fun v -> v <> s) (freevars_rec l1)
-
-type lambda_t = lambda_t lambda
-
-let rec eval1 subst e : lambda_t = eval_lambda eval1 subst e
-let rec freevars1 (e : lambda_t) = freevars_lambda freevars1 e
-
-let test1 = (`App (`Abs ("x", `Var "x"), `Var "y") :> lambda_t)
-let e_test = eval1 [] test1
-let fv_test = freevars1 test1
-```
-
-The arithmetic expression sub-language:
-
-```ocaml env=sol5
-type 'a expr =
-  [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
-
-let map_expr (f : _ -> 'a) : 'a expr -> 'a = function
-  | #var as v -> v
-  | `Num _ as n -> n
-  | `Add (e1, e2) -> `Add (f e1, f e2)
-  | `Mult (e1, e2) -> `Mult (f e1, f e2)
-
-let eval_expr eval_rec subst (e : 'a expr) : 'a =
-  match map_expr (eval_rec subst) e with
-  | #var as v -> eval_var subst v  (* Here and elsewhere, we could also *)
-  | `Add (`Num m, `Num n) -> `Num (m + n)  (* factor-out the sub-language *)
-  | `Mult (`Num m, `Num n) -> `Num (m * n)  (* of variables *)
-  | e -> e
-
-let freevars_expr freevars_rec : 'a expr -> 'b = function
-  | `Var v -> [v]
-  | `Num _ -> []
-  | `Add (e1, e2) | `Mult (e1, e2) -> freevars_rec e1 @ freevars_rec e2
-
-type expr_t = expr_t expr
-
-let rec eval2 subst e : expr_t = eval_expr eval2 subst e
-let rec freevars2 (e : expr_t) = freevars_expr freevars2 e
-
-let test2 = (`Add (`Mult (`Num 3, `Var "x"), `Num 1) : expr_t)
-let e_test2 = eval2 ["x", `Num 2] test2
-let fv_test2 = freevars2 test2
-```
-
-Merging the sub-languages:
-
-```ocaml env=sol5
-type 'a lexpr = ['a lambda | 'a expr]
-
-let eval_lexpr eval_rec subst : 'a lexpr -> 'a = function
-  | #lambda as x -> eval_lambda eval_rec subst x
-  | #expr as x -> eval_expr eval_rec subst x
-
-let freevars_lexpr freevars_rec : 'a lexpr -> 'b = function
-  | #lambda as x -> freevars_lambda freevars_rec x
-  | #expr as x -> freevars_expr freevars_rec x
-
-type lexpr_t = lexpr_t lexpr
-
-let rec eval3 subst e : lexpr_t = eval_lexpr eval3 subst e
-let rec freevars3 (e : lexpr_t) = freevars_lexpr freevars3 e
-
-let test3 =
-  (`App (`Abs ("x", `Add (`Mult (`Num 3, `Var "x"), `Num 1)),
-         `Num 2) : lexpr_t)
-let e_test3 = eval3 [] test3
-let fv_test3 = freevars3 test3
-let e_old_test = eval3 [] (test2 :> lexpr_t)
-let fv_old_test = freevars3 (test2 :> lexpr_t)
-```
-
-### 11.8 Polymorphic Variants with Recursive Modules
-
-Using recursive modules, we can clean up the confusing or cluttering aspects of tying the recursive knots: type variables and recursive call arguments. The module system handles the recursion for us, making the code cleaner and more modular.
-
-We need **private types**, which for objects and polymorphic variants means *private rows*. We can conceive of open row types, e.g., ``[> `Int of int | `String of string]`` as using a *row variable*, e.g., `'a`:
-
-```
-[`Int of int | `String of string | 'a]
-```
-
-and then of private row types as abstracting the row variable:
-
-```
-type 'row t = [`Int of int | `String of string | 'row]
-```
-
-But the actual formalization of private row types is more complex. The key point is that private row types allow us to specify that a type is "at least" a certain set of variants, while still being extensible.
-
-**Penalty points:**
-
-- We still need to tie the recursive knots for types, for example `private [> 'a lambda] as 'a`
-- There can be slight time costs due to the use of functors and dispatch on merging of sub-languages
-
-**Verdict:** A clean solution, best place. The recursive module approach is the most elegant solution we have seen so far.
-
-```ocaml env=sol6
-type var = [`Var of string]
-
-let eval_var subst (`Var s as v : var) =
-  try List.assoc s subst with Not_found -> v
-
-type 'a lambda =
-  [`Var of string | `Abs of string * 'a | `App of 'a * 'a]
-
-module type Eval =
-sig type exp val eval : (string * exp) list -> exp -> exp end
-
-module LF(X : Eval with type exp = private [> 'a lambda] as 'a) =
-struct
-  type exp = X.exp lambda
-
-  let gensym = let n = ref 0 in fun () -> incr n; "_" ^ string_of_int !n
-
-  let eval subst : exp -> X.exp = function
-    | #var as v -> eval_var subst v
-    | `App (l1, l2) ->
-      let l2' = X.eval subst l2 in
-      (match X.eval subst l1 with
-      | `Abs (s, body) ->
-        X.eval [s, l2'] body
-      | l1' -> `App (l1', l2'))
-    | `Abs (s, l1) ->
-      let s' = gensym () in
-      `Abs (s', X.eval ((s, `Var s')::subst) l1)
-end
-module rec Lambda : (Eval with type exp = Lambda.exp lambda) =
-  LF(Lambda)
-
-module type FreeVars =
-sig type exp val freevars : exp -> string list end
-
-module LFVF(X : FreeVars with type exp = private [> 'a lambda] as 'a) =
-struct
-  type exp = X.exp lambda
-
-  let freevars : exp -> 'b = function
-    | `Var v -> [v]
-    | `App (l1, l2) -> X.freevars l1 @ X.freevars l2
-    | `Abs (s, l1) ->
-      List.filter (fun v -> v <> s) (X.freevars l1)
-end
-module rec LambdaFV : (FreeVars with type exp = LambdaFV.exp lambda) =
-  LFVF(LambdaFV)
-
-let test1 = (`App (`Abs ("x", `Var "x"), `Var "y") : Lambda.exp)
-let e_test = Lambda.eval [] test1
-let fv_test = LambdaFV.freevars test1
-```
-
-The arithmetic expression sub-language:
-
-```ocaml env=sol6
-type 'a expr =
-  [`Var of string | `Num of int | `Add of 'a * 'a | `Mult of 'a * 'a]
-
-module type Operations =
-sig include Eval include FreeVars with type exp := exp end
-
-module EF(X : Operations with type exp = private [> 'a expr] as 'a) =
-struct
-  type exp = X.exp expr
-
-  let map_expr f = function
-    | #var as v -> v
-    | `Num _ as n -> n
-    | `Add (e1, e2) -> `Add (f e1, f e2)
-    | `Mult (e1, e2) -> `Mult (f e1, f e2)
-
-  let eval subst (e : exp) : X.exp =
-    match map_expr (X.eval subst) e with
-    | #var as v -> eval_var subst v
-    | `Add (`Num m, `Num n) -> `Num (m + n)
-    | `Mult (`Num m, `Num n) -> `Num (m * n)
-    | e -> e
-
-  let freevars : exp -> 'b = function
-    | `Var v -> [v]
-    | `Num _ -> []
-    | `Add (e1, e2) | `Mult (e1, e2) -> X.freevars e1 @ X.freevars e2
-end
-module rec Expr : (Operations with type exp = Expr.exp expr) =
-  EF(Expr)
-
-let test2 = (`Add (`Mult (`Num 3, `Var "x"), `Num 1) : Expr.exp)
-let e_test2 = Expr.eval ["x", `Num 2] test2
-let fvs_test2 = Expr.freevars test2
-```
-
-Merging the sub-languages:
-
-```ocaml env=sol6
-type 'a lexpr = ['a lambda | 'a expr]
-
-module LEF(X : Operations with type exp = private [> 'a lexpr] as 'a) =
-struct
-  type exp = X.exp lexpr
-  module LambdaX = LF(X)
-  module LambdaFVX = LFVF(X)
-  module ExprX = EF(X)
-
-  let eval subst : exp -> X.exp = function
-    | #LambdaX.exp as x -> LambdaX.eval subst x
-    | #ExprX.exp as x -> ExprX.eval subst x
-
-  let freevars : exp -> 'b = function
-    | #lambda as x -> LambdaFVX.freevars x  (* Either of #lambda or #LambdaX.exp ok *)
-    | #expr as x -> ExprX.freevars x  (* Either of #expr or #ExprX.exp is fine *)
-end
-module rec LExpr : (Operations with type exp = LExpr.exp lexpr) =
-  LEF(LExpr)
-
-let test3 =
-  (`App (`Abs ("x", `Add (`Mult (`Num 3, `Var "x"), `Num 1)),
-         `Num 2) : LExpr.exp)
-let e_test3 = LExpr.eval [] test3
-let fv_test3 = LExpr.freevars test3
-let e_old_test = LExpr.eval [] (test2 :> LExpr.exp)
-let fv_old_test = LExpr.freevars (test2 :> LExpr.exp)
-```
-
-### 11.9 Extensible GADTs: Strong Typing, Same Non-Solution
-
-OCaml's **extensible variant types** (`type expr = ..`, section 11.3) allow open data definitions but give up exhaustiveness checking. **GADTs** (Generalized Algebraic Data Types, covered in Chapter 9) add type-level precision: each constructor specifies the exact type it produces. Can combining these two features — extensible *and* typed — solve the expression problem?
-
-The answer is *almost, but not quite*. Extensible GADTs give stronger compile-time guarantees per constructor, but OCaml still cannot check exhaustiveness for an open type, so every pattern match still requires a catch-all arm.
-
-#### Syntax and Type Precision
-
-We declare an extensible GADT with `type _ expr = ..` — the `_` is the type parameter that each constructor fills in:
-
-```ocaml env=sol7
-(** Extensible GADT: ['a expr] is an expression that evaluates to a value of type ['a]. *)
-type _ expr = ..
-
-(** Arithmetic sub-language: all constructors produce [int]. *)
-type _ expr +=
-  | Num : int -> int expr
-  | Add : int expr * int expr -> int expr
-  | Mul : int expr * int expr -> int expr
-```
-
-With plain extensible variants (`type expr = ..`) all constructors share the same unindexed type `expr`. Here, `Num 3 : int expr`, `Add (…) : int expr`, so the compiler can statically distinguish integer expressions from expressions of other types.
-
-We extend later with a boolean sub-language, including a **cross-type** constructor `Gt` whose sub-expressions are `int expr` but whose result is `bool expr`:
-
-```ocaml env=sol7
-type _ expr +=
-  | Bool : bool -> bool expr
-  | And  : bool expr * bool expr -> bool expr
-  | Not  : bool expr -> bool expr
-  | Gt   : int expr * int expr -> bool expr
-```
-
-#### Typed Evaluation with Required Catch-All
-
-Matching a GADT requires a locally abstract type (`type a.`). The type checker refines `a` in each arm — matching `Num n` proves `a = int`, so `n : int` and the return type `a` is resolved to `int`:
-
-```ocaml env=sol7
-let rec eval_arith : type a. a expr -> a = function
-  | Num n        -> n
-  | Add (e1, e2) -> eval_arith e1 + eval_arith e2
-  | Mul (e1, e2) -> eval_arith e1 * eval_arith e2
-  | _            -> failwith "eval_arith: unhandled constructor"
-  (* ^^^ Required because [_ expr] is extensible:
-     the compiler cannot verify all constructors are covered. *)
-```
-
-```ocaml env=sol7
-# eval_arith (Add (Mul (Num 3, Num 4), Num 2));;
-- : int = 14
-```
-
-The `Gt` constructor in the boolean evaluator benefits directly from type precision: `e1 : int expr`, so `eval_arith e1 : int` without any wrapping or unboxing. With plain extensible variants, `eval_rec e1 : expr` and we would need an additional pattern match to extract the integer value:
-
-```ocaml env=sol7
-let rec eval_bool : type a. a expr -> a = function
-  | Bool b       -> b
-  | And (e1, e2) -> eval_bool e1 && eval_bool e2
-  | Not e        -> not (eval_bool e)
-  | Gt (e1, e2)  -> eval_arith e1 > eval_arith e2
-  (* ^^^ eval_arith e1 : int, e2 : int  — types known at compile time *)
-  | _            -> failwith "eval_bool: unhandled constructor"
-```
-
-```ocaml env=sol7
-# eval_bool (Gt (Add (Num 2, Num 3), Num 4));;
-- : bool = true
-```
-
-#### Handler Composition with Open Recursion
-
-Separate evaluators per sub-language only work when constructors stay within their own sub-language. The moment we want a *composed* evaluator for an extended language, we face the same tying-the-knot problem as section 11.3. The pattern from the [OCaml Discuss thread](https://discuss.ocaml.org/t/best-approach-for-implementing-open-recursion-over-extensible-types/11678) composes partial *layers*, each of which handles its own constructors and delegates unknown ones:
-
-```ocaml env=sol7
-(** A composed evaluator uses a universally polymorphic [eval] field so a
-    single value handles expressions of any type index. *)
-type eval_chain = { eval : 'a. 'a expr -> 'a }
-
-(** Each layer handles some constructors ([Some result]) or delegates ([None]). *)
-type eval_layer = { layer : 'a. eval_chain -> 'a expr -> 'a option }
-```
-
-```ocaml env=sol7
-let arith_layer = {
-  layer = fun (type a) (chain : eval_chain) (e : a expr) : a option ->
-    match e with
-    | Num n        -> Some n
-    | Add (e1, e2) -> Some (chain.eval e1 + chain.eval e2)
-    | Mul (e1, e2) -> Some (chain.eval e1 * chain.eval e2)
-    | _            -> None }
-
-let bool_layer = {
-  layer = fun (type a) (chain : eval_chain) (e : a expr) : a option ->
-    match e with
-    | Bool b       -> Some b
-    | And (e1, e2) -> Some (chain.eval e1 && chain.eval e2)
-    | Not e        -> Some (not (chain.eval e))
-    | Gt (e1, e2)  -> Some (chain.eval e1 > chain.eval e2)
-    (* ^^^ chain.eval : 'b. 'b expr -> 'b, so chain.eval e1 : int directly *)
-    | _            -> None }
-```
-
-`build_eval` threads open recursion through a mutable reference: `chain` is set to the fully-composed evaluator after it is built, so every sub-expression call goes through all registered layers:
-
-```ocaml env=sol7
-let build_eval (layers : eval_layer list) : eval_chain =
-  let chain : eval_chain ref =
-    ref { eval = fun _ -> failwith "build_eval: not yet initialised" } in
-  let full_eval : type a. a expr -> a = fun e ->
-    match List.find_map (fun l -> l.layer !chain e) layers with
-    | Some v -> v
-    | None   -> failwith "build_eval: no handler for this constructor"
-  in
-  chain := { eval = full_eval };
-  { eval = full_eval }
-```
-
-```ocaml env=sol7
-let combined = build_eval [arith_layer; bool_layer]
-```
-
-```ocaml env=sol7
-# combined.eval (Gt (Add (Num 2, Num 3), Num 4));;
-- : bool = true
-# combined.eval (Mul (Add (Num 3, Num 4), Num 2));;
-- : int = 14
-```
-
-The full implementation is in `chapter11/ExtGADT.ml`.
-
-#### Why This Is Still a Non-Solution
-
-Adding a new constructor — say `type _ expr += Str : string -> string expr` in a new module — does not trigger any warning in `arith_layer` or `bool_layer`. The catch-all `| _ -> None` silently skips it. Calling `combined.eval (Str "hello")` raises a runtime exception.
-
-**Non-solution penalty points:**
-
-- **No exhaustiveness checking**: the same core penalty as section 11.3 (extensible variant types). New constructors produce silent runtime failures, not compile-time warnings.
-- **Separate evaluators per sub-language are not composable without boilerplate**: the `build_eval` infrastructure is non-trivial and must be replicated for each operation.
-- **The untyped lambda calculus does not fit cleanly**: the running example from earlier sections uses an untyped `App` and `Abs` with a uniform `expr` type. Fitting lambda calculus into a typed GADT requires either a universal value type (`type value = VInt of int | VLam of (value -> value)`) or moving to a typed lambda calculus with de Bruijn indices — significantly increasing complexity.
-
-  To see why concretely, consider the most natural attempt:
-
-  ```ocaml skip
-  (* Attempt: lambda calculus as an extensible GADT *)
-  type _ expr +=
-    | Var : string -> 'a expr          (* 'a is unconstrained — what type does a variable have? *)
-    | Abs : string * 'b expr -> ('a -> 'b) expr   (* 'a is not bound to anything *)
-    | App : ('a -> 'b) expr * 'a expr -> 'b expr
-  ```
-
-  The problem is `Var`: a free variable could have any type, so its result index can be instantiated at an arbitrary type without carrying evidence about a binding of that type. Similarly, `Abs` introduces a parameter of type `'a`, but nothing in the constructor's payload pins `'a` to a concrete type. Without a type environment threaded through the GADT index (as in a de Bruijn-indexed typed lambda calculus), a uniform `eval : 'a expr -> 'a` function cannot be written.
-
-**Verdict:** A non-solution, but with a stronger typing guarantee than plain extensible variants (section 11.3): constructors that *are* handled are type-safe without runtime coercions. The penalty for unhandled constructors is identical. Compared to polymorphic variants (sections 11.7–11.8), extensible GADTs provide finer type indices but sacrifice exhaustiveness checking.
-
-All three extensible approaches — extensible variants (section 11.3), extensible GADTs (this section), and polymorphic variants (sections 11.7–11.8) — support both data extensibility and functional extensibility. The interesting distinctions lie in a three-way tradeoff:
-
-- **Exhaustiveness checking**: Only polymorphic variants provide it. With extensible variants and extensible GADTs, new constructors are silently skipped by catch-all handlers, producing runtime failures rather than compile-time warnings.
-- **Type precision**: Extensible GADTs offer the finest type guarantees — each constructor's return type is indexed, so handled cases are type-safe without runtime coercions. Polymorphic variants give row-type precision (the type tracks which tags are present), while plain extensible variants carry no type-level distinction between constructors.
-- **Separate-compilation friendliness**: Extensible variants and GADTs extend cleanly across module boundaries with simple `type t += ...` declarations. Polymorphic variants with recursive modules require tying type-level knots across compilation units, making cross-module composition more complex.
-
-### 11.10 Parser Combinators
-
-We now turn to an application that demonstrates the extensibility concepts we have been discussing. Large-scale parsing in OCaml is typically done using external languages like OCamlLex and Menhir, which generate efficient parsers from grammar specifications. But it is often convenient to have parsers written directly in OCaml, especially for smaller grammars or when we want to extend the parser dynamically.
-
-Language **combinators** are ways of defining languages by composing definitions of smaller languages. This is exactly the kind of compositional, extensible design we have been exploring with the expression problem. For example, the combinators of the **Extended Backus-Naur Form** notation are:
-
-- **Concatenation**: $S = A, B$ stands for $S = \{ ab \mid a \in A, b \in B \}$
-- **Alternation**: $S = A \mid B$ stands for $S = \{ a \mid a \in A \vee a \in B \}$
-- **Option**: $S = [A]$ stands for $S = \{ \epsilon \} \cup A$, where $\epsilon$ is an empty string
-- **Repetition**: $S = \{ A \}$ stands for $S = \{ \epsilon \} \cup \{ as \mid a \in A, s \in S \}$
-- **Terminal string**: $S = "a"$ stands for $S = \{ a \}$
-
-Parsers implemented directly in a functional programming paradigm are functions from character streams to the parsed values. Algorithmically they are **recursive descent parsers**.
-
-**Parser combinators** approach builds parsers as **monad plus** values:
-
-- **Bind**: `val (>>=) : 'a parser -> ('a -> 'b parser) -> 'b parser`
-  - `p >>= f` is a parser that first parses `p`, and makes the result available for parsing `f`
-- **Return**: `val return : 'a -> 'a parser`
-  - `return x` parses an empty string, symbolically $S = \{ \epsilon \}$, and returns `x`
-- **MZero**: `val fail : 'a parser`
-  - `fail` fails to parse anything, symbolically $S = \varnothing = \{ \}$
-- **MPlus**: `val (<|>) : 'a parser -> 'a parser -> 'a parser`
-  - `p <|> q` combines alternatives. The lazy-list implementation below enumerates results from `p` and then `q`, even if `p` succeeds; it does not commit to the first successful branch.
-
-The only non-monad-plus operation that has to be built into the monad is some way to consume a single character from the input stream, for example:
-
-- `val satisfy : (char -> bool) -> char parser`
-  - `satisfy (fun c -> c = 'a')` consumes the character "a" from the input stream and returns it; if the input stream starts with a different character, this parser fails
-
-Ordinary monadic recursive descent parsers **do not allow** *left-recursion*: if a cycle of calls not consuming any character can be entered when a parse failure should occur, the cycle will keep repeating indefinitely.
-
-For example, if we define numbers $N := D \mid N D$, where $D$ stands for digits, then a stack of uses of the rule $N \rightarrow N D$ will build up when the next character is not a digit. The parser will try to match $N$, which requires matching $N D$, which requires matching $N$ again, leading to infinite recursion.
-
-On the other hand, rules can share common prefixes, and the backtracking monad will handle trying alternatives correctly.
-
-### 11.11 Parser Combinators: Implementation
-
-The parser monad is actually a composition of two monads:
-
-- The **state monad** for storing the stream of characters that remain to be parsed (specifically, the current position in the input string)
-- The **backtracking monad** for handling parse failures and ambiguities (allowing us to try alternatives when one parse fails)
-
-Alternatively, one can split the state monad into a reader monad with the parsed string, and a state monad with the parsing position. This is the approach we take here.
-
-We experiment with a different approach to monad-plus: **lazy-monad-plus**. The difference from regular monad-plus is that the second argument to `mplus` is lazy:
-
-```
-val mplus : 'a monad -> 'a monad Lazy.t -> 'a monad
-```
-
-This laziness prevents the second alternative from being evaluated until it is actually needed, which is important for avoiding infinite recursion in some parsing scenarios.
-
-#### Implementation of lazy-monad-plus
-
-First a brief reminder about monads with backtracking. Starting with an operation from `MonadPlusOps`:
-
-```ocaml skip
-let msum_map f l =
-  List.fold_left  (* Folding left reverses the apparent order of composition *)
-    (fun acc a -> mplus acc (lazy (f a))) mzero l  (* order from l is preserved *)
-```
-
-The implementation of the lazy-monad-plus using lazy lists:
-
-```ocaml env=parsec
-type 'a llist = LNil | LCons of 'a * 'a llist Lazy.t
-
-let rec ltake n = function
-  | LCons (a, l) when n > 1 -> a::(ltake (n-1) (Lazy.force l))
-  | LCons (a, l) when n = 1 -> [a]  (* Avoid forcing the tail if not needed *)
-  | _ -> []
-
-let rec lappend l1 l2 =
-  match l1 with LNil -> Lazy.force l2
-  | LCons (hd, tl) -> LCons (hd, lazy (lappend (Lazy.force tl) l2))
-
-let rec lconcat_map f = function
-  | LNil -> LNil
-  | LCons (a, l) -> lappend (f a) (lazy (lconcat_map f (Lazy.force l)))
-
-module LListM = MonadPlus (struct
-  type 'a t = 'a llist
-  let bind a b = lconcat_map b a
-  let return a = LCons (a, lazy LNil)
-  let mzero = LNil
-  let mplus = lappend
-end)
-```
-
-#### The Parsec Monad
-
-File `Parsec.ml`:
-
-```ocaml env=parsec
-module type PARSE = sig
-  type 'a backtracking_monad  (* Name for the underlying monad-plus *)
-  type 'a parsing_state = int -> ('a * int) backtracking_monad  (* State: position *)
-  type 'a t = string -> 'a parsing_state  (* Reader for the parsed text *)
-  include MONAD_PLUS_OPS
-  val (<|>) : 'a monad -> 'a monad Lazy.t -> 'a monad  (* A synonym for mplus *)
-  val run : 'a monad -> 'a t
-  val runT : 'a monad -> string -> int -> 'a backtracking_monad
-  val satisfy : (char -> bool) -> char monad  (* Consume a character of the class *)
-  val end_of_text : unit monad  (* Check for end of the processed text *)
-end
-
-module ParseT (MP : MONAD_PLUS_OPS) :
-  PARSE with type 'a backtracking_monad := 'a MP.monad =
-struct
-  type 'a backtracking_monad = 'a MP.monad
-  type 'a parsing_state = int -> ('a * int) MP.monad
-  module M = struct
-    type 'a t = string -> 'a parsing_state
-    let return a = fun s p -> MP.return (a, p)
-    let bind m b = fun s p ->
-      MP.bind (m s p) (fun (a, p') -> b a s p')
-    let mzero = fun _ p -> MP.mzero
-    let mplus ma mb = fun s p ->
-      MP.mplus (ma s p) (lazy (Lazy.force mb s p))
-  end
-  include M
-  include MonadPlusOps(M)
-  let (<|>) ma mb = mplus ma mb
-  let runT m s p = MP.lift fst (m s p)
-  let satisfy f s p =
-    if p < String.length s && f s.[p]  (* Consuming a character means accessing it *)
-    then MP.return (s.[p], p + 1) else MP.mzero  (* and advancing the parsing pos *)
-  let end_of_text s p =
-    if p >= String.length s then MP.return ((), p) else MP.mzero
-end
-```
-
-#### Additional Parser Operations
-
-```ocaml env=parsec
-module type PARSE_OPS = sig
-  include PARSE
-  val many : 'a monad -> 'a list monad
-  val opt : 'a monad -> 'a option monad
-  val (?|) : 'a monad -> 'a option monad
-  val seq : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Exercise: why lazy? *)
-  val (<*>) : 'a monad -> 'b monad Lazy.t -> ('a * 'b) monad  (* Synonym for seq *)
-  val lowercase : char monad
-  val uppercase : char monad
-  val digit : char monad
-  val alpha : char monad
-  val alphanum : char monad
-  val literal : string -> unit monad  (* Consume characters of the given string *)
-  val (<<>) : string -> 'a monad -> 'a monad  (* Prefix and postfix keywords *)
-  val (<>>) : 'a monad -> string -> 'a monad
-end
-
-module ParseOps (R : MONAD_PLUS_OPS)
-  (P : PARSE with type 'a backtracking_monad := 'a R.monad) :
-  PARSE_OPS with type 'a backtracking_monad := 'a R.monad =
-struct
-  include P
-  let rec many p =
-    (let* r = p in
-     let* rs = many p in
-     return (r::rs))
-    ++ lazy (return [])
-  let opt p = (let* x = p in return (Some x)) ++ lazy (return None)
-  let (?|) p = opt p
-  let seq p q =
-    let* x = p in
-    let* y = Lazy.force q in
-    return (x, y)
-  let (<*>) p q = seq p q
-  let lowercase = satisfy (fun c -> c >= 'a' && c <= 'z')
-  let uppercase = satisfy (fun c -> c >= 'A' && c <= 'Z')
-  let digit = satisfy (fun c -> c >= '0' && c <= '9')
-  let alpha = lowercase ++ lazy uppercase
-  let alphanum = alpha ++ lazy digit
-  let literal l =
-    let rec loop pos =
-      if pos = String.length l then return ()
-      else satisfy (fun c -> c = l.[pos]) >>- loop (pos + 1) in
-    loop 0
-  let (<<>) bra p = literal bra >>- p
-  let (<>>) p ket =
-    let* x = p in
-    literal ket >>- return x
-end
-```
-
-### 11.12 Parser Combinators: Tying the Recursive Knot
-
-Now we come to the key insight connecting parser combinators to the expression problem: how do we allow the grammar to be extended dynamically? The answer is to use a mutable reference holding a list of grammar rules, and tie the recursive knot lazily.
-
-File `PluginBase.ml`:
-
-```ocaml env=parsec
-module ParseM = ParseOps (LListM) (ParseT (LListM))
-open ParseM
-
-let grammar_rules : (int monad -> int monad) list ref = ref []
-
-let get_language () : int monad =
-  let rec result =
-    lazy
-      (List.fold_left
-         (fun acc lang -> acc <|> lazy (lang (Lazy.force result)))
-          mzero !grammar_rules) in
-  let* r = Lazy.force result in
-  let* () = end_of_text in return r  (* Ensure we parse the whole text *)
-```
-
-### 11.13 Parser Combinators: Dynamic Code Loading
-
-OCaml supports dynamic code loading through the `Dynlink` module. This allows us to load compiled modules at runtime, which can register new grammar rules by mutating the `grammar_rules` reference. This is a powerful form of extensibility: we can add new syntax to our language without recompiling the main program.
-
-File `PluginRun.ml`:
-
-```ocaml skip
-let load_plug fname : unit =
-  let fname = Dynlink.adapt_filename fname in
-  if Sys.file_exists fname then
-    try Dynlink.loadfile fname
-    with
-    | (Dynlink.Error err) as e ->
-      Printf.printf "\nERROR loading plugin: %s\n%!"
-        (Dynlink.error_message err);
-      raise e
-    | e -> Printf.printf "\nUnknow error while loading plugin\n%!"
-  else (
-    Printf.printf "\nPlugin file %s does not exist\n%!" fname;
-    exit (-1))
-
-let () =
-  for i = 2 to Array.length Sys.argv - 1 do
-    load_plug Sys.argv.(i) done;
-  let lang = PluginBase.get_language () in
-  let result =
-    Monad.LListM.run
-      (PluginBase.ParseM.runT lang Sys.argv.(1) 0) in
-  match Monad.ltake 1 result with
-  | [] -> Printf.printf "\nParse error\n%!"
-  | r::_ -> Printf.printf "\nResult: %d\n%!" r
-```
-
-### 11.14 Parser Combinators: Toy Example
-
-Let us see how this works with a concrete example. We will define two plugins: one for parsing numbers and addition, and another for parsing multiplication. Each plugin registers its grammar rules by appending to the `grammar_rules` list.
-
-File `Plugin1.ml`:
-
-```ocaml env=parsec
-open ParseM
-let digit_of_char d = int_of_char d - int_of_char '0'
-
-let number _ =  (* Numbers: N := D N | D where D is digits *)
-  let rec num =  (* Note: we avoid left-recursion by having the digit first *)
-    lazy ((let* d = digit in
-           let* (n, b) = Lazy.force num in
-           return (digit_of_char d * b + n, b * 10))
-      <|> lazy (let* d = digit in return (digit_of_char d, 10))) in
-  Lazy.force num >>| fst
-
-let addition lang =  (* Addition rule: S -> (S + S) *)
-  (* Requiring a parenthesis '(' turns the rule into non-left-recursive *)
-  (* because we consume a character before recursing *)
-  let* () = literal "(" in
-  let* n1 = lang in
-  let* () = literal "+" in
-  let* n2 = lang in
-  let* () = literal ")" in
-  return (n1 + n2)
-
-let () = grammar_rules := number :: addition :: !grammar_rules
-```
-
-File `Plugin2.ml` adds multiplication to the language. Notice how we can add this functionality without modifying any existing code:
-
-```ocaml env=parsec
-open ParseM
-
-let multiplication lang =  (* Multiplication rule: S -> (S * S) *)
-  let* () = literal "(" in
-  let* n1 = lang in
-  let* () = literal "*" in
-  let* n2 = lang in
-  let* () = literal ")" in
-  return (n1 * n2)
-
-let () = grammar_rules := multiplication :: !grammar_rules
-```
-
-#### Chapter Summary (What to Remember)
-
-- The expression problem asks for *two independent dimensions of extension*: add new cases (data) and add new operations, while keeping separate compilation and static typing.
-- Ordinary ADTs make new operations easy and new cases hard; OO makes new cases easy and new operations hard; extensible variants make new cases easy but weaken exhaustiveness guarantees.
-- Extensible GADTs (`type _ expr = ..`) add type-level precision: each constructor carries a result-type index the compiler tracks. However, OCaml still cannot check exhaustiveness for open types, so the same runtime-failure risk as plain extensible variants remains. They are a stronger, but still incomplete, non-solution.
-- Polymorphic variants (especially with recursive modules) support a pragmatic “structural” style of extension: you can grow a language in separate files with less tagging boilerplate, at the cost of more sophisticated typing.
-- Parser combinators are a capstone example because they *are* a language combinator library: you extend the language by adding new combinators/rules, and dynamic loading makes the modularity aspect very concrete.
-
-### 11.15 Exercises
-
-The following exercises will help you deepen your understanding of the expression problem and the various solutions we have explored. They range from implementing additional operations to refactoring the code for better organization.
-
-#### Exercise 1: Pretty-Printers for Evaluators
-
-Implement the `string_of_` functions or methods, covering all data cases, corresponding to the `eval_` functions in at least two examples from the lecture, including both an object-based example and a variant-based example (either standard, or polymorphic, or extensible variants). This will help you understand how functional extensibility works in each approach.
-
-
-#### Exercise 2: Separate Compilation Split
-
-Split at least one of the examples from the previous exercise into multiple files and demonstrate separate compilation.
-
-
-#### Exercise 3: Removing Variant Tags
-
-Can we drop the tags `Lambda_t`, `Expr_t` and `LExpr_t` used in the examples based on standard variants (file `FP_ADT.ml`)? When using polymorphic variants, such tags are not needed.
-
-
-#### Exercise 4: Factoring Variable Sublanguage
-
-Factor-out the sub-language consisting only of variables, thus eliminating the duplication of tags `VarL`, `VarE` in the examples based on standard variants (file `FP_ADT.ml`).
-
-
-#### Exercise 5: Extensible-Variant Bug Hunt
-
-Come up with a scenario where the extensible variant types-based solution leads to a non-obvious or hard to locate bug. This exercise illustrates why exhaustivity checking is so valuable for static type safety.
-
-
-#### Exercise 6: Object Solution Cleanup
-
-Re-implement the direct object-based solution to the expression problem (file `Objects.ml`) to make it more satisfying. For example, eliminate the need for some of the `rename`, `apply`, `compute` methods.
-
-
-#### Exercise 7: Functional Visitor Refactor
-
-Re-implement the visitor pattern-based solution to the expression problem (file `Visitor.ml`) in a functional way, i.e., replace the mutable fields `subst` and `beta_redex` in the `eval_lambda` class with a different solution to the problem of treating `abs` and non-`abs` expressions differently.
-
-
-#### Exercise 8: Visitor with Variables and Substitution
-
-Extend the sub-language `expr_visit` with variables, and add to arguments of the evaluation constructor `eval_expr` the substitution. Handle the problem of potentially duplicate fields `subst`. (One approach might be to use ideas from exercise 6.)
-
-
-#### Exercise 9: PolyV Feature Extensions
-
-Implement the following modifications to the example from the file `PolyV.ml`:
-
-
-1. Factor-out the sub-language of variables, around the already present `var` type.
-2. Open the types of functions `eval3`, `freevars3` and other functions as required, so that explicit subtyping, e.g., in `eval3 [] (test2 :> lexpr_t)`, is not necessary.
-3. Remove the double-dispatch currently in `eval_lexpr` and `freevars_lexpr`, by implementing a cascading design rather than a "divide-and-conquer" design.
-
-#### Exercise 10: Streamlined PolyRecM
-
-Streamline the solution `PolyRecM.ml` by extending the language of $\lambda$-expressions with arithmetic expressions, rather than defining the sub-languages separately and then merging them. See slide on page 15 of Jacques Garrigue *Structural Types, Recursive Modules, and the Expression Problem*.
-
-
-#### Exercise 11: Parser State with Positions
-
-Transform a parser monad, or rewrite the parser monad transformer, by adding state for the line and column numbers.
-
-
-#### Exercise 12: Parser Combinator _of_string
-
-Implement `_of_string` functions as parser combinators on top of the example `PolyRecM.ml`. Sections 4.3 and 6.2 of *Monadic Parser Combinators* by Graham Hutton and Erik Meijer might be helpful. Split the result into multiple files as in Exercise 2 and demonstrate dynamic loading of code.
-
-
-#### Exercise 13: Odd vs Even Lazy Monad-Plus
-
-What are the benefits and drawbacks of our lazy-monad-plus (built on top of *odd lazy lists*) approach, as compared to regular monad-plus built on top of *even lazy lists*? To additionally illustrate your answer:
-
-
-1. Rewrite the parser combinators example to use regular monad-plus and even lazy lists.
-2. Select one example from Lecture 8 and rewrite it using lazy-monad-plus and odd lazy lists.
-
-(In an "odd" lazy list, the first element is strict and only the tail is lazy. In an "even" lazy list, the entire list is wrapped in laziness. The choice affects when computation happens and how infinite structures are handled.)
-
-
-#### Exercise 14: Extensible GADT Pretty-Printer
-
-Using the extensible GADT infrastructure from `chapter11/ExtGADT.ml` (section 11.9):
-
-1. The existing `eval_layer` type is `{ layer : 'a. eval_chain -> 'a expr -> 'a option }` — the return type varies with the expression's type index. A pretty-printer always returns `string`, so it cannot reuse `eval_layer` directly. Define new record types `string_chain` and `string_layer` analogous to `eval_chain` and `eval_layer`, where the handler always returns `string option` regardless of the expression's type index. Then implement `arith_string_layer` and `bool_string_layer` that convert arithmetic and boolean expressions to strings, using the `string_chain` for recursive calls.
-2. Write a `build_string_eval` function (analogous to `build_eval`) that ties the open-recursion knot for `string_layer` values, producing a `string_chain`. Compose your layers to obtain a complete `string_of_expr : 'a expr -> string`. Test it on expressions like `Add (Num 2, Num 3)` and `Gt (Num 1, Num 0)`.
-3. Now compose the pretty-printer with the arithmetic evaluator: build a program that uses both `build_eval` (with `arith_layer` and `bool_layer`) and `build_string_eval` (with your string layers) on the same expressions. Observe that the two operations require separate composition pipelines.
-4. Identify which parts of the `build_eval` boilerplate had to be duplicated for `build_string_eval` (the mutable reference, the `List.find_map` loop, the initialization). Is this duplication acceptable, or does it suggest a further abstraction? Optionally, factor the common pattern into a functor or higher-order function parameterized by the chain and layer types.
-
-
-## Chapter 12: Categories and GADTs
+The ownership transfer is the same as Chapter 9: remove the continuation from its
+slot *before* resuming it. If publication raises, stack unwinding releases the
+resource and closes the script. The tests cover that failure as well as normal
+closure and closure while waiting for another input.
+
+### 10.6 Equivalence before drawing and timing
+
+`projects/reactive/laws.ml` first checks the explicit trace above, then compares
+all three interpreters on 100 fixed-seed, 30-input traces. It also checks repeated
+sampling, repeated event consumption, unchanged Boolean edges, and abandoned or
+failed scripts. Equality includes every field of state and the ordered event
+list, not just ball coordinates.
+
+The reason for agreement is simple enough to prove: each interpreter starts from
+`initial`, consumes each input once in order, and emits exactly the result of the
+same `step`. Induction on the input prefix establishes equal emitted traces. The
+incremental interpretation additionally needs its consecutive-tick contract; the
+effect interpretation needs successful publication and the stated ownership policy.
+
+Only now connect a renderer. A renderer observes a snapshot; it must not advance
+physics just because the window redraws. A timer or input adapter determines
+logical ticks. If drawing takes longer than a tick, choose whether to queue,
+drop or coalesce inputs and state the resulting trace policy. None of those
+policies follows automatically from “reactive”.
+
+The historical Bogue/Lwd/Incremental executable remains an optional laboratory in
+`projects/gui/README.md`, outside the maintained headless suite. It has not been
+certified as an implementation of this transition. No new GUI framework is
+required for the chapter's behavioral comparisons.
+
+### 10.7 Exercises
+
+1. **Practice.** Record a trace in which the paddle misses at tick 2. Check all
+   fields of the final state, not just its `Lost` status.
+2. **Proof.** State the prefix invariant for the three interpreters and explain
+   where the no-skipped-tick premise is used.
+3. **Experiment.** Remove the tick dependency from the incremental scan and feed
+   repeated equal inputs. Keep the failed trace as a regression test.
+4. **Practice.** Create two independent event consumers. Check that each receives
+   a paddle event once, regardless of the order in which they poll.
+5. **Project.** Port the renderer to the shared transition. Pass the same recorded
+   trace, verify cleanup when its window closes, and only then measure updates
+   versus cached redraws. Specify a backlog policy for slow rendering.
+
+
+
+
+# Part IV: Mathematical synthesis
+
+## Chapter 12: Constructions and their laws
 
 ![Chapter 12 illustration](Curious_OCaml-chapter_12.jpg){.chapter-image}
 
-**In this chapter, you will:**
-
-- Learn the definition of a category and recognize categories you have been using throughout this book
-- See how type isomorphisms, functors, monads, and the expression problem are all categorical concepts
-- Use GADTs to enforce categorical structure (composability, type safety) at the type level
-- Understand functors, natural transformations, and adjunctions as unifying abstractions
-- Connect lenses and zippers to type derivatives through a categorical lens
-- Encounter the Yoneda lemma and its surprisingly practical programming consequences
-- Close the loop from Chapter 1: the Curry--Howard--Lambek correspondence
-
-Throughout Chapters 1--11, we have been doing category theory without naming it. Type isomorphisms (Chapter 2), `map` and `fold` (Chapter 6), monad laws (Chapter 8), zippers (Chapter 10), and the expression problem (Chapter 11) all have precise categorical descriptions. This chapter makes the hidden structure explicit.
-
-Category theory is even woven into the name of the language. "Caml" stands for *Categorical Abstract Machine Language*: the first Caml implementation (Cousineau, Curien, and Mauny, 1987) compiled lambda terms into sequences of categorical combinators -- *curry*, *apply*, *pair*, *fst*, *snd* -- derived from the cartesian closed structure of the simply-typed lambda calculus. The CAM turned out to be inefficient in practice -- too many closures, too much copying -- and was quickly abandoned in favor of the ZINC machine (Leroy, 1990), a more conventional environment-based abstract machine. Modern OCaml goes further: native compilation via the `ocamlopt` backend is the default route, leaving no trace of the original categorical machine at runtime. The "O" was added later for the object system. But the name "Caml" endures, and so does the insight this chapter explores: the structures of typed functional programming *are* categorical structures.
-
-The distinctive quality of this chapter is not "here is some category theory" but rather "here is the hidden structure of everything you have learned" -- a retrospective unification of the whole book through a categorical lens, with GADTs as the OCaml-specific mechanism that makes categorical structure *enforceable* at the type level.
-
-**Scope of the equations:** when interpreting types and functions as sets and maps, we reason about total, pure functions extensionally. General OCaml programs can diverge, raise exceptions, mutate state, or inspect values through polymorphic comparison. Their laws need the corresponding restrictions or a richer semantics.
-
-### 12.1 What Is a Category?
-
-A **category** $\mathcal{C}$ consists of:
-
-1. A collection of **objects**
-2. For every pair of objects $A, B$, a collection of **morphisms** (or arrows) $\text{Hom}(A, B)$
-3. For every object $A$, an **identity morphism** $\text{id}_A \in \text{Hom}(A, A)$
-4. For compatible morphisms $f \in \text{Hom}(A, B)$ and $g \in \text{Hom}(B, C)$, a **composition** $g \circ f \in \text{Hom}(A, C)$
-
-subject to the laws:
-
-- **Left identity**: $\text{id}_B \circ f = f$ for all $f : A \to B$
-- **Right identity**: $f \circ \text{id}_A = f$ for all $f : A \to B$
-- **Associativity**: $h \circ (g \circ f) = (h \circ g) \circ f$
-
-That is the entire definition. Its power comes from the enormous number of mathematical and computational structures that turn out to be instances.
-
-#### Examples You Already Know
-
-**Types and functions.** OCaml types are objects, functions `'a -> 'b` are morphisms, `Fun.id` is the identity, and `Fun.compose` (or `( -| )`) is composition. The laws hold because function composition is associative and `Fun.id` is a unit:
-
-```ocaml env=cat
-let id x = x
-let compose f g x = f (g x)
-
-(* Laws (we test on a specific case): *)
-let f x = x + 1
-let g x = x * 2
-let h x = x - 3
-let x = 7
-
-let () = assert (compose id f x = f x)          (* left identity *)
-let () = assert (compose f id x = f x)          (* right identity *)
-let () = assert (compose h (compose g f) x       (* associativity *)
-               = compose (compose h g) f x)
-```
-
-**A poset as a category.** Any partially ordered set $(S, \leq)$ forms a category where objects are elements of $S$, there is exactly one morphism $a \to b$ when $a \leq b$, and none otherwise. Composition is transitivity; identity is reflexivity:
-
-```ocaml env=cat
-(* The poset (int, <=) as a category: *)
-(* - Objects: integers *)
-(* - Morphisms: a single "witness" when a <= b *)
-(* - Composition: transitivity of <= *)
-
-(* We encode natural numbers as Peano types at the type level: *)
-type zero = Zero
-type 'n succ = Succ
-
-(* A witness that n <= m: *)
-type (_, _) leq =
-  | Le_refl : ('n, 'n) leq                       (* n <= n *)
-  | Le_step : ('n, 'm) leq -> ('n, 'm succ) leq  (* n <= m implies n <= m+1 *)
-
-(* Composition = transitivity: if a <= b and b <= c then a <= c *)
-let rec leq_trans : type a b c. (a, b) leq -> (b, c) leq -> (a, c) leq =
-  fun p q -> match q with
-  | Le_refl -> p
-  | Le_step q' -> Le_step (leq_trans p q')
-
-(* Example: 0 <= 2 *)
-let _zero_le_two : (zero, zero succ succ) leq =
-  Le_step (Le_step Le_refl)
-```
-
-In general, a poset category has *at most one morphism* between any two objects. Composition is transitivity, identity is reflexivity. This is the simplest non-trivial kind of category.
-
-**A monoid as a category.** A monoid $(M, \cdot, e)$ forms a category with *one* object (call it $\star$), morphisms are elements of $M$, composition is the monoid operation $\cdot$, and identity is $e$. The monoid laws are exactly the category laws:
-
-```ocaml env=cat
-module type MONOID = sig
-  type t
-  val empty : t                (* identity morphism *)
-  val append : t -> t -> t     (* composition *)
-end
-
-(* String monoid = one-object category *)
-module StringMonoid : MONOID with type t = string = struct
-  type t = string
-  let empty = ""
-  let append = ( ^ )
-end
-
-(* List monoid = one-object category *)
-module ListMonoid (A : sig type t end) : MONOID with type t = A.t list = struct
-  type t = A.t list
-  let empty = []
-  let append = ( @ )
-end
-```
-
-#### The Category Module Type
-
-We can encode the notion of a category as an OCaml module signature:
-
-```ocaml env=cat
-module type CATEGORY = sig
-  type ('a, 'b) hom           (* morphisms from 'a to 'b *)
-  val id : ('a, 'a) hom
-  val compose : ('b, 'c) hom -> ('a, 'b) hom -> ('a, 'c) hom
-end
-```
-
-The type parameters `'a` and `'b` track the source and target of morphisms, ensuring that composition has matching endpoints. They need not be phantom parameters: the function instance below uses them in its representation. The signature does not enforce identity or associativity laws; those require separate proofs or checks. OCaml functions form the most basic instance:
-
-```ocaml env=cat
-module FunCat : CATEGORY with type ('a, 'b) hom = 'a -> 'b = struct
-  type ('a, 'b) hom = 'a -> 'b
-  let id x = x
-  let compose f g x = f (g x)
-end
-```
-
-### 12.2 Revisiting the Book Through a Categorical Lens
-
-Before introducing new material, let us look back at what the previous chapters taught us -- now with categorical vocabulary.
-
-| Chapter | Concept | Categorical Name |
-|---------|---------|-----------------|
-| 1 | Propositions and types | Objects in a category; Curry--Howard |
-| 2 | Type isomorphisms (`'a * 'b ≅ 'b * 'a`) | Isomorphisms in the category of types |
-| 2 | Type derivative (one-hole context) | Derivative of a functor |
-| 3 | Backward function composition | Morphism composition in **Types** |
-| 4 | Church encodings | Initial algebra (catamorphism) |
-| 6 | `List.map`, `Option.map` | Endofunctor on **Types** |
-| 6 | `List.fold_right` | Catamorphism (universal property of initial algebra) |
-| 7 | Lazy streams, exponential types | Objects in a category with exponentials |
-| 8 | `return`, `bind`, monad laws | Monad = endofunctor + unit + multiplication |
-| 9 | GADTs (`'a expr`) | Reification; typed initial algebra |
-| 10 | Zippers | Focus paired with a one-hole context |
-| 11 | Expression problem | Extension consistency, discussed in Section 12.9 |
-
-**Type isomorphisms are categorical isomorphisms.** In Chapter 2, we showed that `'a * 'b` is isomorphic to `'b * 'a` by providing a function `swap` that composes with itself to give the identity in both directions. This is exactly what it means for two objects to be *isomorphic* in a category: there exist morphisms $f : A \to B$ and $g : B \to A$ such that $g \circ f = \text{id}_A$ and $f \circ g = \text{id}_B$.
-
-```ocaml env=cat
-(* Type isomorphism from Chapter 2, restated categorically: *)
-(* swap_pair and swap_pair are inverse morphisms in FunCat. *)
-let swap_pair (a, b) = (b, a)
-let () = assert (compose swap_pair swap_pair (1, "hello") = (1, "hello"))
-(* swap ∘ swap = id: the round-trip is the identity morphism. *)
-
-(* Distributivity: A * (B + C) ≅ A * B + A * C *)
-let dist : 'a * ('b, 'c) result -> (('a * 'b), ('a * 'c)) result =
-  function (a, Ok b) -> Ok (a, b) | (a, Error c) -> Error (a, c)
-let undist : (('a * 'b), ('a * 'c)) result -> 'a * ('b, 'c) result =
-  function Ok (a, b) -> (a, Ok b) | Error (a, c) -> (a, Error c)
-let () = assert (undist (dist (1, Ok "yes")) = (1, Ok "yes"))
-let () = assert (undist (dist (1, Error 2.0)) = (1, Error 2.0))
-```
-
-**`map` is a functor action.** In Chapter 6, we wrote `List.map f` to transform every element of a list. The function `List.map` sends each morphism $f : A \to B$ to a morphism `List.map f : 'a list -> 'b list`. It preserves identity (`List.map id = id`) and composition (`List.map (f ∘ g) = List.map f ∘ List.map g`). This is precisely a *functor* -- a structure-preserving map between categories.
-
-**Monad laws are category laws.** In Chapter 8, we verified three monad laws (left identity, right identity, associativity). These are exactly the laws of a *monad* in category theory: an endofunctor $T$ equipped with natural transformations $\eta : \text{Id} \Rightarrow T$ (return) and $\mu : T^2 \Rightarrow T$ (join), satisfying unit and associativity laws.
-
-**`fold` is a catamorphism.** The `fold_right` function from Chapter 6 destructs a list by replacing `(::)` with a function and `[]` with a value. This is the *catamorphism* (or *algebra morphism*) for the list functor -- the unique morphism from the initial algebra to any other algebra.
-
-```ocaml env=cat
-(* An "algebra" for the list functor is a pair (op, z): *)
-(* op replaces (::) and z replaces [].                  *)
-(* The catamorphism folds any list using the algebra.   *)
-let cata op z xs = List.fold_right op xs z
-
-(* length = catamorphism with algebra (fun _ n -> n+1, 0): *)
-let len xs = cata (fun _ n -> n + 1) 0 xs
-let () = assert (len [10; 20; 30] = 3)
-
-(* sum = catamorphism with algebra ((+), 0): *)
-let sum xs = cata ( + ) 0 xs
-let () = assert (sum [1; 2; 3; 4] = 10)
-
-(* map f = catamorphism with algebra ((fun x acc -> f x :: acc), []): *)
-let map_via_cata f xs = cata (fun x acc -> f x :: acc) [] xs
-let () = assert (map_via_cata (fun x -> x * 10) [1; 2; 3] = [10; 20; 30])
-```
-
-### 12.3 Typed Morphisms with GADTs
-
-Chapter 9 introduced GADTs. Now we use them to enforce categorical structure at the type level. The key idea: a `('a, 'b) morphism` GADT makes the source and target types of a morphism visible to the compiler, so only composable morphisms can be composed.
-
-#### The Free Category on a Typed Graph
-
-Consider a *typed graph*: a set of edges, each with a typed source and target. The **free category** on this graph is the category whose morphisms are all paths through the graph. GADTs let us express this directly:
-
-```ocaml env=gadt
-(* A typed graph of "pipeline stages" *)
-type ('a, 'b) stage =
-  | Parse   : (string, string list) stage
-  | Filter  : (string list, string list) stage
-  | Count   : (string list, int) stage
-  | Show    : (int, string) stage
-
-(* The free category: typed paths through the graph *)
-type ('a, 'b) path =
-  | Nil  : ('a, 'a) path
-  | Cons : ('a, 'b) stage * ('b, 'c) path -> ('a, 'c) path
-```
-
-The type `('a, 'b) path` enforces that paths are composable: each edge's target must match the next edge's source. The type checker rejects ill-formed pipelines at compile time:
-
-```ocaml env=gadt
-(* A valid pipeline: string -> string list -> int -> string *)
-let my_pipeline : (string, string) path =
-  Cons (Parse, Cons (Count, Cons (Show, Nil)))
-```
-
-```ocaml skip
-(* This would NOT compile -- types don't match: *)
-(* Cons (Parse, Cons (Show, Nil)) *)
-(* Error: string list ≠ int *)
-```
-
-Without GADTs, we could build ill-formed pipelines that compile -- with GADTs, the composability invariant is enforced statically.
-
-#### Composing Paths
-
-Composition of paths is concatenation, which we can define by recursion on the first path:
-
-```ocaml env=gadt
-let rec concat : type a b c. (a, b) path -> (b, c) path -> (a, c) path =
-  fun p q -> match p with
-  | Nil -> q
-  | Cons (edge, rest) -> Cons (edge, concat rest q)
-```
-
-This is a category: `Nil` is the identity, `concat` is composition, and associativity follows from the recursive definition.
-
-#### Interpreting Paths
-
-The power of this encoding is that we can *interpret* a typed path into actual functions. Each stage maps to a concrete computation:
-
-```ocaml env=gadt
-let interpret_stage : type a b. (a, b) stage -> a -> b = function
-  | Parse  -> String.split_on_char ' '
-  | Filter -> List.filter (fun s -> String.length s > 2)
-  | Count  -> List.length
-  | Show   -> string_of_int
-
-let rec interpret : type a b. (a, b) path -> a -> b = function
-  | Nil -> Fun.id
-  | Cons (stage, rest) -> fun x -> interpret rest (interpret_stage stage x)
-
-let () = assert (interpret my_pipeline "the quick brown fox" = "4")
-```
-
-#### Type Witnesses as Reification
-
-GADTs also let us *reify* types as values -- a `'a ty` GADT represents the type `'a` as a first-class value:
-
-```ocaml env=gadt
-type _ ty =
-  | Int    : int ty
-  | String : string ty
-  | Bool   : bool ty
-  | List   : 'a ty -> 'a list ty
-  | Pair   : 'a ty * 'b ty -> ('a * 'b) ty
-
-let rec show_ty : type a. a ty -> string = function
-  | Int -> "int"
-  | String -> "string"
-  | Bool -> "bool"
-  | List t -> show_ty t ^ " list"
-  | Pair (a, b) -> "(" ^ show_ty a ^ " * " ^ show_ty b ^ ")"
-
-let () = assert (show_ty (List (Pair (Int, Bool))) = "(int * bool) list")
-```
-
-These witnesses reify a selected universe of types, enabling type-safe operations driven by runtime type information. This is not the Yoneda embedding: that construction represents an object by a functor of morphisms, rather than by a tag describing its syntax.
-
-### 12.4 Functors in OCaml: Three Views
-
-The word "functor" appears in three distinct but related senses in OCaml. Let us untangle them.
-
-#### View 1: Module Functors (OCaml's Built-In)
-
-OCaml's module system has *functors*: functions from modules to modules. We used `Map.Make` in Chapter 5 to create specialized map modules:
-
-```ocaml skip
-module StringMap = Map.Make(String)
-(* Map.Make is an OCaml (module) functor: *)
-(* it takes a module with type t and compare, *)
-(* and returns a module with map operations *)
-```
-
-These are not categorical functors in general -- they do not necessarily preserve composition. They are closer to parameterized modules. However, the *name* comes from category theory, and in some cases (like `Map.Make`) the result does respect the categorical structure.
-
-#### View 2: The Functor Type Class Pattern
-
-The categorical notion of a functor is an endofunctor on the category of types. In OCaml, we encode it as a module signature requiring a `map` function that preserves identity and composition:
-
-```ocaml env=functor
-module type FUNCTOR = sig
-  type 'a t
-  val map : ('a -> 'b) -> 'a t -> 'b t
-  (* Laws (not checked by the compiler): *)
-  (* map id = id *)
-  (* map (f ∘ g) = map f ∘ map g *)
-end
-```
-
-Many standard types are functors:
-
-```ocaml env=functor
-module ListFunctor : FUNCTOR with type 'a t = 'a list = struct
-  type 'a t = 'a list
-  let map = List.map
-end
-
-module OptionFunctor : FUNCTOR with type 'a t = 'a option = struct
-  type 'a t = 'a option
-  let map = Option.map
-end
-
-(* The "reader" functor: ('a -> _) is functorial in the return type *)
-module ReaderFunctor (R : sig type t end) :
-  FUNCTOR with type 'a t = R.t -> 'a = struct
-  type 'a t = R.t -> 'a
-  let map f g r = f (g r)    (* = compose f g *)
-end
-```
-
-#### View 3: GADT-Encoded Typed Functors
-
-Between typed categories (Section 12.3), a functor maps objects and morphisms while preserving composition and identity. With GADTs, we can express this:
-
-```ocaml env=functor
+**Prerequisites:** Chapters 2, 3, 5, 6 and 11; induction on finite data and equality
+of functions at every argument. **Route:** Part IV. Optics and codensity are
+optional further study in `projects/optics/README.md`.
+
+The previous chapters changed representations and checked what survived. We now
+prove a few general constructions: functor laws, the uniqueness of a fold, an
+adjunction and a polymorphic Yoneda representation. For each claim we name its
+objects, maps, equality and hypotheses. A type index can prevent mismatched
+endpoints; it cannot prove associativity or naturality by itself.
+
+### 12.1 Choose a category and an equality
+
+A category has objects, arrows between objects, identity arrows and composition
+of arrows with matching endpoints. Composition is associative and identities are
+units. In **Set**, objects are sets, arrows are total functions, and equality of
+arrows is extensional: two functions are equal when they agree at every input.
+For functions `f : A -> B`, `g : B -> C`, and `h : C -> D`, both bracketings of
+composition send `a` to `h (g (f a))`; either identity law reduces to `f a`.
+
+Pure, terminating OCaml examples can illustrate this setting. General OCaml
+functions may diverge, mutate state or raise exceptions. Resource exhaustion is
+also ignored in this mathematical interpretation. To model a possibly missing
+lookup as a total Set arrow, return an explicit option/result value rather than
+silently treating a raised exception as an ordinary result.
+
+```ocaml env=category
 module type CATEGORY = sig
   type ('a, 'b) hom
   val id : ('a, 'a) hom
   val compose : ('b, 'c) hom -> ('a, 'b) hom -> ('a, 'c) hom
 end
-
-module type TYPED_FUNCTOR = sig
-  module Source : CATEGORY
-  module Target : CATEGORY
-  type 'a obj                  (* object mapping *)
-  val map_hom : ('a, 'b) Source.hom -> ('a obj, 'b obj) Target.hom
-  (* Laws: *)
-  (* map_hom id = id *)
-  (* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)
-end
-```
-
-```ocaml env=functor
-(* FunCat: the category of OCaml functions *)
-module FunCat : CATEGORY with type ('a, 'b) hom = 'a -> 'b = struct
+module Functions = struct
   type ('a, 'b) hom = 'a -> 'b
   let id x = x
-  let compose f g x = f (g x)
+  let compose g f x = g (f x)
 end
-
-(* List is a typed functor from FunCat to FunCat: *)
-(* - Object mapping: 'a ↦ 'a list *)
-(* - Morphism mapping: (f : 'a -> 'b) ↦ (List.map f : 'a list -> 'b list) *)
-module ListTypedFunctor : TYPED_FUNCTOR
-  with module Source = FunCat
-   and module Target = FunCat
-   and type 'a obj = 'a list = struct
-  module Source = FunCat
-  module Target = FunCat
-  type 'a obj = 'a list
-  let map_hom f = List.map f
-end
-
-(* Verify functor laws: *)
-let f x = x + 1
-let g x = x * 2
-let xs = [1; 2; 3]
-
-(* map_hom id = id *)
-let () = assert (ListTypedFunctor.map_hom FunCat.id xs = FunCat.id xs)
-
-(* map_hom (compose f g) = compose (map_hom f) (map_hom g) *)
-let () = assert (
-  ListTypedFunctor.map_hom (FunCat.compose f g) xs
-  = FunCat.compose (ListTypedFunctor.map_hom f)
-      (ListTypedFunctor.map_hom g) xs)
 ```
 
-This ties the three views together: `ListTypedFunctor.map_hom` is the same operation as `ListFunctor.map`, but expressed as a morphism-to-morphism mapping between typed categories rather than a value-level function on containers.
+This interface checks that endpoints match. An implementation could still violate
+the laws; the interface is not a proof. Likewise, two OCaml function values cannot
+be compared extensionally by polymorphic `=`. We test selected arguments and
+prove the general equation separately.
 
-#### What Unites the Three Views
+A poset gives another category: objects are its elements and an arrow `a -> b`
+exists exactly when `a <= b`, with at most one such arrow. Reflexivity supplies
+identities and transitivity composition. A monoid gives a one-object category,
+with monoid elements as arrows, multiplication as composition and its unit as
+identity. The equality notion changes with the example: order witnesses in a
+poset are unique, whereas a monoid may have many distinct arrows.
 
-All three are "structure-preserving maps": module functors transform module structures, the typeclass pattern transforms values within a type constructor, and typed functors transform morphisms between categories. The categorical functor (View 2) is the one we encounter most in everyday programming.
+### 12.2 List mapping is a functor
 
-### 12.5 Natural Transformations
+A functor maps objects and arrows, preserving identities and composition. Here
+`List : Set -> Set` maps a set `A` to its **finite** lists and a function `f` to
+pointwise list mapping. Its laws are
 
-A **natural transformation** $\alpha : F \Rightarrow G$ between two functors $F, G : \mathcal{C} \to \mathcal{D}$ is a family of morphisms $\alpha_A : F(A) \to G(A)$, one for each object $A$, such that the following *naturality square* commutes for every morphism $f : A \to B$:
+$$\operatorname{map}(\mathrm{id})=\mathrm{id},\qquad
+\operatorname{map}(g\circ f)=\operatorname{map}(g)\circ\operatorname{map}(f).$$
 
-$$F(A) \xrightarrow{\alpha_A} G(A)$$
-$$\downarrow^{F(f)} \qquad\qquad \downarrow^{G(f)}$$
-$$F(B) \xrightarrow{\alpha_B} G(B)$$
+Prove identity by induction. Mapping over `[]` returns `[]`. On `x::xs`, the
+mapped head is `x` and the mapped tail is `xs` by induction. For composition,
+both sides on `[]` are empty; on `x::xs`, both heads are `g (f x)` and the tails
+agree by induction. This proof needs total pure `f` and `g`: effect order is not
+part of this Set theorem.
 
-That is: $G(f) \circ \alpha_A = \alpha_B \circ F(f)$.
-
-#### Polymorphic Functions Are Natural Transformations
-
-In OCaml, a polymorphic function `'a F.t -> 'a G.t` is automatically a natural transformation, because *parametric polymorphism guarantees naturality*. This is a consequence of the "free theorems" result (Wadler, 1989): a polymorphic function cannot inspect its type argument, so it must commute with `map`.
-
-```ocaml env=nat
-(* Natural transformation: 'a list -> 'a option *)
-let head_opt : 'a list -> 'a option = function
-  | [] -> None
-  | x :: _ -> Some x
-
-(* Natural transformation: 'a option -> 'a list *)
-let option_to_list : 'a option -> 'a list = function
-  | None -> []
-  | Some x -> [x]
-
-(* Naturality: map commutes with the transformation *)
-let f x = x * 2
-
-(* head_opt ∘ List.map f = Option.map f ∘ head_opt *)
-let test_input = [1; 2; 3]
+```ocaml env=functor
 let () =
-  assert (head_opt (List.map f test_input)
-        = Option.map f (head_opt test_input))
+  List.iter (fun xs ->
+    assert (List.map Fun.id xs = xs);
+    let f x = x + 1 and g x = 2 * x in
+    assert (List.map (fun x -> g (f x)) xs = List.map g (List.map f xs)))
+    [[]; [1]; [1;2;3]]
+```
 
-(* option_to_list ∘ Option.map f = List.map f ∘ option_to_list *)
-let test_opt = Some 5
+A rewrite that changes constructors is a fold into syntax, not this
+shape-preserving map. An OCaml *module functor* is a parameterized module; to call
+one a categorical functor requires an independently specified category and an
+action on arrows satisfying these laws. Similar names do not supply those data.
+
+### 12.3 Why a fold is unique
+
+Fix an element set `A` and the endofunctor $F(X)=1+A\times X$ on Set. An
+**F-algebra** consists of a carrier set `X`, a chosen `z : X`, and a function
+`c : A * X -> X`. An algebra morphism $h:(X,z,c)\to(Y,z',c')$ is a total function
+such that $h(z)=z'$ and $h(c(a,x))=c'(a,h(x))$. Identity and composition preserve
+these equations, giving a category of F-algebras.
+
+Finite lists, with `[]` and `(::)`, form an **initial** algebra: for any target
+algebra there is exactly one algebra morphism from lists to that target. The
+candidate is the fold:
+
+```ocaml env=fold
+let rec fold c z = function
+  | [] -> z
+  | x::xs -> c x (fold c z xs)
+```
+
+Existence follows from its defining equations: `fold c z [] = z` and
+`fold c z (x::xs) = c x (fold c z xs)`. To prove uniqueness, suppose `h` also
+satisfies those equations. At `[]`, `h [] = z = fold c z []`. At `x::xs`,
+
+$$h(x::xs)=c(x,h(xs))=c(x,\operatorname{fold}(c,z)(xs))
+=\operatorname{fold}(c,z)(x::xs),$$
+
+where the middle equality uses the induction hypothesis. Thus `h` and the fold
+are extensionally equal on every finite list. This is the universal property;
+a few tests of a recursive implementation would not establish uniqueness.
+
+#### The expression fold has the same argument
+
+For the common syntax, fix sets `K` of constant labels, `N` of names and `O` of
+operator labels. The syntax functor is
+
+$$E(X)=K+N+(O\times X\times X)+(N\times X\times X).$$
+
+Its four summands are number, variable, binary operation and `Let`. On arrows,
+`E(h)` applies `h` to each recursive child and leaves labels untouched. The
+carrier of its initial algebra is finite `Expr.t` syntax. The algebra fields in
+Chapter 6 implement the corresponding maps to an arbitrary carrier.
+
+Existence is the four defining equations of `Expr.fold`. Uniqueness uses induction
+on the same four constructors: number and variable are base cases; for binary
+and binding forms use the hypotheses for both children. Names are literal labels
+here. We have **not** quotiented syntax by alpha equivalence, nor claimed that
+binding semantics itself is a polynomial functor on names.
+
+The evaluation algebra in Chapter 6 uses a function carrier to handle binding.
+To apply this Set theorem literally, totalize lookup failure as an explicit
+result and treat arithmetic outcomes as values. The exception-raising executable
+is an operational illustration with a separately stated failure contract.
+
+#### Fusion is a consequence, with a premise
+
+If `h` preserves a source algebra's operations into a target algebra, then
+`h (fold source e) = fold target e`. Both sides are algebra morphisms from the
+initial syntax algebra; uniqueness gives equality. The preservation premise is
+essential: not every post-processing function can be pushed through a fold.
+
+```ocaml env=fold
 let () =
-  assert (option_to_list (Option.map f test_opt)
-        = List.map f (option_to_list test_opt))
+  let join xs = fold (^) "" xs in
+  let total_length xs = fold (fun x n -> String.length x + n) 0 xs in
+  List.iter (fun xs -> assert (String.length (join xs) = total_length xs))
+    [[]; ["a";"bc"]; ["";"hello"]]
 ```
 
-In a total, relationally parametric language, the polymorphic type gives this naturality law for free. OCaml permits effects, divergence, and polymorphic comparison, so its type alone is not that guarantee. For this implementation of `head_opt`, inspect the two list cases to establish the law. For a counterexample to the blanket claim, `List.sort_uniq compare` has type `'a list -> 'a list`, but mapping a constant function after it can retain two equal elements whereas deduplicating after that map retains only one.
+Here `String.length` preserves the empty string and concatenation into zero and
+addition, for finite strings within machine limits. That is the exact premise
+which licenses fusion in this example.
 
-#### More Examples
+### 12.4 Derive an adjunction
 
-```ocaml env=nat
-(* length : 'a list -> int *)
-(* This is a natural transformation from the List functor *)
-(* to the constant functor K_int (which maps everything to int). *)
-(* Naturality says: length (List.map f xs) = length xs *)
-let () = assert (List.length (List.map f [1;2;3]) = List.length [1;2;3])
+Fix a set `B`. Define $L(A)=A\times B$ and $R(C)=C^B$, the set of functions from
+`B` to `C`. On arrows, $L(u)(a,b)=(u(a),b)$ and $R(v)(k)=v\circ k$.
+These are functors Set to Set: substitution verifies both functor laws.
+The adjunction $L\dashv R$ is the natural family of bijections
 
-(* rev : 'a list -> 'a list *)
-(* Natural transformation from List to List. *)
-(* Naturality: List.map f (List.rev xs) = List.rev (List.map f xs) *)
+$$\mathrm{Set}(A\times B,C)\cong\mathrm{Set}(A,C^B).$$
+
+```ocaml env=adjunction
+let curry f a b = f (a,b)
+let uncurry g (a,b) = g a b
+```
+
+The first round trip is pointwise:
+`uncurry (curry f) (a,b) = curry f a b = f (a,b)`.
+The other is `curry (uncurry g) a b = uncurry g (a,b) = g a b`.
+Both equalities are extensional; no function comparison is used.
+
+A bijection of hom-sets alone is not the whole claim: it must be natural in `A`
+and `C`. For `u : A' -> A` and `v : C -> C'`, start with `f : A * B -> C`.
+Both ways around the naturality square evaluate at `a'` and `b` to
+`v (f (u a', b))`. Precomposition on the input and postcomposition on the output
+therefore commute with currying. This proves the required naturality.
+
+```ocaml env=adjunction
 let () =
-  assert (List.map f (List.rev [1;2;3])
-        = List.rev (List.map f [1;2;3]))
+  let f (a,b) = a + b and u a = 2*a and v c = string_of_int c in
+  List.iter (fun a -> List.iter (fun b ->
+    assert (uncurry (curry f) (a,b) = f (a,b));
+    assert (curry (fun (a,b) -> v (f (u a,b))) a b = v (curry f (u a) b)))
+    [0;1;2]) [0;1;2]
+```
 
-(* flatten : 'a list list -> 'a list *)
-(* Natural transformation from List ∘ List to List. *)
+#### A boundary-sensitive order example
+
+View the mathematical reals and integers as poset categories ordered by `<=`.
+Ceiling $c:\mathbb R\to\mathbb Z$ is left adjoint to the integer embedding
+$i:\mathbb Z\to\mathbb R$, because
+
+$$c(x)\le n\quad\Longleftrightarrow\quad x\le i(n).$$
+
+If $c(x)\le n$, then $x\le c(x)\le n$. Conversely, if $x\le n$ and `n` is an
+integer, the least integer above `x` is no larger than `n`. Both maps are monotone.
+In thin poset categories, the hom-set bijection is exactly this equivalence of
+inequalities. Replacing ceiling by floor fails at `x=3.7,n=3`.
+
+```ocaml env=adjunction
 let () =
-  assert (List.flatten (List.map (List.map f) [[1;2];[3]])
-        = List.map f (List.flatten [[1;2];[3]]))
+  List.iter (fun x -> List.iter (fun n ->
+    assert ((int_of_float (Float.ceil x) <= n) = (x <= float_of_int n)))
+    [-4;-3;0;3;4]) [-3.7;0.;3.7;4.]
 ```
 
-#### Natural Transformations Compose
+This finite check uses finite floats and exactly represented small integer bounds.
+It is not a theorem about converting arbitrary floats, NaNs or out-of-range
+values into bounded OCaml integers.
 
-Natural transformations can be composed "vertically" (composing $\alpha : F \Rightarrow G$ with $\beta : G \Rightarrow H$ to get $\beta \circ \alpha : F \Rightarrow H$) and "horizontally" (composing functors). This makes functor categories themselves a category -- a higher-level structure that organizes our abstractions.
+### 12.5 Naturality and Yoneda, with both inverse laws
 
-### 12.6 Adjunctions and Galois Connections
+Let `F : Set -> Set` be a functor and fix a set `A`. The functor
+$H_A(B)=\mathrm{Set}(A,B)$ acts on `g : B -> C` by postcomposition:
+$H_A(g)(f)=g\circ f$. A natural transformation $\eta:H_A\Rightarrow F$ has a
+component $\eta_B:(A\to B)\to F(B)$ at every `B`, with
 
-**Adjunctions** are arguably the most important concept in category theory. An adjunction between functors $F : \mathcal{C} \to \mathcal{D}$ and $G : \mathcal{D} \to \mathcal{C}$ is a natural bijection:
+$$F(g)(\eta_B(f))=\eta_C(g\circ f).$$
 
-$$\text{Hom}_{\mathcal{D}}(F(A), B) \cong \text{Hom}_{\mathcal{C}}(A, G(B))$$
+The covariant Yoneda bijection identifies these natural transformations with
+`F(A)`. We can construct and prove it directly:
 
-We write $F \dashv G$ and say $F$ is the **left adjoint** and $G$ is the **right adjoint**.
+- Given `x : F(A)`, define $\eta^x_B(f)=F(f)(x)$. Its naturality follows from
+  `F(g) (F(f) x) = F(g composed with f) x`, the composition law.
+- Given a natural `eta`, recover $x=\eta_A(\mathrm{id}_A)$.
 
-#### Currying Is an Adjunction
+Recovering from the first construction gives $F(\mathrm{id}_A)(x)=x$, by the
+identity law. For the other round trip, naturality at the arrow `f : A -> B`,
+applied to `id_A`, gives
 
-The most familiar adjunction is *currying*, which you have used since Chapter 1. For any types $A$, $B$, $C$:
+$$F(f)(\eta_A(\mathrm{id}_A))=\eta_B(f\circ\mathrm{id}_A)=\eta_B(f).$$
 
-$$(A \times B \to C) \cong (A \to B \to C)$$
+Thus every component is recovered on every input function. Equality of natural
+transformations means precisely that componentwise extensional equality. The
+proof used functor laws and naturality, not just a suggestive type abbreviation.
+For the general formulation in a locally small category, see Riehl,
+[*Category Theory in Context*, Theorem 2.2.4](https://emilyriehl.github.io/files/context.pdf).
 
-The left adjoint is $F(A) = A \times B$ (product with $B$) and the right adjoint is $G(C) = B \to C$ (exponential by $B$). The `curry` and `uncurry` functions witness this adjunction:
+#### The universal quantifier must be real
 
-```ocaml env=adj
-let curry f a b = f (a, b)
-let uncurry f (a, b) = f a b
-
-(* These are inverses: *)
-let f_uncurried (x, y) = x + y
-let f_curried x y = x + y
-
-let () = assert (curry f_uncurried 3 4 = 7)
-let () = assert (uncurry f_curried (3, 4) = 7)
-let () = assert (curry (uncurry f_curried) 3 4 = f_curried 3 4)
-let () = assert (uncurry (curry f_uncurried) (3, 4) = f_uncurried (3, 4))
-```
-
-#### Free/Forgetful Adjunctions
-
-Another important class of adjunctions: **free constructions**. The *free monoid* on a set $A$ is the list type `'a list`. The "free" functor $F$ sends a type to its list; the "forgetful" functor $U$ sends a monoid back to its underlying type. The adjunction says:
-
-$$\text{MonoidHom}(\text{List}(A), M) \cong \text{Fun}(A, U(M))$$
-
-A monoid homomorphism from `'a list` to $M$ is completely determined by where it sends each element -- that is, by a function `'a -> M.t`. This is exactly `List.fold_right`:
-
-```ocaml env=adj
-(* The free monoid adjunction, witnessed by fold_right: *)
-(* A monoid homomorphism from 'a list is determined by *)
-(* where single elements go. *)
-
-module type MONOID = sig
-  type t
-  val empty : t
-  val append : t -> t -> t
-end
-
-(* Given a function f : 'a -> M.t, extend it to a *)
-(* monoid homomorphism 'a list -> M.t *)
-let extend_to_hom
-    (type m) (module M : MONOID with type t = m)
-    (f : 'a -> m) (xs : 'a list) : m =
-  List.fold_right (fun x acc -> M.append (f x) acc) xs M.empty
-
-(* Example: summing a list via the (int, +, 0) monoid *)
-module IntAdd : MONOID with type t = int = struct
-  type t = int
-  let empty = 0
-  let append = ( + )
-end
-
-let sum xs = extend_to_hom (module IntAdd) Fun.id xs
-let () = assert (sum [1; 2; 3; 4] = 10)
-
-(* Example: concatenating strings *)
-module StringConcat : MONOID with type t = string = struct
-  type t = string
-  let empty = ""
-  let append = ( ^ )
-end
-
-let concat_with_spaces xs =
-  extend_to_hom (module StringConcat)
-    (fun s -> if s = "" then "" else s ^ " ") xs
-
-let () = assert (String.trim (concat_with_spaces ["hello"; "world"]) = "hello world")
-```
-
-A further example is the free-monad adjunction: a monad homomorphism from the free monad on effects $E$ to any monad $M$ is determined by an *interpreter* of each effect -- a natural transformation from the signature functor $E$ to the underlying functor of $M$.
-
-#### Galois Connections
-
-When the categories involved are posets (at most one morphism between any two objects), an adjunction becomes a **Galois connection**. Given posets $(A, \leq)$ and $(B, \leq)$, a Galois connection is a pair of monotone functions $f : A \to B$ and $g : B \to A$ such that:
-
-$$f(a) \leq b \iff a \leq g(b)$$
-
-Every Galois connection induces a **closure operator** $g \circ f : A \to A$, whose fixed points are the *closed elements*. If $A$ is a complete lattice, these fixed points form a complete lattice too; arbitrary posets do not suffice.
-
-```ocaml env=adj
-(* A simple Galois connection: *)
-(* ceiling and embedding between reals and integers *)
-(* f = ceiling : float -> int (left adjoint) *)
-(* g = embed : int -> float (right adjoint) *)
-(* ceiling(x) <= n  iff  x <= float(n) *)
-(* Small finite inputs; integer bounds are represented exactly. *)
-
-let galois_ceil (x : float) : int =
-  int_of_float (Float.ceil x)
-let galois_embed (n : int) : float = float_of_int n
-
-(* Include a boundary that distinguishes ceiling from floor. *)
-let () =
-  List.iter (fun x ->
-    List.iter (fun n ->
-      assert ((galois_ceil x <= n) = (x <= galois_embed n)))
-      [-4; -3; 0; 3; 4]) [-3.7; 0.; 3.7; 4.]
-```
-
-Over the mathematical reals and integers, `ceiling` is left adjoint to embedding, and embedding is left adjoint to `floor`: $\lceil x\rceil\le n\iff x\le n$, and $n\le x\iff n\le\lfloor x\rfloor$. Machine floats and bounded integers only approximate those domains.
-
-#### Formal Concept Analysis
-
-A deep application of Galois connections is **Formal Concept Analysis** (Wille, 1982). Given a binary relation $R \subseteq A \times B$ between objects $A$ and attributes $B$:
-
-- $f(S) = \{ b \in B \mid \forall a \in S,\ a\, R\, b \}$ (common attributes of a set of objects)
-- $g(T) = \{ a \in A \mid \forall b \in T,\ a\, R\, b \}$ (objects sharing all given attributes)
-
-Both maps reverse inclusion. They form an antitone Galois connection, or equivalently the monotone adjunction above when the attribute powerset is ordered by reverse inclusion. The closed pairs $(S, T)$ where $S = g(T)$ and $T = f(S)$ are called **formal concepts** and form a lattice.
-
-```ocaml env=adj
-(* Formal concept analysis: a small example *)
-(* Objects: animals; Attributes: properties *)
-(* Relation: "animal has property" *)
-
-let animals = [| "dog"; "cat"; "salmon"; "eagle" |]
-let attributes = [| "legs"; "flies"; "swims"; "fur" |]
-
-(* Incidence matrix: animal × attribute *)
-let relation = [|
-  (*         legs  flies swims fur *)
-  [| true;  false; false; true  |];  (* dog *)
-  [| true;  false; false; true  |];  (* cat *)
-  [| false; false; true;  false |];  (* salmon *)
-  [| true;  true;  false; false |];  (* eagle *)
-|]
-
-let n_obj = Array.length animals
-let n_att = Array.length attributes
-
-(* f: set of objects -> common attributes *)
-let common_attributes (objs : int list) : int list =
-  List.init n_att Fun.id |> List.filter (fun j ->
-    List.for_all (fun i -> relation.(i).(j)) objs)
-
-(* g: set of attributes -> objects sharing all *)
-let shared_objects (atts : int list) : int list =
-  List.init n_obj Fun.id |> List.filter (fun i ->
-    List.for_all (fun j -> relation.(i).(j)) atts)
-
-(* Closure operator: g ∘ f *)
-let closure objs = shared_objects (common_attributes objs)
-
-(* {dog} closes to {dog, cat}: they share exactly {legs, fur} *)
-let () = assert (closure [0] = [0; 1])
-let () = assert (common_attributes [0; 1] = [0; 3])
-
-(* {salmon} is already closed *)
-let () = assert (closure [2] = [2])
-```
-
-**Connection to abstract interpretation.** Galois connections are one way to relate concrete and abstract domains. Soundness also requires the abstract operations to overapproximate the concrete ones. For example, if $c$ is a concrete transfer and $c^\sharp$ its abstract counterpart, a standard condition is $\alpha(c(x))\le c^\sharp(\alpha(x))$. Having an adjunction between domains alone does not make an analyzer sound.
-
-### 12.7 Lenses, Zippers, and the Derivative Connection
-
-This section weaves together three threads from the book: the type derivative (Chapter 2), the zipper (Chapter 10), and a new abstraction -- the *lens*.
-
-#### Recall: Type Derivatives and Zippers
-
-In Chapter 2, differentiation with respect to the element type gave a context with one **element** missing. For `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree`, write $T=1+aT^2$. Differentiating gives:
-
-$$T'=T^2+2aTT' \quad\cong\quad T^2\times\operatorname{List}(2aT).$$
-
-The list records the path to the hole: each ancestor contributes a direction, its other subtree, and its value. The factor $T^2$ records the two children of the node whose element is missing. A **subtree** context instead consists just of that path, $C=\operatorname{List}(2aT)$. Chapter 10's zipper pairs a focused subtree with its context, so its type is $T\times C$, not $T'$. An element-focused zipper has type $a\times T'$.
-
-#### Lenses: The Abstract Interface
-
-A **lens** abstracts the get/set pattern into a first-class value. Where a zipper gives you concrete navigation through a data structure, a lens specifies *how to focus* on a part without committing to a particular traversal:
-
-```ocaml env=lens
-type ('s, 'a) lens = {
-  get : 's -> 'a;
-  set : 'a -> 's -> 's;
-}
-```
-
-Here `'s` is the "whole" type and `'a` is the "part" type. A lens must satisfy three laws:
-
-1. **Get-Set**: `set (get s) s = s` (setting what you get changes nothing)
-2. **Set-Get**: `get (set a s) = a` (you get what you set)
-3. **Set-Set**: `set a' (set a s) = set a' s` (setting twice is setting once)
-
-```ocaml env=lens
-(* A record type with two lenses *)
-type person = { name : string; age : int }
-
-let name_lens : (person, string) lens = {
-  get = (fun p -> p.name);
-  set = (fun n p -> { p with name = n });
-}
-
-let age_lens : (person, int) lens = {
-  get = (fun p -> p.age);
-  set = (fun a p -> { p with age = a });
-}
-
-(* Verify lens laws *)
-let alice = { name = "Alice"; age = 30 }
-
-(* Get-Set *)
-let () = assert (name_lens.set (name_lens.get alice) alice = alice)
-(* Set-Get *)
-let () = assert (name_lens.get (name_lens.set "Bob" alice) = "Bob")
-(* Set-Set *)
-let () = assert (name_lens.set "Carol" (name_lens.set "Bob" alice)
-               = name_lens.set "Carol" alice)
-```
-
-#### Lens Composition
-
-The power of lenses comes from composition. If you have a lens from $S$ to $A$, and a lens from $A$ to $B$, you can compose them to get a lens from $S$ to $B$:
-
-```ocaml env=lens
-let compose_lens (outer : ('s, 'a) lens) (inner : ('a, 'b) lens)
-  : ('s, 'b) lens = {
-  get = (fun s -> inner.get (outer.get s));
-  set = (fun b s -> outer.set (inner.set b (outer.get s)) s);
-}
-
-(* Nested record example *)
-type company = { ceo : person; founded : int }
-
-let ceo_lens : (company, person) lens = {
-  get = (fun c -> c.ceo);
-  set = (fun p c -> { c with ceo = p });
-}
-
-let ceo_name : (company, string) lens = compose_lens ceo_lens name_lens
-
-let acme = { ceo = alice; founded = 2000 }
-let () = assert (ceo_name.get acme = "Alice")
-let acme' = ceo_name.set "Bob" acme
-let () = assert (acme'.ceo.name = "Bob")
-```
-
-#### Why Lenses Go Beyond Zippers
-
-Zippers work for *polynomial* types -- types built from sums and products, where the algebraic derivative is well-defined. But what about types involving *exponentials* (function types)?
-
-Consider a stream `{ head : 'a; tail : unit -> 'a stream }` from Chapter 7. The finite polynomial calculation does not apply directly to this potentially infinite, effectful representation. A stream zipper can nevertheless store a finite prefix and a remaining stream. A lens offers a different interface: here it focuses directly on the head.
-
-```ocaml skip
-(* This lens needs no chosen zipper representation. *)
-(* but we can still define lenses on it. *)
-type 'a stream = { head : 'a; tail : unit -> 'a stream }
-
-let stream_head_lens = {
-  get = (fun s -> s.head);
-  set = (fun a s -> { s with head = a });
-}
-```
-
-This is the key advantage: lenses abstract over the *interface* to a subpart, regardless of whether the containing type has a concrete derivative.
-
-#### Prisms: The Dual of Lenses
-
-While lenses focus into *product types* (records, tuples), **prisms** focus into *sum types* (variants). A prism for a constructor `C` of a sum type provides a way to try to extract the value (which may fail if the value uses a different constructor) and a way to inject a value:
-
-```ocaml env=lens
-type ('s, 'a) prism = {
-  preview : 's -> 'a option;     (* try to extract *)
-  review  : 'a -> 's;            (* inject *)
-}
-
-(* Prism for the Some constructor of option *)
-let some_prism : ('a option, 'a) prism = {
-  preview = Fun.id;
-  review = Option.some;
-}
-
-(* Prism for the Ok constructor of result *)
-let ok_prism : (('a, 'e) result, 'a) prism = {
-  preview = Result.to_option;
-  review = Result.ok;
-}
-
-let () = assert (some_prism.preview (Some 42) = Some 42)
-let () = assert (some_prism.preview None = None)
-let () = assert (some_prism.review 42 = Some 42)
-```
-
-This connects to Chapter 11's expression problem: you want a structure with both good *lens access* (extending operations on products) and good *prism access* (extending constructors as sums). Categorically, a structure that is a colimit in both dimensions simultaneously -- which is why the problem is hard.
-
-#### The Van Laarhoven Encoding
-
-There is an elegant encoding of lenses as polymorphic functions, discovered by Twan van Laarhoven. A lens from `'s` to `'a` can be represented as:
-
-$$\text{Lens}(S, A) = \forall F.\ \text{Functor}(F) \Rightarrow (A \to F(A)) \to S \to F(S)$$
-
-This encoding composes with ordinary function composition, which is why lens libraries are so ergonomic. We will see in Section 12.8 that this is an instance of the *Yoneda lemma*.
-
-In Haskell, a VL lens is a single rank-2 polymorphic definition:
-
-```ocaml skip
-(* Haskell-style Van Laarhoven lens (not valid OCaml): *)
-(*   type Lens s a = forall f. Functor f => (a -> f a) -> s -> f s   *)
-(*   _fst :: Lens (a, b) a                                          *)
-(*   _fst f (x, y) = fmap (\x' -> (x', y)) (f x)                   *)
-(* Instantiating f = Identity gives "set"; f = Const gives "get".   *)
-```
-
-OCaml supports higher-rank polymorphism through explicitly polymorphic record fields and object methods. What this encoding needs additionally is quantification over a type constructor `f`, which ordinary OCaml type variables cannot express directly. We can recover a single lens definition by parameterizing over the functor with an OCaml module:
-
-```ocaml env=lens
-module type VL_FUNCTOR = sig
-  type 'a t
-  val fmap : ('a -> 'b) -> 'a t -> 'b t
-end
-
-(* One definition of the lens logic, parameterized by the functor: *)
-module VL_Fst (F : VL_FUNCTOR) = struct
-  let _fst (f : 'a -> 'a F.t) (x, y) : (_ * _) F.t =
-    F.fmap (fun x' -> (x', y)) (f x)
-end
-
-(* Identity functor -- instantiate for "set": *)
-module IdF : VL_FUNCTOR with type 'a t = 'a = struct
-  type 'a t = 'a
-  let fmap f x = f x
-end
-
-(* Const functor -- instantiate for "get": *)
-module ConstF (T : sig type t end) :
-  VL_FUNCTOR with type 'a t = T.t =
-struct
-  type 'a t = T.t
-  let fmap _ x = x
-end
-
-module FstSet = VL_Fst(IdF)
-module FstGet = VL_Fst(ConstF(struct type t = int end))
-
-let () = assert (FstSet._fst (fun _ -> 10) (1, "hello") = (10, "hello"))
-let () = assert (FstGet._fst (fun a -> a) (42, "world") = 42)
-```
-
-The lens logic lives in a single place -- `VL_Fst._fst` -- and both get and set are obtained by choosing the functor. The set direction (`FstSet._fst`) is fully polymorphic in the pair types. The get direction requires fixing the focused type when instantiating `ConstF` (here, `int`), a limitation of OCaml's module system compared to Haskell's rank-2 types. This is OCaml's module-level analogue of Haskell's rank-2 polymorphism. The key insight remains: Van Laarhoven lenses compose with ordinary function composition.
-
-### 12.8 The Yoneda Lemma
-
-The Yoneda lemma is one of the deepest results in category theory. It says:
-
-$$\text{Nat}(\text{Hom}(A, -), F) \cong F(A)$$
-
-For any functor $F$ and object $A$, the natural transformations from the representable functor $\text{Hom}(A, -)$ to $F$ are in one-to-one correspondence with elements of $F(A)$.
-
-For total, parametric functions, this gives `forall b. (a -> b) -> f b` the same information as `f a`. Naturality is essential to the reverse round trip. We can express the universal quantifier for the list example using a polymorphic record field:
+For the list functor, OCaml can encode the varying result type with a polymorphic
+record field:
 
 ```ocaml env=yoneda
-(* The Yoneda lemma in OCaml: *)
-(* A value of type 'a F.t is equivalent to *)
-(* a polymorphic function (forall 'b. ('a -> 'b) -> 'b F.t) *)
-
-type 'a yoneda_list = { run_list : 'b. ('a -> 'b) -> 'b list }
-
-(* Forward direction: given a list, produce the natural transformation. *)
-let yoneda_fwd x = { run_list = fun f -> List.map f x }
-
-(* Backward direction: given the nat trans, recover f a *)
-let yoneda_bwd phi = phi.run_list Fun.id
-
-(* Round-trip: *)
-let original = [1; 2; 3]
-let phi = yoneda_fwd original
-let recovered = yoneda_bwd phi
-let () = assert (recovered = [1; 2; 3])
-let () = assert (phi.run_list string_of_int = ["1"; "2"; "3"])
+type 'a yoneda = { run : 'b. ('a -> 'b) -> 'b list }
+let to_yoneda xs = {run = fun f -> List.map f xs}
+let from_yoneda phi = phi.run Fun.id
+let () =
+  let phi = to_yoneda [1;2;3] in
+  assert (from_yoneda phi = [1;2;3]);
+  assert (phi.run string_of_int = ["1";"2";"3"]);
+  assert (phi.run (fun x -> x mod 2 = 0) = [false;true;false]);
+  assert ((to_yoneda (from_yoneda phi)).run ((+) 1) = phi.run ((+) 1))
 ```
 
-#### The CPS Transform
-
-The most common programming application of Yoneda is the **continuation-passing style** (CPS) transform. For the identity functor, Yoneda gives:
-
-$$\text{Nat}(\text{Hom}(A, -), \text{Id}) \cong A$$
-
-That is: a value of type `'a` is the same as a polymorphic function `forall 'b. ('a -> 'b) -> 'b`. This is exactly CPS:
+The same stored `phi` accepts both a string-producing and a Boolean-producing
+function. A monomorphic function with one fixed result type would not express
+this quantifier. Nevertheless, OCaml's type alone does not enforce naturality:
 
 ```ocaml env=yoneda
-(* CPS: a value 'a ≅ (forall 'b. ('a -> 'b) -> 'b) *)
+let unnatural = {run = fun f -> List.sort compare (List.map f [1;2])}
+let () =
+  let recovered = to_yoneda (from_yoneda unnatural) in
+  assert (unnatural.run (fun x -> -x) = [-2;-1]);
+  assert (recovered.run (fun x -> -x) = [-1;-2])
+```
+
+Polymorphic comparison inspects the result representation, breaking uniformity;
+it can also raise on function values. The reverse law therefore applies to
+natural families, for example those produced by `to_yoneda`, or to a suitably
+restricted total parametric language with a justified parametricity theorem.
+It is false for all OCaml values of this record type.
+
+For the identity functor, the same construction gives a polymorphic CPS value:
+
+```ocaml env=yoneda
 type 'a cps = { run_cps : 'b. ('a -> 'b) -> 'b }
-let to_cps x = { run_cps = fun k -> k x }
-let from_cps f = f.run_cps Fun.id
-
+let to_cps x = {run_cps = fun k -> k x}
+let from_cps p = p.run_cps Fun.id
 let () = assert (from_cps (to_cps 42) = 42)
 ```
 
-#### Difference Lists
-
-Another Yoneda application: **difference lists**. A list `xs` can be represented as the function `fun ys -> xs @ ys` -- that is, as "the operation of prepending `xs`". This is the Cayley representation of the list monoid, related to the representable-functor viewpoint:
-
-```ocaml env=yoneda
-(* Difference lists: represent a list as a function *)
-type 'a dlist = 'a list -> 'a list
-
-let dlist_empty : 'a dlist = Fun.id
-let dlist_singleton (x : 'a) : 'a dlist = fun rest -> x :: rest
-let dlist_append (f : 'a dlist) (g : 'a dlist) : 'a dlist =
-  fun rest -> f (g rest)    (* O(1) append! *)
-let dlist_to_list (f : 'a dlist) : 'a list = f []
-
-(* Building a list incrementally with O(1) append *)
-let result =
-  dlist_append
-    (dlist_append (dlist_singleton 1) (dlist_singleton 2))
-    (dlist_singleton 3)
-  |> dlist_to_list
-
-let () = assert (result = [1; 2; 3])
-```
-
-Constructing a composed difference list costs $O(1)$; converting it to a list still performs the deferred work. The representation invariant is `f tail = prefix @ tail` for some fixed `prefix`, recoverable as `f []`. Not every function of type `'a list -> 'a list` satisfies that invariant. Long chains also require attention to stack usage.
-
-#### The Codensity Monad
-
-For monads, the Yoneda lemma leads to the **Codensity monad**: given a monad $M$, the type `forall b. (a -> m b) -> m b` is a monad (the "Codensity monad of $M$") that often has better performance for left-associated binds:
-
-```ocaml env=yoneda
-(* The Codensity monad improves left-associated binds *)
-(* Codensity M a = forall b. (a -> M b) -> M b *)
-
-(* For lists, Codensity gives efficient left-to-right construction *)
-type 'a clist = { run : 'b. ('a -> 'b list) -> 'b list }
-
-let creturn (x : 'a) : 'a clist =
-  { run = fun k -> k x }
-
-let cbind (m : 'a clist) (f : 'a -> 'b clist) : 'b clist =
-  { run = fun k -> m.run (fun a -> (f a).run k) }
-
-let clift (xs : 'a list) : 'a clist =
-  { run = fun k -> List.concat_map k xs }
-
-let crun (m : 'a clist) : 'a list = m.run (fun x -> [x])
-
-(* Example: all pairs from two lists *)
-let pairs xs ys =
-  crun (cbind (clift xs) (fun x ->
-        cbind (clift ys) (fun y ->
-        creturn (x, y))))
-
-let () = assert (pairs [1;2] ["a";"b"]
-               = [(1,"a"); (1,"b"); (2,"a"); (2,"b")])
-```
-
-The deep insight: every object in a category is completely determined by how other objects map *into* it. Dually, the outgoing representable functors $\text{Hom}(A, -)$ form a "coordinate system" for the category, and the Yoneda lemma says this coordinate system is faithful -- it loses no information.
-
-### 12.9 The Expression Problem, Categorically
-
-Chapter 11 asks how to extend both data constructors and operations while preserving existing code and static checks. A useful law is **extension consistency**. If $i : E \to E^+$ embeds the base expressions in an extended language and both evaluators return values in $V$, require:
-
-$$\operatorname{eval}_{+} \circ i = \operatorname{eval}.$$
-
-This is a commuting triangle of explicitly typed functions. Calling it a naturality law would require specifying categories, functors, and a family of such maps; row polymorphism alone does not supply that construction.
-
-Ordinary inductive ADTs support folds over a fixed signature; extending that signature requires extending its handlers. Polymorphic variants can combine compatible rows and reuse handlers for existing tags. That union is not generally a disjoint coproduct: shared tags remain shared. Objects offer another way to reuse operations through methods and subtyping. These are useful connections to categorical ideas, but none is automatically a universal-property theorem about the whole OCaml feature.
-
-Here is a small executable example of extension consistency:
-
-```ocaml env=expr
-(* Base language with eval and show: *)
-let eval_base = function `Num n -> n | `Neg n -> -n
-let show_base = function
-  | `Num n -> string_of_int n
-  | `Neg n -> "-" ^ string_of_int n
-
-(* Extended language -- base cases reuse the base operations: *)
-let eval_ext = function
-  | (`Num _ | `Neg _) as e -> eval_base e    (* reuse *)
-  | `Add (a, b) -> a + b
-let show_ext = function
-  | (`Num _ | `Neg _) as e -> show_base e    (* reuse *)
-  | `Add (a, b) -> string_of_int a ^ "+" ^ string_of_int b
-
-(* Extension consistency: embedding a base expression          *)
-(* into the extended type and then evaluating gives the same   *)
-(* result as evaluating in the base language directly.         *)
-let e1 = `Num 5
-let e2 = `Neg 3
-let () = assert (eval_ext e1 = eval_base e1)
-let () = assert (eval_ext e2 = eval_base e2)
-let () = assert (show_ext e1 = show_base e1)
-let () = assert (show_ext e2 = show_base e2)
-```
-
-An uncovered constructor in an extensible-variant evaluator is an incomplete dispatch definition. It is not evidence that a categorical colimit fails to exist. Exhaustive closed variants can turn that particular missing-case problem into a compiler warning; extensible designs need an explicit coverage policy.
-
-### 12.10 Curry--Howard--Lambek: The Trinity
-
-We began the book in Chapter 1 with the Curry--Howard correspondence: propositions are types, proofs are programs. We now close the loop by adding the third vertex of the triangle.
-
-The **Curry--Howard--Lambek correspondence** states that three seemingly different worlds are the same mathematical structure:
-
-| Logic | Type Theory | Category Theory |
-|-------|------------|----------------|
-| Proposition | Type | Object |
-| Proof | Program (term) | Morphism |
-| Implication $A \Rightarrow B$ | Function type $A \to B$ | Exponential object $B^A$ |
-| Conjunction $A \wedge B$ | Product type $A \times B$ | Categorical product $A \times B$ |
-| Disjunction $A \vee B$ | Sum type `A + B` | Coproduct $A + B$ |
-| True ($\top$) | Unit type | Terminal object $1$ |
-| False ($\bot$) | Empty type `void` | Initial object $0$ |
-| Modus ponens | Function application | Evaluation morphism |
-| Hypothesis | Variable | Identity morphism |
-| Cut / substitution | Substitution of terms | Composition |
-
-#### What the Correspondence Means
-
-A **cartesian closed category** (CCC) -- a category with products, exponentials, and a terminal object -- is simultaneously:
-
-1. A model of propositional logic (the internal logic of the category)
-2. A model of the simply-typed lambda calculus (types are objects, terms are morphisms)
-3. A semantics for the pure, total product-and-function fragment; coproducts and an initial object add sums and the empty type
-
-The corresponding fragment of OCaml illustrates these constructions. General recursion, exceptions, mutation, and effects require additional semantic treatment. When we write `let f : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)`, we are simultaneously:
-
-- **Proving** the logical tautology $A \wedge B \Rightarrow B \wedge A$
-- **Programming** the swap function on pairs
-- **Constructing** a morphism $A \times B \to B \times A$ in a CCC
-
-```ocaml env=cat
-(* Programs that are simultaneously logical proofs *)
-(* and morphisms in a cartesian closed category:   *)
-
-(* A ∧ B ⊃ B ∧ A  (commutativity of conjunction) *)
-let comm : 'a * 'b -> 'b * 'a = fun (x, y) -> (y, x)
-
-(* A ⊃ B ⊃ A  (weakening / the K combinator) *)
-let weaken : 'a -> 'b -> 'a = fun a _b -> a
-
-(* (A ⊃ B ⊃ C) ⊃ (A ∧ B ⊃ C)  (flip of currying) *)
-let uncurry' : ('a -> 'b -> 'c) -> 'a * 'b -> 'c =
-  fun f (a, b) -> f a b
-
-(* (A ⊃ B) ⊃ (B ⊃ C) ⊃ (A ⊃ C)  (transitivity = composition) *)
-let trans : ('a -> 'b) -> ('b -> 'c) -> 'a -> 'c =
-  fun ab bc a -> bc (ab a)
-
-(* trans is compose with arguments reordered: *)
-let () = assert (trans f g 3 = compose g f 3)
-```
-
-#### Negation and Continuations
-
-Classical logic allows double negation elimination: $\neg\neg A \Rightarrow A$. In the Curry--Howard reading, $\neg A$ is $A \to \bot$ (a function to the empty type). Under the CCC interpretation, $\neg A = \bot^A$ is the exponential.
-
-Double negation elimination is not valid in constructive logic or the total, pure lambda calculus. The CPS isomorphism in Section 12.8 does not prove it: there the continuation's answer type is universally quantified, and we recover the value by choosing that answer type to be `a`. A term of type `(a -> void) -> void` has a fixed answer type and does not permit that choice.
-
-Precise correspondences connect classical logic with calculi of control operators, and linear logic with calculi that track resource use. Ordinary CPS code, or a one-shot continuation by itself, does not establish all of those correspondences. Each claim needs its particular typing rules and notion of program equality.
-
-#### The Recurring Motif
-
-Throughout this chapter, we have asked: *what is stable under crossing levels?*
-
-- **Galois connections**: the closed elements (fixed points of $g \circ f$)
-- **Adjunctions**: the unit and counit (the canonical witnesses)
-- **Yoneda**: representable functors (the perfectly faithful reification)
-- **Curry--Howard--Lambek**: the trinity itself (truths that appear in all three worlds simultaneously)
-
-Reification and reflection offer another useful question: what laws connect a representation with its interpretation? They do not automatically form an adjunction, and their round trip is not automatically a closure operator. To make either claim, specify the domains, maps, and laws, then prove them for the chosen construction.
-
-### 12.11 Exercises
-
-#### Exercise 1: Category laws
-
-Define a `CATEGORY` instance for the `option` type, where `('a, 'b) hom = 'a -> 'b option` (the Kleisli category of `Option`). Implement `id` and `compose`, and verify the three category laws on test cases. (Hint: this is the composition you get from `Option.bind`.)
-
-```ocaml skip
-(* Starter code for Exercise 1 *)
-module KleisliOption (* : CATEGORY ... *) = struct
-  type ('a, 'b) hom = 'a -> 'b option
-  let id x = failwith "todo"
-  let compose g f x = failwith "todo"
-end
-
-(* Test the laws with these morphisms: *)
-let f x = if x > 0 then Some (x + 1) else None
-let g x = if x < 100 then Some (x * 2) else None
-let x = 5
-
-(* Left identity:  compose id f x = f x *)
-(* Right identity: compose f id x = f x *)
-(* Associativity:  compose h (compose g f) x
-                 = compose (compose h g) f x *)
-```
-
-#### Exercise 2: Free category
-
-Extend the pipeline example from Section 12.3 with two new stages (e.g., `Uppercase : (string, string) stage` and `Length : (string, int) stage`). Build three distinct paths through the graph and interpret each one. Verify that `concat` is associative: `interpret (concat (concat p q) r) x = interpret (concat p (concat q r)) x`.
-
-```ocaml skip
-(* Starter code for Exercise 2 *)
-type ('a, 'b) stage =
-  | Parse     : (string, string list) stage
-  | Filter    : (string list, string list) stage
-  | Count     : (string list, int) stage
-  | Show      : (int, string) stage
-  | Uppercase : (string, string) stage      (* new *)
-  | Length    : (string, int) stage          (* new *)
-
-(* Copy the path type, concat, interpret_stage, and interpret *)
-(* from Section 12.3, then extend interpret_stage for the     *)
-(* new constructors.                                          *)
-
-(* Build three distinct paths and verify: *)
-(* interpret (concat (concat p q) r) x                       *)
-(*   = interpret (concat p (concat q r)) x                   *)
-```
-
-#### Exercise 3: Functor laws
-
-Write a functor instance for `type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree` and test the functor laws (`map id = id` and `map (f ∘ g) = map f ∘ map g`) on at least two non-trivial trees.
-
-```ocaml skip
-(* Starter code for Exercise 3 *)
-type 'a tree = Leaf | Node of 'a tree * 'a * 'a tree
-
-let rec map_tree (f : 'a -> 'b) : 'a tree -> 'b tree = function
-  | Leaf -> failwith "todo"
-  | Node (l, v, r) -> failwith "todo"
-
-(* Test trees: *)
-let t1 = Node (Node (Leaf, 1, Leaf), 2, Node (Leaf, 3, Leaf))
-let t2 = Node (Leaf, 10, Node (Node (Leaf, 20, Leaf), 30, Leaf))
-
-let f x = x + 1
-let g x = x * 2
-
-(* Law 1: map_tree Fun.id t = t *)
-(* Law 2: map_tree (fun x -> f (g x)) t *)
-(*      = map_tree f (map_tree g t)      *)
-```
-
-#### Exercise 4: Naturality verification
-
-The function `List.rev` is a natural transformation from the List functor to itself. State and test the naturality condition for three different functions `f`. Then consider `List.sort compare` -- is it a natural transformation? Why or why not?
-
-#### Exercise 5: Galois connection
-
-The functions `abs : int -> int` and `negate : int -> int` do *not* form a Galois connection on integers with the usual ordering. Explain why. Then find a pair of monotone functions between `(int, <=)` and `(int, >=)` that *does* form a Galois connection.
-
-#### Exercise 6: Lens composition
-
-Define a type `type address = { street : string; city : string }` and `type employee = { name : string; addr : address }`. Write lenses `street_lens`, `addr_lens`, and compose them to create `employee_street_lens`. Verify all three lens laws (Get-Set, Set-Get, Set-Set) for the composed lens.
-
-```ocaml skip
-(* Starter code for Exercise 6 *)
-type address = { street : string; city : string }
-type employee = { name : string; addr : address }
-
-let street_lens : (address, string) lens = {
-  get = (fun a -> failwith "todo");
-  set = (fun s a -> failwith "todo");
-}
-
-let addr_lens : (employee, address) lens = {
-  get = (fun e -> failwith "todo");
-  set = (fun a e -> failwith "todo");
-}
-
-(* Compose using compose_lens from Section 12.7: *)
-let employee_street = compose_lens addr_lens street_lens
-
-(* Test data: *)
-let emp = { name = "Alice";
-            addr = { street = "123 Main"; city = "NYC" } }
-
-(* Verify all three lens laws for the composed lens. *)
-```
-
-#### Exercise 7: Prism round-trip
-
-For the type `type shape = Circle of float | Rect of float * float`, write a prism for `Circle` and a prism for `Rect`. Verify the prism law: `review a |> preview = Some a`. What happens when you `preview` a value built with the other constructor?
-
-#### Exercise 8: Difference lists
-
-Implement a `dlist` module with `empty`, `singleton`, `append`, `cons`, `snoc`, and `to_list`. Write a function that builds a list of $n$ elements using repeated `append` with regular lists (quadratic) and with difference lists (linear). Test that both produce the same result.
-
-#### Exercise 9: Codensity optimization
-
-Consider a computation that left-associates many `bind` operations on lists: `bind (bind (bind (return 1) f) g) h`. Implement this computation both using regular list bind and using the Codensity monad from Section 12.8, and verify they produce the same result. (The Codensity version avoids re-traversal for left-associated binds.)
-
-#### Exercise 10: The trinity in action
-
-For each of the following OCaml types, state the corresponding logical proposition and verify it is a tautology: (a) `'a * 'b -> 'b * 'a`, (b) `'a -> 'b -> 'a`, (c) `('a -> 'b -> 'c) -> 'a * 'b -> 'c`, (d) `('a -> 'b) -> ('b -> 'c) -> 'a -> 'c`. For (d), what is the categorical interpretation?
-
-#### Exercise 11: Expression problem, categorically
-
-Take two of the solutions from Chapter 11 (e.g., ordinary ADTs and polymorphic variants). For each, explain in categorical language *why* one direction of extension is easy and the other is hard. Use the vocabulary from Section 12.9 (initial algebra, colimit, natural transformation).
-
-#### Exercise 12: Concept lattice
-
-Extend the Formal Concept Analysis example from Section 12.6 with two more animals and two more attributes. Compute all formal concepts (closed pairs) of the extended context. Which concepts form the top and bottom of the lattice?
+This is the value-level representation behind the identity-continuation idea in
+Chapter 3. An arbitrary fixed-answer-type continuation `(A -> R) -> R` has a
+different contract; it is not this universally quantified representation.
+
+### 12.6 What carries back to the programs
+
+Chapter 11's plugin embedding satisfies an ordinary equation between functions:
+`eval_extended (embed e) = eval e`, on its stated domain and failure semantics.
+Its compiled test checks that equation. Calling it naturality would additionally
+require categories, functors and a family of embeddings; extensible variants do
+not supply those automatically.
+
+Chapter 2's context derivative also has a precise scope. For finite polynomial
+containers, differentiating with respect to the element parameter describes an
+element hole. For $T=1+aT^2$, $T'=T^2+2aTT'$ records the removed node's children
+and its ancestor path. A subtree hole instead keeps just the path. See Abbott,
+Altenkirch, Ghani and McBride,
+[*Derivatives of Containers*](https://people.cs.nott.ac.uk/psztxa/publ/tlca03.pdf),
+for the container setting behind this calculation. It does not make every
+effectful stream or arbitrary OCaml datatype a polynomial container.
+
+For Chapter 1, the pure simply typed product/function calculus can be interpreted
+in a cartesian closed category: products model pairs, a terminal object models
+unit, and exponentials model functions with evaluation and currying. Adding
+coproducts and an initial object models sums and the empty type. General recursion
+and effects need further semantics. A correspondence restricted to that fragment
+is useful precisely because its assumptions say when it applies.
+
+### 12.7 Exercises
+
+1. **Proof.** Prove `Option.map` preserves identities and composition. Specify
+   the objects and arrows before writing the two constructor cases.
+2. **Proof.** Complete the uniqueness proof for the four-constructor expression
+   fold. Explain why it treats a binder name as a label, not as a quotient by
+   renaming.
+3. **Practice.** Test both currying round trips on a function returning a pair.
+   Write the equalities pointwise; do not compare function values with `=`.
+4. **Proof.** Reproduce the reverse Yoneda round trip, explicitly naming the
+   naturality arrow and the argument to the component at `A`.
+5. **Experiment.** Use `unnatural` to find a failed naturality square with integer
+   negation. Selected answer: map negation after sorting `[1;2]` gives `[-1;-2]`,
+   while sorting after mapping gives `[-2;-1]`.
+6. **Project.** Continue with the optional optics route. Prove the three lens laws
+   for a composed record lens before considering its higher-rank encoding.
+
+The payoff is not a name for every program. It is a reusable proof: identify the
+representation, state its laws, and know which changes those laws justify.

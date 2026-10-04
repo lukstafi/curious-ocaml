@@ -1,0 +1,2 @@
+(library (name game) (modules game))
+(test (name laws) (modules laws) (libraries game))

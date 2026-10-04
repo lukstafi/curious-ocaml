@@ -4,6 +4,9 @@
 
 *From logic rules to programming constructs*
 
+**Prerequisites:** no OCaml; familiarity with “and”, “or” and “if”.
+**Route:** Part I starts here. Continue to Chapter 2 for data representations.
+
 **In this chapter, you will:**
 
 - Learn natural-deduction rules for the core connectives ($\top, \bot, \wedge, \vee, \rightarrow$)
@@ -14,6 +17,39 @@
 **Conventions.** OCaml code blocks are intended to be runnable unless marked with `ocaml skip` (used for illustrative or partial snippets).
 
 Throughout this chapter we use *natural deduction* in the style of intuitionistic (constructive) logic. This choice is not accidental: it is exactly the fragment of logic that lines up with the “pure” core of functional programming via the Curry–Howard correspondence.
+
+### 1.0 A first session
+
+Start the command `ocaml` in a terminal. Its `#` is a prompt, not part of the
+expression. Type `let double x = x + x;;`, then `double 3;;`. The toplevel reports
+a function type and then the integer `6`. Save these definitions in `first.ml`:
+
+```ocaml env=first
+let double x = x + x
+let answer = double 3
+let () = assert (answer = 6)
+```
+
+Load the file from the same directory by typing `#use "first.ml";;` at the
+OCaml prompt (this `#use` is a directive, including its `#`). In a terminal,
+`ocaml first.ml` instead runs the file and exits; the assertion succeeds silently.
+This file uses only the standard library. To change its result, edit the file
+and reload it. Existing bindings are shadowed by the new definitions.
+
+The expression `double "three"` produces a type error: `double` needs an integer,
+but `"three"` is a string. Read the expected and actual types before changing the
+program. Parentheses group expressions; `;;` finishes a toplevel phrase, and is
+usually unnecessary between definitions in a file.
+
+```ocaml env=first
+let outer = 10
+let inner = let outer = 3 in double outer
+let () = assert (inner = 6 && outer = 10)
+```
+
+The local `outer` is visible only after its `in`. This is *scope*. Below, a
+hypothetical assumption has a scope in exactly the same way that a function
+parameter or a local binding has a scope.
 
 ### 1.1 In the Beginning there was Logos
 
@@ -57,28 +93,48 @@ In the table below, text in parentheses provides informal commentary. Letters li
 | $\vee$ | $\frac{a}{a \vee b}$ (put first) &nbsp; $\frac{b}{a \vee b}$ (put second) | $\frac{a \vee b \quad \hyp{[a]^x}{c} \quad \hyp{[b]^y}{c}}{c}$ using $x, y$ |
 | $\rightarrow$ | $\frac{\hyp{[a]^x}{b}}{a \rightarrow b}$ using $x$ | $\frac{a \rightarrow b \quad a}{b}$ |
 
+#### Each rule as a small program
+
+Read this code beside the table. Values introduce logical structure; patterns
+and application eliminate it. The empty match is well typed precisely because
+there is no constructor to consider.
+
+```ocaml env=proof_rules
+type void = |
+type ('a, 'b) either = Left of 'a | Right of 'b
+let truth = ()
+let absurd (x : void) = match x with _ -> .
+let both a b = (a, b)
+let first (a, _) = a
+let second (_, b) = b
+let left a = Left a
+let right b = Right b
+let cases f g = function Left a -> f a | Right b -> g b
+let identity a = a
+let apply f a = f a
+let () =
+  assert (first (both 3 true) = 3);
+  assert (second (both 3 true));
+  assert (cases ((+) 1) String.length (left 3) = 4);
+  assert (cases ((+) 1) String.length (right "four") = 4);
+  assert (apply identity 7 = 7)
+```
+
+`cases` is disjunction elimination: both branches must produce the same result
+type. `identity` introduces the implication $a \rightarrow a$; `apply` eliminates
+an implication by providing its argument. There is no executable call to `absurd`
+using a terminating value, because such a value of `void` cannot be constructed.
+
 #### Notation for Hypothetical Derivations
 
 The notation $\hyp{[a]^x}{b}$ (sometimes written as a tree) matches any subtree that derives $b$ and can use $a$ as an assumption (marked with label $x$), even though $a$ might not otherwise be warranted. The square brackets around $a$ indicate that this is a *hypothetical* assumption, not something we have actually established. The superscript $x$ is a label that helps us track which assumption gets "discharged" when we complete the derivation.
 
-This is the key to proving implications: to prove "if A then B", we temporarily assume A and show we can derive B. For example, we can derive "sunny $\rightarrow$ happy" by showing that *assuming* it is sunny, we can derive happiness:
-
-$$
-\frac{\frac{\frac{\frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{playing}}}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
-$$
-
-Notice how the assumption "sunny" (marked with $x$) appears at the top of the derivation tree. We use this assumption to derive "go outdoor", then "playing", and finally "happy". Once we complete the derivation, the assumption is *discharged*: we no longer need to assume it is sunny because we have established the conditional "sunny $\rightarrow$ happy".
-
-A crucial point: such assumptions can only be used within the matched subtree! However, they can be used *multiple times* within that subtree. For example, if someone's mood is more difficult to influence and requires multiple sunny conditions:
-
-$$
-\frac{\frac{
-  \frac{\frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{playing}} \quad
-  \frac{\frac{\,}{\text{sunny}}^x \quad \frac{\frac{\,}{\text{sunny}}^x}{\text{go outdoor}}}{\text{nice view}}
-}{\text{happy}}}{\text{sunny} \rightarrow \text{happy}} \text{ using } x
-$$
-
-In this more complex derivation, the assumption "sunny" (labeled $x$) is used three times: once to derive "go outdoor", and twice more in deriving "nice view". All three uses are valid because they occur within the same hypothetical subtree.
+To prove an implication, assume its input proposition and construct the output.
+The assumption can be used more than once, just as `fun x -> (x, x)` uses its
+parameter twice. It is available only inside the hypothetical derivation, just
+as `x` is available only inside the function body. Discharging the assumption
+means that the resulting implication no longer requires that input to be present
+until it is applied.
 
 #### Reasoning by Cases
 
@@ -86,17 +142,9 @@ The elimination rule for disjunction deserves special attention because it repre
 
 Suppose we know "A or B" is true, but we do not know which one. How can we still derive a conclusion C? We must show that C follows *regardless* of which alternative holds. In other words, we need to prove: (1) assuming A, we can derive C, and (2) assuming B, we can derive C. Since one of A or B must be true, and both lead to C, we can conclude C.
 
-Here is a concrete example: How can we use the fact that it is sunny $\vee$ cloudy (but not rainy)?
-
-$$
-\frac{
-  \frac{\,}{\text{sunny} \vee \text{cloudy}}^{\text{forecast}} \quad
-  \frac{\frac{\,}{\text{sunny}}^x}{\text{no-umbrella}} \quad
-  \frac{\frac{\,}{\text{cloudy}}^y}{\text{no-umbrella}}
-}{\text{no-umbrella}} \text{ using } x, y
-$$
-
-We know that it will be sunny or cloudy (by watching the weather forecast). Now we reason by cases: *If* it will be sunny, we will not need an umbrella. *If* it will be cloudy, we will not need an umbrella. Since one of these must be the case, and both lead to the same conclusion, we can confidently say: we will not need an umbrella.
+In `cases` above, knowing `Left a` or `Right b` is enough to choose a branch.
+The common result type enforces that either branch establishes the same conclusion.
+We do not need to know which branch will be chosen when we define the function.
 
 #### Reasoning by Induction
 
@@ -117,9 +165,25 @@ Here $x$ is a unique variable representing an arbitrary natural number. We canno
 
 The power of induction lies in this: once we have the base case and the inductive step, we have implicitly covered *all* natural numbers. Starting from $p(0)$, we can derive $p(1)$, then $p(2)$, then $p(3)$, and so on, reaching any natural number $n$ we wish.
 
+A structural recursion makes the decreasing argument visible:
+
+```ocaml env=proof_rules
+type nat = Zero | Succ of nat
+let rec count = function Zero -> 0 | Succ n -> 1 + count n
+let () = assert (count (Succ (Succ Zero)) = 2)
+```
+
+Each recursive call receives a smaller finite `nat`. This supplies a termination
+argument. OCaml also permits general recursion, including a function that calls
+itself on the same argument forever. The type checker does not certify
+termination. The proof/program correspondence below applies to the terminating,
+pure fragment, not to arbitrary OCaml programs that may loop or raise exceptions.
+The integer result of `count` has machine bounds; a mathematical induction about
+unbounded natural numbers is a separate claim.
+
 ### 1.3 Logos was Programmed in OCaml
 
-We now arrive at one of the most remarkable discoveries in the foundations of computer science: the **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
+The **Curry–Howard correspondence**, also known as "propositions as types" or the "proofs-as-programs" interpretation. In a total, pure, intuitionistic setting, this correspondence is not just a metaphor: proof rules and typing rules are the same kind of object.
 
 Under this correspondence:
 
@@ -262,7 +326,7 @@ $$
 \frac{e_1 : a \quad \hyp{[x : a]}{e_2 : b}}{\texttt{let } x = e_1 \texttt{ in } e_2 : b}
 $$
 
-This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This equivalence reflects a deep connection in the Curry–Howard correspondence.
+This rule says: if $e_1$ has type $a$, and assuming $x$ has type $a$ we can show that $e_2$ has type $b$, then the whole `let` expression has type $b$. Interestingly, this rule is equivalent to introducing a function and immediately applying it: `let x = e1 in e2` behaves the same as `(fun x -> e2) e1`. This is the introduction rule for a function followed by its elimination rule.
 
 For recursive definitions, we need an additional rule:
 
@@ -314,7 +378,7 @@ This design choice makes type inference simpler and more predictable. When you s
 
 The following exercises are adapted from *Think OCaml: How to Think Like a Computer Scientist* by Nicholas Monje and Allen Downey. They will help you get comfortable with OCaml's syntax and type system.
 
-#### Exercise 1: Type and Value Predictions
+#### Practice 1: Type and Value Predictions
 
 Assume that we execute the following assignment statements:
 
@@ -332,7 +396,7 @@ For each of the following expressions, write the value of the expression and the
 4. `1 + 2 * 5`
 5. `delimiter * 5`
 
-#### Exercise 2: REPL Calculator Drills
+#### Practice 2: REPL Calculator Drills
 
 Practice using the OCaml interpreter as a calculator:
 
@@ -340,7 +404,7 @@ Practice using the OCaml interpreter as a calculator:
 2. Suppose the cover price of a book is \$24.95, but bookstores get a 40% discount. Shipping costs \$3 for the first copy and 75 cents for each additional copy. What is the total wholesale cost for 60 copies?
 3. If I leave my house at 6:52 am and run 1 mile at an easy pace (8:15 per mile), then 3 miles at tempo (7:12 per mile) and 1 mile at easy pace again, what time do I get home for breakfast?
 
-#### Exercise 3: Recursive Fibonacci
+#### Practice 3: Recursive Fibonacci
 
 You've probably heard of the Fibonacci numbers before, but in case you haven't, they're defined by the following recursive relationship:
 
@@ -352,9 +416,11 @@ f(n+1) = f(n) + f(n-1) & \text{for } n = 1, 2, \ldots
 \end{cases}
 $$
 
-Write a recursive function to calculate these numbers.
+Write a recursive function on nonnegative integers to calculate these numbers.
+Reject negative inputs. Check `f 0 = 0`, `f 1 = 1`, and `f 10 = 55`; explain why
+the argument decreases. Machine integer overflow limits the numerical contract.
 
-#### Exercise 4: Recursive Palindromes
+#### Practice 4: Recursive Palindromes
 
 A palindrome is a word that is spelled the same backward and forward, like "noon" and "redivider". Recursively, a word is a palindrome if the first and last letters are the same and the middle is a palindrome.
 
@@ -373,12 +439,31 @@ let middle word =
 1. Enter these functions into the toplevel and test them out. What happens if you call `middle` with a string with two letters? One letter? What about the empty string `""`?
 2. Write a function called `is_palindrome` that takes a string argument and returns `true` if it is a palindrome and `false` otherwise.
 
-#### Exercise 5: Euclid's GCD
+#### Practice 5: Euclid's GCD
 
 The greatest common divisor (GCD) of $a$ and $b$ is the largest number that divides both of them with no remainder.
 
 One way to find the GCD of two numbers is Euclid's algorithm, which is based on the observation that if $r$ is the remainder when $a$ is divided by $b$, then $\gcd(a, b) = \gcd(b, r)$. As a base case, we can consider $\gcd(a, 0) = a$.
 
-Write a function called `gcd` that takes parameters `a` and `b` and returns their greatest common divisor.
+Write `gcd` on nonnegative integers `a` and `b`, taking `gcd 0 0 = 0` by convention.
+Check `(0, 7)`, `(7, 0)` and `(54, 24)`. **Proof:** show that the second argument
+strictly decreases whenever it is positive.
 
 If you need help, see [http://en.wikipedia.org/wiki/Euclidean_algorithm](http://en.wikipedia.org/wiki/Euclidean_algorithm).
+
+#### Selected answer: safe palindrome base cases
+
+For byte strings, lengths zero and one are palindromes. Check this before calling
+`first_char`, `last_char`, or `middle`, whose contracts exclude those lengths.
+This is a byte-level exercise, not a Unicode grapheme algorithm.
+
+```ocaml env=ch1
+let rec is_palindrome word =
+  String.length word < 2 ||
+  (first_char word = last_char word && is_palindrome (middle word))
+let () =
+  assert (is_palindrome "");
+  assert (is_palindrome "a");
+  assert (is_palindrome "noon");
+  assert (not (is_palindrome "not"))
+```

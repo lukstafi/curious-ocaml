@@ -1,3 +1,1 @@
-(mdx
- (files README.md)
- (preludes prelude.ml))
+(mdx (files README.md) (libraries search))

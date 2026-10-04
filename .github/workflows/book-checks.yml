@@ -1,0 +1,23 @@
+name: Check maintained book examples
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ocaml: [5.3.0, 5.5.1]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml }}
+      - run: opam install . --deps-only --with-test --yes
+      - run: python3 scripts/check_book.py
+      - run: opam exec -- dune runtest
+      - run: opam exec -- dune build README.md curious.opam chapter9/sensor_fusion.exe
+      - run: git diff --exit-code -- README.md curious.opam
