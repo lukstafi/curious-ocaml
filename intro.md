@@ -1,7 +1,8 @@
 ![Curious OCaml](Curious_OCaml-cover.jpg){.cover-image}
 
 ::: {.illustrator-credit}
-*Illustrated by: Gemini 3 Nano Banana*
+*Original illustrations: Gemini 3 Nano Banana. Third-edition chapter art:
+OpenAI image generation. Technical diagrams: GPT-6 Astra.*
 :::
 
 ## About the third edition
@@ -25,7 +26,9 @@ book from its later rewrites:
 - **First edition:** Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2.
 - **Second edition:** Claude Opus 4.6 and GPT-5.3-Codex.
 - **Third-edition rewrite:** GPT-6 Astra.
-- **Illustrations:** Gemini 3 Nano Banana; retained from the earlier editions.
+- **Original illustrations:** Gemini 3 Nano Banana.
+- **Third-edition chapter art (6, 7, 10):** OpenAI image generation.
+- **Technical diagrams:** GPT-6 Astra.
 
 ### Choose a route
 

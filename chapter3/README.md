@@ -234,6 +234,8 @@ let rec run = function
 let eval_machine env e = run (Eval (e, env, []))
 ```
 
+![The ten machine states for (2 + 3) * 4. The stack records the work still pending, with its top on the left.](evaluator-frames.svg){.technical-figure}
+
 The machine alternates between evaluating syntax and returning a value to its
 frames. Every call to `step` performs one transition. The `run` loop is tail
 recursive; it is now possible to pause the interpreter by retaining a `state`,

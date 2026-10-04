@@ -415,3 +415,11 @@ hr {
   color: #666;
   font-size: 0.9rem;
 }
+
+/* Technical diagrams retain readable vector labels at any zoom. */
+img.technical-figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 1.5em auto 0.5em;
+}

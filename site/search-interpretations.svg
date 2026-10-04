@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 670" role="img" aria-labelledby="title desc">
+<title id="title">One search tree, three observations</title>
+<desc id="desc">pairs 4 chooses x and y from 1,2,3 and retains x+y=4. Of nine leaves, (1,3), (2,2), and (3,1) succeed. All returns those three pairs in that order, first returns Some(1,3), and count returns 3. All other leaves fail.</desc>
+<rect x="0" y="0" width="1100" height="670" rx="12" fill="#fffdf7" stroke="#fffdf7" stroke-width="2"/>
+<text x="40" y="45" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">One search tree, three observations</text>
+<text x="40" y="83" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">pairs 4: choose x, choose y, then keep x + y = 4.</text>
+<circle cx="550" cy="140" r="32" fill="white" stroke="#006b75" stroke-width="3"/>
+<text x="550" y="147" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="middle">x</text>
+<polyline points="550,174 200,233" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="209.79,226.06 200.00,233.00 211.52,236.35" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="65" y="239" width="270" height="76" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="83" y="269" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">x = 1</text>
+<text x="83" y="300" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">choose y = 1, 2, 3</text>
+<polyline points="200,315 94,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="102.34,345.37 94.00,354.00 105.94,355.17" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="45" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="94" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(1,1)</text>
+<text x="94" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<polyline points="200,315 200,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="194.78,343.19 200.00,354.00 205.22,343.19" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="151" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="200" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(1,2)</text>
+<text x="200" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<polyline points="200,315 306,354" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="294.06,355.17 306.00,354.00 297.66,345.37" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="257" y="360" width="98" height="88" rx="8" fill="#e4f2f0" stroke="#006b75" stroke-width="3"/>
+<text x="306" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(1,3)</text>
+<text x="306" y="426" fill="#006b75" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Return</text>
+<polyline points="550,174 550,233" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="544.78,222.19 550.00,233.00 555.22,222.19" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="415" y="239" width="270" height="76" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="433" y="269" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">x = 2</text>
+<text x="433" y="300" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">choose y = 1, 2, 3</text>
+<polyline points="550,315 444,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="452.34,345.37 444.00,354.00 455.94,355.17" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="395" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="444" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(2,1)</text>
+<text x="444" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<polyline points="550,315 550,354" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="544.78,343.19 550.00,354.00 555.22,343.19" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="501" y="360" width="98" height="88" rx="8" fill="#e4f2f0" stroke="#006b75" stroke-width="3"/>
+<text x="550" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(2,2)</text>
+<text x="550" y="426" fill="#006b75" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Return</text>
+<polyline points="550,315 656,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="644.06,355.17 656.00,354.00 647.66,345.37" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="607" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="656" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(2,3)</text>
+<text x="656" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<polyline points="550,174 900,233" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="888.48,236.35 900.00,233.00 890.21,226.06" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="765" y="239" width="270" height="76" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="783" y="269" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">x = 3</text>
+<text x="783" y="300" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">choose y = 1, 2, 3</text>
+<polyline points="900,315 794,354" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="802.34,345.37 794.00,354.00 805.94,355.17" fill="none" stroke="#006b75" stroke-width="2"/>
+<rect x="745" y="360" width="98" height="88" rx="8" fill="#e4f2f0" stroke="#006b75" stroke-width="3"/>
+<text x="794" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(3,1)</text>
+<text x="794" y="426" fill="#006b75" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Return</text>
+<polyline points="900,315 900,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="894.78,343.19 900.00,354.00 905.22,343.19" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="851" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="900" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(3,2)</text>
+<text x="900" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<polyline points="900,315 1006,354" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="994.06,355.17 1006.00,354.00 997.66,345.37" fill="none" stroke="#bdc9cb" stroke-width="2"/>
+<rect x="957" y="360" width="98" height="88" rx="8" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="1006" y="392" fill="#193442" font-family="Courier New, monospace" font-size="20" font-weight="400" text-anchor="middle">(3,3)</text>
+<text x="1006" y="426" fill="#49616b" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" text-anchor="middle">Fail</text>
+<text x="40" y="495" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">Read the surviving leaves from left to right:</text>
+<rect x="35" y="520" width="465" height="108" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="53" y="555" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start">all</text>
+<text x="53" y="600" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">[(1,3); (2,2); (3,1)]</text>
+<rect x="520" y="520" width="290" height="108" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="538" y="555" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start">first</text>
+<text x="538" y="600" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Some (1,3)</text>
+<rect x="830" y="520" width="235" height="108" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="848" y="555" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" text-anchor="start">count</text>
+<text x="848" y="600" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">3</text>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 790" role="img" aria-labelledby="title desc">
+<title id="title">A suspended continuation has one owner</title>
+<desc id="desc">While a task is paused, its owner stores continuation k. Before acting, the scheduler takes k and clears its ownership slot. It then either continues k with a value or discontinues k with Cancelled, never both. Resumed work may suspend with a fresh continuation. Cancellation unwinds scopes and runs non-suspending finalizers.</desc>
+<rect x="0" y="0" width="1100" height="790" rx="12" fill="#fffdf7" stroke="#fffdf7" stroke-width="2"/>
+<text x="40" y="45" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">A suspended continuation has one owner</text>
+<text x="40" y="82" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">One suspension, one consuming action. A later yield creates a fresh continuation.</text>
+<rect x="250" y="110" width="620" height="91" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="268" y="140" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Paused: the owner stores k</text>
+<text x="268" y="171" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">The ownership slot is occupied.</text>
+<polyline points="560,201 560,239" fill="none" stroke="#006b75" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="554.78,228.19 560.00,239.00 565.22,228.19" fill="none" stroke="#006b75" stroke-width="3"/>
+<rect x="250" y="248" width="620" height="88" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="268" y="278" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Take k; clear the slot</text>
+<text x="268" y="309" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">Task state becomes Running before control transfers.</text>
+<text x="560" y="379" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="middle">Choose exactly one action</text>
+<polyline points="560,391 300,391 300,420" fill="none" stroke="#006b75" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="294.78,409.19 300.00,420.00 305.22,409.19" fill="none" stroke="#006b75" stroke-width="3"/>
+<polyline points="560,391 835,391 835,420" fill="none" stroke="#99500c" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="829.78,409.19 835.00,420.00 840.22,409.19" fill="none" stroke="#99500c" stroke-width="3"/>
+<rect x="135" y="430" width="350" height="92" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="153" y="460" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Continue</text>
+<text x="153" y="491" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">continue k value</text>
+<rect x="625" y="430" width="410" height="92" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="643" y="460" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Cancel</text>
+<text x="643" y="491" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">discontinue k Cancelled</text>
+<polyline points="310,522 310,557" fill="none" stroke="#006b75" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="304.78,546.19 310.00,557.00 315.22,546.19" fill="none" stroke="#006b75" stroke-width="3"/>
+<polyline points="830,522 830,557" fill="none" stroke="#99500c" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="824.78,546.19 830.00,557.00 835.22,546.19" fill="none" stroke="#99500c" stroke-width="3"/>
+<rect x="135" y="565" width="350" height="105" rx="12" fill="#e4f2f0" stroke="#006b75" stroke-width="2"/>
+<text x="153" y="595" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Resume the computation</text>
+<text x="153" y="626" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">Finish, or suspend again</text>
+<text x="153" y="652" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">with a fresh continuation.</text>
+<rect x="625" y="565" width="410" height="105" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="643" y="595" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Unwind resource scopes</text>
+<text x="643" y="626" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">Run finalizers, then finish</text>
+<text x="643" y="652" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="400" text-anchor="start">or propagate cancellation.</text>
+<polyline points="135,615 85,615 85,154 240,154" fill="none" stroke="#006b75" stroke-width="2" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<polyline points="229.19,159.22 240.00,154.00 229.19,148.78" fill="none" stroke="#006b75" stroke-width="2"/>
+<text x="39" y="714" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">A consumed k is never stored or resumed again.</text>
+<text x="39" y="756" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">Task contract: respect cancellation; finalizers must not suspend.</text>
+</svg>

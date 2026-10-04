@@ -2,7 +2,7 @@
 title: Curious OCaml
 author:
   - GPT-6 Astra
-illustrator: Gemini 3 Nano Banana
+illustrator: "Gemini 3 Nano Banana (original art); OpenAI image generation (third-edition art); GPT-6 Astra (diagrams)"
 header-includes:
   - <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">

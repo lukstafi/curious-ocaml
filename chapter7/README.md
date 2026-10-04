@@ -1,6 +1,6 @@
 ## Chapter 7: Streams, demand, and sharing
 
-![Chapter 7 illustration](Curious_OCaml-chapter_7.jpg){.chapter-image}
+![A camel opens a sluice to draw one cup of water](Curious_OCaml-chapter_7-third-edition.png){.chapter-image}
 
 **Prerequisites:** lists, folds and the cost discussion in Chapters 3 and 6.
 **Route:** Part III begins here. Chapter 8 adds choice; Chapter 10 consumes a

@@ -86,6 +86,8 @@ The agreement laws for finite searches are
 `first m = List.nth_opt (all m) 0` and `count m = List.length (all m)`, when that
 count fits. These are weaker than saying the three results are identical.
 
+![The nine leaves of pairs 4, with three successes. All, first, and count observe the same tree in different ways.](search-interpretations.svg){.technical-figure}
+
 The source and tests are `projects/choices/search.ml` and `laws.ml`. The
 Honey Islands project also expresses its choices through a module interface,
 so its direct and monadic implementations can share a reference specification.

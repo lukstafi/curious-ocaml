@@ -18,6 +18,7 @@ jobs:
           ocaml-compiler: ${{ matrix.ocaml }}
       - run: opam install . --deps-only --with-test --yes
       - run: python3 scripts/check_book.py
+      - run: python3 scripts/render_figures.py --check
       - run: opam exec -- dune runtest
       - run: opam exec -- dune build README.md curious.opam chapter9/sensor_fusion.exe
       - run: git diff --exit-code -- README.md curious.opam

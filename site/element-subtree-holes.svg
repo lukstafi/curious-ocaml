@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 650" role="img" aria-labelledby="title desc">
+<title id="title">What exactly did we remove?</title>
+<desc id="desc">Both panels start with Node(1,Node(2,Tip,Tip),Tip). Removing the element 2 retains its two Tip children. Removing its entire subtree leaves one subtree hole; the two children travel with the removed subtree. Both contexts retain parent 1 and its right Tip sibling.</desc>
+<rect x="0" y="0" width="1100" height="650" rx="12" fill="#fffdf7" stroke="#fffdf7" stroke-width="2"/>
+<text x="40" y="45" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">What exactly did we remove?</text>
+<text x="40" y="82" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Same tree and focus: Node(1, Node(2, Tip, Tip), Tip)</text>
+<rect x="35" y="110" width="495" height="435" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="57" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="start">Element hole</text>
+<polyline points="290,203 175,289" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="290,203 400,289" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="290" cy="203" r="26" fill="white" stroke="#006b75" stroke-width="3"/>
+<text x="290" y="210" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="middle">1</text>
+<text x="400" y="314" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle">Tip</text>
+<polyline points="175,313 112,370" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="175,313 238,370" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<rect x="144" y="266" width="62" height="55" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="175" y="301" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700" text-anchor="middle">?</text>
+<text x="112" y="396" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle">Tip</text>
+<text x="238" y="396" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle">Tip</text>
+<text x="59" y="446" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">Remove only 2; keep both children.</text>
+<text x="59" y="496" fill="#006b75" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start">Fill with an element value.</text>
+<rect x="570" y="110" width="495" height="435" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="592" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" text-anchor="start">Subtree hole</text>
+<polyline points="825,203 710,289" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="825,203 935,289" fill="none" stroke="#bdc9cb" stroke-width="2" stroke-linejoin="round"/>
+<circle cx="825" cy="203" r="26" fill="white" stroke="#006b75" stroke-width="3"/>
+<text x="825" y="210" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="middle">1</text>
+<text x="935" y="314" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="middle">Tip</text>
+<rect x="658" y="266" width="104" height="62" rx="12" fill="#fff0d8" stroke="#99500c" stroke-width="2"/>
+<text x="710" y="304" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="middle">hole</text>
+<text x="594" y="402" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">Remove the whole Node(2, Tip, Tip).</text>
+<text x="594" y="436" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">Its children leave with it.</text>
+<text x="594" y="496" fill="#006b75" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700" text-anchor="start">Fill with any tree, including Tip.</text>
+<text x="40" y="589" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">In both panels, the path remembers parent 1 and the untouched right Tip.</text>
+<text x="40" y="626" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">An element context also keeps the two children at the focused node.</text>
+</svg>

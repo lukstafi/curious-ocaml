@@ -707,8 +707,11 @@ let () =
   let context = [From_left (1, Tip)] in
   assert (plug (Node (2, Tip, Tip)) context = t);
   assert (btree_integr 1 (Here (Node (2, Tip, Tip), Tip)) = t);
+  assert (btree_integr 2 (Below (LeftBranch, 1, Tip, Here (Tip, Tip))) = t);
   assert (plug Tip [] = Tip)
 ```
+
+![Removing an element keeps its two children; removing a subtree takes the children with it.](element-subtree-holes.svg){.technical-figure}
 
 For $T=1+aT^2$, a path step has shape $2aT$: a direction, an element, and a
 sibling. A subtree context is a list of these steps. An element context consists

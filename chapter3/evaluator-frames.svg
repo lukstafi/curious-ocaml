@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 830" role="img" aria-labelledby="title desc">
+<title id="title">Pending work becomes data</title>
+<desc id="desc">Ten actual machine states evaluate (2+3)*4 to 20. Eval descends into the left operand, Right frames remember right operands and environments, and Combine frames remember computed left values. Stack top is shown on the left. At Eval 2, the surrounding context is (hole+3)*4.</desc>
+<rect x="0" y="0" width="1100" height="830" rx="12" fill="#fffdf7" stroke="#fffdf7" stroke-width="2"/>
+<text x="40" y="45" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">Pending work becomes data</text>
+<text x="40" y="84" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">Evaluate (2 + 3) * 4 left to right. Stack top is on the left.</text>
+<text x="48" y="127" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start">Step</text>
+<text x="130" y="127" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start">Current state</text>
+<text x="510" y="127" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" text-anchor="start">Stack: the work still to do</text>
+<rect x="36" y="147" width="1028" height="47" rx="6" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="178" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">0</text>
+<text x="130" y="178" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Eval ((2 + 3) * 4)</text>
+<text x="514" y="178" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">[]</text>
+<rect x="36" y="201" width="1028" height="47" rx="6" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="232" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">1</text>
+<text x="130" y="232" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Eval (2 + 3)</text>
+<rect x="502" y="205" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="231" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="255" width="1028" height="47" rx="6" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="286" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">2</text>
+<text x="130" y="286" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Eval 2</text>
+<rect x="502" y="259" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="285" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Add, 3)</text>
+<rect x="780" y="259" width="270" height="39" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="790" y="285" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="309" width="1028" height="47" rx="6" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="340" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">3</text>
+<text x="130" y="340" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Return 2</text>
+<rect x="502" y="313" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="339" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Add, 3)</text>
+<rect x="780" y="313" width="270" height="39" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="790" y="339" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="363" width="1028" height="47" rx="6" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="394" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">4</text>
+<text x="130" y="394" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Eval 3</text>
+<rect x="502" y="367" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="393" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">C(Add, 2)</text>
+<rect x="780" y="367" width="270" height="39" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="790" y="393" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="417" width="1028" height="47" rx="6" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="448" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">5</text>
+<text x="130" y="448" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Return 3</text>
+<rect x="502" y="421" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="447" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">C(Add, 2)</text>
+<rect x="780" y="421" width="270" height="39" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="790" y="447" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="471" width="1028" height="47" rx="6" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="502" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">6</text>
+<text x="130" y="502" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Return 5</text>
+<rect x="502" y="475" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="501" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">R(Mul, 4)</text>
+<rect x="36" y="525" width="1028" height="47" rx="6" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="556" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">7</text>
+<text x="130" y="556" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Eval 4</text>
+<rect x="502" y="529" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="555" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">C(Mul, 5)</text>
+<rect x="36" y="579" width="1028" height="47" rx="6" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="610" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">8</text>
+<text x="130" y="610" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Return 4</text>
+<rect x="502" y="583" width="270" height="39" rx="6" fill="white" stroke="#006b75" stroke-width="1"/>
+<text x="512" y="609" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">C(Mul, 5)</text>
+<rect x="36" y="633" width="1028" height="47" rx="6" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="61" y="664" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">9</text>
+<text x="130" y="664" fill="#193442" font-family="Courier New, monospace" font-size="26" font-weight="400" text-anchor="start">Return 20</text>
+<text x="514" y="664" fill="#193442" font-family="Courier New, monospace" font-size="21" font-weight="400" text-anchor="start">[]</text>
+<rect x="40" y="711" width="1020" height="84" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="58" y="744" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">At step 2, the context is (hole + 3) * 4.</text>
+<text x="58" y="777" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="400" text-anchor="start">R(op, b) = Right(op, b, []); C(op, x) = Combine(op, x).</text>
+</svg>

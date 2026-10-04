@@ -10,7 +10,9 @@ historical lecture files are not third-edition examples.
 The third-edition rewrite is credited to GPT-6 Astra. First-edition authors are
 Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2; second-edition models are
 Claude Opus 4.6 and GPT-5.3-Codex. The retained illustrations are credited separately
-to Gemini 3 Nano Banana. The introduction carries this edition history.
+to Gemini 3 Nano Banana. New chapter art uses OpenAI image generation, and
+GPT-6 Astra supplies the technical diagrams. The introduction carries this
+edition history; [the illustration record](illustrations.md) documents the assets.
 
 `MD_metadata_third_edition.md` supplies the current book's author metadata;
 `MD_metadata.md` remains the historical lecture compilation's metadata. Changing
