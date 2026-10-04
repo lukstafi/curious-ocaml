@@ -104,7 +104,7 @@ Each edition builds on the preceding work. The credits distinguish the original
 book from its later rewrites:
 
 - **First edition:** Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2.
-- **Second edition:** additional model credits to be confirmed.
+- **Second edition:** Claude Opus 4.6 and GPT-5.3-Codex.
 - **Third-edition rewrite:** GPT-6 Astra.
 - **Illustrations:** Gemini 3 Nano Banana; retained from the earlier editions.
 
