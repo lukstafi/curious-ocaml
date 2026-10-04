@@ -1,6 +1,6 @@
 ## Chapter 10: One game, three interpretations
 
-![Chapter 10 illustration](Curious_OCaml-chapter_10.jpg){.chapter-image}
+![A camel studies three views of a tabletop paddle game](Curious_OCaml-chapter_10-third-edition.png){.chapter-image}
 
 **Prerequisites:** Chapters 7–9: streams, interpreters and owned continuations.
 **Route:** the final chapter of Part III. Chapter 12 returns to the laws connecting
@@ -93,6 +93,8 @@ let () =
     if e=[] then None else Some (s.Game.tick,e)) trace =
     [2,[Game.Paddle];5,[Game.Wall];8,[Game.Ceiling];14,[Game.Miss]])
 ```
+
+![Four event ticks from the common game trace. Streams, signals, and effects produce the same positions and events.](shared-game-trace.svg){.technical-figure}
 
 ### 10.3 A stream is a sequence of transitions
 

@@ -16,6 +16,7 @@ The projects separate reusable implementations from chapter-local experiments.
 | [Effects](effects/README.md) | 9 | Owned scheduler and monadic scripts using the same behavior tests |
 | [Probability](probability/README.md) | 8, 9 | Finite reference enumeration, weighting and replay |
 | [Reactive game](reactive/README.md) | 10 | One transition and trace across three interpreters |
+| [Figure data](figures/README.md) | 3, 8, 10 | Executable data for evaluator, search, and game diagrams |
 | [Plugins](plugins/README.md) | 11 | Separately compiled dynamic extension and failure cases |
 
 Optional reading preserves larger examples outside the main route:

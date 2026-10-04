@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 770" role="img" aria-labelledby="title desc">
+<title id="title">One recorded input, the same observable trace</title>
+<desc id="desc">Four snapshots are selected from the common game trace: tick 2 has ball (7,0) and a paddle collision; tick 5 has (10,3) and a wall collision; tick 8 has (7,6) and a ceiling collision; tick 14 has (1,0) and a miss. Streams, incremental signals and effects all produce the entire identical fourteen-tick trace; the drawing shows only these four event ticks.</desc>
+<rect x="0" y="0" width="1100" height="770" rx="12" fill="#fffdf7" stroke="#fffdf7" stroke-width="2"/>
+<text x="40" y="45" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" text-anchor="start">One recorded input, the same observable trace</text>
+<text x="40" y="84" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">Input moves: 1, 1, 0, -1, then ten zeros. Start: ball (5,2), paddle 5.</text>
+<rect x="35" y="112" width="235" height="271" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="53" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Tick 2</text>
+<rect x="55" y="169" width="195" height="117" rx="0" fill="#fffdf7" stroke="#bdc9cb" stroke-width="1"/>
+<polyline points="74.5,169 74.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="94.0,169 94.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="113.5,169 113.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="133.0,169 133.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="152.5,169 152.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="172.0,169 172.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="191.5,169 191.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="211.0,169 211.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="230.5,169 230.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="55,188.5 250,188.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="55,208.0 250,208.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="55,227.5 250,227.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="55,247.0 250,247.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="55,266.5 250,266.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="172.0,286 211.0,286" fill="none" stroke="#006b75" stroke-width="8" stroke-linejoin="round"/>
+<circle cx="191.5" cy="286.0" r="7" fill="#fff0d8" stroke="#99500c" stroke-width="3"/>
+<text x="53" y="325" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Ball (7,0)</text>
+<text x="53" y="360" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">Paddle</text>
+<rect x="300" y="112" width="235" height="271" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="318" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Tick 5</text>
+<rect x="320" y="169" width="195" height="117" rx="0" fill="#fffdf7" stroke="#bdc9cb" stroke-width="1"/>
+<polyline points="339.5,169 339.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="359.0,169 359.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="378.5,169 378.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="398.0,169 398.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="417.5,169 417.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="437.0,169 437.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="456.5,169 456.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="476.0,169 476.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="495.5,169 495.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="320,188.5 515,188.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="320,208.0 515,208.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="320,227.5 515,227.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="320,247.0 515,247.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="320,266.5 515,266.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="417.5,286 456.5,286" fill="none" stroke="#006b75" stroke-width="8" stroke-linejoin="round"/>
+<circle cx="515.0" cy="227.5" r="7" fill="#fff0d8" stroke="#99500c" stroke-width="3"/>
+<text x="318" y="325" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Ball (10,3)</text>
+<text x="318" y="360" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">Wall</text>
+<rect x="565" y="112" width="235" height="271" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="583" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Tick 8</text>
+<rect x="585" y="169" width="195" height="117" rx="0" fill="#fffdf7" stroke="#bdc9cb" stroke-width="1"/>
+<polyline points="604.5,169 604.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="624.0,169 624.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="643.5,169 643.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="663.0,169 663.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="682.5,169 682.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="702.0,169 702.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="721.5,169 721.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="741.0,169 741.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="760.5,169 760.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="585,188.5 780,188.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="585,208.0 780,208.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="585,227.5 780,227.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="585,247.0 780,247.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="585,266.5 780,266.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="682.5,286 721.5,286" fill="none" stroke="#006b75" stroke-width="8" stroke-linejoin="round"/>
+<circle cx="721.5" cy="169.0" r="7" fill="#fff0d8" stroke="#99500c" stroke-width="3"/>
+<text x="583" y="325" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Ball (7,6)</text>
+<text x="583" y="360" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">Ceiling</text>
+<rect x="830" y="112" width="235" height="271" rx="12" fill="white" stroke="#bdc9cb" stroke-width="2"/>
+<text x="848" y="145" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Tick 14</text>
+<rect x="850" y="169" width="195" height="117" rx="0" fill="#fffdf7" stroke="#bdc9cb" stroke-width="1"/>
+<polyline points="869.5,169 869.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="889.0,169 889.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="908.5,169 908.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="928.0,169 928.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="947.5,169 947.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="967.0,169 967.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="986.5,169 986.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="1006.0,169 1006.0,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="1025.5,169 1025.5,286" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="850,188.5 1045,188.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="850,208.0 1045,208.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="850,227.5 1045,227.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="850,247.0 1045,247.0" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="850,266.5 1045,266.5" fill="none" stroke="#bdc9cb" stroke-width="0.6" stroke-linejoin="round"/>
+<polyline points="947.5,286 986.5,286" fill="none" stroke="#006b75" stroke-width="8" stroke-linejoin="round"/>
+<circle cx="869.5" cy="286.0" r="7" fill="#fff0d8" stroke="#99500c" stroke-width="3"/>
+<text x="848" y="325" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="start">Ball (1,0)</text>
+<text x="848" y="360" fill="#99500c" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" text-anchor="start">Miss</text>
+<text x="40" y="424" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="400" text-anchor="start">The same step function is used in each interpretation:</text>
+<rect x="35" y="452" width="1030" height="63" rx="9" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="51" y="491" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Streams</text>
+<polyline points="387,485 431,485" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="420.19,490.22 431.00,485.00 420.19,479.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="245" y="463" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="317" y="490" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,0)</text>
+<polyline points="594,485 638,485" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="627.19,490.22 638.00,485.00 627.19,479.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="452" y="463" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="524" y="490" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(10,3)</text>
+<polyline points="801,485 845,485" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="834.19,490.22 845.00,485.00 834.19,479.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="659" y="463" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="731" y="490" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,6)</text>
+<rect x="866" y="463" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="938" y="490" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(1,0)</text>
+<rect x="35" y="529" width="1030" height="63" rx="9" fill="#fff0d8" stroke="#fffdf7" stroke-width="1"/>
+<text x="51" y="568" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Signals</text>
+<polyline points="387,562 431,562" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="420.19,567.22 431.00,562.00 420.19,556.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="245" y="540" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="317" y="567" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,0)</text>
+<polyline points="594,562 638,562" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="627.19,567.22 638.00,562.00 627.19,556.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="452" y="540" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="524" y="567" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(10,3)</text>
+<polyline points="801,562 845,562" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="834.19,567.22 845.00,562.00 834.19,556.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="659" y="540" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="731" y="567" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,6)</text>
+<rect x="866" y="540" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="938" y="567" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(1,0)</text>
+<rect x="35" y="606" width="1030" height="63" rx="9" fill="#e4f2f0" stroke="#fffdf7" stroke-width="1"/>
+<text x="51" y="645" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="23" font-weight="700" text-anchor="start">Effects</text>
+<polyline points="387,639 431,639" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="420.19,644.22 431.00,639.00 420.19,633.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="245" y="617" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="317" y="644" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,0)</text>
+<polyline points="594,639 638,639" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="627.19,644.22 638.00,639.00 627.19,633.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="452" y="617" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="524" y="644" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(10,3)</text>
+<polyline points="801,639 845,639" fill="none" stroke="#49616b" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="834.19,644.22 845.00,639.00 834.19,633.78" fill="none" stroke="#49616b" stroke-width="2"/>
+<rect x="659" y="617" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="731" y="644" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(7,6)</text>
+<rect x="866" y="617" width="143" height="41" rx="6" fill="white" stroke="#bdc9cb" stroke-width="1"/>
+<text x="938" y="644" fill="#193442" font-family="Courier New, monospace" font-size="22" font-weight="400" text-anchor="middle">(1,0)</text>
+<text x="40" y="714" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">Selected event ticks are shown; the tests compare all fourteen complete states</text>
+<text x="40" y="746" fill="#193442" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="400" text-anchor="start">and event lists. Drawing is a consumer of the trace.</text>
+</svg>

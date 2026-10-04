@@ -498,7 +498,9 @@ alt="Curious OCaml" />
 <figcaption aria-hidden="true">Curious OCaml</figcaption>
 </figure>
 <div class="illustrator-credit">
-<p><em>Illustrated by: Gemini 3 Nano Banana</em></p>
+<p><em>Original illustrations: Gemini 3 Nano Banana. Third-edition
+chapter art: OpenAI image generation. Technical diagrams: GPT-6
+Astra.</em></p>
 </div>
 <h2 id="about-the-third-edition">About the third edition</h2>
 <p>A pair can be a proof of a conjunction. A tree with a hole can
@@ -521,8 +523,10 @@ and GPT-5.2.</li>
 <li><strong>Second edition:</strong> Claude Opus 4.6 and
 GPT-5.3-Codex.</li>
 <li><strong>Third-edition rewrite:</strong> GPT-6 Astra.</li>
-<li><strong>Illustrations:</strong> Gemini 3 Nano Banana; retained from
-the earlier editions.</li>
+<li><strong>Original illustrations:</strong> Gemini 3 Nano Banana.</li>
+<li><strong>Third-edition chapter art (6, 7, 10):</strong> OpenAI image
+generation.</li>
+<li><strong>Technical diagrams:</strong> GPT-6 Astra.</li>
 </ul>
 <h3 id="choose-a-route">Choose a route</h3>
 <p>The chapter numbers remain stable, but the four parts give the
@@ -2220,7 +2224,14 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb49-1"><a hre
 <span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">let</span> context = [From_left (<span class="dv">1</span>, Tip)] <span class="kw">in</span></span>
 <span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (plug (Node (<span class="dv">2</span>, Tip, Tip)) context = t);</span>
 <span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (btree_integr <span class="dv">1</span> (Here (Node (<span class="dv">2</span>, Tip, Tip), Tip)) = t);</span>
-<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (plug Tip [] = Tip)</span></code></pre></div>
+<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (btree_integr <span class="dv">2</span> (Below (LeftBranch, <span class="dv">1</span>, Tip, Here (Tip, Tip))) = t);</span>
+<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (plug Tip [] = Tip)</span></code></pre></div>
+<figure>
+<img src="element-subtree-holes.svg" class="technical-figure"
+alt="Removing an element keeps its two children; removing a subtree takes the children with it." />
+<figcaption aria-hidden="true">Removing an element keeps its two
+children; removing a subtree takes the children with it.</figcaption>
+</figure>
 <p>For <span class="math inline">T=1+aT^2</span>, a path step has shape
 <span class="math inline">2aT</span>: a direction, an element, and a
 sibling. A subtree context is a list of these steps. An element context
@@ -2629,6 +2640,13 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb67-1"><a hre
 <span id="cb67-27"><a href="#cb67-27" aria-hidden="true" tabindex="-1"></a>  | state -&gt; run (step state)</span>
 <span id="cb67-28"><a href="#cb67-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb67-29"><a href="#cb67-29" aria-hidden="true" tabindex="-1"></a><span class="kw">let</span> eval_machine env e = run (Eval (e, env, []))</span></code></pre></div>
+<figure>
+<img src="evaluator-frames.svg" class="technical-figure"
+alt="The ten machine states for (2 + 3) * 4. The stack records the work still pending, with its top on the left." />
+<figcaption aria-hidden="true">The ten machine states for (2 + 3) * 4.
+The stack records the work still pending, with its top on the
+left.</figcaption>
+</figure>
 <p>The machine alternates between evaluating syntax and returning a
 value to its frames. Every call to <code>step</code> performs one
 transition. The <code>run</code> loop is tail recursive; it is now
@@ -3820,9 +3838,11 @@ Representations and interpreters</h1>
 <h2 id="chapter-6-folding-and-backtracking">Chapter 6: Folding and
 Backtracking</h2>
 <figure>
-<img src="Curious_OCaml-chapter_6.jpg" class="chapter-image"
-alt="Chapter 6 illustration" />
-<figcaption aria-hidden="true">Chapter 6 illustration</figcaption>
+<img src="Curious_OCaml-chapter_6-third-edition.png"
+class="chapter-image"
+alt="A camel assembles expression trees in a lamplit workshop" />
+<figcaption aria-hidden="true">A camel assembles expression trees in a
+lamplit workshop</figcaption>
 </figure>
 <p><strong>Prerequisites:</strong> Chapter 3’s expression language;
 Chapter 5’s module interfaces. <strong>Route:</strong> Part II begins
@@ -5084,9 +5104,11 @@ Computation over time and choices</h1>
 <h2 id="chapter-7-streams-demand-and-sharing">Chapter 7: Streams,
 demand, and sharing</h2>
 <figure>
-<img src="Curious_OCaml-chapter_7.jpg" class="chapter-image"
-alt="Chapter 7 illustration" />
-<figcaption aria-hidden="true">Chapter 7 illustration</figcaption>
+<img src="Curious_OCaml-chapter_7-third-edition.png"
+class="chapter-image"
+alt="A camel opens a sluice to draw one cup of water" />
+<figcaption aria-hidden="true">A camel opens a sluice to draw one cup of
+water</figcaption>
 </figure>
 <p><strong>Prerequisites:</strong> lists, folds and the cost discussion
 in Chapters 3 and 6. <strong>Route:</strong> Part III begins here.
@@ -5375,6 +5397,13 @@ tree. The agreement laws for finite searches are
 <code>first m = List.nth_opt (all m) 0</code> and
 <code>count m = List.length (all m)</code>, when that count fits. These
 are weaker than saying the three results are identical.</p>
+<figure>
+<img src="search-interpretations.svg" class="technical-figure"
+alt="The nine leaves of pairs 4, with three successes. All, first, and count observe the same tree in different ways." />
+<figcaption aria-hidden="true">The nine leaves of pairs 4, with three
+successes. All, first, and count observe the same tree in different
+ways.</figcaption>
+</figure>
 <p>The source and tests are <code>projects/choices/search.ml</code> and
 <code>laws.ml</code>. The Honey Islands project also expresses its
 choices through a module interface, so its direct and monadic
@@ -5815,6 +5844,13 @@ resumption or abort closure. Thus a stale queue entry cannot consume
 that same slot again. A finished task’s stale entries do nothing. The
 <code>queued</code> bit prevents duplicate enqueuing while awaiters are
 awakened.</p>
+<figure>
+<img src="continuation-ownership.svg" class="technical-figure"
+alt="The owner clears its slot before continuing or cancelling a suspended computation. A later suspension supplies a fresh continuation." />
+<figcaption aria-hidden="true">The owner clears its slot before
+continuing or cancelling a suspended computation. A later suspension
+supplies a fresh continuation.</figcaption>
+</figure>
 <p>An await suspension stores a resume closure that checks the target’s
 final result. It does not guess that waking means success. A cancelled
 awaiter can remain temporarily in its target’s waiter list, but
@@ -5939,9 +5975,11 @@ scope policy; it is not an application runtime recommendation.</p>
 <h2 id="chapter-10-one-game-three-interpretations">Chapter 10: One game,
 three interpretations</h2>
 <figure>
-<img src="Curious_OCaml-chapter_10.jpg" class="chapter-image"
-alt="Chapter 10 illustration" />
-<figcaption aria-hidden="true">Chapter 10 illustration</figcaption>
+<img src="Curious_OCaml-chapter_10-third-edition.png"
+class="chapter-image"
+alt="A camel studies three views of a tabletop paddle game" />
+<figcaption aria-hidden="true">A camel studies three views of a tabletop
+paddle game</figcaption>
 </figure>
 <p><strong>Prerequisites:</strong> Chapters 7–9: streams, interpreters
 and owned continuations. <strong>Route:</strong> the final chapter of
@@ -6096,6 +6134,13 @@ class="sourceCode ocaml"><code class="sourceCode ocaml"><span id="cb172-1"><a hr
 <span id="cb172-4"><a href="#cb172-4" aria-hidden="true" tabindex="-1"></a>  <span class="kw">assert</span> (<span class="dt">List</span>.filter_map (<span class="kw">fun</span> (s,e) -&gt;</span>
 <span id="cb172-5"><a href="#cb172-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">if</span> e=[] <span class="kw">then</span> <span class="dt">None</span> <span class="kw">else</span> <span class="dt">Some</span> (s.Game.tick,e)) trace =</span>
 <span id="cb172-6"><a href="#cb172-6" aria-hidden="true" tabindex="-1"></a>    [<span class="dv">2</span>,[Game.Paddle];<span class="dv">5</span>,[Game.Wall];<span class="dv">8</span>,[Game.Ceiling];<span class="dv">14</span>,[Game.Miss]])</span></code></pre></div>
+<figure>
+<img src="shared-game-trace.svg" class="technical-figure"
+alt="Four event ticks from the common game trace. Streams, signals, and effects produce the same positions and events." />
+<figcaption aria-hidden="true">Four event ticks from the common game
+trace. Streams, signals, and effects produce the same positions and
+events.</figcaption>
+</figure>
 <h3 id="a-stream-is-a-sequence-of-transitions">10.3 A stream is a
 sequence of transitions</h3>
 <p><code>Game.stream state inputs</code> yields the next

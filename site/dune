@@ -1,4 +1,24 @@
 (copy_files
+ (mode promote)
+ (files ../chapter2/*.svg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter3/*.svg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter8/*.svg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter9/*.svg))
+
+(copy_files
+ (mode promote)
+ (files ../chapter10/*.svg))
+
+(copy_files
  (files ../*.md))
 
 (copy_files
@@ -129,7 +149,15 @@
  (alias new_book)
  (mode promote)
  (target new_book.html)
- (deps README.md style.css inject-toc-toggle.sh Curious_OCaml-chapter_12.jpg)
+ (deps README.md style.css inject-toc-toggle.sh Curious_OCaml-chapter_12.jpg
+       element-subtree-holes.svg
+       evaluator-frames.svg
+       search-interpretations.svg
+       continuation-ownership.svg
+       shared-game-trace.svg
+       Curious_OCaml-chapter_6-third-edition.png
+       Curious_OCaml-chapter_7-third-edition.png
+       Curious_OCaml-chapter_10-third-edition.png)
  (action
   (system "sed 's/```ocaml [^`]*/```ocaml/' README.md | pandoc -s --toc --katex --css=style.css --highlight-style=tango --metadata title='Curious OCaml' --metadata subtitle='Third Edition: Representations, Interpreters, and Laws' --top-level-division=part | sed 's/var macros = \\[\\];/var macros = {\"\\\\\\\\hyp\": \"\\\\\\\\substack{#1 \\\\\\\\\\\\\\\\[-0.5em] \\\\\\\\vdots \\\\\\\\\\\\\\\\ #2}\"};/' | ./inject-toc-toggle.sh > %{target}")))
 

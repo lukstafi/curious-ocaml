@@ -1,0 +1,74 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document (opensource)
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/Contents 8 0 R /MediaBox [ 0 0 1100 790 ] /Parent 7 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+5 0 obj
+<<
+/PageMode /UseNone /Pages 7 0 R /Type /Catalog
+>>
+endobj
+6 0 obj
+<<
+/Author (GPT-6 Astra) /CreationDate (D:20000101000000+00'00') /Creator (anonymous) /Keywords () /ModDate (D:20000101000000+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (While a task is paused, its owner stores continuation k. Before acting, the scheduler takes k and clears its ownership slot. It then either continues k with a value or discontinues k with Cancelled, never both. Resumed work may suspend with a fresh continuation. Cancellation unwinds scopes and runs non-suspending finalizers.) /Title (A suspended continuation has one owner) /Trapped /False
+>>
+endobj
+7 0 obj
+<<
+/Count 1 /Kids [ 4 0 R ] /Type /Pages
+>>
+endobj
+8 0 obj
+<<
+/Filter [ /ASCII85Decode /FlateDecode ] /Length 1690
+>>
+stream
+Gatm<9on$e&A@C2bcqTYQ/A=!;\Cq#'PNUiVk=8`k-!7"-,[$p9n.S(L87lDDU<]>"Ge*N%c9hGl%rRM!rkjk^YJt(?,9>*,tJ3?)j$pRYkf)`?54*q\lR6[G]_fA$MLr)r:o6;6G\()'Y&[DD'=W-#^QW].@i@b-A;G(C?J:/34CIV<L'Jm$pDke%d(p6`i6<dJX.,YoL2r@#)fds=Bk:cI5*OT"92'<Cl5\T$GL6Y>0p8ZEP1F3e6_>W8qm9qKh(IB13DV[+Ocl;aCHj'[d_0RR#]WJ%-t-PFrV"JE,6$?35DDZ?lT6,pI!U5#ck^Jon"%/h,]\`PqCP*bec1-Dn(&QSriCeP@4^FESCr3d'V:k$#cJT%UflT]?k&CqgbFJ)S"IUBlh^B\S/;@[?8n4`hjN/%T6>fH4`sl=ZbuD1pOl"J)qAH?_[e;oo/aa];,lFI>*iWZE+6>S<,-(,=a@o<2GJ_e9M)%+rsm"+k.=N-=LVem%T^LNi^#%=aEOnq-6O/jh=NMTem-VQ'YW@+g"*];X!l;3/.#U3,F`e?oj6khr3u05HkZ`\XZ@E9X`(he#(m9e;jjud"-%\gi[&='_b0*2+mZ.:L&$J$t,W^8k*@Urr')]D,"/YJToG^dL0iV'+pq;EW([!<%MYqQ/5KWeoW?cDbD[)V(@iTrd*QN6VFbT$njD@JqdeOA*X@Y)<[0PX;8oP<kC.H=ejVDFGt)]Zu?ZffdsZj%Rb=NYs^OqjDucXQ2A:aRk+_!$/F;>\9e[%+.>?>MF>1QPDkibBY$R/@Sjl'd#M<em"aUT:o\mQ2eZTZNW%MI@G_LB%9fnsDr]MPD"%U-X3)WBh7VL$itNX6NJZ59jck\VG-Rfb9oddKU->;DS9eDiakPO-m-T'BU?(_;//:Bdj)=F6D%f./F+1=X8,VsHn4#OZs.$H^VIJ)bKrHo(*`8IZcZZN@T2*\/!Tu*ZD0Rr^S"Ic,Wpr\q767m$63uK<fK(ZS6`Clu4><#NKG8&\UJ*k<;Hp^#X#sb;@\Yu]ot0uO$s.bLBPCJeCeh0:I!jmGe"9HAS;U-Th5!kM3.s/-R.q/JPFEqAQB#D'0#CbB>gD'MZ;EdEMX!48:sZ+0/ItrH6;]m8\Uh;UhcBT2l8c1IY8Q'@?V*=_3,?"kVM0D[V@W!NdRQqB22b#kdq<!FPW?nM3HOaZ6n*3>Zi;h&][!U;c<7F"8$);Mb+,A3T:7Z8M3KiM(.gk\$50?)6deN-;UQtm;po&0B1\lfg,Ze7(mB^$,&(`36'=n$5c:D$QC'Kbq-6O/jh@pa1pW/!$m,OgdK@8$nb'IT*h'G0g%XWh`%)t)pYF1j)uMPFkH>S5DO^'o<'#JfginOuIstE\/*s!Q30g4^k-ST[`//q0BD9@"A,@NRT7n<?K/8`$`6lL-H:TS,EgGh@37',@U4F0C#3JhK/U)]PYfd7I38A_V-/RtX\8Q@3fT*Qt>qu8_JT0KO2r2jQh*8EmHV'Ob+4+$>A4mt1S*p"1%P<QBcSd-;,7f2YBKfGSEjkL*NLNI4Zj:sZ%Me?85nVMd[LYMECZAM^:;uV<`5Pk(@k(CHpZ[MJn2Z;S6AV9$@>uoWr+6nbQi*hmVFPhPi^nT@+76H*^@NFaPUeE!o/K%*LCHK:l#CA7MYM@g4e*qiH=6p.*iB)Kpjni"A_@_2rrT;*&cD~>endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000061 00000 n 
+0000000102 00000 n 
+0000000209 00000 n 
+0000000321 00000 n 
+0000000515 00000 n 
+0000000583 00000 n 
+0000001191 00000 n 
+0000001250 00000 n 
+trailer
+<<
+/ID 
+[<1728da334a995e7497bc4ecbcd243d8c><1728da334a995e7497bc4ecbcd243d8c>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 6 0 R
+/Root 5 0 R
+/Size 9
+>>
+startxref
+3031
+%%EOF

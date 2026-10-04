@@ -1,6 +1,6 @@
 ## Chapter 6: Folding and Backtracking
 
-![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
+![A camel assembles expression trees in a lamplit workshop](Curious_OCaml-chapter_6-third-edition.png){.chapter-image}
 
 **Prerequisites:** Chapter 3's expression language; Chapter 5's module interfaces.
 **Route:** Part II begins here. Continue to Chapter 11 for binding and extension,

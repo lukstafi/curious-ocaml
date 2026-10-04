@@ -1,4 +1,19 @@
 (copy_files
+ (files ../chapter2/*.pdf))
+
+(copy_files
+ (files ../chapter3/*.pdf))
+
+(copy_files
+ (files ../chapter8/*.pdf))
+
+(copy_files
+ (files ../chapter9/*.pdf))
+
+(copy_files
+ (files ../chapter10/*.pdf))
+
+(copy_files
  (files ../*.md))
 
 (copy_files
@@ -100,17 +115,23 @@
  (alias new_book)
  (mode promote)
  (target new_book.pdf)
- (deps README.md template.latex Curious_OCaml-cover.jpg
+ (deps README.md template.latex vector-figures.lua
+       element-subtree-holes.pdf
+       evaluator-frames.pdf
+       search-interpretations.pdf
+       continuation-ownership.pdf
+       shared-game-trace.pdf
+       Curious_OCaml-cover.jpg
        Curious_OCaml-chapter_1.jpg
        Curious_OCaml-chapter_2.jpg
        Curious_OCaml-chapter_3.jpg
        Curious_OCaml-chapter_4.jpg
        Curious_OCaml-chapter_5.jpg
-       Curious_OCaml-chapter_6.jpg
-       Curious_OCaml-chapter_7.jpg
+       Curious_OCaml-chapter_6-third-edition.png
+       Curious_OCaml-chapter_7-third-edition.png
        Curious_OCaml-chapter_8.jpg
        Curious_OCaml-chapter_9.jpg
-       Curious_OCaml-chapter_10.jpg
+       Curious_OCaml-chapter_10-third-edition.png
        Curious_OCaml-chapter_11.jpg
        Curious_OCaml-chapter_12.jpg
        chain_reaction.png
@@ -122,7 +143,7 @@
        how-froc-works-e.png
        sin_cos_1.png)
  (action
-  (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --metadata subtitle='Third Edition: Representations, Interpreters, and Laws' --top-level-division=part --pdf-engine=lualatex -o %{target}")))
+  (system "sed -e 's/```ocaml [^`]*/```ocaml/' -e '/^!\\[.*\\](Curious_OCaml-cover\\.jpg)/d' -e '/^::: {.illustrator-credit}/,/^:::/d' README.md | pandoc -s --toc --template=template.latex --lua-filter=vector-figures.lua --metadata subtitle='Third Edition: Representations, Interpreters, and Laws' --top-level-division=part --pdf-engine=lualatex -o %{target}")))
 
 ; Disabled due to LaTeX errors in extracted markdown files (0.5em spacing, \n escape sequences, Unicode chars)
 ; (rule

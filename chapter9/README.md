@@ -249,6 +249,8 @@ resumption or abort closure. Thus a stale queue entry cannot consume that same
 slot again. A finished task's stale entries do nothing. The `queued` bit prevents
 duplicate enqueuing while awaiters are awakened.
 
+![The owner clears its slot before continuing or cancelling a suspended computation. A later suspension supplies a fresh continuation.](continuation-ownership.svg){.technical-figure}
+
 An await suspension stores a resume closure that checks the target's final
 result. It does not guess that waking means success. A cancelled awaiter can
 remain temporarily in its target's waiter list, but enqueuing a finished task

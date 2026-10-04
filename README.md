@@ -2,7 +2,7 @@
 title: Curious OCaml
 author:
   - GPT-6 Astra
-illustrator: Gemini 3 Nano Banana
+illustrator: "Gemini 3 Nano Banana (original art); OpenAI image generation (third-edition art); GPT-6 Astra (diagrams)"
 header-includes:
   - <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
        integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
@@ -82,7 +82,8 @@ toc-depth: 3
 ![Curious OCaml](Curious_OCaml-cover.jpg){.cover-image}
 
 ::: {.illustrator-credit}
-*Illustrated by: Gemini 3 Nano Banana*
+*Original illustrations: Gemini 3 Nano Banana. Third-edition chapter art:
+OpenAI image generation. Technical diagrams: GPT-6 Astra.*
 :::
 
 ## About the third edition
@@ -106,7 +107,9 @@ book from its later rewrites:
 - **First edition:** Lukasz Stafiniak, Claude Opus 4.5, and GPT-5.2.
 - **Second edition:** Claude Opus 4.6 and GPT-5.3-Codex.
 - **Third-edition rewrite:** GPT-6 Astra.
-- **Illustrations:** Gemini 3 Nano Banana; retained from the earlier editions.
+- **Original illustrations:** Gemini 3 Nano Banana.
+- **Third-edition chapter art (6, 7, 10):** OpenAI image generation.
+- **Technical diagrams:** GPT-6 Astra.
 
 ### Choose a route
 
@@ -1344,8 +1347,11 @@ let () =
   let context = [From_left (1, Tip)] in
   assert (plug (Node (2, Tip, Tip)) context = t);
   assert (btree_integr 1 (Here (Node (2, Tip, Tip), Tip)) = t);
+  assert (btree_integr 2 (Below (LeftBranch, 1, Tip, Here (Tip, Tip))) = t);
   assert (plug Tip [] = Tip)
 ```
+
+![Removing an element keeps its two children; removing a subtree takes the children with it.](element-subtree-holes.svg){.technical-figure}
 
 For $T=1+aT^2$, a path step has shape $2aT$: a direction, an element, and a
 sibling. A subtree context is a list of these steps. An element context consists
@@ -1738,6 +1744,8 @@ let rec run = function
 
 let eval_machine env e = run (Eval (e, env, []))
 ```
+
+![The ten machine states for (2 + 3) * 4. The stack records the work still pending, with its top on the left.](evaluator-frames.svg){.technical-figure}
 
 The machine alternates between evaluating syntax and returning a value to its
 frames. Every call to `step` performs one transition. The `run` loop is tail
@@ -2622,7 +2630,7 @@ next project precisely because it changes this cost model.
 
 ## Chapter 6: Folding and Backtracking
 
-![Chapter 6 illustration](Curious_OCaml-chapter_6.jpg){.chapter-image}
+![A camel assembles expression trees in a lamplit workshop](Curious_OCaml-chapter_6-third-edition.png){.chapter-image}
 
 **Prerequisites:** Chapter 3's expression language; Chapter 5's module interfaces.
 **Route:** Part II begins here. Continue to Chapter 11 for binding and extension,
@@ -3834,7 +3842,7 @@ body is bound. The executable `shadow` example above checks exactly that boundar
 
 ## Chapter 7: Streams, demand, and sharing
 
-![Chapter 7 illustration](Curious_OCaml-chapter_7.jpg){.chapter-image}
+![A camel opens a sluice to draw one cup of water](Curious_OCaml-chapter_7-third-edition.png){.chapter-image}
 
 **Prerequisites:** lists, folds and the cost discussion in Chapters 3 and 6.
 **Route:** Part III begins here. Chapter 8 adds choice; Chapter 10 consumes a
@@ -4107,6 +4115,8 @@ repeated equal answers; its machine integer can overflow on a very large tree.
 The agreement laws for finite searches are
 `first m = List.nth_opt (all m) 0` and `count m = List.length (all m)`, when that
 count fits. These are weaker than saying the three results are identical.
+
+![The nine leaves of pairs 4, with three successes. All, first, and count observe the same tree in different ways.](search-interpretations.svg){.technical-figure}
 
 The source and tests are `projects/choices/search.ml` and `laws.ml`. The
 Honey Islands project also expresses its choices through a module interface,
@@ -4516,6 +4526,8 @@ resumption or abort closure. Thus a stale queue entry cannot consume that same
 slot again. A finished task's stale entries do nothing. The `queued` bit prevents
 duplicate enqueuing while awaiters are awakened.
 
+![The owner clears its slot before continuing or cancelling a suspended computation. A later suspension supplies a fresh continuation.](continuation-ownership.svg){.technical-figure}
+
 An await suspension stores a resume closure that checks the target's final
 result. It does not guess that waking means success. A cancelled awaiter can
 remain temporarily in its target's waiter list, but enqueuing a finished task
@@ -4637,7 +4649,7 @@ explicit scope policy; it is not an application runtime recommendation.
 
 ## Chapter 10: One game, three interpretations
 
-![Chapter 10 illustration](Curious_OCaml-chapter_10.jpg){.chapter-image}
+![A camel studies three views of a tabletop paddle game](Curious_OCaml-chapter_10-third-edition.png){.chapter-image}
 
 **Prerequisites:** Chapters 7–9: streams, interpreters and owned continuations.
 **Route:** the final chapter of Part III. Chapter 12 returns to the laws connecting
@@ -4730,6 +4742,8 @@ let () =
     if e=[] then None else Some (s.Game.tick,e)) trace =
     [2,[Game.Paddle];5,[Game.Wall];8,[Game.Ceiling];14,[Game.Miss]])
 ```
+
+![Four event ticks from the common game trace. Streams, signals, and effects produce the same positions and events.](shared-game-trace.svg){.technical-figure}
 
 ### 10.3 A stream is a sequence of transitions
 
